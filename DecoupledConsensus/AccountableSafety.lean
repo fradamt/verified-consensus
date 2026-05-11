@@ -7,4 +7,4 @@ under `AccountableSafety.Store.*`.
 -/
 
 import DecoupledConsensus.AccountableSafety.State.Proof.Safety
-import DecoupledConsensus.AccountableSafety.Store.Model.Basic
+import DecoupledConsensus.AccountableSafety.Store.Proof.Facts

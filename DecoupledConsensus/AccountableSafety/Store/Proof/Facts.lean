@@ -253,6 +253,22 @@ lemma isViableBool_sound_of_contains {S : Store n} {B : Block n}
   · exact (Block.isAncestorOf_eq_true_iff _ _).mp heParts.2
   · exact ⟨e, he, rfl, of_decide_eq_true heParts.1⟩
 
+/-- Executable viability supplies the high-descendant witness used by the
+    store invariants. -/
+lemma highDescendant_of_isViableBool {S : Store n} {B : Block n}
+    (hViable : S.isViableBool B = true) :
+    ∃ e ∈ S.entries, S.heightThreshold ≤ e.height ∧ B ≼ e.block := by
+  have hparts : S.containsBlockBool B = true ∧
+      S.entries.any (fun e =>
+        decide (S.heightThreshold ≤ e.height) && Block.isAncestorOf B e.block) = true := by
+    simpa [isViableBool, Bool.and_eq_true] using hViable
+  rcases list_any_true hparts.2 with ⟨e, he, heViable⟩
+  have heParts : decide (S.heightThreshold ≤ e.height) = true ∧
+      Block.isAncestorOf B e.block = true := by
+    simpa [Bool.and_eq_true] using heViable
+  exact ⟨e, he, of_decide_eq_true heParts.1,
+    (Block.isAncestorOf_eq_true_iff _ _).mp heParts.2⟩
+
 /-- If an accepted entry passes the executable candidate predicate, its block
     is present in `getConfirmed`. -/
 lemma mem_getConfirmed_of_entry_candidate {S : Store n} {e : StoreEntry n}

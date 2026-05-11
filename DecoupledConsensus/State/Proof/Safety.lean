@@ -1,6 +1,6 @@
-import DecoupledConsensus.AccountableSafety.State.Proof.Advance
+import DecoupledConsensus.State.Proof.Advance
 
-namespace AccountableSafety
+namespace DecoupledConsensus
 
 /-! # Accountable Safety Proofs: main theorems
 
@@ -288,4 +288,4 @@ theorem accountable_safety {f : ℕ} (hn : n = 3 * f + 1)
     · exact Or.inr (Or.inr hcompat)
 
 
-end AccountableSafety
+end DecoupledConsensus

@@ -1,6 +1,6 @@
-import DecoupledConsensus.AccountableSafety.State.Model.StateMachine
+import DecoupledConsensus.State.Model.StateMachine
 
-namespace AccountableSafety
+namespace DecoupledConsensus
 
 /-! # Accountable Safety Model: certificates
 
@@ -85,4 +85,4 @@ def IsSlashable (i : Validator n) : Prop :=
 def AtLeastFThirdSlashable (f : ℕ) : Prop :=
   ∃ S : Finset (Validator n), S.card ≥ f + 1 ∧ ∀ i ∈ S, IsSlashable i
 
-end AccountableSafety
+end DecoupledConsensus

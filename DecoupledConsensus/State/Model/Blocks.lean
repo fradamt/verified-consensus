@@ -1,6 +1,6 @@
-import DecoupledConsensus.AccountableSafety.State.Model.Primitives
+import DecoupledConsensus.State.Model.Primitives
 
-namespace AccountableSafety
+namespace DecoupledConsensus
 
 /-! # Accountable Safety Model: blocks
 
@@ -103,4 +103,4 @@ scoped infix:50 " ~ " => Block.Compatible
 
 end Block
 
-end AccountableSafety
+end DecoupledConsensus

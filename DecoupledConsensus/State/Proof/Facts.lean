@@ -1,6 +1,6 @@
-import DecoupledConsensus.AccountableSafety.State.Model.Certificates
+import DecoupledConsensus.State.Model.Certificates
 
-namespace AccountableSafety
+namespace DecoupledConsensus
 
 /-! # Accountable Safety Proofs: basic facts
 
@@ -985,4 +985,4 @@ lemma iterateProcessSlot_h_le (σ : State n) (k : ℕ) :
     show σ.h ≤ (iterateProcessSlot (processSlot σ) k).h
     exact (processSlot_h_le σ).trans (ih (processSlot σ))
 
-end AccountableSafety
+end DecoupledConsensus

@@ -1,6 +1,6 @@
-import DecoupledConsensus.AccountableSafety.Store.Model.Basic
+import DecoupledConsensus.Store.Model.Basic
 
-namespace AccountableSafety
+namespace DecoupledConsensus
 
 /-! # Store Proofs: basic facts
 
@@ -354,4 +354,4 @@ lemma getConfirmed_descends_from_J_of_boundary {S : Store n} {B : Block n}
 
 end Store
 
-end AccountableSafety
+end DecoupledConsensus

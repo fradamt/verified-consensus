@@ -1,6 +1,6 @@
-import DecoupledConsensus.AccountableSafety.State.Proof.Facts
+import DecoupledConsensus.State.Proof.Facts
 
-namespace AccountableSafety
+namespace DecoupledConsensus
 
 /-! # Accountable Safety Proofs: invariants
 
@@ -1693,4 +1693,4 @@ lemma chain_HjZeroJGenesis {B : Block n} (chain : Chain n B) :
     apply stateTransition_HjZeroJGenesis_pres _ _ ih
     exact chain_h_pos c
 
-end AccountableSafety
+end DecoupledConsensus

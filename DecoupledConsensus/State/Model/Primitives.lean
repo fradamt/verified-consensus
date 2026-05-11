@@ -1,6 +1,6 @@
 import Mathlib.Tactic
 
-namespace AccountableSafety
+namespace DecoupledConsensus
 
 /-! # Accountable Safety Model: primitives
 
@@ -58,4 +58,4 @@ def Slashable (a b : Vote n) : Prop :=
 
 end Vote
 
-end AccountableSafety
+end DecoupledConsensus

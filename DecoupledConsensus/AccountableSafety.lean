@@ -2,9 +2,8 @@
 # Accountable Safety
 
 Public facade for the accountable-safety formalization. The section-2 state
-machine lives under `AccountableSafety.State.*`; section-3 store modules live
-under `AccountableSafety.Store.*`.
+machine lives under `DecoupledConsensus.State.*`. Section 3 store modules live
+under `DecoupledConsensus.Store.*` and are exported by `DecoupledConsensus.Store`.
 -/
 
-import DecoupledConsensus.AccountableSafety.State.Proof.Safety
-import DecoupledConsensus.AccountableSafety.Store.Proof.Invariants
+import DecoupledConsensus.State.Proof.Safety

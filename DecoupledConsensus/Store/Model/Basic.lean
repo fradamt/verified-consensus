@@ -1,6 +1,6 @@
-import DecoupledConsensus.AccountableSafety.State.Model.StateMachine
+import DecoupledConsensus.State.Model.StateMachine
 
-namespace AccountableSafety
+namespace DecoupledConsensus
 
 /-! # Accountable Safety Store Model
 
@@ -241,4 +241,4 @@ def onBlock (S : Store n) (B : Block n) : Option (Store n) :=
 
 end Store
 
-end AccountableSafety
+end DecoupledConsensus

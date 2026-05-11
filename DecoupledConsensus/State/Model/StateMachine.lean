@@ -1,11 +1,11 @@
-import DecoupledConsensus.AccountableSafety.State.Model.Blocks
+import DecoupledConsensus.State.Model.Blocks
 
-namespace AccountableSafety
+namespace DecoupledConsensus
 
 /-! # Accountable Safety Model: state machine
 
 Protocol state, executable transition functions, valid chains, and `σ[B]`.
-Proofs about these definitions live under `AccountableSafety.State.Proof`. -/
+Proofs about these definitions live under `DecoupledConsensus.State.Proof`. -/
 
 variable {n : ℕ}
 
@@ -251,4 +251,4 @@ def Chain.subchain {n : ℕ} :
           · exact hStep)
 
 
-end AccountableSafety
+end DecoupledConsensus

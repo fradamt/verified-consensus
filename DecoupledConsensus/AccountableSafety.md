@@ -4,10 +4,11 @@ This Lean development formalizes the accountable-safety argument from
 `height_filter_and_timeouts.tex`. It currently builds with zero
 `sorry`s and uses only Lean/mathlib standard axioms.
 
-The executable model lives under `AccountableSafety/Model`, while proof facts,
-invariants, the advance lemma, and the safety theorem live under
-`AccountableSafety/Proof`. `DecoupledConsensus/AccountableSafety.lean` is the
-public facade import.
+The state-machine executable model lives under `DecoupledConsensus/State/Model`,
+while state proof facts, invariants, the advance lemma, and the safety theorem
+live under `DecoupledConsensus/State/Proof`. `DecoupledConsensus/AccountableSafety.lean`
+is the section-2 public facade. Section 3 store definitions live under
+`DecoupledConsensus/Store`.
 
 ## Core Model
 

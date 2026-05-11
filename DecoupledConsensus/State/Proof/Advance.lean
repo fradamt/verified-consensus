@@ -1,6 +1,6 @@
-import DecoupledConsensus.AccountableSafety.State.Proof.Invariants
+import DecoupledConsensus.State.Proof.Invariants
 
-namespace AccountableSafety
+namespace DecoupledConsensus
 
 /-! # Accountable Safety Proofs: advance witness
 
@@ -207,4 +207,4 @@ lemma advance_witness {f : ℕ} (hn : n = 3 * f + 1)
           obtain ⟨v, hv_mem, hrest⟩ := hQ_votes i hi
           exact ⟨v, by simpa [votesIncluded, ← hB] using hv_mem, hrest⟩
 
-end AccountableSafety
+end DecoupledConsensus

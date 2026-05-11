@@ -1,7 +1,7 @@
-import DecoupledConsensus.AccountableSafety.State.Proof.Invariants
-import DecoupledConsensus.AccountableSafety.Store.Proof.Facts
+import DecoupledConsensus.State.Proof.Invariants
+import DecoupledConsensus.Store.Proof.Facts
 
-namespace AccountableSafety
+namespace DecoupledConsensus
 
 /-! # Store Proofs: invariants
 
@@ -755,4 +755,4 @@ theorem reachable_getConfirmed_nonempty {S : Store n}
 
 end Store
 
-end AccountableSafety
+end DecoupledConsensus

@@ -20,6 +20,11 @@ inductive Reachable : Store n → Prop
   | onBlock {S S' : Store n} {B : Block n}
       (hS : Reachable S) (hstep : S.onBlock B = some S') : Reachable S'
 
+/-- Accepted stores are ancestor-closed: accepting a block also means every
+    parent-pointer ancestor of that block has already been accepted. -/
+def AncestorClosed (S : Store n) : Prop :=
+  ∀ {A B : Block n}, Contains S B → A ≼ B → Contains S A
+
 lemma genesis_F_ancestor_J : (Store.genesis n).F ≼ (Store.genesis n).J := by
   exact .refl _
 
@@ -120,6 +125,29 @@ lemma addEntry_contains_of_contains {S : Store n} {e : StoreEntry n} {B : Block 
   rcases h with ⟨x, hx, hEq⟩
   exact ⟨x, by simp [addEntry, hx], hEq⟩
 
+lemma genesis_ancestorClosed : AncestorClosed (Store.genesis n) := by
+  intro A B hB hAnc
+  rcases hB with ⟨e, he, hEq⟩
+  simp [Store.genesis, StoreEntry.genesis] at he
+  subst e
+  subst B
+  cases hAnc
+  exact ⟨StoreEntry.genesis n, by simp [Store.genesis], rfl⟩
+
+lemma updateJustified_ancestorClosed {S : Store n} {J' : Block n} {h' : ℕ}
+    (h : AncestorClosed S) : AncestorClosed (S.updateJustified J' h') := by
+  intro A B hB hAnc
+  cases hguard : S.shouldUpdateJustified J' h' <;>
+    simpa [updateJustified, hguard] using
+      h (by simpa [updateJustified, hguard] using hB) hAnc
+
+lemma updateFinalized_ancestorClosed {S : Store n} {F' : Block n}
+    (h : AncestorClosed S) : AncestorClosed (S.updateFinalized F') := by
+  intro A B hB hAnc
+  cases hguard : S.shouldUpdateFinalized F' <;>
+    simpa [updateFinalized, hguard] using
+      h (by simpa [updateFinalized, hguard] using hB) hAnc
+
 lemma updateJustified_viable_unchanged {S : Store n} {J' R : Block n} {h' : ℕ}
     (h : S.isViableBool R = true) :
     (S.updateJustified J' h').isViableBool R = true := by
@@ -158,6 +186,27 @@ lemma addEntry_viable_preserved_by_descendant {S : Store n} {e : StoreEntry n}
         exact False.elim (hStillHigh hStill)
     exact isViableBool_of_entry_ancestor_height hR'
       (by simp [addEntry]) hAnc heHigh
+
+lemma addChild_ancestorClosed {S : Store n} {parent : Block n}
+    {bid newSlot : ℕ} {votes : List (Vote n)}
+    {entry : StoreEntry n}
+    (hBlock : entry.block = Block.mk bid parent newSlot votes)
+    (hClosed : AncestorClosed S) (hParent : Contains S parent) :
+    AncestorClosed (S.addEntry entry) := by
+  intro A B hB hAnc
+  rcases hB with ⟨x, hx, hEq⟩
+  have hxOr : x ∈ S.entries ∨ x = entry := by
+    simpa [addEntry] using hx
+  rcases hxOr with hxOld | hxNew
+  · exact addEntry_contains_of_contains (hClosed ⟨x, hxOld, hEq⟩ hAnc)
+  · subst x
+    subst B
+    rw [hBlock] at hAnc
+    cases hAnc with
+    | refl =>
+        exact ⟨entry, by simp [addEntry], hBlock⟩
+    | step hParentAnc =>
+        exact addEntry_contains_of_contains (hClosed hParent hParentAnc)
 
 /-- One successful `onBlock` step preserves the store invariant `F ≼ J`. -/
 lemma onBlock_F_ancestor_J {S S' : Store n} {B : Block n}
@@ -255,6 +304,48 @@ lemma onBlock_F_viableBool {S S' : Store n} {B : Block n}
               · simp [child, hAnc] at hstep
             · simp [hFind, hSlot] at hstep
 
+/-- One successful `onBlock` step preserves accepted-tree ancestor closure. -/
+lemma onBlock_ancestorClosed {S S' : Store n} {B : Block n}
+    (hClosed : AncestorClosed S) (hstep : S.onBlock B = some S') :
+    AncestorClosed S' := by
+  unfold onBlock at hstep
+  by_cases hContains : S.containsBlockBool B
+  · simp [hContains] at hstep
+    cases hstep
+    exact hClosed
+  · simp [hContains] at hstep
+    cases B with
+    | genesis =>
+        simp at hstep
+    | mk bid parent newSlot votes =>
+        cases hFind : S.findChain? parent with
+        | none =>
+            simp [hFind] at hstep
+        | some parentChain =>
+            by_cases hSlot : newSlot > parent.slot
+            · simp [hFind, hSlot] at hstep
+              let child := Block.mk bid parent newSlot votes
+              by_cases hAnc : Block.isAncestorOf S.F child
+              · simp [child, hAnc] at hstep
+                let entry : StoreEntry n :=
+                  { block := child
+                    chain := Chain.extend parentChain bid newSlot votes hSlot }
+                let σ' := entry.state
+                let S1 := S.addEntry entry
+                let S2 := S1.updateJustified σ'.J σ'.hj
+                have hParent : Contains S parent := findChain?_some_contains hFind
+                have hBlock : entry.block = Block.mk bid parent newSlot votes := by
+                  rfl
+                have hS1 : AncestorClosed S1 := by
+                  change AncestorClosed (S.addEntry entry)
+                  exact addChild_ancestorClosed hBlock hClosed hParent
+                have hS2 : AncestorClosed S2 :=
+                  updateJustified_ancestorClosed hS1
+                cases hstep
+                exact updateFinalized_ancestorClosed hS2
+              · simp [child, hAnc] at hstep
+            · simp [hFind, hSlot] at hstep
+
 /-- Reachable stores always maintain `F ≼ J`. -/
 theorem reachable_F_ancestor_J {S : Store n}
     (hS : Reachable S) : S.F ≼ S.J := by
@@ -274,6 +365,15 @@ theorem reachable_F_viableBool {S : Store n}
         findChain?, StoreEntry.chainAs?, heightThreshold, Block.isAncestorOf]
   | onBlock hPrev hstep ih =>
       exact onBlock_F_viableBool ih hstep
+
+/-- Reachable stores have ancestor-closed accepted trees. -/
+theorem reachable_ancestorClosed {S : Store n}
+    (hS : Reachable S) : AncestorClosed S := by
+  induction hS with
+  | genesis =>
+      exact genesis_ancestorClosed
+  | onBlock hPrev hstep ih =>
+      exact onBlock_ancestorClosed ih hstep
 
 lemma addEntry_hj_succ_le_hmax {S : Store n} {e : StoreEntry n}
     (h : S.hj + 1 ≤ S.hmax) : (S.addEntry e).hj + 1 ≤ (S.addEntry e).hmax := by

@@ -187,6 +187,20 @@ lemma getConfirmed_candidate {S : Store n} {B : Block n}
     getConfirmed_root_ancestor h,
     getConfirmed_height h⟩
 
+/-- In the non-boundary case, confirmed outputs descend from store `F`. -/
+lemma getConfirmed_descends_from_F_of_not_boundary {S : Store n} {B : Block n}
+    (hBoundary : S.hmax ≠ S.hj + 1) (h : B ∈ S.getConfirmed) :
+    S.F ≼ B := by
+  have hroot := getConfirmed_root_ancestor h
+  simpa [confirmationRoot, hBoundary] using hroot
+
+/-- At the height boundary, confirmed outputs descend from store `J`. -/
+lemma getConfirmed_descends_from_J_of_boundary {S : Store n} {B : Block n}
+    (hBoundary : S.hmax = S.hj + 1) (h : B ∈ S.getConfirmed) :
+    S.J ≼ B := by
+  have hroot := getConfirmed_root_ancestor h
+  simpa [confirmationRoot, hBoundary] using hroot
+
 end Store
 
 end AccountableSafety

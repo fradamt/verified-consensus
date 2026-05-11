@@ -34,15 +34,6 @@ Proof sketch:
     (justification or timeout), and `VoteWitnessInv` provides the concrete
     per-validator witness votes. -/
 
-/-- Helper: `Justified σ T` iff the targeted set `{i : σ.targets i = some T}`
-    is a quorum. Same for `TimeoutFires`. We restate these explicitly to
-    extract the quorum carrier. -/
-private lemma quorum_of_justified {σ : State n} {T : Block n} (h : Justified σ T) :
-    IsQuorumStrict n (Finset.univ.filter (fun i => σ.targets i = some T)) := h
-
-private lemma quorum_of_timeout {σ : State n} (h : TimeoutFires σ) :
-    IsQuorumStrict n (Finset.univ.filter (fun i => σ.timeouts i = true)) := h
-
 /-- Extract the responsible quorum from a single height-advance step.
 
     This packages the common justification/timeout case split used by
@@ -152,8 +143,6 @@ lemma advance_witness {f : ℕ} (hn : n = 3 * f + 1)
               simp [processSlot, hEmpty]
             rw [h_eq, hk₀_h] at hσ_post_h
             omega
-        have h_advance_witness :=
-          (height_progression σ_pre).2 h_step_advance
         -- VoteWitnessInv at σ_pre (preserved through iterateProcessSlot from chain_voteWitness c).
         have h_inv_pre : VoteWitnessInv (votesIncluded c) σ_pre := by
           have h_inv_c := chain_voteWitness c

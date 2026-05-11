@@ -206,6 +206,15 @@ inductive Future : Store n → Store n → Prop
       (hstep : S.onBlock B = some S') (hFuture : Future S' S'') :
       Future S S''
 
+/-- Future execution from a reachable store remains reachable. -/
+lemma Future.reachable_of_left {S T : Store n}
+    (hS : Reachable S) (hFuture : Future S T) : Reachable T := by
+  induction hFuture with
+  | refl S =>
+      exact hS
+  | step hstep _ ih =>
+      exact ih (Reachable.onBlock hS hstep)
+
 /-- Local irreversibility of store finality across any future execution. -/
 theorem future_F_ancestor {S T : Store n}
     (hFuture : Future S T) : S.F ≼ T.F := by
@@ -214,6 +223,22 @@ theorem future_F_ancestor {S T : Store n}
       exact .refl _
   | step hstep _ ih =>
       exact Block.Ancestor.trans (onBlock_F_monotone hstep) ih
+
+/-- Confirmed outputs in any future store stay below the earlier finalized
+    root. This is the store-level fork-choice consistency statement: the
+    boundary case roots confirmations at `J`, and reachable stores maintain
+    `F ≼ J`. -/
+theorem future_getConfirmed_descends_from_F {S T : Store n} {B : Block n}
+    (hS : Reachable S) (hFuture : Future S T) (hB : B ∈ T.getConfirmed) :
+    S.F ≼ B := by
+  have hSF : S.F ≼ T.F := future_F_ancestor hFuture
+  have hT : Reachable T := Future.reachable_of_left hS hFuture
+  by_cases hBoundary : T.hmax = T.hj + 1
+  · have hTJ : T.F ≼ T.J := reachable_F_ancestor_J hT
+    have hJB : T.J ≼ B := getConfirmed_descends_from_J_of_boundary hBoundary hB
+    exact Block.Ancestor.trans hSF (Block.Ancestor.trans hTJ hJB)
+  · have hFB : T.F ≼ B := getConfirmed_descends_from_F_of_not_boundary hBoundary hB
+    exact Block.Ancestor.trans hSF hFB
 
 /-- One successful `onBlock` step cannot decrease `hj`. -/
 lemma onBlock_hj_mono {S S' : Store n} {B : Block n}

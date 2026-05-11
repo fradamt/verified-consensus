@@ -89,11 +89,61 @@ private lemma findSome_chainAs_isSome_of_mem :
         | some c =>
             simp [List.findSome?, hHead]
 
+private lemma findSome?_some_mem {α β : Type} {f : α → Option β} :
+    ∀ {l : List α} {b : β}, l.findSome? f = some b → ∃ a ∈ l, f a = some b := by
+  intro l
+  induction l with
+  | nil =>
+      intro b h
+      simp [List.findSome?] at h
+  | cons a l ih =>
+      intro b h
+      cases hfa : f a with
+      | none =>
+          have htail : l.findSome? f = some b := by
+            simpa [List.findSome?, hfa] using h
+          rcases ih htail with ⟨x, hx, hfx⟩
+          exact ⟨x, by simp [hx], hfx⟩
+      | some b' =>
+          have hb : b' = b := by
+            simpa [List.findSome?, hfa] using h
+          subst b'
+          exact ⟨a, by simp, hfa⟩
+
 /-- Any concrete store entry can be found by block lookup. -/
 lemma containsBlockBool_of_entry_mem {S : Store n} {e : StoreEntry n}
     (he : e ∈ S.entries) : S.containsBlockBool e.block = true := by
   simpa [containsBlockBool, findChain?] using
     findSome_chainAs_isSome_of_mem (entries := S.entries) he
+
+/-- Prop-level accepted-block membership implies executable membership. -/
+lemma containsBlockBool_of_contains {S : Store n} {B : Block n}
+    (h : Contains S B) : S.containsBlockBool B = true := by
+  rcases h with ⟨e, he, hEq⟩
+  subst B
+  exact containsBlockBool_of_entry_mem he
+
+/-- A successful chain lookup returns an accepted store block. -/
+lemma findChain?_some_contains {S : Store n} {B : Block n} {c : Chain n B}
+    (h : S.findChain? B = some c) : Contains S B := by
+  have hfind :
+      S.entries.findSome? (fun x : StoreEntry n => x.chainAs? B) = some c := by
+    simpa [findChain?] using h
+  rcases findSome?_some_mem (f := fun x : StoreEntry n => x.chainAs? B) hfind with
+    ⟨e, he, hchain⟩
+  by_cases hEq : e.block = B
+  · exact ⟨e, he, hEq⟩
+  · simp [StoreEntry.chainAs?, hEq] at hchain
+
+/-- Executable accepted-block membership is sound for Prop-level membership. -/
+lemma contains_of_containsBlockBool {S : Store n} {B : Block n}
+    (h : S.containsBlockBool B = true) : Contains S B := by
+  unfold containsBlockBool at h
+  cases hfind : S.findChain? B with
+  | none =>
+      simp [hfind] at h
+  | some c =>
+      exact findChain?_some_contains hfind
 
 /-- A block is executable-viable when it is accepted and has a high accepted
     descendant. -/

@@ -12,6 +12,54 @@ open scoped Block
 
 attribute [local instance] Classical.propDecidable
 
+private lemma genesis_ancestor (B : Block n) : Block.genesis ≼ B := by
+  induction B with
+  | genesis => exact .refl _
+  | mk _ parent _ _ ih => exact .step ih
+
+private lemma finalized_zero_eq_genesis {f : ℕ} {C : Block n}
+    (hC : IsFinalizedAt f C 0) : C = Block.genesis := by
+  obtain ⟨_B, _chain, _hC_anc, _hF_eq, hCert⟩ := hC
+  rcases hCert with h_zero | h_pos
+  · exact h_zero.2
+  · omega
+
+private lemma finalized_nonzero_parts {C : Block n} {h_f : ℕ}
+    {B : Block n} {chain : Chain n B} {hC : C ≼ B}
+    (h_ne : h_f ≠ 0) (hCert : FinalizedCertificate chain C h_f hC) :
+    h_f > 0 ∧
+      FinalizeQuorumWitness (votesIncluded chain) C h_f ∧
+      JustifyQuorumWitness (votesIncluded chain) C h_f ∧
+      (stateOf (chain.subchain hC)).h = h_f ∧
+      (stateOf chain).h > h_f := by
+  rcases hCert with h_zero | h_pos
+  · exact False.elim (h_ne h_zero.1)
+  · exact h_pos
+
+private lemma finalized_finalize_witness {C : Block n} {h_f : ℕ}
+    {B : Block n} {chain : Chain n B} {hC : C ≼ B}
+    (h_ne : h_f ≠ 0) (hCert : FinalizedCertificate chain C h_f hC) :
+    FinalizeQuorumWitness (votesIncluded chain) C h_f :=
+  (finalized_nonzero_parts h_ne hCert).2.1
+
+private lemma finalized_justify_witness {C : Block n} {h_f : ℕ}
+    {B : Block n} {chain : Chain n B} {hC : C ≼ B}
+    (h_ne : h_f ≠ 0) (hCert : FinalizedCertificate chain C h_f hC) :
+    JustifyQuorumWitness (votesIncluded chain) C h_f :=
+  (finalized_nonzero_parts h_ne hCert).2.2.1
+
+private lemma finalized_subchain_height {C : Block n} {h_f : ℕ}
+    {B : Block n} {chain : Chain n B} {hC : C ≼ B}
+    (h_ne : h_f ≠ 0) (hCert : FinalizedCertificate chain C h_f hC) :
+    (stateOf (chain.subchain hC)).h = h_f :=
+  (finalized_nonzero_parts h_ne hCert).2.2.2.1
+
+private lemma finalized_chain_height_gt {C : Block n} {h_f : ℕ}
+    {B : Block n} {chain : Chain n B} {hC : C ≼ B}
+    (h_ne : h_f ≠ 0) (hCert : FinalizedCertificate chain C h_f hC) :
+    (stateOf chain).h > h_f :=
+  (finalized_nonzero_parts h_ne hCert).2.2.2.2
+
 /-! ### Lemma 3 (Main safety) — using the chain-based `IsFinalizedAt`. -/
 
 /-- **Lemma 3 (Main safety)**. If `C` is finalized at height `h_f`, then
@@ -34,18 +82,11 @@ lemma main_safety {f : ℕ} (hn : n = 3 * f + 1) (hId : Block.IdInjective n)
       · omega
     refine Or.inr ?_
     rw [hC_genesis]
-    have hgB : ∀ X : Block n, Block.genesis ≼ X := by
-      intro X
-      induction X with
-      | genesis => exact .refl _
-      | mk bid X' s vs ih => exact .step ih
-    exact hgB B
+    exact genesis_ancestor B
   have h_hf_ge : h_f ≥ 1 := Nat.one_le_iff_ne_zero.mpr h_hf_zero
   obtain ⟨Q_F, hQ_F_quorum_strict, hQ_F_votes⟩ :
-      FinalizeQuorumWitness (votesIncluded chain1) C h_f := by
-    rcases hCert with h_zero | ⟨_hpos, hFin, _hJust, _hC_height, _hchain_gt⟩
-    · exact False.elim (h_hf_zero h_zero.1)
-    · exact hFin
+      FinalizeQuorumWitness (votesIncluded chain1) C h_f :=
+    finalized_finalize_witness h_hf_zero hCert
   have hQ_F_quorum : IsQuorum f Q_F :=
     (isQuorum_iff_strict hn Q_F).mpr hQ_F_quorum_strict
   obtain ⟨Q_adv, B_star, hB_star, hQ_adv_quorum, hQ_adv_votes⟩ :=
@@ -81,6 +122,99 @@ lemma main_safety {f : ℕ} (hn : n = 3 * f + 1) (hId : Block.IdInjective n)
 /-! ### Lemma 4 (Finalized blocks form a chain) — using the chain-based
 `IsFinalizedAt`. -/
 
+private lemma finalized_chain_lt {f : ℕ} (hn : n = 3 * f + 1)
+    (hId : Block.IdInjective n)
+    {C C' : Block n} {h_f h_f' : ℕ}
+    (hC : IsFinalizedAt f C h_f) (hC' : IsFinalizedAt f C' h_f')
+    (h_lt : h_f < h_f') :
+    @AtLeastFThirdSlashable n f ∨ C ≼ C' := by
+  by_cases h_hf_zero : h_f = 0
+  · have hC0 : IsFinalizedAt f C 0 := by simpa [h_hf_zero] using hC
+    have hC_genesis : C = Block.genesis := finalized_zero_eq_genesis hC0
+    exact Or.inr (by rw [hC_genesis]; exact genesis_ancestor C')
+  obtain ⟨_B', chain', hC'_anc, _hF'_eq, hCert'⟩ := hC'
+  have h_hf'_ne : h_f' ≠ 0 := by omega
+  have h_state_gt : (stateOf chain').h > h_f := by
+    have h_chain_gt := finalized_chain_height_gt h_hf'_ne hCert'
+    omega
+  rcases main_safety hn hId hC chain' h_state_gt with hSlash | hC_anc
+  · exact Or.inl hSlash
+  rcases Block.Ancestor.linear hC_anc hC'_anc with h_CC' | h_C'C
+  · exact Or.inr h_CC'
+  · by_cases h_eq : C = C'
+    · rw [h_eq]
+      exact Or.inr (.refl _)
+    · exfalso
+      obtain ⟨_B1, chain1, hC_anc1, _hF_eq1, hCert1⟩ := hC
+      have hC_height :
+          (stateOf (chain1.subchain hC_anc1)).h = h_f :=
+        finalized_subchain_height h_hf_zero hCert1
+      have hC'_height :
+          (stateOf (chain'.subchain hC'_anc)).h = h_f' :=
+        finalized_subchain_height h_hf'_ne hCert'
+      have hSubLe :
+          (stateOf ((chain1.subchain hC_anc1).subchain h_C'C)).h ≤
+            (stateOf (chain1.subchain hC_anc1)).h :=
+        stateOf_subchain_h_le (chain1.subchain hC_anc1) h_C'C
+      have hSubC' :
+          stateOf ((chain1.subchain hC_anc1).subchain h_C'C) =
+            stateOf (chain'.subchain hC'_anc) :=
+        chain_unique _ _
+      have hSubLe' :
+          (stateOf (chain'.subchain hC'_anc)).h ≤
+            (stateOf (chain1.subchain hC_anc1)).h := by
+        rwa [hSubC'] at hSubLe
+      have h_le_hf : h_f' ≤ h_f := by
+        rw [← hC'_height, ← hC_height]
+        exact hSubLe'
+      omega
+
+private lemma finalized_chain_eq {f : ℕ} (hn : n = 3 * f + 1)
+    (hId : Block.IdInjective n)
+    {C C' : Block n} {h_f : ℕ}
+    (hC : IsFinalizedAt f C h_f) (hC' : IsFinalizedAt f C' h_f) :
+    @AtLeastFThirdSlashable n f ∨ C ≼ C' := by
+  by_cases h_hf_zero : h_f = 0
+  · subst h_hf_zero
+    have hC_genesis : C = Block.genesis := finalized_zero_eq_genesis hC
+    have hC'_genesis : C' = Block.genesis := finalized_zero_eq_genesis hC'
+    rw [hC_genesis, hC'_genesis]
+    exact Or.inr (.refl _)
+  obtain ⟨B1, chain1, _hC_anc1, _hF_eq1, hCert1⟩ := hC
+  obtain ⟨B2, chain2, _hC'_anc2, _hF_eq2, hCert2⟩ := hC'
+  obtain ⟨Q_F, hQ_F_quorum_strict, hQ_F_votes⟩ :
+      FinalizeQuorumWitness (votesIncluded chain1) C h_f :=
+    finalized_finalize_witness h_hf_zero hCert1
+  have hQ_F_quorum : IsQuorum f Q_F :=
+    (isQuorum_iff_strict hn Q_F).mpr hQ_F_quorum_strict
+  obtain ⟨Q_just_C', hQ_just_C'_quorum, hQ_just_C'_votes⟩ :
+      JustifyQuorumWitness (votesIncluded chain2) C' h_f :=
+    finalized_justify_witness h_hf_zero hCert2
+  have hQ_just_C'_quorum_f : IsQuorum f Q_just_C' :=
+    (isQuorum_iff_strict hn Q_just_C').mpr hQ_just_C'_quorum
+  have h_inter : (Q_F ∩ Q_just_C').card ≥ f + 1 :=
+    quorum_intersection_f hn Q_F Q_just_C' hQ_F_quorum hQ_just_C'_quorum_f
+  by_cases h_CC' : C = C'
+  · exact Or.inr (h_CC' ▸ Block.Ancestor.refl C)
+  · left
+    refine ⟨Q_F ∩ Q_just_C', h_inter, ?_⟩
+    intro i hi
+    have hi_QF : i ∈ Q_F := (Finset.mem_inter.mp hi).1
+    have hi_Qj : i ∈ Q_just_C' := (Finset.mem_inter.mp hi).2
+    obtain ⟨v_F, hv_F_mem, hv_F_val, hv_F_fin⟩ := hQ_F_votes i hi_QF
+    obtain ⟨v_J, hv_J_mem, hv_J_val, hv_J_target, hv_J_height⟩ :=
+      hQ_just_C'_votes i hi_Qj
+    have hVal_eq : v_J.validator = v_F.validator := by rw [hv_J_val, hv_F_val]
+    refine ⟨B2, chain2, B1, chain1, v_J, hv_J_mem, v_F, hv_F_mem,
+      hv_J_val, hv_F_val, ?_⟩
+    refine ⟨hVal_eq, Or.inl ?_⟩
+    refine ⟨h_f, C.id, hv_F_fin, ?_, ?_⟩
+    · exact hv_J_height
+    · rw [hv_J_target]
+      intro h_inj
+      injection h_inj with hCC
+      exact h_CC' (hId hCC).symm
+
 /-- **Lemma 4 (Finalized blocks form a chain)**. Any two finalized
     checkpoints `(C, h_f)` and `(C', h_f')` with `h_f ≤ h_f'` are ordered
     as `C ≼ C'` (or at least `f + 1` validators are slashable). -/
@@ -90,115 +224,10 @@ lemma finalized_chain {f : ℕ} (hn : n = 3 * f + 1) (hId : Block.IdInjective n)
     (hLE : h_f ≤ h_f') :
     @AtLeastFThirdSlashable n f ∨ C ≼ C' := by
   rcases (Nat.lt_or_ge h_f h_f') with h_lt | h_ge
-  · by_cases h_hf_zero : h_f = 0
-    · obtain ⟨_B1, _chain1, _hC_anc1, _hF_eq1, hCert1⟩ := hC
-      have hC_genesis : C = Block.genesis := by
-        rcases hCert1 with h_zero | h_pos
-        · exact h_zero.2
-        · exact False.elim (by omega)
-      have h_genesis_anc : ∀ X : Block n, Block.genesis ≼ X := by
-        intro X
-        induction X with
-        | genesis => exact .refl _
-        | mk bid X' s vs ih => exact .step ih
-      exact Or.inr (by rw [hC_genesis]; exact h_genesis_anc C')
-    obtain ⟨_B', chain', hC'_anc, _hF'_eq, hCert'⟩ := hC'
-    have h_state_gt : (stateOf chain').h > h_f := by
-      rcases hCert' with h_zero | ⟨_hpos, _hFin, _hJust, _hC'_height, h_chain_gt⟩
-      · have : h_f' = 0 := h_zero.1
-        omega
-      · omega
-    rcases main_safety hn hId hC chain' h_state_gt with hSlash | hC_anc
-    · exact Or.inl hSlash
-    rcases Block.Ancestor.linear hC_anc hC'_anc with h_CC' | h_C'C
-    · exact Or.inr h_CC'
-    · by_cases h_eq : C = C'
-      · rw [h_eq]
-        exact Or.inr (.refl _)
-      · exfalso
-        obtain ⟨_B1, chain1, hC_anc1, _hF_eq1, hCert1⟩ := hC
-        have hC_height :
-            (stateOf (chain1.subchain hC_anc1)).h = h_f := by
-          rcases hCert1 with h_zero | ⟨_hpos, _hFin, _hJust, h_height, _h_chain_gt⟩
-          · exact False.elim (h_hf_zero h_zero.1)
-          · exact h_height
-        have hC'_height :
-            (stateOf (chain'.subchain hC'_anc)).h = h_f' := by
-          rcases hCert' with h_zero | ⟨_hpos, _hFin, _hJust, h_height, _h_chain_gt⟩
-          · have : h_f' = 0 := h_zero.1
-            omega
-          · exact h_height
-        have hSubLe :
-            (stateOf ((chain1.subchain hC_anc1).subchain h_C'C)).h ≤
-              (stateOf (chain1.subchain hC_anc1)).h :=
-          stateOf_subchain_h_le (chain1.subchain hC_anc1) h_C'C
-        have hSubC' :
-            stateOf ((chain1.subchain hC_anc1).subchain h_C'C) =
-              stateOf (chain'.subchain hC'_anc) :=
-          chain_unique _ _
-        have hSubLe' :
-            (stateOf (chain'.subchain hC'_anc)).h ≤
-              (stateOf (chain1.subchain hC_anc1)).h := by
-          rwa [hSubC'] at hSubLe
-        have h_le_hf : h_f' ≤ h_f :=
-          by
-            rw [← hC'_height, ← hC_height]
-            exact hSubLe'
-        omega
+  · exact finalized_chain_lt hn hId hC hC' h_lt
   · have hEq : h_f = h_f' := le_antisymm hLE h_ge
     subst h_f'
-    by_cases h_hf_zero : h_f = 0
-    · subst h_hf_zero
-      obtain ⟨_B1, _chain1, _, _hF_eq1, hCert1⟩ := hC
-      obtain ⟨_B2, _chain2, _, _hF_eq2, hCert2⟩ := hC'
-      have hC_genesis : C = Block.genesis := by
-        rcases hCert1 with h_zero | h_pos
-        · exact h_zero.2
-        · omega
-      have hC'_genesis : C' = Block.genesis := by
-        rcases hCert2 with h_zero | h_pos
-        · exact h_zero.2
-        · omega
-      rw [hC_genesis, hC'_genesis]
-      exact Or.inr (.refl _)
-    obtain ⟨_B1, chain1, _hC_anc1, _hF_eq1, hCert1⟩ := hC
-    obtain ⟨_B2, chain2, _hC'_anc2, _hF_eq2, hCert2⟩ := hC'
-    obtain ⟨Q_F, hQ_F_quorum_strict, hQ_F_votes⟩ :
-        FinalizeQuorumWitness (votesIncluded chain1) C h_f := by
-      rcases hCert1 with h_zero | ⟨_hpos, hFin, _hJust, _hC_height, _hchain_gt⟩
-      · exact False.elim (h_hf_zero h_zero.1)
-      · exact hFin
-    have hQ_F_quorum : IsQuorum f Q_F :=
-      (isQuorum_iff_strict hn Q_F).mpr hQ_F_quorum_strict
-    obtain ⟨Q_just_C', hQ_just_C'_quorum, hQ_just_C'_votes⟩ :
-        JustifyQuorumWitness (votesIncluded chain2) C' h_f := by
-      rcases hCert2 with h_zero | ⟨_hpos, _hFin, hJust, _hC'_height, _hchain_gt⟩
-      · exact False.elim (h_hf_zero h_zero.1)
-      · exact hJust
-    have hQ_just_C'_quorum_f : IsQuorum f Q_just_C' :=
-      (isQuorum_iff_strict hn Q_just_C').mpr hQ_just_C'_quorum
-    have h_inter : (Q_F ∩ Q_just_C').card ≥ f + 1 :=
-      quorum_intersection_f hn Q_F Q_just_C' hQ_F_quorum hQ_just_C'_quorum_f
-    by_cases h_CC' : C = C'
-    · exact Or.inr (h_CC' ▸ Block.Ancestor.refl C)
-    · left
-      refine ⟨Q_F ∩ Q_just_C', h_inter, ?_⟩
-      intro i hi
-      have hi_QF : i ∈ Q_F := (Finset.mem_inter.mp hi).1
-      have hi_Qj : i ∈ Q_just_C' := (Finset.mem_inter.mp hi).2
-      obtain ⟨v_F, hv_F_mem, hv_F_val, hv_F_fin⟩ := hQ_F_votes i hi_QF
-      obtain ⟨v_J, hv_J_mem, hv_J_val, hv_J_target, hv_J_height⟩ :=
-        hQ_just_C'_votes i hi_Qj
-      have hVal_eq : v_J.validator = v_F.validator := by rw [hv_J_val, hv_F_val]
-      refine ⟨_B2, chain2, _B1, chain1, v_J, hv_J_mem, v_F, hv_F_mem,
-        hv_J_val, hv_F_val, ?_⟩
-      refine ⟨hVal_eq, Or.inl ?_⟩
-      refine ⟨h_f, C.id, hv_F_fin, ?_, ?_⟩
-      · exact hv_J_height
-      · rw [hv_J_target]
-        intro h_inj
-        injection h_inj with hCC
-        exact h_CC' (hId hCC).symm
+    exact finalized_chain_eq hn hId hC hC'
 
 /-- **Theorem 1 (Accountable safety)**. No two conflicting blocks can be
     finalized — unless at least `f + 1` validators are provably slashable

@@ -66,16 +66,24 @@ scoped infix:50 " ≺ " => Block.StrictAncestor
 
     No well-formedness or id-injectivity is required for lookup itself. If ids
     collide, this returns the closest match to `root`; safety theorems assume
-    `Block.IdInjective n` when they need equal ids to imply equal blocks. -/
+    scoped id injectivity over the chains they compare when they need equal ids
+    to imply equal blocks. -/
 def findById : Block n → BlockId → Option (Block n)
   | genesis, bid => if bid = 0 then some genesis else none
   | mk selfId parent s vs, bid =>
       if bid = selfId then some (mk selfId parent s vs) else findById parent bid
 
-/-- Collision-free block ids. This models hashes identifying blocks and is used
-    only where the safety proof must convert id equality into block equality. -/
-def IdInjective (n : ℕ) : Prop :=
-  ∀ {A B : Block n}, A.id = B.id → A = B
+/-- Collision-free ids scoped to the two block histories being compared.
+
+    This is the hash idealization used by safety: malformed raw blocks may
+    reuse ids, but every ancestor of either considered tip has a unique id
+    within that comparison boundary. -/
+def IdInjectiveOnAncestors (tip₁ tip₂ : Block n) : Prop :=
+  ∀ {A B : Block n},
+    (A ≼ tip₁ ∨ A ≼ tip₂) →
+    (B ≼ tip₁ ∨ B ≼ tip₂) →
+    A.id = B.id →
+    A = B
 
 /-- Two blocks are compatible if one is an ancestor of the other. -/
 def Compatible (B C : Block n) : Prop := B ≼ C ∨ C ≼ B

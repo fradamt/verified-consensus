@@ -33,8 +33,9 @@ inductive Block (n : ℕ) where
 ```
 
 Votes refer to block ids rather than block values. `Block.findById` resolves
-an id against the current chain head, and the safety theorem assumes
-`Block.IdInjective n`, modelling collision-free block hashes.
+an id against the current chain head. The safety theorem assumes
+`Block.IdInjectiveOnAncestors B₁ B₂`, modelling collision-free block hashes
+only over the two chain histories under consideration.
 
 The finalize commitment is intentionally one optional pair. This avoids
 ill-formed votes that specify a finalize height without a target, or a target
@@ -83,6 +84,11 @@ Finalize updates to `P` use the id form:
 v.finalize = some (σ'.hj, σ'.J.id)
 ```
 
+Unresolved target ids are ignored by `processVoteCore`, so they do not enter
+`targets` or `timeouts`. The finalize gate is separate: a vote can affect `P`
+only if its finalize commitment matches the current `(hj, J.id)` after the
+core vote update.
+
 ## Finality Predicate
 
 `State` stores `F : Block n` but no finalized height. The external predicate
@@ -107,17 +113,21 @@ The final theorem has the collision-free id premise explicitly:
 ```lean
 theorem accountable_safety
     (hn : n = 3 * f + 1)
-    (hId : Block.IdInjective n)
-    (hC : IsFinalizedAt f C h_f)
-    (hC' : IsFinalizedAt f C' h_f') :
+    (hId : Block.IdInjectiveOnAncestors B₁ B₂)
+    (chain₁ : Chain n B₁)
+    (hF₁ : (stateOf chain₁).F = C)
+    (hCert₁ : FinalizedCertificate chain₁ C h_f hC₁)
+    (chain₂ : Chain n B₂)
+    (hF₂ : (stateOf chain₂).F = C')
+    (hCert₂ : FinalizedCertificate chain₂ C' h_f' hC₂) :
     AtLeastFThirdSlashable f ∨ C ~ C'
 ```
 
-This is the right place for id injectivity: the protocol can use opaque ids,
-but the proof must be allowed to turn equal ids into equal blocks when deriving
-a slashing conflict. Slashability is stated structurally over votes included in
-chain histories; a concrete signature layer can authenticate those payloads
-without changing the safety theorem.
+This scopes id injectivity to ancestors of the two witnessing chain tips. The
+protocol can use opaque ids, while the proof can turn equal ids into equal
+blocks exactly where the compared histories require it. Slashability is stated
+structurally over votes included in chain histories; a concrete signature layer
+can authenticate those payloads without changing the safety theorem.
 
 ## Current Status
 

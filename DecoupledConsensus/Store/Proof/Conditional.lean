@@ -349,6 +349,81 @@ theorem getConfirmed_descends_from_finalized_of_upgrade {f : ℕ}
     exact getConfirmed_descends_from_finalized_of_high_frontier hn hNoSlash
       hIdStore chainF hFstate hFCert hFrontier hB
 
+/-- Executable finality-update acceptance: once the three guards are available
+    propositionally, `updateFinalized` really writes the state variable `F`. -/
+theorem updateFinalized_sets_of_guards {S : Store n} {F' : Block n}
+    (hStrict : S.F ≼ F' ∧ S.F ≠ F')
+    (hBelowJ : F' ≼ S.J)
+    (hViable : S.isViableBool F' = true) :
+    (S.updateFinalized F').F = F' := by
+  have hStrictBool : Block.isStrictAncestorOf S.F F' = true :=
+    (Block.isStrictAncestorOf_eq_true_iff _ _).mpr hStrict
+  have hBelowJBool : Block.isAncestorOf F' S.J = true :=
+    (Block.isAncestorOf_eq_true_iff _ _).mpr hBelowJ
+  have hGuard : S.shouldUpdateFinalized F' = true := by
+    simp [shouldUpdateFinalized, hStrictBool, hBelowJBool, hViable]
+  simp [updateFinalized, hGuard]
+
+/-- If finality has already reached or passed `F'`, the update result still
+    descends from `F'`; otherwise, the proven guards force the update to set
+    `F = F'`. This is the local finality-acceptance shape used by Section 3. -/
+theorem updateFinalized_descends_or_sets_of_guards {S : Store n} {F' : Block n}
+    (hAlreadyOrStrict : F' ≼ S.F ∨ (S.F ≼ F' ∧ S.F ≠ F'))
+    (hBelowJ : F' ≼ S.J)
+    (hViable : S.isViableBool F' = true) :
+    F' ≼ (S.updateFinalized F').F := by
+  rcases hAlreadyOrStrict with hAlready | hStrict
+  · exact hAlready.trans updateFinalized_F_monotone
+  · rw [updateFinalized_sets_of_guards hStrict hBelowJ hViable]
+    exact .refl _
+
+/-- Record-based finality liveness for the exposed finality mutator. The
+    Section-3 proof supplies `F' ≼ J` through upgrade and `F'` viability
+    through the finalized-viable lemma; this theorem wires those facts to the
+    executable `updateFinalized` guard. -/
+theorem updateFinalized_accepts_finalized_record {f : ℕ}
+    (hn : n = 3 * f + 1)
+    (hNoSlash : ¬ @AtLeastFThirdSlashable n f)
+    {S : Store n} {F' : Block n} {h_f : ℕ}
+    (rF : FinalizationRecord F' h_f)
+    (rRoot : JustificationRecord S S.J S.hj)
+    (hId : rF.IdInjectiveAgainstStore S)
+    (hhj : h_f ≤ S.hj)
+    (hStrict : S.F ≼ F' ∧ S.F ≠ F')
+    (hViable : S.isViableBool F' = true) :
+    (S.updateFinalized F').F = F' := by
+  have hBelowJ : F' ≼ S.J :=
+    upgrade_of_current_root_record hn hNoSlash rF rRoot hId hhj
+  exact updateFinalized_sets_of_guards hStrict hBelowJ hViable
+
+/-- Record-based lock-in. From a finalization certificate for `F`, a processed
+    justification record for `(F, h_f)`, and a current-root justification
+    record high enough to satisfy upgrade, every executable confirmed output in
+    the future store descends from `F`; the theorem also returns the two
+    intermediate Section-3 conclusions. -/
+theorem lockin_of_records {f : ℕ}
+    (hn : n = 3 * f + 1)
+    (hNoSlash : ¬ @AtLeastFThirdSlashable n f)
+    {S T : Store n} (hS : Reachable S) (hFuture : Future S T)
+    {F B : Block n} {h_f : ℕ}
+    (rF : FinalizationRecord F h_f)
+    (rProcessed : JustificationRecord S F h_f)
+    (rRoot : JustificationRecord T T.J T.hj)
+    (hId : rF.IdInjectiveAgainstStore T)
+    (hhj : h_f ≤ T.hj)
+    (hB : B ∈ T.getConfirmed) :
+    F ≼ T.J ∧ T.isViableBool F = true ∧ F ≼ B := by
+  have hFJ : F ≼ T.J :=
+    upgrade_of_current_root_record hn hNoSlash rF rRoot hId hhj
+  have hViable : T.isViableBool F = true :=
+    future_finalized_viableBool_of_processedJustification hn hNoSlash hS hFuture
+      hId rF.chain rF.final_state rF.certificate rProcessed.processed
+  have hDesc : F ≼ B :=
+    getConfirmed_descends_from_finalized_of_upgrade hn hNoSlash
+      (Future.reachable_of_left hS hFuture)
+      hId rF.chain rF.final_state rF.certificate hFJ hhj hB
+  exact ⟨hFJ, hViable, hDesc⟩
+
 end Store
 
 end DecoupledConsensus

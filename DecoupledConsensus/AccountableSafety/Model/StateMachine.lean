@@ -131,7 +131,9 @@ def processVoteCore (σ : State n) (v : Vote n) : State n :=
 /-- Process a single vote against the current state.
     Implements `processVote` from Figure 1 (state machine):
     first apply `processVoteCore` (targets/timeouts update), then the
-    finalize-commitment `P`-gate. -/
+    finalize-commitment `P`-gate. The `P`-gate is intentionally independent
+    of target freshness: a stale or unresolved target side may fail to update
+    `targets`/`timeouts`, while a matching finalize commitment still counts. -/
 def processVote (σ : State n) (v : Vote n) : State n :=
   let σ' := processVoteCore σ v
   if v.finalize = some (σ'.hj, σ'.J.id) then

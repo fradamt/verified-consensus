@@ -84,10 +84,11 @@ Finalize updates to `P` use the id form:
 v.finalize = some (σ'.hj, σ'.J.id)
 ```
 
-Unresolved target ids are ignored by `processVoteCore`, so they do not enter
-`targets` or `timeouts`. The finalize gate is separate: a vote can affect `P`
-only if its finalize commitment matches the current `(hj, J.id)` after the
-core vote update.
+Unresolved or non-fresh target sides are ignored by `processVoteCore`, so they
+do not enter `targets` or `timeouts`. The finalize gate is intentionally
+separate and independent of target freshness: a vote can affect `P` whenever
+its finalize commitment matches the current `(hj, J.id)` after the core vote
+update.
 
 ## Finality Predicate
 

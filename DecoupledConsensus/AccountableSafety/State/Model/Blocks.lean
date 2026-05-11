@@ -1,4 +1,4 @@
-import DecoupledConsensus.AccountableSafety.Model.Primitives
+import DecoupledConsensus.AccountableSafety.State.Model.Primitives
 
 namespace AccountableSafety
 

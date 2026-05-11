@@ -1,9 +1,9 @@
 /-
 # Accountable Safety
 
-Public facade for the accountable-safety formalization. The project is split
-into a model layer (`AccountableSafety.Model.*`) and a proof layer
-(`AccountableSafety.Proof.*`).
+Public facade for the accountable-safety formalization. The section-2 state
+machine lives under `AccountableSafety.State.*`; section-3 store modules live
+under `AccountableSafety.Store.*`.
 -/
 
-import DecoupledConsensus.AccountableSafety.Proof.Safety
+import DecoupledConsensus.AccountableSafety.State.Proof.Safety

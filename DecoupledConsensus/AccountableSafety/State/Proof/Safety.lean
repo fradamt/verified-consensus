@@ -1,4 +1,4 @@
-import DecoupledConsensus.AccountableSafety.Proof.Advance
+import DecoupledConsensus.AccountableSafety.State.Proof.Advance
 
 namespace AccountableSafety
 

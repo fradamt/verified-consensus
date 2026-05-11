@@ -1,4 +1,4 @@
-import DecoupledConsensus.AccountableSafety.Model.StateMachine
+import DecoupledConsensus.AccountableSafety.State.Model.StateMachine
 
 namespace AccountableSafety
 

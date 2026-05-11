@@ -1,4 +1,4 @@
-import DecoupledConsensus.AccountableSafety.Model.Certificates
+import DecoupledConsensus.AccountableSafety.State.Model.Certificates
 
 namespace AccountableSafety
 

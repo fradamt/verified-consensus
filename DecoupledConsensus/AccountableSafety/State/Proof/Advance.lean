@@ -1,4 +1,4 @@
-import DecoupledConsensus.AccountableSafety.Proof.Invariants
+import DecoupledConsensus.AccountableSafety.State.Proof.Invariants
 
 namespace AccountableSafety
 

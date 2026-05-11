@@ -18,7 +18,45 @@ variable {n : ℕ}
 
 open scoped Block
 
+attribute [local instance] Classical.propDecidable
+
 namespace Store
+
+private lemma finalized_zero_eq_genesis {C : Block n}
+    {B : Block n} {chain : Chain n B} {hC : C ≼ B}
+    (hCert : FinalizedCertificate chain C 0 hC) : C = Block.genesis := by
+  rcases hCert with h_zero | h_pos
+  · exact h_zero.2
+  · omega
+
+private lemma finalized_nonzero_parts {C : Block n} {h_f : ℕ}
+    {B : Block n} {chain : Chain n B} {hC : C ≼ B}
+    (h_ne : h_f ≠ 0) (hCert : FinalizedCertificate chain C h_f hC) :
+    h_f > 0 ∧
+      FinalizeQuorumWitness (votesIncluded chain) C h_f ∧
+      JustifyQuorumWitness (votesIncluded chain) C h_f ∧
+      (stateOf (chain.subchain hC)).h = h_f ∧
+      (stateOf chain).h > h_f := by
+  rcases hCert with h_zero | h_pos
+  · exact False.elim (h_ne h_zero.1)
+  · exact h_pos
+
+private lemma finalized_finalize_witness {C : Block n} {h_f : ℕ}
+    {B : Block n} {chain : Chain n B} {hC : C ≼ B}
+    (h_ne : h_f ≠ 0) (hCert : FinalizedCertificate chain C h_f hC) :
+    FinalizeQuorumWitness (votesIncluded chain) C h_f :=
+  (finalized_nonzero_parts h_ne hCert).2.1
+
+private lemma finalized_target_height {C : Block n} {h_f : ℕ}
+    {B : Block n} {chain : Chain n B} {hC : C ≼ B}
+    (h_ne : h_f ≠ 0) (hCert : FinalizedCertificate chain C h_f hC) :
+    (stateOf (chain.subchain hC)).h = h_f :=
+  (finalized_nonzero_parts h_ne hCert).2.2.2.1
+
+private lemma FinalizationRecord.target_height {F : Block n} {h_f : ℕ}
+    (r : FinalizationRecord F h_f) (h_ne : h_f ≠ 0) :
+    (stateOf (r.chain.subchain r.target_ancestor)).h = h_f :=
+  finalized_target_height h_ne r.certificate
 
 /-- A processed `(J, hj)` descriptor forces the store frontier `hmax` strictly
     above that descriptor height. -/
@@ -61,6 +99,142 @@ theorem certchain_compatible {f : ℕ} (hn : n = 3 * f + 1)
     hSlash | hF_tip
   · exact False.elim (hNoSlash hSlash)
   · exact Block.Ancestor.linear hF_tip hC_tip
+
+/-- Record-based Section-3 `certchain`, compatibility form. -/
+theorem certchain_record_compatible {f : ℕ} (hn : n = 3 * f + 1)
+    (hNoSlash : ¬ @AtLeastFThirdSlashable n f)
+    {S : Store n} {F C : Block n} {h_f h : ℕ}
+    (rF : FinalizationRecord F h_f) (rJ : JustificationRecord S C h)
+    (hId : rF.IdInjectiveAgainstStore S)
+    (hle : h_f ≤ h) :
+    F ~ C := by
+  exact certchain_compatible hn hNoSlash (hId rJ.entry rJ.mem)
+    rF.chain rF.final_state rF.certificate
+    rJ.entry.chain
+    (by simpa [StoreEntry.state] using rJ.target_eq)
+    (by simpa [StoreEntry.state] using rJ.height_eq)
+    hle
+
+/-- At a positive finalized height, a same-height justification must target the
+    finalized block unless accountable slashability has already occurred. -/
+theorem finalized_eq_justified_same_height {f : ℕ} (hn : n = 3 * f + 1)
+    (hNoSlash : ¬ @AtLeastFThirdSlashable n f)
+    {S : Store n} {F C : Block n} {h_f : ℕ}
+    (rF : FinalizationRecord F h_f) (rJ : JustificationRecord S C h_f)
+    (hId : rF.IdInjectiveAgainstStore S) :
+    C = F := by
+  by_cases h_zero : h_f = 0
+  · subst h_zero
+    have hF_genesis : F = Block.genesis :=
+      finalized_zero_eq_genesis rF.certificate
+    have hJ_hj_zero : (stateOf rJ.entry.chain).hj = 0 := by
+      simpa [StoreEntry.state] using rJ.height_eq
+    have hC_genesis : C = Block.genesis := by
+      have h := chain_HjZeroJGenesis rJ.entry.chain hJ_hj_zero
+      have hTarget : (stateOf rJ.entry.chain).J = C := by
+        simpa [StoreEntry.state] using rJ.target_eq
+      exact hTarget.symm.trans h
+    rw [hC_genesis, hF_genesis]
+  obtain ⟨Q_F, hQ_F_quorum_strict, hQ_F_votes⟩ :
+      FinalizeQuorumWitness (votesIncluded rF.chain) F h_f :=
+    finalized_finalize_witness h_zero rF.certificate
+  obtain ⟨Q_J, hQ_J_quorum_strict, hQ_J_votes⟩ :
+      JustifyQuorumWitness (votesIncluded rJ.entry.chain) C h_f := by
+    rcases rJ.witness with h_genesis | h_wit
+    · omega
+    · exact h_wit
+  have hQ_F_quorum : IsQuorum f Q_F :=
+    (isQuorum_iff_strict hn Q_F).mpr hQ_F_quorum_strict
+  have hQ_J_quorum : IsQuorum f Q_J :=
+    (isQuorum_iff_strict hn Q_J).mpr hQ_J_quorum_strict
+  have h_inter : (Q_F ∩ Q_J).card ≥ f + 1 :=
+    quorum_intersection_f hn Q_F Q_J hQ_F_quorum hQ_J_quorum
+  by_cases hCF : C = F
+  · exact hCF
+  · exfalso
+    apply hNoSlash
+    refine ⟨Q_F ∩ Q_J, h_inter, ?_⟩
+    intro i hi
+    have hi_QF : i ∈ Q_F := (Finset.mem_inter.mp hi).1
+    have hi_QJ : i ∈ Q_J := (Finset.mem_inter.mp hi).2
+    obtain ⟨v_F, hv_F_mem, hv_F_val, hv_F_fin⟩ := hQ_F_votes i hi_QF
+    obtain ⟨v_J, hv_J_mem, hv_J_val, hv_J_target, hv_J_height⟩ :=
+      hQ_J_votes i hi_QJ
+    have hVal_eq : v_J.validator = v_F.validator := by rw [hv_J_val, hv_F_val]
+    refine ⟨rJ.entry.block, rJ.entry.chain, rF.tip, rF.chain,
+      v_J, hv_J_mem, v_F, hv_F_mem, hv_J_val, hv_F_val, ?_⟩
+    refine ⟨hVal_eq, Or.inl ?_⟩
+    refine ⟨h_f, F.id, hv_F_fin, hv_J_height, ?_⟩
+    rw [hv_J_target]
+    intro hSome
+    injection hSome with hIdEq
+    exact hCF (hId rJ.entry rJ.mem (Or.inr rJ.target_ancestor)
+      (Or.inl rF.target_ancestor) hIdEq)
+
+/-- Positive-height strict form of `certchain`: if the processed justification
+    is at a strictly higher height than the finalization certificate, the
+    finalized block is a proper ancestor of the justified target. The `h_f ≠ 0`
+    premise isolates the genesis convention, whose certificate height is `0`
+    while the genesis state has height `1`. -/
+theorem certchain_record_strict_of_positive {f : ℕ} (hn : n = 3 * f + 1)
+    (hNoSlash : ¬ @AtLeastFThirdSlashable n f)
+    {S : Store n} {F C : Block n} {h_f h : ℕ}
+    (rF : FinalizationRecord F h_f) (rJ : JustificationRecord S C h)
+    (hId : rF.IdInjectiveAgainstStore S)
+    (hpos : h_f ≠ 0) (hlt : h_f < h) :
+    F ≼ C ∧ F ≠ C := by
+  have hCompat : F ~ C :=
+    certchain_record_compatible hn hNoSlash rF rJ hId (Nat.le_of_lt hlt)
+  have hFHeight := rF.target_height hpos
+  rcases hCompat with hFC | hCF
+  · refine ⟨hFC, ?_⟩
+    intro hEq
+    subst C
+    have hSame :
+        stateOf (rJ.entry.chain.subchain rJ.target_ancestor) =
+          stateOf (rF.chain.subchain rF.target_ancestor) :=
+      chain_unique _ _
+    have h_eq_height : h = h_f := by
+      rw [← rJ.target_height, hSame, hFHeight]
+    omega
+  · exfalso
+    have hSubLe :
+        (stateOf ((rF.chain.subchain rF.target_ancestor).subchain hCF)).h ≤
+          (stateOf (rF.chain.subchain rF.target_ancestor)).h :=
+      stateOf_subchain_h_le (rF.chain.subchain rF.target_ancestor) hCF
+    have hSame :
+        stateOf ((rF.chain.subchain rF.target_ancestor).subchain hCF) =
+          stateOf (rJ.entry.chain.subchain rJ.target_ancestor) :=
+      chain_unique _ _
+    rw [hSame, rJ.target_height, hFHeight] at hSubLe
+    omega
+
+/-- Upgrade, stated against explicit certificate records: if the current store
+    root is justified at height at least the finalization height, then it
+    descends from the finalized block. -/
+theorem upgrade_of_current_root_record {f : ℕ} (hn : n = 3 * f + 1)
+    (hNoSlash : ¬ @AtLeastFThirdSlashable n f)
+    {S : Store n} {F : Block n} {h_f : ℕ}
+    (rF : FinalizationRecord F h_f)
+    (rRoot : JustificationRecord S S.J S.hj)
+    (hId : rF.IdInjectiveAgainstStore S)
+    (hhj : h_f ≤ S.hj) :
+    F ≼ S.J := by
+  by_cases h_zero : h_f = 0
+  · subst h_zero
+    have hF_genesis : F = Block.genesis :=
+      finalized_zero_eq_genesis rF.certificate
+    rw [hF_genesis]
+    induction S.J with
+    | genesis => exact .refl _
+    | mk _ parent _ _ ih => exact .step ih
+  rcases lt_or_eq_of_le hhj with hlt | heq
+  · exact (certchain_record_strict_of_positive hn hNoSlash rF rRoot hId h_zero hlt).1
+  · subst heq
+    have hEq : S.J = F :=
+      finalized_eq_justified_same_height hn hNoSlash rF rRoot hId
+    rw [hEq]
+    exact .refl _
 
 /-- If a store has processed a block whose post-state justifies `F` at the
     finalization height, then any later store containing that processed

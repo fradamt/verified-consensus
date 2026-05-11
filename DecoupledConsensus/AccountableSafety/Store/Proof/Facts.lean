@@ -135,19 +135,16 @@ lemma isViableBool_sound_of_contains {S : Store n} {B : Block n}
     Viable S B := by
   have hparts : S.containsBlockBool B = true ∧
       S.entries.any (fun e =>
-        S.isViableLeafEntryBool e && Block.isAncestorOf B e.block) = true := by
+        decide (S.heightThreshold ≤ e.height) && Block.isAncestorOf B e.block) = true := by
     simpa [isViableBool, Bool.and_eq_true] using hViable
   rcases list_any_true hparts.2 with ⟨e, he, heViable⟩
-  have heParts : S.isViableLeafEntryBool e = true ∧
+  have heParts : decide (S.heightThreshold ≤ e.height) = true ∧
       Block.isAncestorOf B e.block = true := by
     simpa [Bool.and_eq_true] using heViable
-  have hLeafHeight : S.isLeafBool e.block = true ∧
-      decide (S.heightThreshold ≤ e.height) = true := by
-    simpa [isViableLeafEntryBool, Bool.and_eq_true] using heParts.1
   refine ⟨hB, e.block, ?_, ?_, ?_⟩
-  · exact isLeafBool_sound_of_mem he hLeafHeight.1
+  · exact ⟨e, he, rfl⟩
   · exact (Block.isAncestorOf_eq_true_iff _ _).mp heParts.2
-  · exact ⟨e, he, rfl, of_decide_eq_true hLeafHeight.2⟩
+  · exact ⟨e, he, rfl, of_decide_eq_true heParts.1⟩
 
 /-- Every confirmed output descends from the confirmation root. -/
 lemma getConfirmed_root_ancestor {S : Store n} {B : Block n}

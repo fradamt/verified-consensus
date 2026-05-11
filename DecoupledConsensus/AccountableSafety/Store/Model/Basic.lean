@@ -129,20 +129,27 @@ def HasHeightAtLeast (S : Store n) (B : Block n) (k : ℕ) : Prop :=
 def isViableLeafEntryBool (S : Store n) (e : StoreEntry n) : Bool :=
   S.isLeafBool e.block && decide (S.heightThreshold ≤ e.height)
 
-/-- Executable viable-tree membership via the leaf-witness characterization. -/
+/-- Executable viable-tree membership.
+
+For valid stores this is equivalent to the leaf-witness characterization in
+the TeX: any high accepted descendant can be extended to a leaf whose
+state-height is at least as large by state-height monotonicity. Using the
+high-descendant form keeps the executable filter simple and avoids making
+`getConfirmed` depend on a maximal-leaf search. -/
 def isViableBool (S : Store n) (B : Block n) : Bool :=
   S.containsBlockBool B &&
     S.entries.any (fun e =>
-      S.isViableLeafEntryBool e && Block.isAncestorOf B e.block)
+      decide (S.heightThreshold ≤ e.height) && Block.isAncestorOf B e.block)
 
 /-- Prop-level viable-tree membership.
 
-This uses the equivalent section-3 characterization: `B` is viable iff a
-viable accepted leaf descends from `B`. -/
+This uses the high-descendant form equivalent to the section-3 leaf definition
+on valid stores: `B` is viable iff an accepted descendant of `B` meets the
+height filter. -/
 def Viable (S : Store n) (B : Block n) : Prop :=
   Contains S B ∧
-    ∃ L : Block n,
-      IsLeaf S L ∧ B ≼ L ∧ HasHeightAtLeast S L S.heightThreshold
+    ∃ D : Block n,
+      Contains S D ∧ B ≼ D ∧ HasHeightAtLeast S D S.heightThreshold
 
 /-- Executable finite representation of the viable tree. Reachable stores have
     no duplicate blocks, so this list acts as the finite set of viable blocks. -/

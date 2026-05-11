@@ -931,12 +931,12 @@ lemma processVoteCore_timeouts_eq_cases (σ : State n) (v : Vote n) (i : Validat
       left
       simp [processVoteCore, h_target, h_find]
     | some T_v =>
-      by_cases h_fresh : v.height = σ.h ∧ T_v.slot ≥ σ.sh
+      by_cases h_fresh : v.height = σ.h ∧ T_v.slot ≥ σ.sh ∧ T_v.slot < σ.L.slot
       · -- updated at v.validator.
         by_cases hi : i = v.validator
         · right
           refine ⟨hi, h_fresh.1,
-                  Or.inr ⟨T_v, ?_, Block.findById_ancestor h_find, h_fresh.2⟩, ?_⟩
+                  Or.inr ⟨T_v, ?_, Block.findById_ancestor h_find, h_fresh.2.1⟩, ?_⟩
           · rw [← Block.findById_id h_find]
           · subst hi
             simp [processVoteCore, h_target, h_find, h_fresh]

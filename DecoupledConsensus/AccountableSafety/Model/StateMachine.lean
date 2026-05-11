@@ -94,14 +94,16 @@ def firstJustifiedTarget (σ : State n) : Option (Block n) :=
 
 namespace Vote
 
-/-- A justification vote with target `T` is fresh on a chain with state σ
-    iff the target id resolves to an ancestor `T ≼ σ.L` with
+/-- A justification vote with target `T` is fresh on a chain with state `σ`
+    iff the target id resolves to a strict ancestor of `σ.L` with
     `σ.h = v.height ∧ T.slot ≥ σ.sh`.
     A timeout vote (`v.target = none`) is fresh iff `σ.h = v.height`. -/
 def Fresh (σ : State n) (v : Vote n) : Prop :=
   match v.target with
   | none   => σ.h = v.height
-  | some bid => ∃ T, σ.L.findById bid = some T ∧ σ.h = v.height ∧ T.slot ≥ σ.sh
+  | some bid =>
+      ∃ T, σ.L.findById bid = some T ∧
+        σ.h = v.height ∧ T.slot ≥ σ.sh ∧ T.slot < σ.L.slot
 
 end Vote
 
@@ -121,7 +123,7 @@ def processVoteCore (σ : State n) (v : Vote n) : State n :=
       match σ.L.findById bid with
       | none => σ
       | some T =>
-          if v.height = σ.h ∧ T.slot ≥ σ.sh then
+          if v.height = σ.h ∧ T.slot ≥ σ.sh ∧ T.slot < σ.L.slot then
             { σ with targets  := Function.update σ.targets v.validator (some T)
                      timeouts := Function.update σ.timeouts v.validator true }
           else σ

@@ -486,12 +486,12 @@ lemma processVoteCore_targets_eq_cases (σ : State n) (v : Vote n) (i : Validato
       left
       simp [processVoteCore, h_target, h_find]
     | some T_v =>
-      by_cases h_fresh : v.height = σ.h ∧ T_v.slot ≥ σ.sh
+      by_cases h_fresh : v.height = σ.h ∧ T_v.slot ≥ σ.sh ∧ T_v.slot < σ.L.slot
       · by_cases hi : i = v.validator
         · -- i = v.validator: targets i = some T_v, with id-resolution witnesses.
           right
           refine ⟨hi, T_v, ?_, h_fresh.1, Block.findById_ancestor h_find,
-            h_fresh.2, ?_⟩
+            h_fresh.2.1, ?_⟩
           · rw [← Block.findById_id h_find]
           · subst hi
             simp [processVoteCore, h_target, h_find, h_fresh]

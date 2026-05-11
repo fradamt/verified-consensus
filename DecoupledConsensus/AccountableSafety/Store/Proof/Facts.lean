@@ -64,6 +64,63 @@ private lemma list_any_false_forall {α : Type} {p : α → Bool} {l : List α}
     (h : l.any p = false) : ∀ a ∈ l, p a = false := by
   simpa using h
 
+private lemma list_any_true_of_exists {α : Type} {p : α → Bool} {l : List α}
+    (h : ∃ a ∈ l, p a = true) : l.any p = true := by
+  simpa using h
+
+private lemma findSome_chainAs_isSome_of_mem :
+    ∀ {entries : List (StoreEntry n)} {e : StoreEntry n},
+      e ∈ entries →
+      (entries.findSome? fun x => x.chainAs? e.block).isSome = true := by
+  intro entries e h
+  induction entries with
+  | nil =>
+      simp at h
+  | cons a entries ih =>
+      have hOr : e = a ∨ e ∈ entries := by
+        simpa [List.mem_cons] using h
+      rcases hOr with hEq | hTail
+      · subst a
+        simp [List.findSome?, StoreEntry.chainAs?]
+      · cases hHead : a.chainAs? e.block with
+        | none =>
+          have hTailSome := ih hTail
+          simp [List.findSome?, hHead, hTailSome]
+        | some c =>
+            simp [List.findSome?, hHead]
+
+/-- Any concrete store entry can be found by block lookup. -/
+lemma containsBlockBool_of_entry_mem {S : Store n} {e : StoreEntry n}
+    (he : e ∈ S.entries) : S.containsBlockBool e.block = true := by
+  simpa [containsBlockBool, findChain?] using
+    findSome_chainAs_isSome_of_mem (entries := S.entries) he
+
+/-- A block is executable-viable when it is accepted and has a high accepted
+    descendant. -/
+lemma isViableBool_of_entry_ancestor_height {S : Store n} {B : Block n}
+    {e : StoreEntry n}
+    (hB : S.containsBlockBool B = true)
+    (he : e ∈ S.entries)
+    (hAnc : B ≼ e.block)
+    (hHeight : S.heightThreshold ≤ e.height) :
+    S.isViableBool B = true := by
+  have hHeightBool : decide (S.heightThreshold ≤ e.height) = true :=
+    decide_eq_true hHeight
+  have hAncBool : Block.isAncestorOf B e.block = true :=
+    (Block.isAncestorOf_eq_true_iff _ _).mpr hAnc
+  have hAny :
+      S.entries.any (fun e =>
+        decide (S.heightThreshold ≤ e.height) && Block.isAncestorOf B e.block) = true :=
+    list_any_true_of_exists ⟨e, he, by simp [hHeightBool, hAncBool]⟩
+  simp [isViableBool, hB, hAny]
+
+/-- A high accepted entry is viable as a confirmed output candidate target. -/
+lemma isViableBool_of_entry_height {S : Store n} {e : StoreEntry n}
+    (he : e ∈ S.entries) (hHeight : S.heightThreshold ≤ e.height) :
+    S.isViableBool e.block = true :=
+  isViableBool_of_entry_ancestor_height
+    (containsBlockBool_of_entry_mem he) he (Block.Ancestor.refl _) hHeight
+
 /-- Membership in `getConfirmed` comes from an accepted entry satisfying the
     executable candidate predicate. -/
 lemma getConfirmed_entry {S : Store n} {B : Block n}
@@ -145,6 +202,37 @@ lemma isViableBool_sound_of_contains {S : Store n} {B : Block n}
   · exact ⟨e, he, rfl⟩
   · exact (Block.isAncestorOf_eq_true_iff _ _).mp heParts.2
   · exact ⟨e, he, rfl, of_decide_eq_true heParts.1⟩
+
+/-- If an accepted entry passes the executable candidate predicate, its block
+    is present in `getConfirmed`. -/
+lemma mem_getConfirmed_of_entry_candidate {S : Store n} {e : StoreEntry n}
+    (he : e ∈ S.entries)
+    (hcand : S.isConfirmedCandidateEntryBool e = true) :
+    e.block ∈ S.getConfirmed := by
+  simpa [getConfirmed] using
+    (show ∃ x ∈ S.entries, S.isConfirmedCandidateEntryBool x = true ∧ x.block = e.block from
+      ⟨e, he, hcand, rfl⟩)
+
+/-- If the confirmation root is viable, then the executable confirmed-output
+    set is nonempty. -/
+lemma getConfirmed_nonempty_of_root_viableBool {S : Store n}
+    (hRoot : S.isViableBool S.confirmationRoot = true) :
+    ∃ B : Block n, B ∈ S.getConfirmed := by
+  have hparts : S.containsBlockBool S.confirmationRoot = true ∧
+      S.entries.any (fun e =>
+        decide (S.heightThreshold ≤ e.height) &&
+          Block.isAncestorOf S.confirmationRoot e.block) = true := by
+    simpa [isViableBool, Bool.and_eq_true] using hRoot
+  rcases list_any_true hparts.2 with ⟨e, he, heRoot⟩
+  have heParts : decide (S.heightThreshold ≤ e.height) = true ∧
+      Block.isAncestorOf S.confirmationRoot e.block = true := by
+    simpa [Bool.and_eq_true] using heRoot
+  have hHeight : S.heightThreshold ≤ e.height := of_decide_eq_true heParts.1
+  have hViable : S.isViableBool e.block = true :=
+    isViableBool_of_entry_height he hHeight
+  have hcand : S.isConfirmedCandidateEntryBool e = true := by
+    simp [isConfirmedCandidateEntryBool, hViable, heParts.1, heParts.2]
+  exact ⟨e.block, mem_getConfirmed_of_entry_candidate he hcand⟩
 
 /-- Every confirmed output descends from the confirmation root. -/
 lemma getConfirmed_root_ancestor {S : Store n} {B : Block n}

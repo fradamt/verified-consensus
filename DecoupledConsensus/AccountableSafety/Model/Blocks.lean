@@ -57,11 +57,6 @@ inductive Ancestor : Block n → Block n → Prop
 
 scoped infix:50 " ≼ " => Block.Ancestor
 
-/-- Strict ancestor relation. `B ≺ C` means `B` is a proper ancestor of `C`. -/
-def StrictAncestor (B C : Block n) : Prop := B ≼ C ∧ B ≠ C
-
-scoped infix:50 " ≺ " => Block.StrictAncestor
-
 /-- Find the nearest parent-pointer ancestor of `root` whose id is `bid`.
 
     No well-formedness or id-injectivity is required for lookup itself. If ids
@@ -89,9 +84,6 @@ def IdInjectiveOnAncestors (tip₁ tip₂ : Block n) : Prop :=
 def Compatible (B C : Block n) : Prop := B ≼ C ∨ C ≼ B
 
 scoped infix:50 " ~ " => Block.Compatible
-
-/-- Two blocks conflict if they are not compatible. -/
-def Conflicts (B C : Block n) : Prop := ¬ Compatible B C
 
 end Block
 

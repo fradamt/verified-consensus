@@ -90,23 +90,6 @@ def firstJustifiedTarget (σ : State n) : Option (Block n) :=
     | some T => if justifiedBool σ T then some T else none
 
 
-/-! ## Height freshness for an incoming vote -/
-
-namespace Vote
-
-/-- A justification vote with target `T` is fresh on a chain with state `σ`
-    iff the target id resolves to a strict ancestor of `σ.L` with
-    `σ.h = v.height ∧ T.slot ≥ σ.sh`.
-    A timeout vote (`v.target = none`) is fresh iff `σ.h = v.height`. -/
-def Fresh (σ : State n) (v : Vote n) : Prop :=
-  match v.target with
-  | none   => σ.h = v.height
-  | some bid =>
-      ∃ T, σ.L.findById bid = some T ∧
-        σ.h = v.height ∧ T.slot ≥ σ.sh ∧ T.slot < σ.L.slot
-
-end Vote
-
 /-! ## State machine transitions -/
 
 /-- The targets/timeouts core of vote processing — no `P` update. Splits

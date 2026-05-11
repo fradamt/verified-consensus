@@ -25,17 +25,6 @@ def votesIncluded {n : ℕ} :
   | _, @Chain.extend _ parent c bid newSlot votes _ =>
       votesIncluded c ++ (Block.mk bid parent newSlot votes).votes
 
-/-- **Paper Definition 4 (vote inclusion convention)**: each vote embedded in
-    a block references ids resolvable on that block's chain. -/
-def BlockFlatVotes {n : ℕ} : Block n → Prop
-  | Block.genesis => True
-  | Block.mk bid parent slot votes =>
-      BlockFlatVotes parent ∧
-      ∀ v ∈ votes,
-        (∀ tid, v.target = some tid → (Block.mk bid parent slot votes).findById tid ≠ none) ∧
-        (∀ hf fid, v.finalize = some (hf, fid) →
-          (Block.mk bid parent slot votes).findById fid ≠ none)
-
 /-- A quorum of validators contributed finalize commitments for block `C` at
     height `h_f`. This is proof/certificate data, not protocol state. -/
 def FinalizeQuorumWitness (votes : List (Vote n)) (C : Block n) (h_f : ℕ) : Prop :=

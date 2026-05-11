@@ -35,13 +35,10 @@ abbrev BlockId := ℕ
 /-! ## Votes and slashing -/
 
 structure Vote (n : ℕ) where
-  validator      : Validator n
-  height         : ℕ
-  /-- `none` represents `⊥` — a timeout vote. -/
-  target         : Option BlockId
-  /-- Optional finalize commitment `(height, target-id)`. `none` represents
-      no finalize commitment. -/
-  finalize       : Option (ℕ × BlockId)
+  validator : Validator n
+  height : ℕ
+  target : Option BlockId -- `none` represents `⊥`, a timeout vote
+  finalize : Option (ℕ × BlockId) -- optional `(height, target-id)` finalize commitment
   deriving DecidableEq
 
 namespace Vote

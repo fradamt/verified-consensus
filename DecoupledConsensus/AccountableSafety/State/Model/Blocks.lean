@@ -29,6 +29,11 @@ def slot : Block n → ℕ
   | genesis => 0
   | mk _ _ s _ => s
 
+/-- Parent of a non-genesis block. Genesis has no parent. -/
+def parent? : Block n → Option (Block n)
+  | genesis => none
+  | mk _ parent _ _ => some parent
+
 /-- Votes embedded in a block. Genesis carries no votes. -/
 def votes : Block n → List (Vote n)
   | genesis => []
@@ -56,6 +61,17 @@ inductive Ancestor : Block n → Block n → Prop
       (h : Ancestor B C) : Ancestor B (mk bid C s vs)
 
 scoped infix:50 " ≼ " => Block.Ancestor
+
+/-- Executable parent-pointer ancestry test, scanning from the candidate
+    descendant toward genesis. -/
+def isAncestorOf (B : Block n) : Block n → Bool
+  | genesis => decide (B = genesis)
+  | mk bid parent s vs =>
+      decide (B = mk bid parent s vs) || isAncestorOf B parent
+
+/-- Executable strict ancestry test. -/
+def isStrictAncestorOf (B C : Block n) : Bool :=
+  isAncestorOf B C && decide (B ≠ C)
 
 /-- Find the nearest parent-pointer ancestor of `root` whose id is `bid`.
 

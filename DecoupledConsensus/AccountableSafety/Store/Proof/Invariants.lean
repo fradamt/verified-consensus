@@ -74,6 +74,47 @@ lemma updateFinalized_F_monotone {S : Store n} {F' : Block n} :
     have hStrict := (Block.isStrictAncestorOf_eq_true_iff _ _).mp hparts.1.1
     simpa [updateFinalized, hguard] using hStrict.1
 
+lemma keyGreater_height_ge {h' h : ℕ} {J' J : Block n}
+    (hkey : keyGreater h' J' h J = true) : h ≤ h' := by
+  unfold keyGreater at hkey
+  by_cases hlt : h < h'
+  · omega
+  · have hparts : h = h' ∧ J.id < J'.id := by
+      simpa [hlt, Bool.and_eq_true] using hkey
+    omega
+
+lemma addEntry_hj_eq {S : Store n} {e : StoreEntry n} :
+    (S.addEntry e).hj = S.hj := by
+  rfl
+
+lemma updateJustified_hj_mono {S : Store n} {J' : Block n} {h' : ℕ} :
+    S.hj ≤ (S.updateJustified J' h').hj := by
+  cases hguard : S.shouldUpdateJustified J' h'
+  · simp [updateJustified, hguard]
+  · have hparts : Block.isAncestorOf S.F J' = true ∧
+        keyGreater h' J' S.hj S.J = true := by
+      simpa [shouldUpdateJustified, Bool.and_eq_true] using hguard
+    simpa [updateJustified, hguard] using keyGreater_height_ge hparts.2
+
+lemma updateFinalized_hj_eq {S : Store n} {F' : Block n} :
+    (S.updateFinalized F').hj = S.hj := by
+  cases hguard : S.shouldUpdateFinalized F' <;>
+    simp [updateFinalized, hguard]
+
+lemma addEntry_hmax_mono {S : Store n} {e : StoreEntry n} :
+    S.hmax ≤ (S.addEntry e).hmax := by
+  simpa [addEntry] using Nat.le_max_left S.hmax e.height
+
+lemma updateJustified_hmax_eq {S : Store n} {J' : Block n} {h' : ℕ} :
+    (S.updateJustified J' h').hmax = S.hmax := by
+  cases hguard : S.shouldUpdateJustified J' h' <;>
+    simp [updateJustified, hguard]
+
+lemma updateFinalized_hmax_eq {S : Store n} {F' : Block n} :
+    (S.updateFinalized F').hmax = S.hmax := by
+  cases hguard : S.shouldUpdateFinalized F' <;>
+    simp [updateFinalized, hguard]
+
 /-- One successful `onBlock` step preserves the store invariant `F ≼ J`. -/
 lemma onBlock_F_ancestor_J {S S' : Store n} {B : Block n}
     (h : S.F ≼ S.J) (hstep : S.onBlock B = some S') :
@@ -173,6 +214,76 @@ theorem future_F_ancestor {S T : Store n}
       exact .refl _
   | step hstep _ ih =>
       exact Block.Ancestor.trans (onBlock_F_monotone hstep) ih
+
+/-- One successful `onBlock` step cannot decrease `hj`. -/
+lemma onBlock_hj_mono {S S' : Store n} {B : Block n}
+    (hstep : S.onBlock B = some S') : S.hj ≤ S'.hj := by
+  unfold onBlock at hstep
+  by_cases hContains : S.containsBlockBool B
+  · simp [hContains] at hstep
+    cases hstep
+    exact le_rfl
+  · simp [hContains] at hstep
+    cases B with
+    | genesis =>
+        simp at hstep
+    | mk bid parent newSlot votes =>
+        cases hFind : S.findChain? parent with
+        | none =>
+            simp [hFind] at hstep
+        | some parentChain =>
+            by_cases hSlot : newSlot > parent.slot
+            · simp [hFind, hSlot] at hstep
+              let child := Block.mk bid parent newSlot votes
+              by_cases hAnc : Block.isAncestorOf S.F child
+              · simp [child, hAnc] at hstep
+                let entry : StoreEntry n :=
+                  { block := child
+                    chain := Chain.extend parentChain bid newSlot votes hSlot }
+                let σ' := entry.state
+                let S1 := S.addEntry entry
+                let S2 := S1.updateJustified σ'.J σ'.hj
+                have hS1 : S1.hj = S.hj := by simp [S1, addEntry]
+                have hS2 : S1.hj ≤ S2.hj := updateJustified_hj_mono
+                cases hstep
+                simpa [S2, S1, addEntry, updateFinalized_hj_eq, hS1] using hS2
+              · simp [child, hAnc] at hstep
+            · simp [hFind, hSlot] at hstep
+
+/-- One successful `onBlock` step cannot decrease `hmax`. -/
+lemma onBlock_hmax_mono {S S' : Store n} {B : Block n}
+    (hstep : S.onBlock B = some S') : S.hmax ≤ S'.hmax := by
+  unfold onBlock at hstep
+  by_cases hContains : S.containsBlockBool B
+  · simp [hContains] at hstep
+    cases hstep
+    exact le_rfl
+  · simp [hContains] at hstep
+    cases B with
+    | genesis =>
+        simp at hstep
+    | mk bid parent newSlot votes =>
+        cases hFind : S.findChain? parent with
+        | none =>
+            simp [hFind] at hstep
+        | some parentChain =>
+            by_cases hSlot : newSlot > parent.slot
+            · simp [hFind, hSlot] at hstep
+              let child := Block.mk bid parent newSlot votes
+              by_cases hAnc : Block.isAncestorOf S.F child
+              · simp [child, hAnc] at hstep
+                let entry : StoreEntry n :=
+                  { block := child
+                    chain := Chain.extend parentChain bid newSlot votes hSlot }
+                let σ' := entry.state
+                let S1 := S.addEntry entry
+                let S2 := S1.updateJustified σ'.J σ'.hj
+                have hS1 : S.hmax ≤ S1.hmax := addEntry_hmax_mono
+                cases hstep
+                simpa [S2, S1, addEntry, updateJustified_hmax_eq,
+                  updateFinalized_hmax_eq] using hS1
+              · simp [child, hAnc] at hstep
+            · simp [hFind, hSlot] at hstep
 
 end Store
 

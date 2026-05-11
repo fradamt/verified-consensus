@@ -490,9 +490,8 @@ theorem future_getConfirmed_descends_from_F {S T : Store n} {B : Block n}
   · have hFB : T.F ≼ B := getConfirmed_descends_from_F_of_not_boundary hBoundary hB
     exact Block.Ancestor.trans hSF hFB
 
-/-- In the non-boundary cascade branch, reachable stores have at least one
-    executable confirmed output. The boundary branch needs the separate
-    accepted-ancestor closure invariant showing that `J` is accepted. -/
+/-- In the non-boundary cascade branch, `F` viability gives at least one
+    executable confirmed output. -/
 theorem reachable_getConfirmed_nonempty_of_not_boundary {S : Store n}
     (hS : Reachable S) (hBoundary : S.hmax ≠ S.hj + 1) :
     ∃ B : Block n, B ∈ S.getConfirmed := by

@@ -1,4 +1,4 @@
-import DecoupledConsensus.AccountableSafety.State.Proof.Facts
+import DecoupledConsensus.AccountableSafety.State.Proof.Invariants
 import DecoupledConsensus.AccountableSafety.Store.Proof.Facts
 
 namespace AccountableSafety
@@ -275,6 +275,23 @@ theorem reachable_F_viableBool {S : Store n}
   | onBlock hPrev hstep ih =>
       exact onBlock_F_viableBool ih hstep
 
+lemma addEntry_hj_succ_le_hmax {S : Store n} {e : StoreEntry n}
+    (h : S.hj + 1 ≤ S.hmax) : (S.addEntry e).hj + 1 ≤ (S.addEntry e).hmax := by
+  exact h.trans (addEntry_hmax_mono (S := S) (e := e))
+
+lemma updateJustified_hj_succ_le_hmax {S : Store n} {J' : Block n} {h' : ℕ}
+    (hOld : S.hj + 1 ≤ S.hmax) (hNew : h' + 1 ≤ S.hmax) :
+    (S.updateJustified J' h').hj + 1 ≤ (S.updateJustified J' h').hmax := by
+  cases hguard : S.shouldUpdateJustified J' h'
+  · simpa [updateJustified, hguard] using hOld
+  · simpa [updateJustified, hguard] using hNew
+
+lemma updateFinalized_hj_succ_le_hmax {S : Store n} {F' : Block n}
+    (h : S.hj + 1 ≤ S.hmax) :
+    (S.updateFinalized F').hj + 1 ≤ (S.updateFinalized F').hmax := by
+  cases hguard : S.shouldUpdateFinalized F' <;>
+    simpa [updateFinalized, hguard] using h
+
 /-- One successful `onBlock` step cannot move store finality away from the old
     finalized subtree. -/
 lemma onBlock_F_monotone {S S' : Store n} {B : Block n}
@@ -423,6 +440,62 @@ lemma onBlock_hmax_mono {S S' : Store n} {B : Block n}
                   updateFinalized_hmax_eq] using hS1
               · simp [child, hAnc] at hstep
             · simp [hFind, hSlot] at hstep
+
+/-- The store frontier height never outruns the maximum processed state
+    height: every observed justified height came from a post-state whose height
+    is at least one larger. -/
+lemma onBlock_hj_succ_le_hmax {S S' : Store n} {B : Block n}
+    (hGap : S.hj + 1 ≤ S.hmax) (hstep : S.onBlock B = some S') :
+    S'.hj + 1 ≤ S'.hmax := by
+  unfold onBlock at hstep
+  by_cases hContains : S.containsBlockBool B
+  · simp [hContains] at hstep
+    cases hstep
+    exact hGap
+  · simp [hContains] at hstep
+    cases B with
+    | genesis =>
+        simp at hstep
+    | mk bid parent newSlot votes =>
+        cases hFind : S.findChain? parent with
+        | none =>
+            simp [hFind] at hstep
+        | some parentChain =>
+            by_cases hSlot : newSlot > parent.slot
+            · simp [hFind, hSlot] at hstep
+              let child := Block.mk bid parent newSlot votes
+              by_cases hAnc : Block.isAncestorOf S.F child
+              · simp [child, hAnc] at hstep
+                let entry : StoreEntry n :=
+                  { block := child
+                    chain := Chain.extend parentChain bid newSlot votes hSlot }
+                let σ' := entry.state
+                let S1 := S.addEntry entry
+                let S2 := S1.updateJustified σ'.J σ'.hj
+                have hS1 : S1.hj + 1 ≤ S1.hmax :=
+                  addEntry_hj_succ_le_hmax hGap
+                have hEntry : σ'.hj + 1 ≤ S1.hmax := by
+                  have hlt : σ'.hj < entry.height := by
+                    simpa [σ', StoreEntry.state, StoreEntry.height] using
+                      chain_hj_lt_h entry.chain
+                  have hle : entry.height ≤ S1.hmax := by
+                    simpa [S1, addEntry] using Nat.le_max_right S.hmax entry.height
+                  omega
+                have hS2 : S2.hj + 1 ≤ S2.hmax :=
+                  updateJustified_hj_succ_le_hmax hS1 hEntry
+                cases hstep
+                exact updateFinalized_hj_succ_le_hmax hS2
+              · simp [child, hAnc] at hstep
+            · simp [hFind, hSlot] at hstep
+
+/-- Reachable stores satisfy `hj + 1 ≤ hmax`. -/
+theorem reachable_hj_succ_le_hmax {S : Store n}
+    (hS : Reachable S) : S.hj + 1 ≤ S.hmax := by
+  induction hS with
+  | genesis =>
+      simp [Store.genesis]
+  | onBlock hPrev hstep ih =>
+      exact onBlock_hj_succ_le_hmax ih hstep
 
 end Store
 

@@ -426,6 +426,24 @@ theorem lockin_of_records {f : ℕ}
       hId rF.chain rF.final_state rF.certificate hFJ hhj hB
   exact ⟨hFJ, hViable, hDesc⟩
 
+/-! ### No-high-justification invariant -/
+
+/-- Exact Section-3 no-high-justification invariant: every justification event
+    represented in the accepted store history is at or below the current store
+    root height. This is proof-side history, not protocol state. -/
+def NoHighJustifications (S : Store n) : Prop :=
+  ∀ {C : Block n} {h : ℕ}, JustificationRecord S C h → h ≤ S.hj
+
+/-- Section-3 `no-high-just`, stated against the explicit proof-side
+    invariant. The nontrivial trace obligation is the invariant itself: the
+    executable final store tuple stores entries and the current root, but not
+    the chronological evidence that the root key was updated after every
+    accepted descriptor. -/
+theorem no_high_justifications {S : Store n} {C : Block n} {h : ℕ}
+    (hNoHigh : NoHighJustifications S) (r : JustificationRecord S C h) :
+    h ≤ S.hj :=
+  hNoHigh r
+
 /-! ### Order-independent views of executable stores -/
 
 /-- Extensional equality for the order-independent store components. The raw
@@ -447,6 +465,25 @@ lemma OrderEquivalent.symm {S T : Store n}
   J_eq := hEq.J_eq.symm
   hj_eq := hEq.hj_eq.symm
   hmax_eq := hEq.hmax_eq.symm
+
+/-- A justification record transfers across order-equivalent stores because it
+    depends only on membership in the accepted entry set, not list order. -/
+def JustificationRecord.transfer_orderEquivalent {S T : Store n}
+    {C : Block n} {h : ℕ} (hEq : OrderEquivalent S T)
+    (r : JustificationRecord S C h) : JustificationRecord T C h :=
+  { r with mem := (hEq.entries_iff r.entry).mp r.mem }
+
+/-- The no-high invariant is itself order-independent under the extensional
+    equality used for stores. -/
+theorem orderindep_noHighJustifications {S T : Store n}
+    (hEq : OrderEquivalent S T)
+    (hNoHigh : NoHighJustifications S) :
+    NoHighJustifications T := by
+  intro C h r
+  have rS : JustificationRecord S C h :=
+    r.transfer_orderEquivalent hEq.symm
+  have hle : h ≤ S.hj := hNoHigh rS
+  simpa [hEq.hj_eq] using hle
 
 private lemma heightThreshold_eq_of_orderEquivalent {S T : Store n}
     (hEq : OrderEquivalent S T) :

@@ -187,6 +187,25 @@ lemma addEntry_viable_preserved_by_descendant {S : Store n} {e : StoreEntry n}
     exact isViableBool_of_entry_ancestor_height hR'
       (by simp [addEntry]) hAnc heHigh
 
+lemma addEntry_viable_preserved_of_hmax_eq {S : Store n} {e : StoreEntry n}
+    {R : Block n}
+    (hViable : S.isViableBool R = true)
+    (hHmax : (S.addEntry e).hmax = S.hmax) :
+    (S.addEntry e).isViableBool R = true := by
+  have hparts : S.containsBlockBool R = true ∧
+      S.entries.any (fun e =>
+        decide (S.heightThreshold ≤ e.height) && Block.isAncestorOf R e.block) = true := by
+    simpa [isViableBool, Bool.and_eq_true] using hViable
+  have hR : Contains S R := contains_of_containsBlockBool hparts.1
+  have hR' : (S.addEntry e).containsBlockBool R = true :=
+    containsBlockBool_of_contains (addEntry_contains_of_contains hR)
+  rcases highDescendant_of_isViableBool hViable with
+    ⟨w, hw, hwHeight, hwAnc⟩
+  have hwHeight' : (S.addEntry e).heightThreshold ≤ w.height := by
+    simpa [heightThreshold, hHmax] using hwHeight
+  exact isViableBool_of_entry_ancestor_height hR'
+    (by simp [addEntry, hw]) hwAnc hwHeight'
+
 lemma addChild_ancestorClosed {S : Store n} {parent : Block n}
     {bid newSlot : ℕ} {votes : List (Vote n)}
     {entry : StoreEntry n}
@@ -599,6 +618,107 @@ lemma onBlock_hj_succ_le_hmax {S S' : Store n} {B : Block n}
               · simp [child, hAnc] at hstep
             · simp [hFind, hSlot] at hstep
 
+/-- One successful `onBlock` step preserves viability of `J` whenever the
+    cascade boundary `hmax = hj + 1` holds. -/
+lemma onBlock_J_viableBool_of_boundary {S S' : Store n} {B : Block n}
+    (hClosed : AncestorClosed S)
+    (hGap : S.hj + 1 ≤ S.hmax)
+    (hJ : S.hmax = S.hj + 1 → S.isViableBool S.J = true)
+    (hstep : S.onBlock B = some S')
+    (hBoundary : S'.hmax = S'.hj + 1) :
+    S'.isViableBool S'.J = true := by
+  unfold onBlock at hstep
+  by_cases hContains : S.containsBlockBool B
+  · simp [hContains] at hstep
+    cases hstep
+    exact hJ hBoundary
+  · simp [hContains] at hstep
+    cases B with
+    | genesis =>
+        simp at hstep
+    | mk bid parent newSlot votes =>
+        cases hFind : S.findChain? parent with
+        | none =>
+            simp [hFind] at hstep
+        | some parentChain =>
+            by_cases hSlot : newSlot > parent.slot
+            · simp [hFind, hSlot] at hstep
+              let child := Block.mk bid parent newSlot votes
+              by_cases hAnc : Block.isAncestorOf S.F child
+              · simp [child, hAnc] at hstep
+                let entry : StoreEntry n :=
+                  { block := child
+                    chain := Chain.extend parentChain bid newSlot votes hSlot }
+                let σ' := entry.state
+                let S1 := S.addEntry entry
+                let S2 := S1.updateJustified σ'.J σ'.hj
+                have hParent : Contains S parent := findChain?_some_contains hFind
+                have hBlock : entry.block = Block.mk bid parent newSlot votes := by
+                  rfl
+                have hS1Closed : AncestorClosed S1 := by
+                  change AncestorClosed (S.addEntry entry)
+                  exact addChild_ancestorClosed hBlock hClosed hParent
+                have hS1Boundary :
+                    S1.hmax = S1.hj + 1 → S1.isViableBool S1.J = true := by
+                  intro hBoundary1
+                  have hOldLe : S.hmax ≤ S1.hmax := addEntry_hmax_mono
+                  have hOldBoundary : S.hmax = S.hj + 1 := by
+                    have hBoundary1' : S1.hmax = S.hj + 1 := by
+                      simpa [S1, addEntry] using hBoundary1
+                    omega
+                  have hHmax : S1.hmax = S.hmax := by
+                    have hBoundary1' : S1.hmax = S.hj + 1 := by
+                      simpa [S1, addEntry] using hBoundary1
+                    omega
+                  have hOldV : S.isViableBool S.J = true := hJ hOldBoundary
+                  have hPres := addEntry_viable_preserved_of_hmax_eq
+                    (S := S) (e := entry) (R := S.J) hOldV hHmax
+                  simpa [S1, addEntry] using hPres
+                have hS2Boundary :
+                    S2.hmax = S2.hj + 1 → S2.isViableBool S2.J = true := by
+                  intro hBoundary2
+                  cases hguard : S1.shouldUpdateJustified σ'.J σ'.hj
+                  · have hBoundary1 : S1.hmax = S1.hj + 1 := by
+                      simpa [S2, updateJustified, hguard] using hBoundary2
+                    have hV := hS1Boundary hBoundary1
+                    simpa [S2, updateJustified, hguard] using hV
+                  · have hJAnc : σ'.J ≼ entry.block := by
+                      simpa [σ', StoreEntry.state] using chain_J_le_L entry.chain
+                    have hEntryContains : Contains S1 entry.block :=
+                      ⟨entry, by simp [S1, addEntry], rfl⟩
+                    have hJContains : Contains S1 σ'.J :=
+                      hS1Closed hEntryContains hJAnc
+                    have hJBool : S1.containsBlockBool σ'.J = true :=
+                      containsBlockBool_of_contains hJContains
+                    have hS1hmax : S1.hmax = σ'.hj + 1 := by
+                      simpa [S2, updateJustified, hguard] using hBoundary2
+                    have hHeight : S1.heightThreshold ≤ entry.height := by
+                      have hlt : σ'.hj < entry.height := by
+                        simpa [σ', StoreEntry.state, StoreEntry.height] using
+                          chain_hj_lt_h entry.chain
+                      simp [heightThreshold, hS1hmax]
+                      omega
+                    have hV : S1.isViableBool σ'.J = true :=
+                      isViableBool_of_entry_ancestor_height hJBool
+                        (by simp [S1, addEntry]) hJAnc hHeight
+                    simpa [S2, updateJustified, hguard] using hV
+                have hFinal :
+                    (S2.updateFinalized σ'.F).hmax =
+                        (S2.updateFinalized σ'.F).hj + 1 →
+                    (S2.updateFinalized σ'.F).isViableBool
+                        (S2.updateFinalized σ'.F).J = true := by
+                  intro hBoundaryFinal
+                  have hBoundary2 : S2.hmax = S2.hj + 1 := by
+                    cases hFin : S2.shouldUpdateFinalized σ'.F <;>
+                      simpa [updateFinalized, hFin] using hBoundaryFinal
+                  have hV := hS2Boundary hBoundary2
+                  cases hFin : S2.shouldUpdateFinalized σ'.F <;>
+                    simpa [updateFinalized, hFin] using hV
+                cases hstep
+                exact hFinal hBoundary
+              · simp [child, hAnc] at hstep
+            · simp [hFind, hSlot] at hstep
+
 /-- Reachable stores satisfy `hj + 1 ≤ hmax`. -/
 theorem reachable_hj_succ_le_hmax {S : Store n}
     (hS : Reachable S) : S.hj + 1 ≤ S.hmax := by
@@ -607,6 +727,32 @@ theorem reachable_hj_succ_le_hmax {S : Store n}
       simp [Store.genesis]
   | onBlock hPrev hstep ih =>
       exact onBlock_hj_succ_le_hmax ih hstep
+
+/-- At the cascade boundary, reachable stores have viable `J`, so the
+    `getConfirmed` walk-from root exists in the viable tree. -/
+theorem reachable_J_viableBool_of_boundary {S : Store n}
+    (hS : Reachable S) (hBoundary : S.hmax = S.hj + 1) :
+    S.isViableBool S.J = true := by
+  induction hS with
+  | genesis =>
+      simp [Store.genesis, StoreEntry.genesis, isViableBool, containsBlockBool,
+        findChain?, StoreEntry.chainAs?, heightThreshold, Block.isAncestorOf]
+  | onBlock hPrev hstep ih =>
+      exact onBlock_J_viableBool_of_boundary
+        (reachable_ancestorClosed hPrev)
+        (reachable_hj_succ_le_hmax hPrev)
+        ih hstep hBoundary
+
+/-- Reachable stores always have at least one executable confirmed output. -/
+theorem reachable_getConfirmed_nonempty {S : Store n}
+    (hS : Reachable S) : ∃ B : Block n, B ∈ S.getConfirmed := by
+  by_cases hBoundary : S.hmax = S.hj + 1
+  · have hJ : S.isViableBool S.J = true :=
+      reachable_J_viableBool_of_boundary hS hBoundary
+    have hRoot : S.isViableBool S.confirmationRoot = true := by
+      simpa [confirmationRoot, hBoundary] using hJ
+    exact getConfirmed_nonempty_of_root_viableBool hRoot
+  · exact reachable_getConfirmed_nonempty_of_not_boundary hS hBoundary
 
 end Store
 

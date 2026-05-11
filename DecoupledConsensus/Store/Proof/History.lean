@@ -35,7 +35,9 @@ structure JustificationRecord (S : Store n) (C : Block n) (h : ℕ) where
   target_eq : entry.state.J = C
   height_eq : entry.state.hj = h
   target_ancestor : C ≼ entry.block
-  target_height : (stateOf (entry.chain.subchain target_ancestor)).h = h
+  target_height :
+    (h = 0 ∧ C = Block.genesis) ∨
+      (stateOf (entry.chain.subchain target_ancestor)).h = h
   tip_height : h < entry.height
   witness :
     (h = 0 ∧ C = Block.genesis) ∨
@@ -62,6 +64,17 @@ def FinalizationRecord.IdInjectiveAgainstStore
 lemma JustificationRecord.processed {S : Store n} {C : Block n} {h : ℕ}
     (r : JustificationRecord S C h) : ProcessedJustification S C h :=
   ⟨r.entry, r.mem, r.target_eq, r.height_eq⟩
+
+/-- Non-genesis justification records expose the target state-height fact used
+    by the safety arguments. The genesis convention is kept separate because
+    `stateOf genesis` has height `1` while the pre-justification height is `0`. -/
+lemma JustificationRecord.target_height_of_ne_zero
+    {S : Store n} {C : Block n} {h : ℕ}
+    (r : JustificationRecord S C h) (h_ne : h ≠ 0) :
+    (stateOf (r.entry.chain.subchain r.target_ancestor)).h = h := by
+  rcases r.target_height with h_genesis | h_height
+  · exact False.elim (h_ne h_genesis.1)
+  · exact h_height
 
 /-- `hmax` is exactly the maximum entry height and is attained by some entry. -/
 def HMaxOk (S : Store n) : Prop :=

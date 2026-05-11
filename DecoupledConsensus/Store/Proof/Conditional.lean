@@ -186,6 +186,8 @@ theorem certchain_record_strict_of_positive {f : ℕ} (hn : n = 3 * f + 1)
   have hCompat : F ~ C :=
     certchain_record_compatible hn hNoSlash rF rJ hId (Nat.le_of_lt hlt)
   have hFHeight := rF.target_height hpos
+  have h_ne_h : h ≠ 0 := by omega
+  have hJHeight := rJ.target_height_of_ne_zero h_ne_h
   rcases hCompat with hFC | hCF
   · refine ⟨hFC, ?_⟩
     intro hEq
@@ -195,7 +197,7 @@ theorem certchain_record_strict_of_positive {f : ℕ} (hn : n = 3 * f + 1)
           stateOf (rF.chain.subchain rF.target_ancestor) :=
       chain_unique _ _
     have h_eq_height : h = h_f := by
-      rw [← rJ.target_height, hSame, hFHeight]
+      rw [← hJHeight, hSame, hFHeight]
     omega
   · exfalso
     have hSubLe :
@@ -206,7 +208,7 @@ theorem certchain_record_strict_of_positive {f : ℕ} (hn : n = 3 * f + 1)
         stateOf ((rF.chain.subchain rF.target_ancestor).subchain hCF) =
           stateOf (rJ.entry.chain.subchain rJ.target_ancestor) :=
       chain_unique _ _
-    rw [hSame, rJ.target_height, hFHeight] at hSubLe
+    rw [hSame, hJHeight, hFHeight] at hSubLe
     omega
 
 /-- Upgrade, stated against explicit certificate records: if the current store

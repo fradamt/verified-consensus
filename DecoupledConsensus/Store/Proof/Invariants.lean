@@ -41,6 +41,11 @@ lemma updateJustified_F_eq {S : Store n} {J' : Block n} {h' : ℕ} :
   cases hguard : S.shouldUpdateJustified J' h' <;>
     simp [updateJustified, hguard]
 
+lemma updateFinalized_J_eq {S : Store n} {F' : Block n} :
+    (S.updateFinalized F').J = S.J := by
+  cases hguard : S.shouldUpdateFinalized F' <;>
+    simp [updateFinalized, hguard]
+
 lemma updateJustified_F_ancestor_J {S : Store n} {J' : Block n} {h' : ℕ}
     (h : S.F ≼ S.J) :
     (S.updateJustified J' h').F ≼ (S.updateJustified J' h').J := by
@@ -88,6 +93,38 @@ lemma keyGreater_height_ge {h' h : ℕ} {J' J : Block n}
       simpa [hlt, Bool.and_eq_true] using hkey
     omega
 
+/-- Lexicographic non-strict ordering on store justification keys
+    `(height, block-id)`. -/
+def KeyLE (h : ℕ) (J : Block n) (h' : ℕ) (J' : Block n) : Prop :=
+  h < h' ∨ (h = h' ∧ J.id ≤ J'.id)
+
+lemma KeyLE.refl (h : ℕ) (J : Block n) : KeyLE h J h J := by
+  exact Or.inr ⟨rfl, le_rfl⟩
+
+lemma KeyLE.trans {h₁ h₂ h₃ : ℕ} {J₁ J₂ J₃ : Block n}
+    (h12 : KeyLE h₁ J₁ h₂ J₂) (h23 : KeyLE h₂ J₂ h₃ J₃) :
+    KeyLE h₁ J₁ h₃ J₃ := by
+  rcases h12 with h12 | ⟨hh12, hJ12⟩
+  · rcases h23 with h23 | ⟨hh23, _⟩
+    · exact Or.inl (Nat.lt_trans h12 h23)
+    · subst hh23
+      exact Or.inl h12
+  · rcases h23 with h23 | ⟨hh23, hJ23⟩
+    · subst hh12
+      exact Or.inl h23
+    · subst hh12
+      subst hh23
+      exact Or.inr ⟨rfl, le_trans hJ12 hJ23⟩
+
+lemma keyGreater_keyLE {h' h : ℕ} {J' J : Block n}
+    (hkey : keyGreater h' J' h J = true) : KeyLE h J h' J' := by
+  unfold keyGreater at hkey
+  by_cases hlt : h < h'
+  · exact Or.inl hlt
+  · have hparts : h = h' ∧ J.id < J'.id := by
+      simpa [hlt, Bool.and_eq_true] using hkey
+    exact Or.inr ⟨hparts.1, Nat.le_of_lt hparts.2⟩
+
 lemma addEntry_hj_eq {S : Store n} {e : StoreEntry n} :
     (S.addEntry e).hj = S.hj := by
   rfl
@@ -100,6 +137,16 @@ lemma updateJustified_hj_mono {S : Store n} {J' : Block n} {h' : ℕ} :
         keyGreater h' J' S.hj S.J = true := by
       simpa [shouldUpdateJustified, Bool.and_eq_true] using hguard
     simpa [updateJustified, hguard] using keyGreater_height_ge hparts.2
+
+lemma updateJustified_key_mono {S : Store n} {J' : Block n} {h' : ℕ} :
+    KeyLE S.hj S.J (S.updateJustified J' h').hj
+      (S.updateJustified J' h').J := by
+  cases hguard : S.shouldUpdateJustified J' h'
+  · simpa [updateJustified, hguard] using KeyLE.refl S.hj S.J
+  · have hparts : Block.isAncestorOf S.F J' = true ∧
+        keyGreater h' J' S.hj S.J = true := by
+      simpa [shouldUpdateJustified, Bool.and_eq_true] using hguard
+    simpa [updateJustified, hguard] using keyGreater_keyLE hparts.2
 
 lemma updateFinalized_hj_eq {S : Store n} {F' : Block n} :
     (S.updateFinalized F').hj = S.hj := by
@@ -535,6 +582,50 @@ lemma onBlock_hj_mono {S S' : Store n} {B : Block n}
               · simp [child, hAnc] at hstep
             · simp [hFind, hSlot] at hstep
 
+/-- One successful `onBlock` step cannot decrease the lexicographic
+    justification key `(hj, J.id)`. -/
+lemma onBlock_key_mono {S S' : Store n} {B : Block n}
+    (hstep : S.onBlock B = some S') : KeyLE S.hj S.J S'.hj S'.J := by
+  unfold onBlock at hstep
+  by_cases hContains : S.containsBlockBool B
+  · simp [hContains] at hstep
+    cases hstep
+    exact KeyLE.refl _ _
+  · simp [hContains] at hstep
+    cases B with
+    | genesis =>
+        simp at hstep
+    | mk bid parent newSlot votes =>
+        cases hFind : S.findChain? parent with
+        | none =>
+            simp [hFind] at hstep
+        | some parentChain =>
+            by_cases hSlot : newSlot > parent.slot
+            · simp [hFind, hSlot] at hstep
+              let child := Block.mk bid parent newSlot votes
+              by_cases hAnc : Block.isAncestorOf S.F child
+              · simp [child, hAnc] at hstep
+                let entry : StoreEntry n :=
+                  { block := child
+                    chain := Chain.extend parentChain bid newSlot votes hSlot }
+                let σ' := entry.state
+                let S1 := S.addEntry entry
+                let S2 := S1.updateJustified σ'.J σ'.hj
+                have hS1 : KeyLE S.hj S.J S1.hj S1.J := by
+                  simp [S1, addEntry, KeyLE.refl]
+                have hS2 : KeyLE S1.hj S1.J S2.hj S2.J :=
+                  updateJustified_key_mono
+                have hFinal :
+                    KeyLE S2.hj S2.J
+                      (S2.updateFinalized σ'.F).hj
+                      (S2.updateFinalized σ'.F).J := by
+                  cases hFin : S2.shouldUpdateFinalized σ'.F <;>
+                    simp [updateFinalized, hFin, KeyLE.refl]
+                cases hstep
+                exact hS1.trans (hS2.trans hFinal)
+              · simp [child, hAnc] at hstep
+            · simp [hFind, hSlot] at hstep
+
 /-- One successful `onBlock` step cannot decrease `hmax`. -/
 lemma onBlock_hmax_mono {S S' : Store n} {B : Block n}
     (hstep : S.onBlock B = some S') : S.hmax ≤ S'.hmax := by
@@ -569,6 +660,34 @@ lemma onBlock_hmax_mono {S S' : Store n} {B : Block n}
                   updateFinalized_hmax_eq] using hS1
               · simp [child, hAnc] at hstep
             · simp [hFind, hSlot] at hstep
+
+/-- Store justification height is monotone across any future execution. -/
+theorem future_hj_mono {S T : Store n}
+    (hFuture : Future S T) : S.hj ≤ T.hj := by
+  induction hFuture with
+  | refl _ =>
+      exact le_rfl
+  | step hstep _ ih =>
+      exact (onBlock_hj_mono hstep).trans ih
+
+/-- Store justification keys are lexicographically monotone across any future
+    execution. -/
+theorem future_key_mono {S T : Store n}
+    (hFuture : Future S T) : KeyLE S.hj S.J T.hj T.J := by
+  induction hFuture with
+  | refl _ =>
+      exact KeyLE.refl _ _
+  | step hstep _ ih =>
+      exact (onBlock_key_mono hstep).trans ih
+
+/-- The store frontier `hmax` is monotone across any future execution. -/
+theorem future_hmax_mono {S T : Store n}
+    (hFuture : Future S T) : S.hmax ≤ T.hmax := by
+  induction hFuture with
+  | refl _ =>
+      exact le_rfl
+  | step hstep _ ih =>
+      exact (onBlock_hmax_mono hstep).trans ih
 
 /-- The store frontier height never outruns the maximum processed state
     height: every observed justified height came from a post-state whose height
@@ -752,6 +871,15 @@ theorem reachable_getConfirmed_nonempty {S : Store n}
       simpa [confirmationRoot, hBoundary] using hJ
     exact getConfirmed_nonempty_of_root_viableBool hRoot
   · exact reachable_getConfirmed_nonempty_of_not_boundary hS hBoundary
+
+/-- Section-3 totality for the executable set-valued `getConfirmed`: every
+    reachable store has at least one possible output, and any such output
+    satisfies the candidate predicate. -/
+theorem reachable_getConfirmed_total {S : Store n}
+    (hS : Reachable S) :
+    ∃ B : Block n, B ∈ S.getConfirmed ∧ ConfirmedCandidate S B := by
+  obtain ⟨B, hB⟩ := reachable_getConfirmed_nonempty hS
+  exact ⟨B, hB, getConfirmed_candidate hB⟩
 
 end Store
 

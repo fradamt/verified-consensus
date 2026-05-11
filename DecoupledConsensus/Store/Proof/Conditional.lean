@@ -426,6 +426,107 @@ theorem lockin_of_records {f : ℕ}
       hId rF.chain rF.final_state rF.certificate hFJ hhj hB
   exact ⟨hFJ, hViable, hDesc⟩
 
+/-! ### Order-independent views of executable stores -/
+
+/-- Extensional equality for the order-independent store components. The raw
+    executable store keeps `entries` as a list, so two processing orders need
+    not be definitionally equal even when they contain the same accepted
+    `(block, chain)` entries. This predicate is the Section-3 equality notion
+    relevant to `viableTree` and `getConfirmed`. -/
+structure OrderEquivalent (S T : Store n) : Prop where
+  entries_iff : ∀ e : StoreEntry n, e ∈ S.entries ↔ e ∈ T.entries
+  F_eq : S.F = T.F
+  J_eq : S.J = T.J
+  hj_eq : S.hj = T.hj
+  hmax_eq : S.hmax = T.hmax
+
+lemma OrderEquivalent.symm {S T : Store n}
+    (hEq : OrderEquivalent S T) : OrderEquivalent T S where
+  entries_iff := fun e => (hEq.entries_iff e).symm
+  F_eq := hEq.F_eq.symm
+  J_eq := hEq.J_eq.symm
+  hj_eq := hEq.hj_eq.symm
+  hmax_eq := hEq.hmax_eq.symm
+
+private lemma heightThreshold_eq_of_orderEquivalent {S T : Store n}
+    (hEq : OrderEquivalent S T) :
+    S.heightThreshold = T.heightThreshold := by
+  simp [heightThreshold, hEq.hmax_eq]
+
+private lemma confirmationRoot_eq_of_orderEquivalent {S T : Store n}
+    (hEq : OrderEquivalent S T) :
+    S.confirmationRoot = T.confirmationRoot := by
+  simp [confirmationRoot, hEq.hmax_eq, hEq.hj_eq, hEq.J_eq, hEq.F_eq]
+
+private lemma getConfirmed_mem_of_orderEquivalent {S T : Store n} {B : Block n}
+    (hEq : OrderEquivalent S T) (hB : B ∈ S.getConfirmed) :
+    B ∈ T.getConfirmed := by
+  rcases getConfirmed_entry hB with ⟨e, heS, hBlock, hcandS⟩
+  subst B
+  have heT : e ∈ T.entries := (hEq.entries_iff e).mp heS
+  have hparts :
+      (S.isViableBool e.block = true ∧
+        Block.isAncestorOf S.confirmationRoot e.block = true) ∧
+        decide (S.heightThreshold ≤ e.height) = true := by
+    simpa [isConfirmedCandidateEntryBool, Bool.and_eq_true] using hcandS
+  have hViableT : T.isViableBool e.block = true := by
+    rcases highDescendant_of_isViableBool hparts.1.1 with
+      ⟨w, hwS, hwHeightS, hAnc⟩
+    have hwT : w ∈ T.entries := (hEq.entries_iff w).mp hwS
+    have hContainsT : T.containsBlockBool e.block = true :=
+      containsBlockBool_of_entry_mem heT
+    have hHeightT : T.heightThreshold ≤ w.height := by
+      simpa [← heightThreshold_eq_of_orderEquivalent hEq] using hwHeightS
+    exact isViableBool_of_entry_ancestor_height hContainsT hwT hAnc hHeightT
+  have hRootT : Block.isAncestorOf T.confirmationRoot e.block = true := by
+    simpa [← confirmationRoot_eq_of_orderEquivalent hEq] using hparts.1.2
+  have hHeightT : decide (T.heightThreshold ≤ e.height) = true := by
+    simpa [← heightThreshold_eq_of_orderEquivalent hEq] using hparts.2
+  have hcandT : T.isConfirmedCandidateEntryBool e = true := by
+    simp [isConfirmedCandidateEntryBool, hViableT, hRootT, hHeightT]
+  exact mem_getConfirmed_of_entry_candidate heT hcandT
+
+/-- Order-independence for executable confirmed-output sets. The result is
+    stated extensionally because `getConfirmed` is represented as a finite list
+    of all possible outputs, and list order follows the store-entry order. -/
+theorem orderindep_getConfirmed {S T : Store n} {B : Block n}
+    (hEq : OrderEquivalent S T) :
+    B ∈ S.getConfirmed ↔ B ∈ T.getConfirmed := by
+  constructor
+  · exact getConfirmed_mem_of_orderEquivalent hEq
+  · exact getConfirmed_mem_of_orderEquivalent hEq.symm
+
+private lemma viableTree_mem_of_orderEquivalent {S T : Store n} {B : Block n}
+    (hEq : OrderEquivalent S T) (hB : B ∈ S.viableTree) :
+    B ∈ T.viableTree := by
+  rcases (by
+    simpa [viableTree] using hB :
+      ∃ e ∈ S.entries, S.isViableBool e.block = true ∧ e.block = B) with
+    ⟨e, heS, hViableS, hBlock⟩
+  subst B
+  have heT : e ∈ T.entries := (hEq.entries_iff e).mp heS
+  have hViableT : T.isViableBool e.block = true := by
+    rcases highDescendant_of_isViableBool hViableS with
+      ⟨w, hwS, hwHeightS, hAnc⟩
+    have hwT : w ∈ T.entries := (hEq.entries_iff w).mp hwS
+    have hContainsT : T.containsBlockBool e.block = true :=
+      containsBlockBool_of_entry_mem heT
+    have hHeightT : T.heightThreshold ≤ w.height := by
+      simpa [← heightThreshold_eq_of_orderEquivalent hEq] using hwHeightS
+    exact isViableBool_of_entry_ancestor_height hContainsT hwT hAnc hHeightT
+  simpa [viableTree] using
+    (show ∃ x ∈ T.entries, T.isViableBool x.block = true ∧ x.block = e.block from
+      ⟨e, heT, hViableT, rfl⟩)
+
+/-- Order-independence for viable-tree membership, again stated extensionally
+    over the executable finite-list representation. -/
+theorem orderindep_viableTree {S T : Store n} {B : Block n}
+    (hEq : OrderEquivalent S T) :
+    B ∈ S.viableTree ↔ B ∈ T.viableTree := by
+  constructor
+  · exact viableTree_mem_of_orderEquivalent hEq
+  · exact viableTree_mem_of_orderEquivalent hEq.symm
+
 end Store
 
 end DecoupledConsensus

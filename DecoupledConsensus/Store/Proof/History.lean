@@ -25,6 +25,44 @@ def ProcessedJustification (S : Store n) (C : Block n) (h : ℕ) : Prop :=
 def IdInjectiveAgainstStore (tip : Block n) (S : Store n) : Prop :=
   ∀ e, e ∈ S.entries → Block.IdInjectiveOnAncestors tip e.block
 
+/-- Certificate-level record for a justification event observed in an accepted
+    store entry. This is proof-side history, not protocol state: it packages
+    the facts needed by the section-3 safety arguments when they refer to a
+    justification `(C, h)` having fired. -/
+structure JustificationRecord (S : Store n) (C : Block n) (h : ℕ) where
+  entry : StoreEntry n
+  mem : entry ∈ S.entries
+  target_eq : entry.state.J = C
+  height_eq : entry.state.hj = h
+  target_ancestor : C ≼ entry.block
+  target_height : (stateOf (entry.chain.subchain target_ancestor)).h = h
+  tip_height : h < entry.height
+  witness :
+    (h = 0 ∧ C = Block.genesis) ∨
+      JustifyQuorumWitness (votesIncluded entry.chain) C h
+
+/-- Certificate-level record for a finality event. The witnessing chain need
+    not be in the local store: Section 3 often reasons about finality observed
+    on any chain and then compares it to a node-local store. -/
+structure FinalizationRecord (F : Block n) (h_f : ℕ) where
+  tip : Block n
+  chain : Chain n tip
+  target_ancestor : F ≼ tip
+  final_state : (stateOf chain).F = F
+  certificate : FinalizedCertificate chain F h_f target_ancestor
+
+/-- Scoped id injectivity for comparing a finalization record with all accepted
+    entries in a store. -/
+def FinalizationRecord.IdInjectiveAgainstStore
+    {F : Block n} {h_f : ℕ} (r : FinalizationRecord F h_f) (S : Store n) : Prop :=
+  DecoupledConsensus.Store.IdInjectiveAgainstStore r.tip S
+
+/-- A justification record also supplies the lighter processed-descriptor
+    predicate used by basic store-history lemmas. -/
+lemma JustificationRecord.processed {S : Store n} {C : Block n} {h : ℕ}
+    (r : JustificationRecord S C h) : ProcessedJustification S C h :=
+  ⟨r.entry, r.mem, r.target_eq, r.height_eq⟩
+
 /-- `hmax` is exactly the maximum entry height and is attained by some entry. -/
 def HMaxOk (S : Store n) : Prop :=
   (∀ e ∈ S.entries, e.height ≤ S.hmax) ∧

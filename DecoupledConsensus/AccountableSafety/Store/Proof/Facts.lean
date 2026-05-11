@@ -56,6 +56,14 @@ end Block
 
 namespace Store
 
+private lemma list_any_true {α : Type} {p : α → Bool} {l : List α}
+    (h : l.any p = true) : ∃ a ∈ l, p a = true := by
+  simpa using h
+
+private lemma list_any_false_forall {α : Type} {p : α → Bool} {l : List α}
+    (h : l.any p = false) : ∀ a ∈ l, p a = false := by
+  simpa using h
+
 /-- Membership in `getConfirmed` comes from an accepted entry satisfying the
     executable candidate predicate. -/
 lemma getConfirmed_entry {S : Store n} {B : Block n}
@@ -86,6 +94,61 @@ lemma getConfirmed_viableBool {S : Store n} {B : Block n}
     simpa [isConfirmedCandidateEntryBool, Bool.and_eq_true] using hcand
   exact hparts.1.1
 
+/-- An executable leaf result is sound for entries that are known to be in the
+    store. The membership premise avoids needing a separate lookup theorem for
+    the `containsBlockBool` conjunct. -/
+lemma isLeafBool_sound_of_mem {S : Store n} {e : StoreEntry n}
+    (he : e ∈ S.entries) (hLeaf : S.isLeafBool e.block = true) :
+    IsLeaf S e.block := by
+  have hparts : S.containsBlockBool e.block = true ∧
+      !S.hasStrictDescendantBool e.block = true := by
+    simpa [isLeafBool, Bool.and_eq_true] using hLeaf
+  have hNoDesc : S.hasStrictDescendantBool e.block = false := by
+    cases hDesc : S.hasStrictDescendantBool e.block
+    · rfl
+    · simp [hDesc] at hparts
+  constructor
+  · exact ⟨e, he, rfl⟩
+  · intro C hC hAnc
+    by_contra hNe
+    rcases hC with ⟨eC, heC, hEqC⟩
+    have hAncEntry : e.block ≼ eC.block := by
+      simpa [hEqC] using hAnc
+    have hAncBool : Block.isAncestorOf e.block eC.block = true :=
+      (Block.isAncestorOf_eq_true_iff _ _).mpr hAncEntry
+    have hNeBool : decide (e.block ≠ eC.block) = true := by
+      apply decide_eq_true
+      intro hEqBlocks
+      exact hNe (hEqC ▸ hEqBlocks.symm)
+    have hpFalse := list_any_false_forall hNoDesc eC heC
+    have hpTrue :
+        (Block.isAncestorOf e.block eC.block &&
+          decide (e.block ≠ eC.block)) = true := by
+      simp [hAncBool, hNeBool]
+    rw [hpTrue] at hpFalse
+    cases hpFalse
+
+/-- The executable viable-tree test is sound when the queried block is known
+    to be accepted. -/
+lemma isViableBool_sound_of_contains {S : Store n} {B : Block n}
+    (hB : Contains S B) (hViable : S.isViableBool B = true) :
+    Viable S B := by
+  have hparts : S.containsBlockBool B = true ∧
+      S.entries.any (fun e =>
+        S.isViableLeafEntryBool e && Block.isAncestorOf B e.block) = true := by
+    simpa [isViableBool, Bool.and_eq_true] using hViable
+  rcases list_any_true hparts.2 with ⟨e, he, heViable⟩
+  have heParts : S.isViableLeafEntryBool e = true ∧
+      Block.isAncestorOf B e.block = true := by
+    simpa [Bool.and_eq_true] using heViable
+  have hLeafHeight : S.isLeafBool e.block = true ∧
+      decide (S.heightThreshold ≤ e.height) = true := by
+    simpa [isViableLeafEntryBool, Bool.and_eq_true] using heParts.1
+  refine ⟨hB, e.block, ?_, ?_, ?_⟩
+  · exact isLeafBool_sound_of_mem he hLeafHeight.1
+  · exact (Block.isAncestorOf_eq_true_iff _ _).mp heParts.2
+  · exact ⟨e, he, rfl, of_decide_eq_true hLeafHeight.2⟩
+
 /-- Every confirmed output descends from the confirmation root. -/
 lemma getConfirmed_root_ancestor {S : Store n} {B : Block n}
     (h : B ∈ S.getConfirmed) : S.confirmationRoot ≼ B := by
@@ -113,6 +176,16 @@ lemma getConfirmed_height {S : Store n} {B : Block n}
       simpa [isConfirmedCandidateEntryBool, Bool.and_eq_true] using hcand
     exact hparts.2
   exact ⟨e, he, rfl, of_decide_eq_true hheightBool⟩
+
+/-- Every output in the executable `getConfirmed` set satisfies the Prop-level
+    confirmed-candidate predicate. -/
+lemma getConfirmed_candidate {S : Store n} {B : Block n}
+    (h : B ∈ S.getConfirmed) : ConfirmedCandidate S B := by
+  exact ⟨
+    isViableBool_sound_of_contains (getConfirmed_contains h)
+      (getConfirmed_viableBool h),
+    getConfirmed_root_ancestor h,
+    getConfirmed_height h⟩
 
 end Store
 

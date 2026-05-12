@@ -1,4 +1,5 @@
 import DecoupledConsensus.Store.Proof.Invariants
+import DecoupledConsensus.State.Proof.FinalityEvidence
 import DecoupledConsensus.State.Proof.TargetHeight
 
 namespace DecoupledConsensus
@@ -112,6 +113,29 @@ lemma JustificationRecord.target_height_of_ne_zero
   rcases r.target_height with h_genesis | h_height
   · exact False.elim (h_ne h_genesis.1)
   · exact h_height
+
+/-- The finalized block in an accepted entry's post-state carries a recovered
+    finalization certificate. This is proof-side evidence extracted from the
+    state-machine invariant; no finalization height is stored in `State`. -/
+noncomputable def StoreEntry.finalizationRecordOfStateF (e : StoreEntry n)
+    {F : Block n} (hF : e.state.F = F) :
+    Σ h_f, FinalizationRecord F h_f := by
+  classical
+  let hExists := FinalityEvidence.chain_finalizedCertificate e.chain
+  let h_f := Classical.choose hExists
+  let hRest := Classical.choose_spec hExists
+  let hAnc := Classical.choose hRest
+  let hCert := Classical.choose_spec hRest
+  have hEq : (stateOf e.chain).F = F := by
+    simpa [StoreEntry.state] using hF
+  subst F
+  refine ⟨h_f, ?_⟩
+  exact
+    { tip := e.block
+      chain := e.chain
+      target_ancestor := hAnc
+      final_state := rfl
+      certificate := hCert }
 
 /-- `hmax` is exactly the maximum entry height and is attained by some entry. -/
 def HMaxOk (S : Store n) : Prop :=

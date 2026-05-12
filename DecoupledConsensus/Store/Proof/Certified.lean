@@ -164,8 +164,7 @@ theorem certified_upgrade_of_processed {f : ℕ}
 theorem certified_lockin {f : ℕ}
     (hn : n = 3 * f + 1)
     (hNoSlash : ¬ @AtLeastFThirdSlashable n f)
-    {Sigma T : CertifiedStore n} (hSigma : CertifiedStore.Reachable Sigma)
-    (hFuture : Future Sigma.store T.store)
+    {Sigma T : CertifiedStore n} (hFuture : Future Sigma.store T.store)
     {F B : Block n} {h_f : ℕ}
     (rF : FinalizationRecord F h_f)
     (hProc : ProcessedJustification Sigma.store F h_f)
@@ -177,7 +176,7 @@ theorem certified_lockin {f : ℕ}
   have hhj : h_f ≤ T.store.hj :=
     future_no_high_processed_justification Sigma.cert.noHigh hFuture hProc
   exact lockin_of_records hn hNoSlash
-    (CertifiedStore.reachable_store hSigma) hFuture
+    Sigma.cert.reachable hFuture
     rF rProcessed rRoot hId hhj hB
 
 end Store

@@ -576,7 +576,8 @@ private lemma onBlock_noHigh {S S' : Store n} {B : Block n}
                   containsBlockBool_of_contains hJContains
                 cases hstep
                 have hProcS2 : ProcessedJustification S2 C h := by
-                  simpa [ProcessedJustification, updateFinalized_entries_eq] using hProc
+                  simpa [ProcessedJustification, ProcessedCheckpoint,
+                    updateFinalized_entries_eq] using hProc
                 cases hguard : S1.shouldUpdateJustified σ'.J σ'.hj
                 · have hProcS1 : ProcessedJustification S1 C h := by
                     simpa [S2, updateJustified, hguard] using hProcS2
@@ -651,7 +652,8 @@ private lemma onBlock_noHigh {S S' : Store n} {B : Block n}
                     rw [hFinalHj]
                     exact hBound
                 · have hProcS1 : ProcessedJustification S1 C h := by
-                    simpa [S2, ProcessedJustification, updateJustified_entries_eq]
+                    simpa [S2, ProcessedJustification, ProcessedCheckpoint,
+                      updateJustified_entries_eq]
                       using hProcS2
                   rcases hProcS1 with ⟨e, he, hJ, hhj⟩
                   have heOldOrNew : e ∈ S.entries ∨ e = entry := by
@@ -792,131 +794,121 @@ theorem onBlock_accepts_state_finalization {f : ℕ}
     (hStrict : S.F ≼ σB.F ∧ S.F ≠ σB.F) :
     S'.F = σB.F := by
   rcases hAcc with ⟨chainB, _hLookup, hStateEq⟩
-  unfold onBlock at hstep
-  simp [hFresh] at hstep
-  cases B with
-  | genesis =>
-      simp at hstep
-  | mk bid parent newSlot votes =>
-      cases hFind : S.findChain? parent with
-      | none =>
-          simp [hFind] at hstep
-      | some parentChain =>
-          by_cases hSlot : newSlot > parent.slot
-          · simp [hFind, hSlot] at hstep
-            let child := Block.mk bid parent newSlot votes
-            by_cases hAnc : Block.isAncestorOf S.F child
-            · simp [child, hAnc] at hstep
-              let entry : StoreEntry n :=
-                { block := child
-                  chain := Chain.extend parentChain bid newSlot votes hSlot }
-              let σ' := entry.state
-              let S1 := S.addEntry entry
-              let S2 := S1.updateJustified σ'.J σ'.hj
-              have hState : σB = σ' := by
-                rw [← hStateEq]
-                simpa [σ', StoreEntry.state, entry, child] using
-                  (chain_unique chainB entry.chain)
-              have hStateF : σB.F = σ'.F := by
-                rw [hState]
-              have hStrictσ : S.F ≼ σ'.F ∧ S.F ≠ σ'.F := by
-                constructor
-                · simpa [hStateF] using hStrict.1
-                · intro hEq
-                  exact hStrict.2 (by simpa [hStateF] using hEq)
-              have hParent : Contains S parent := findChain?_some_contains hFind
-              have hSClosed : AncestorClosed S := reachable_ancestorClosed hS
-              have hBlock : entry.block = Block.mk bid parent newSlot votes := by
-                rfl
-              have hS1Closed : AncestorClosed S1 := by
-                change AncestorClosed (S.addEntry entry)
-                exact addChild_ancestorClosed hBlock hSClosed hParent
-              have hS2Closed : AncestorClosed S2 :=
-                updateJustified_ancestorClosed hS1Closed
-              have hEntryMemS1 : entry ∈ S1.entries := by
-                simp [S1, addEntry]
-              have hEntryMemS2 : entry ∈ S2.entries := by
-                simpa [S2, updateJustified_entries_eq] using hEntryMemS1
-              obtain ⟨h_f, hFanc, hFCert, hhf⟩ :=
-                FinalityEvidence.chain_finalizedCertificate_le_hj entry.chain
-              let rF : FinalizationRecord σ'.F h_f :=
-                { tip := entry.block
-                  chain := entry.chain
-                  target_ancestor := by
-                    simpa [σ', StoreEntry.state] using hFanc
-                  final_state := by
-                    simp [σ', StoreEntry.state]
-                  certificate := by
-                    simpa [σ', StoreEntry.state] using hFCert }
-              cases hstep
-              have hIdS2 : rF.IdInjectiveAgainstStore S2 := by
-                intro e he
-                have heFinal : e ∈ (S2.updateFinalized σ'.F).entries := by
-                  simpa [updateFinalized_entries_eq] using he
-                change Block.IdInjectiveOnAncestors entry.block e.block
-                intro A C hA hC hEq
-                exact (hId e heFinal)
-                  (by simpa [entry, child] using hA)
-                  (by simpa [entry, child] using hC)
-                  hEq
-              have hJAnc : σ'.J ≼ entry.block := by
-                simpa [σ', StoreEntry.state] using chain_J_le_L entry.chain
-              have hJContains : Contains S1 σ'.J :=
-                hS1Closed ⟨entry, hEntryMemS1, rfl⟩ hJAnc
-              have hJBool : S1.containsBlockBool σ'.J = true :=
-                containsBlockBool_of_contains hJContains
-              have hS1FBelowJ : Block.isAncestorOf S1.F σ'.J = true := by
-                have hFJ : σ'.F ≼ σ'.J := by
-                  simpa [σ', StoreEntry.state] using chain_F_le_J entry.chain
-                have hProp : S1.F ≼ σ'.J := by
-                  have hS1F : S1.F = S.F := by
-                    simp [S1, addEntry]
-                  rw [hS1F]
-                  exact hStrictσ.1.trans hFJ
-                exact (Block.isAncestorOf_eq_true_iff _ _).mpr hProp
-              have hCandidateHjLe : σ'.hj ≤ S2.hj :=
-                updateJustified_candidate_height_le
-                  (S := S1) (J' := σ'.J) (h' := σ'.hj)
-                  hJBool hS1FBelowJ
-              have hhfσ : h_f ≤ σ'.hj := by
-                simpa [σ', StoreEntry.state] using hhf
-              have hhfS2 : h_f ≤ S2.hj := hhfσ.trans hCandidateHjLe
-              have hCurS1 : CurrentProcessedJustification S1 :=
-                addEntry_currentProcessedJustification
-                  (reachable_currentProcessedJustification hS)
-              have hNew : ProcessedJustification S1 σ'.J σ'.hj := by
-                simpa [S1, σ'] using
-                  addEntry_newProcessedJustification (S := S) (e := entry)
-              have hCurS2 : CurrentProcessedJustification S2 :=
-                updateJustified_currentProcessedJustification hCurS1 hNew
-              let rRoot : JustificationRecord S2 S2.J S2.hj := hCurS2.toRecord
-              have hBelowJ : σ'.F ≼ S2.J :=
-                upgrade_of_current_root_record hn hNoSlash rF rRoot hIdS2 hhfS2
-              have hHmaxS2 : HMaxOk S2 :=
-                updateJustified_hmaxOk (addEntry_hmaxOk (reachable_hmaxOk hS))
-              have hHigh : h_f < S2.hmax := by
-                have hlt : σ'.hj < entry.height := by
-                  simpa [σ', StoreEntry.state, StoreEntry.height] using
-                    chain_hj_lt_h entry.chain
-                have hEntryLe : entry.height ≤ S2.hmax :=
-                  hHmaxS2.1 entry hEntryMemS2
-                omega
-              have hViable : S2.isViableBool σ'.F = true :=
-                finalized_viableBool_of_hmax_high hn hNoSlash
-                  hS2Closed hHmaxS2 hIdS2 rF.chain rF.final_state
-                  rF.certificate hHigh
-              have hS2F_eq : S2.F = S.F := by
-                simp [S2, S1, addEntry, updateJustified_F_eq]
-              have hStrictS2 : S2.F ≼ σ'.F ∧ S2.F ≠ σ'.F := by
-                constructor
-                · simpa [hS2F_eq] using hStrictσ.1
-                · intro hEq
-                  exact hStrictσ.2 (by simpa [hS2F_eq] using hEq)
-              have hSet : (S2.updateFinalized σ'.F).F = σ'.F :=
-                updateFinalized_sets_of_guards hStrictS2 hBelowJ hViable
-              simpa [hStateF] using hSet
-            · simp [child, hAnc] at hstep
-          · simp [hFind, hSlot] at hstep
+  obtain
+    ⟨bid, parent, newSlot, votes, _hBlockEq, parentChain, hFind, hSlot,
+      _hAnc, hResult⟩ := freshOnBlockStep_of_onBlock hFresh hstep
+  subst B
+  let child := Block.mk bid parent newSlot votes
+  let entry : StoreEntry n :=
+    { block := child
+      chain := Chain.extend parentChain bid newSlot votes hSlot }
+  let σ' := entry.state
+  let S1 := S.addEntry entry
+  let S2 := S1.updateJustified σ'.J σ'.hj
+  have hResult' : S' = S2.updateFinalized σ'.F := by
+    simpa [child, entry, σ', S1, S2] using hResult
+  subst S'
+  have hState : σB = σ' := by
+    rw [← hStateEq]
+    simpa [σ', StoreEntry.state, entry, child] using
+      (chain_unique chainB entry.chain)
+  have hStateF : σB.F = σ'.F := by
+    rw [hState]
+  have hStrictσ : S.F ≼ σ'.F ∧ S.F ≠ σ'.F := by
+    constructor
+    · simpa [hStateF] using hStrict.1
+    · intro hEq
+      exact hStrict.2 (by simpa [hStateF] using hEq)
+  have hParent : Contains S parent := findChain?_some_contains hFind
+  have hSClosed : AncestorClosed S := reachable_ancestorClosed hS
+  have hBlock : entry.block = Block.mk bid parent newSlot votes := by
+    rfl
+  have hS1Closed : AncestorClosed S1 := by
+    change AncestorClosed (S.addEntry entry)
+    exact addChild_ancestorClosed hBlock hSClosed hParent
+  have hS2Closed : AncestorClosed S2 :=
+    updateJustified_ancestorClosed hS1Closed
+  have hEntryMemS1 : entry ∈ S1.entries := by
+    simp [S1, addEntry]
+  have hEntryMemS2 : entry ∈ S2.entries := by
+    simpa [S2, updateJustified_entries_eq] using hEntryMemS1
+  obtain ⟨h_f, hFanc, hFCert, hhf⟩ :=
+    FinalityEvidence.chain_finalizedCertificate_le_hj entry.chain
+  let rF : FinalizationRecord σ'.F h_f :=
+    { tip := entry.block
+      chain := entry.chain
+      target_ancestor := by
+        simpa [σ', StoreEntry.state] using hFanc
+      final_state := by
+        simp [σ', StoreEntry.state]
+      certificate := by
+        simpa [σ', StoreEntry.state] using hFCert }
+  have hIdS2 : rF.IdInjectiveAgainstStore S2 := by
+    intro e he
+    have heFinal : e ∈ (S2.updateFinalized σ'.F).entries := by
+      simpa [updateFinalized_entries_eq] using he
+    change Block.IdInjectiveOnAncestors entry.block e.block
+    intro A C hA hC hEq
+    exact (hId e heFinal)
+      (by simpa [entry, child] using hA)
+      (by simpa [entry, child] using hC)
+      hEq
+  have hJAnc : σ'.J ≼ entry.block := by
+    simpa [σ', StoreEntry.state] using chain_J_le_L entry.chain
+  have hJContains : Contains S1 σ'.J :=
+    hS1Closed ⟨entry, hEntryMemS1, rfl⟩ hJAnc
+  have hJBool : S1.containsBlockBool σ'.J = true :=
+    containsBlockBool_of_contains hJContains
+  have hS1FBelowJ : Block.isAncestorOf S1.F σ'.J = true := by
+    have hFJ : σ'.F ≼ σ'.J := by
+      simpa [σ', StoreEntry.state] using chain_F_le_J entry.chain
+    have hProp : S1.F ≼ σ'.J := by
+      have hS1F : S1.F = S.F := by
+        simp [S1, addEntry]
+      rw [hS1F]
+      exact hStrictσ.1.trans hFJ
+    exact (Block.isAncestorOf_eq_true_iff _ _).mpr hProp
+  have hCandidateHjLe : σ'.hj ≤ S2.hj :=
+    updateJustified_candidate_height_le
+      (S := S1) (J' := σ'.J) (h' := σ'.hj)
+      hJBool hS1FBelowJ
+  have hhfσ : h_f ≤ σ'.hj := by
+    simpa [σ', StoreEntry.state] using hhf
+  have hhfS2 : h_f ≤ S2.hj := hhfσ.trans hCandidateHjLe
+  have hCurS1 : CurrentProcessedJustification S1 :=
+    addEntry_currentProcessedJustification
+      (reachable_currentProcessedJustification hS)
+  have hNew : ProcessedJustification S1 σ'.J σ'.hj := by
+    simpa [S1, σ'] using
+      addEntry_newProcessedJustification (S := S) (e := entry)
+  have hCurS2 : CurrentProcessedJustification S2 :=
+    updateJustified_currentProcessedJustification hCurS1 hNew
+  let rRoot : JustificationRecord S2 S2.J S2.hj := hCurS2.toRecord
+  have hBelowJ : σ'.F ≼ S2.J :=
+    upgrade_of_current_root_record hn hNoSlash rF rRoot hIdS2 hhfS2
+  have hHmaxS2 : HMaxOk S2 :=
+    updateJustified_hmaxOk (addEntry_hmaxOk (reachable_hmaxOk hS))
+  have hHigh : h_f < S2.hmax := by
+    have hlt : σ'.hj < entry.height := by
+      simpa [σ', StoreEntry.state, StoreEntry.height] using
+        chain_hj_lt_h entry.chain
+    have hEntryLe : entry.height ≤ S2.hmax :=
+      hHmaxS2.1 entry hEntryMemS2
+    omega
+  have hViable : S2.isViableBool σ'.F = true :=
+    finalized_viableBool_of_hmax_high hn hNoSlash
+      hS2Closed hHmaxS2 hIdS2 rF.chain rF.final_state
+      rF.certificate hHigh
+  have hS2F_eq : S2.F = S.F := by
+    simp [S2, S1, addEntry, updateJustified_F_eq]
+  have hStrictS2 : S2.F ≼ σ'.F ∧ S2.F ≠ σ'.F := by
+    constructor
+    · simpa [hS2F_eq] using hStrictσ.1
+    · intro hEq
+      exact hStrictσ.2 (by simpa [hS2F_eq] using hEq)
+  have hSet : (S2.updateFinalized σ'.F).F = σ'.F :=
+    updateFinalized_sets_of_guards hStrictS2 hBelowJ hViable
+  simpa [hStateF] using hSet
 
 /-- Monotone fresh-`onBlock` form of finality update acceptance. -/
 theorem onBlock_descends_or_accepts_state_finalization {f : ℕ}
@@ -1015,7 +1007,7 @@ theorem orderindep_noHighJustifications {S T : Store n}
     NoHighJustifications T := by
   intro C h hProc
   have hProcS : ProcessedJustification S C h :=
-    hProc.transfer_orderEquivalent hEq.symm
+    ProcessedJustification.transfer_orderEquivalent hEq.symm hProc
   have hle : h ≤ S.hj := hNoHigh hProcS
   simpa [hEq.hj_eq] using hle
 

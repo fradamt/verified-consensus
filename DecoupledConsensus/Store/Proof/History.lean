@@ -17,6 +17,54 @@ open scoped Block
 
 namespace Store
 
+/-! ## Proof-side certificate records -/
+
+/-- Certificate-level record for a justification event observed in an accepted
+    store entry. This is proof-side history, not protocol state: it packages
+    the facts needed by safety arguments when they need more than the
+    executable descriptor `(entry.state.J, entry.state.hj)`. -/
+structure JustificationRecord (S : Store n) (C : Block n) (h : ℕ) where
+  entry : StoreEntry n
+  mem : entry ∈ S.entries
+  target_eq : entry.state.J = C
+  height_eq : entry.state.hj = h
+  target_ancestor : C ≼ entry.block
+  tip_height : h < entry.height
+  witness :
+    (h = 0 ∧ C = Block.genesis) ∨
+      JustifyQuorumWitness (votesIncluded entry.chain) C h
+
+/-- Certificate-level record for a finality event. The witnessing chain need
+    not be in the local store: Section 3 often reasons about finality observed
+    on any chain and then compares it to a node-local store. -/
+structure FinalizationRecord (F : Block n) (h_f : ℕ) where
+  tip : Block n
+  chain : Chain n tip
+  target_ancestor : F ≼ tip
+  final_state : (stateOf chain).F = F
+  certificate : FinalizedCertificate chain F h_f target_ancestor
+
+/-- Scoped id injectivity for comparing a finalization record with all accepted
+    entries in a store. -/
+def FinalizationRecord.IdInjectiveAgainstStore
+    {F : Block n} {h_f : ℕ} (r : FinalizationRecord F h_f) (S : Store n) : Prop :=
+  DecoupledConsensus.Store.IdInjectiveAgainstStore r.tip S
+
+/-- Public `FinalizedWithStoreIds` evidence can be repackaged as the proof-side
+    finalization record plus its scoped id-injectivity premise. -/
+lemma FinalizedWithStoreIds.exists_record
+    {S : Store n} {F : Block n} {h_f : ℕ}
+    (hFinal : FinalizedWithStoreIds F h_f S) :
+    ∃ rF : FinalizationRecord F h_f, rF.IdInjectiveAgainstStore S := by
+  rcases hFinal with ⟨tip, chain, hF, hState, hCert, hId⟩
+  exact
+    ⟨{ tip := tip
+       chain := chain
+       target_ancestor := hF
+       final_state := hState
+       certificate := hCert },
+      hId⟩
+
 /-- The current store root is represented by some processed entry. -/
 def CurrentProcessedJustification (S : Store n) : Prop :=
   ProcessedJustification S S.J S.hj
@@ -280,13 +328,13 @@ lemma updateJustified_processedJustification {S : Store n}
     {J' C : Block n} {h' h : ℕ}
     (hProc : ProcessedJustification S C h) :
     ProcessedJustification (S.updateJustified J' h') C h := by
-  simpa [ProcessedJustification, updateJustified_entries_eq] using hProc
+  simpa [ProcessedJustification, ProcessedCheckpoint, updateJustified_entries_eq] using hProc
 
 lemma updateFinalized_processedJustification {S : Store n}
     {F' C : Block n} {h : ℕ}
     (hProc : ProcessedJustification S C h) :
     ProcessedJustification (S.updateFinalized F') C h := by
-  simpa [ProcessedJustification, updateFinalized_entries_eq] using hProc
+  simpa [ProcessedJustification, ProcessedCheckpoint, updateFinalized_entries_eq] using hProc
 
 lemma genesis_currentProcessedJustification :
     CurrentProcessedJustification (Store.genesis n) := by

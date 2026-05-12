@@ -12,10 +12,11 @@ specification vocabulary and `Prop`-valued theorem statements that are useful
 to read without opening proof scripts. Concrete proofs live under
 `Store.Proof`.
 
-The order-independence statements below are deliberately the proved
-extensional form (`OrderEquivalent`). They should not be read as the stronger
-TeX claim that arbitrary valid processing orders over the same block set
-produce equivalent stores; that replay/order machinery is not formalized yet.
+The order-independence-facing statements below are deliberately the proved
+extensional form (`OrderEquivalent`). They are not the stronger TeX replay
+claim that arbitrary valid processing orders over the same block set produce
+equivalent stores; the replay/order machinery needed to state that premise is
+not part of the current formalization.
 -/
 
 variable {n : ℕ}
@@ -45,57 +46,41 @@ inductive Future : Store n → Store n → Prop
 def KeyLE (h : ℕ) (J : Block n) (h' : ℕ) (J' : Block n) : Prop :=
   h < h' ∨ (h = h' ∧ J.id ≤ J'.id)
 
-/-- A processed block has offered the justified checkpoint `(C, h)` as its
-    post-state `(J, hj)`. -/
-def ProcessedJustification (S : Store n) (C : Block n) (h : ℕ) : Prop :=
-  ∃ e ∈ S.entries, e.state.J = C ∧ e.state.hj = h
-
 /-- The derived TeX state map notation `σ[B]`: the store accepts `B` and the
     returned state is the chain-computed post-state for `B`. -/
 def AcceptedBlockState (S : Store n) (B : Block n) (σ : State n) : Prop :=
   ∃ chain : Chain n B, S.findChain? B = some chain ∧ stateOf chain = σ
+
+/-- A processed block has offered the justified checkpoint `(C, h)` as its
+    post-state `(J, hj)`. This is the TeX premise that a descriptor has fired
+    on some chain processed by the node. -/
+def ProcessedCheckpoint (S : Store n) (C : Block n) (h : ℕ) : Prop :=
+  ∃ e ∈ S.entries, e.state.J = C ∧ e.state.hj = h
+
+/-- Backwards-compatible proof-side name for `ProcessedCheckpoint`. -/
+abbrev ProcessedJustification (S : Store n) (C : Block n) (h : ℕ) : Prop :=
+  ProcessedCheckpoint S C h
 
 /-- The scoped hash/id injectivity needed to compare an external finalization
     witness against every accepted entry in a store. -/
 def IdInjectiveAgainstStore (tip : Block n) (S : Store n) : Prop :=
   ∀ e, e ∈ S.entries → Block.IdInjectiveOnAncestors tip e.block
 
-/-- Certificate-level record for a justification event observed in an accepted
-    store entry. This is proof-side history, not protocol state: it packages
-    the facts needed by section-3 safety arguments when they need more than the
-    executable descriptor `(entry.state.J, entry.state.hj)`. -/
-structure JustificationRecord (S : Store n) (C : Block n) (h : ℕ) where
-  entry : StoreEntry n
-  mem : entry ∈ S.entries
-  target_eq : entry.state.J = C
-  height_eq : entry.state.hj = h
-  target_ancestor : C ≼ entry.block
-  tip_height : h < entry.height
-  witness :
-    (h = 0 ∧ C = Block.genesis) ∨
-      JustifyQuorumWitness (votesIncluded entry.chain) C h
-
-/-- Certificate-level record for a finality event. The witnessing chain need
-    not be in the local store: Section 3 often reasons about finality observed
-    on any chain and then compares it to a node-local store. -/
-structure FinalizationRecord (F : Block n) (h_f : ℕ) where
-  tip : Block n
-  chain : Chain n tip
-  target_ancestor : F ≼ tip
-  final_state : (stateOf chain).F = F
-  certificate : FinalizedCertificate chain F h_f target_ancestor
-
-/-- Scoped id injectivity for comparing a finalization record with all accepted
-    entries in a store. -/
-def FinalizationRecord.IdInjectiveAgainstStore
-    {F : Block n} {h_f : ℕ} (r : FinalizationRecord F h_f) (S : Store n) : Prop :=
-  DecoupledConsensus.Store.IdInjectiveAgainstStore r.tip S
+/-- External finality evidence, scoped to a store's accepted entries by the
+    hash/id injectivity assumption needed by the safety argument. This is the
+    TeX premise "block `F` is finalized at height `h_f`", plus the local
+    collision-freedom assumption for the block histories being compared. -/
+def FinalizedWithStoreIds (F : Block n) (h_f : ℕ) (S : Store n) : Prop :=
+  ∃ tip : Block n, ∃ chain : Chain n tip, ∃ hF : F ≼ tip,
+    (stateOf chain).F = F ∧
+      FinalizedCertificate chain F h_f hF ∧
+      IdInjectiveAgainstStore tip S
 
 /-- Exact Section-3 no-high-justification invariant: every justification event
     represented in the accepted store history is at or below the current store
     root height. -/
 def NoHighJustifications (S : Store n) : Prop :=
-  ∀ {C : Block n} {h : ℕ}, ProcessedJustification S C h → h ≤ S.hj
+  ∀ {C : Block n} {h : ℕ}, ProcessedCheckpoint S C h → h ≤ S.hj
 
 /-- Extensional equality for the order-independent store components. The raw
     executable store keeps `entries` as a list, so two processing orders need
@@ -156,9 +141,8 @@ def CertChainStatement (n f : ℕ) : Prop :=
   n = 3 * f + 1 →
     ¬ @AtLeastFThirdSlashable n f →
       ∀ {S : Store n} {F C : Block n} {h_f h : ℕ},
-        (rF : FinalizationRecord F h_f) →
-        (rJ : JustificationRecord S C h) →
-        rF.IdInjectiveAgainstStore S →
+        FinalizedWithStoreIds F h_f S →
+        ProcessedCheckpoint S C h →
         h_f ≤ h →
         F ~ C
 
@@ -169,9 +153,8 @@ def CertChainStrictStatement (n f : ℕ) : Prop :=
   n = 3 * f + 1 →
     ¬ @AtLeastFThirdSlashable n f →
       ∀ {S : Store n} {F C : Block n} {h_f h : ℕ},
-        (rF : FinalizationRecord F h_f) →
-        (rJ : JustificationRecord S C h) →
-        rF.IdInjectiveAgainstStore S →
+        FinalizedWithStoreIds F h_f S →
+        ProcessedCheckpoint S C h →
         h_f ≠ 0 →
         h_f < h →
         F ≼ C ∧ F ≠ C
@@ -184,9 +167,8 @@ def UpgradeStatement (n f : ℕ) : Prop :=
       ∀ {S T : Store n},
         Reachable S → Future S T →
           ∀ {F : Block n} {h_f : ℕ},
-            (rF : FinalizationRecord F h_f) →
-            ProcessedJustification S F h_f →
-            rF.IdInjectiveAgainstStore T →
+            FinalizedWithStoreIds F h_f T →
+            ProcessedCheckpoint S F h_f →
             F ≼ T.J
 
 /-- A processed finalized checkpoint remains viable in future stores. -/
@@ -196,9 +178,8 @@ def FinalizedViableStatement (n f : ℕ) : Prop :=
       ∀ {S T : Store n},
         Reachable S → Future S T →
           ∀ {F : Block n} {h_f : ℕ},
-            (rF : FinalizationRecord F h_f) →
-            ProcessedJustification S F h_f →
-            rF.IdInjectiveAgainstStore T →
+            FinalizedWithStoreIds F h_f T →
+            ProcessedCheckpoint S F h_f →
             T.isViableBool F = true
 
 /-- Local finality update acceptance, stated at the exposed store mutator. -/
@@ -207,9 +188,8 @@ def FinalityUpdateAcceptanceStatement (n f : ℕ) : Prop :=
     ¬ @AtLeastFThirdSlashable n f →
       ∀ {S : Store n}, Reachable S →
         ∀ {F' : Block n} {h_f : ℕ},
-          (rF : FinalizationRecord F' h_f) →
-          ProcessedJustification S F' h_f →
-          rF.IdInjectiveAgainstStore S →
+          FinalizedWithStoreIds F' h_f S →
+          ProcessedCheckpoint S F' h_f →
           S.F ≼ F' ∧ S.F ≠ F' →
           (S.updateFinalized F').F = F'
 
@@ -221,9 +201,8 @@ def FinalityUpdateDescendsStatement (n f : ℕ) : Prop :=
     ¬ @AtLeastFThirdSlashable n f →
       ∀ {S : Store n}, Reachable S →
         ∀ {F' : Block n} {h_f : ℕ},
-          (rF : FinalizationRecord F' h_f) →
-          ProcessedJustification S F' h_f →
-          rF.IdInjectiveAgainstStore S →
+          FinalizedWithStoreIds F' h_f S →
+          ProcessedCheckpoint S F' h_f →
           (F' ≼ S.F ∨ (S.F ≼ F' ∧ S.F ≠ F')) →
           F' ≼ (S.updateFinalized F').F
 
@@ -266,20 +245,23 @@ def LockInStatement (n f : ℕ) : Prop :=
       ∀ {S T : Store n},
         Reachable S → Future S T →
           ∀ {F B : Block n} {h_f : ℕ},
-            (rF : FinalizationRecord F h_f) →
-            ProcessedJustification S F h_f →
-            rF.IdInjectiveAgainstStore T →
+            FinalizedWithStoreIds F h_f T →
+            ProcessedCheckpoint S F h_f →
             B ∈ T.getConfirmed →
             F ≼ T.J ∧ T.isViableBool F = true ∧ F ≼ B
 
-/-! ## Proved Extensional Order-Independence Statements -/
+/-! ## Proved Extensional Store-Output Invariance -/
 
-/-- Order-equivalent stores have the same `getConfirmed` membership. -/
+/-- Order-equivalent stores have the same `getConfirmed` membership.
+    This is the proved extensional consequence of order-independence, not the
+    full replay theorem from the TeX. -/
 def OrderEquivalentGetConfirmedStatement (n : ℕ) : Prop :=
   ∀ {S T : Store n} {B : Block n},
     OrderEquivalent S T → (B ∈ S.getConfirmed ↔ B ∈ T.getConfirmed)
 
-/-- Order-equivalent stores have the same viable-tree membership. -/
+/-- Order-equivalent stores have the same viable-tree membership.
+    This is the proved extensional consequence of order-independence, not the
+    full replay theorem from the TeX. -/
 def OrderEquivalentViableTreeStatement (n : ℕ) : Prop :=
   ∀ {S T : Store n} {B : Block n},
     OrderEquivalent S T → (B ∈ S.viableTree ↔ B ∈ T.viableTree)

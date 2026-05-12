@@ -1,3 +1,4 @@
+import Mathlib.Tactic
 import DecoupledConsensus.State.Model.Certificates
 
 namespace DecoupledConsensus

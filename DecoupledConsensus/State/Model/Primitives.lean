@@ -1,4 +1,5 @@
-import Mathlib.Tactic
+import Mathlib.Data.Finset.Card
+import Mathlib.Data.Fintype.Basic
 
 namespace DecoupledConsensus
 

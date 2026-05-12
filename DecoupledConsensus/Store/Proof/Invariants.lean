@@ -20,6 +20,72 @@ namespace Store
 def AncestorClosed (S : Store n) : Prop :=
   ∀ {A B : Block n}, Contains S B → A ≼ B → Contains S A
 
+/-! ## Fresh `onBlock` decomposition -/
+
+/-- Stable proof-facing view of a successful fresh `onBlock` call.
+
+    Proofs should depend on this record instead of repeatedly unfolding the
+    executable `onBlock` implementation. If the executable implementation is
+    reorganized, only the extractor below should need to change. -/
+structure FreshOnBlockStep (S S' : Store n) (B : Block n) where
+  bid : BlockId
+  parent : Block n
+  newSlot : ℕ
+  votes : List (Vote n)
+  block_eq : B = Block.mk bid parent newSlot votes
+  parentChain : Chain n parent
+  parent_lookup : S.findChain? parent = some parentChain
+  slot_gt : newSlot > parent.slot
+  finalized_ancestor : S.F ≼ Block.mk bid parent newSlot votes
+  result_eq :
+    S' =
+      let entry : StoreEntry n :=
+        { block := Block.mk bid parent newSlot votes
+          chain := Chain.extend parentChain bid newSlot votes slot_gt }
+      let σ := entry.state
+      let S1 := S.addEntry entry
+      let S2 := S1.updateJustified σ.J σ.hj
+      S2.updateFinalized σ.F
+
+/-- Extract the proof-facing decomposition for a successful fresh `onBlock`
+    call. This is the only local proof that should inspect every branch of the
+    executable implementation. -/
+def freshOnBlockStep_of_onBlock {S S' : Store n} {B : Block n}
+    (hFresh : S.containsBlockBool B = false)
+    (hstep : S.onBlock B = some S') :
+    FreshOnBlockStep S S' B := by
+  unfold onBlock at hstep
+  simp [hFresh] at hstep
+  cases B with
+  | genesis =>
+      simp at hstep
+  | mk bid parent newSlot votes =>
+      cases hFind : S.findChain? parent with
+      | none =>
+          simp [hFind] at hstep
+      | some parentChain =>
+          by_cases hSlot : newSlot > parent.slot
+          · simp [hFind, hSlot] at hstep
+            let child := Block.mk bid parent newSlot votes
+            by_cases hAnc : Block.isAncestorOf S.F child
+            · simp [child, hAnc] at hstep
+              have hAncProp : S.F ≼ Block.mk bid parent newSlot votes :=
+                (Block.isAncestorOf_eq_true_iff _ _).mp hAnc
+              exact
+                { bid := bid
+                  parent := parent
+                  newSlot := newSlot
+                  votes := votes
+                  block_eq := rfl
+                  parentChain := parentChain
+                  parent_lookup := hFind
+                  slot_gt := hSlot
+                  finalized_ancestor := hAncProp
+                  result_eq := by
+                    simpa [child] using hstep.symm }
+            · simp [child, hAnc] at hstep
+          · simp [hFind, hSlot] at hstep
+
 lemma genesis_F_ancestor_J : (Store.genesis n).F ≼ (Store.genesis n).J := by
   exact .refl _
 

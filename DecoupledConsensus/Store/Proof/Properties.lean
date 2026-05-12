@@ -58,36 +58,44 @@ theorem noHigh_justifications_property :
 
 theorem certChain_property {f : ℕ} :
     CertChainStatement n f := by
-  intro hn hNoSlash S F C h_f h rF rJ hId hle
+  intro hn hNoSlash S F C h_f h hFinal hProc hle
+  obtain ⟨rF, hId⟩ := hFinal.exists_record
+  let rJ : JustificationRecord S C h := ProcessedJustification.toRecord hProc
   exact certchain_record_compatible hn hNoSlash rF rJ hId hle
 
 theorem certChain_strict_property {f : ℕ} :
     CertChainStrictStatement n f := by
-  intro hn hNoSlash S F C h_f h rF rJ hId hpos hlt
+  intro hn hNoSlash S F C h_f h hFinal hProc hpos hlt
+  obtain ⟨rF, hId⟩ := hFinal.exists_record
+  let rJ : JustificationRecord S C h := ProcessedJustification.toRecord hProc
   exact certchain_record_strict_of_positive
     hn hNoSlash rF rJ hId hpos hlt
 
 theorem upgrade_property {f : ℕ} :
     UpgradeStatement n f := by
-  intro hn hNoSlash S T hS hFuture F h_f rF hProc hId
+  intro hn hNoSlash S T hS hFuture F h_f hFinal hProc
+  obtain ⟨rF, hId⟩ := hFinal.exists_record
   exact upgrade_of_processed hn hNoSlash hS hFuture rF hProc hId
 
 theorem finalized_viable_property {f : ℕ} :
     FinalizedViableStatement n f := by
-  intro hn hNoSlash S T hS hFuture F h_f rF hProc hId
+  intro hn hNoSlash S T hS hFuture F h_f hFinal hProc
+  obtain ⟨rF, hId⟩ := hFinal.exists_record
   exact future_finalized_viableBool_of_processedJustification
     hn hNoSlash hS hFuture hId rF.chain rF.final_state
     rF.certificate hProc
 
 theorem finality_update_acceptance_property {f : ℕ} :
     FinalityUpdateAcceptanceStatement n f := by
-  intro hn hNoSlash S hS F' h_f rF hProc hId hStrict
+  intro hn hNoSlash S hS F' h_f hFinal hProc hStrict
+  obtain ⟨rF, hId⟩ := hFinal.exists_record
   exact updateFinalized_accepts_processed_finalization
     hn hNoSlash hS rF hProc hId hStrict
 
 theorem finality_update_descends_property {f : ℕ} :
     FinalityUpdateDescendsStatement n f := by
-  intro hn hNoSlash S hS F' h_f rF hProc hId hAlreadyOrStrict
+  intro hn hNoSlash S hS F' h_f hFinal hProc hAlreadyOrStrict
+  obtain ⟨rF, hId⟩ := hFinal.exists_record
   exact updateFinalized_descends_or_sets_processed_finalization
     hn hNoSlash hS rF hProc hId hAlreadyOrStrict
 
@@ -105,7 +113,8 @@ theorem onBlock_finality_update_descends_property {f : ℕ} :
 
 theorem lockIn_property {f : ℕ} :
     LockInStatement n f := by
-  intro hn hNoSlash S T hS hFuture F B h_f rF hProc hId hB
+  intro hn hNoSlash S T hS hFuture F B h_f hFinal hProc hB
+  obtain ⟨rF, hId⟩ := hFinal.exists_record
   exact lockin_of_processed hn hNoSlash hS hFuture rF hProc hId hB
 
 /-! ## Proved Extensional Order-Independence Surface -/

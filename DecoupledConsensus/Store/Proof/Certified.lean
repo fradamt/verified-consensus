@@ -29,31 +29,21 @@ def CertifiedFinalizedRoot (S : Store n) : Prop :=
 The fields are intentionally stronger than plain `Reachable`: they record the
 history/certificate obligations not recoverable from the current executable
 store tuple alone. Current-root and processed-justification records are derived
-from accepted entries in `History.lean`, so they are not stored here. -/
+from accepted entries in `History.lean`, and no-high justification is derived
+from executable reachability in `Conditional.lean`, so neither is stored here. -/
 structure StoreCertification (S : Store n) : Prop where
   reachable : Reachable S
   finalized : CertifiedFinalizedRoot S
-  noHigh : NoHighJustifications S
 
 /-- A proof-side wrapper around the executable store. -/
 structure CertifiedStore (n : ℕ) where
   store : Store n
   cert : StoreCertification store
 
-lemma genesis_noHigh : NoHighJustifications (Store.genesis n) := by
-  intro C h hProc
-  rcases hProc with ⟨e, he, _hJ, hhj⟩
-  have heq : e = StoreEntry.genesis n := by
-    simpa [Store.genesis] using he
-  subst e
-  simp [StoreEntry.state, StoreEntry.genesis, stateOf, State.genesis] at hhj
-  omega
-
 /-- Genesis satisfies the proof-side store certification. -/
 lemma genesisCertification : StoreCertification (Store.genesis n) where
   reachable := Reachable.genesis
   finalized := Or.inl rfl
-  noHigh := genesis_noHigh
 
 namespace CertifiedStore
 
@@ -99,7 +89,7 @@ theorem certified_no_high_justifications {Sigma : CertifiedStore n}
     {C : Block n} {h : ℕ}
     (hProc : ProcessedJustification Sigma.store C h) :
     h ≤ Sigma.store.hj :=
-  Sigma.cert.noHigh hProc
+  reachable_noHighJustifications Sigma.cert.reachable hProc
 
 /-- Certified upgrade wrapper: a previously processed descriptor for finalized
     `F` supplies the height bound via no-high, while the target store supplies
@@ -114,7 +104,7 @@ theorem certified_upgrade_of_processed {f : ℕ}
     (hId : rF.IdInjectiveAgainstStore T.store) :
     F ≼ T.store.J := by
   exact upgrade_of_processed hn hNoSlash
-    Sigma.cert.reachable hFuture rF hProc hId Sigma.cert.noHigh
+    Sigma.cert.reachable hFuture rF hProc hId
 
 /-- Certified lock-in wrapper matching the Section 3 shape more closely than
     `lockin_of_records`: the caller gives a processed descriptor, not the
@@ -130,7 +120,7 @@ theorem certified_lockin {f : ℕ}
     (hB : B ∈ T.store.getConfirmed) :
     F ≼ T.store.J ∧ T.store.isViableBool F = true ∧ F ≼ B := by
   exact lockin_of_processed hn hNoSlash
-    Sigma.cert.reachable hFuture rF hProc hId Sigma.cert.noHigh hB
+    Sigma.cert.reachable hFuture rF hProc hId hB
 
 end Store
 

@@ -436,6 +436,71 @@ theorem lockin_of_records {f : ℕ}
 def NoHighJustifications (S : Store n) : Prop :=
   ∀ {C : Block n} {h : ℕ}, ProcessedJustification S C h → h ≤ S.hj
 
+private lemma ancestor_genesis_eq {B : Block n}
+    (h : B ≼ Block.genesis) : B = Block.genesis := by
+  cases h
+  rfl
+
+private lemma entry_justification_height_le_hj_of_below_F
+    {S : Store n} (hS : Reachable S) (entry : StoreEntry n)
+    (hFEntry : S.F ≼ entry.block)
+    (hNotFJ : ¬ S.F ≼ entry.state.J) :
+    entry.state.hj ≤ S.hj := by
+  have hJEntry : entry.state.J ≼ entry.block := by
+    simpa [StoreEntry.state] using chain_J_le_L entry.chain
+  rcases Block.Ancestor.linear hJEntry hFEntry with hJF | hFJ'
+  · by_cases hZero : entry.state.hj = 0
+    · omega
+    have hJHeight :
+        (stateOf (entry.chain.subchain hJEntry)).h = entry.state.hj := by
+      exact chain_justified_target_height_of_ne_zero entry.chain
+        (by simp [StoreEntry.state])
+        (by simp [StoreEntry.state])
+        (by simpa [StoreEntry.state] using hJEntry)
+        (by simpa [StoreEntry.state] using hZero)
+    have hFJ : S.F ≼ S.J := reachable_F_ancestor_J hS
+    let rRoot : JustificationRecord S S.J S.hj :=
+      reachable_currentJustificationRecord hS
+    let rootChain : Chain n S.J := rRoot.entry.chain.subchain rRoot.target_ancestor
+    have hJSJ : entry.state.J ≼ S.J := hJF.trans hFJ
+    have hJHeightRoot :
+        (stateOf (rootChain.subchain hJSJ)).h = entry.state.hj := by
+      have hSame :
+          stateOf (rootChain.subchain hJSJ) =
+            stateOf (entry.chain.subchain hJEntry) :=
+        chain_unique _ _
+      rw [hSame, hJHeight]
+    have hJLeF :
+        (stateOf (rootChain.subchain hJSJ)).h ≤
+          (stateOf (rootChain.subchain hFJ)).h := by
+      have hSub :
+          (stateOf ((rootChain.subchain hFJ).subchain hJF)).h ≤
+            (stateOf (rootChain.subchain hFJ)).h :=
+        stateOf_subchain_h_le (rootChain.subchain hFJ) hJF
+      have hSame :
+          stateOf ((rootChain.subchain hFJ).subchain hJF) =
+            stateOf (rootChain.subchain hJSJ) :=
+        chain_unique _ _
+      rwa [hSame] at hSub
+    rcases rRoot.target_height with hRootZero | hRootHeight
+    · have hF_genesis : S.F = Block.genesis := by
+        have hSJ_genesis : S.J = Block.genesis := hRootZero.2
+        rw [hSJ_genesis] at hFJ
+        exact ancestor_genesis_eq hFJ
+      have hFJ'_contradiction : S.F ≼ entry.state.J := by
+        rw [hF_genesis]
+        induction entry.state.J with
+        | genesis => exact .refl _
+        | mk _ parent _ _ ih => exact .step ih
+      exact False.elim (hNotFJ hFJ'_contradiction)
+    · have hFLeRoot :
+          (stateOf (rootChain.subchain hFJ)).h ≤ S.hj := by
+        have hSub := stateOf_subchain_h_le rootChain hFJ
+        simpa [rootChain] using hSub.trans (le_of_eq hRootHeight)
+      rw [← hJHeightRoot]
+      exact hJLeF.trans hFLeRoot
+  · exact False.elim (hNotFJ hFJ')
+
 /-- Section-3 `no-high-just`, stated against the explicit proof-side
     invariant. The nontrivial trace obligation is the invariant itself: the
     executable final store tuple stores entries and the current root, but not

@@ -117,20 +117,22 @@ lemma ProcessedJustification.evidence {S : Store n} {C : Block n} {h : ℕ}
 /-- Every processed justification descriptor can be upgraded to the
     certificate-level record expected by the Section 3 safety lemmas. The
     record is not extra protocol state; all fields are extracted from the
-    accepted entry's chain. -/
-def ProcessedJustification.toRecord
+    accepted entry's chain.
+
+    This is intentionally proof-side `noncomputable` witness extraction from a
+    Prop-level existential; it has no effect on the executable store model. -/
+noncomputable def ProcessedJustification.toRecord
     {S : Store n} {C : Block n} {h : ℕ}
-    (hProc : ProcessedJustification S C h) : JustificationRecord S C h := by
-  rcases hProc.evidence with
-    ⟨entry, mem, target_eq, height_eq, target_ancestor, tip_height, witness⟩
-  exact
-    { entry := entry
-      mem := mem
-      target_eq := target_eq
-      height_eq := height_eq
-      target_ancestor := target_ancestor
-      tip_height := tip_height
-      witness := witness }
+    (hProc : ProcessedJustification S C h) : JustificationRecord S C h :=
+  let entry := Classical.choose hProc.evidence
+  let rest := Classical.choose_spec hProc.evidence
+  { entry := entry
+    mem := rest.1
+    target_eq := rest.2.1
+    height_eq := rest.2.2.1
+    target_ancestor := rest.2.2.2.1
+    tip_height := rest.2.2.2.2.1
+    witness := rest.2.2.2.2.2 }
 
 /-- Justification records expose the target-height fact derived from the
     Section-2 state-machine freshness invariant. -/
@@ -415,8 +417,9 @@ theorem reachable_currentProcessedJustification {S : Store n}
       exact onBlock_currentProcessedJustification ih hstep
 
 /-- Reachable stores expose their current justified root as an entry-derived
-    certificate record. -/
-theorem reachable_currentJustificationRecord {S : Store n}
+    certificate record. Proof-side only: it chooses the entry promised by
+    `reachable_currentProcessedJustification`. -/
+noncomputable def reachable_currentJustificationRecord {S : Store n}
     (hS : Reachable S) : JustificationRecord S S.J S.hj :=
   (reachable_currentProcessedJustification hS).toRecord
 

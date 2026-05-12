@@ -207,6 +207,20 @@ def FinalityUpdateAcceptanceStatement (n f : ℕ) : Prop :=
           S.F ≼ F' ∧ S.F ≠ F' →
           (S.updateFinalized F').F = F'
 
+/-- Local finality update acceptance in monotone form: if the old finalized
+    root is comparable with the processed finalized candidate, the result is
+    at or beyond that candidate. -/
+def FinalityUpdateDescendsStatement (n f : ℕ) : Prop :=
+  n = 3 * f + 1 →
+    ¬ @AtLeastFThirdSlashable n f →
+      ∀ {S : Store n}, Reachable S →
+        ∀ {F' : Block n} {h_f : ℕ},
+          (rF : FinalizationRecord F' h_f) →
+          ProcessedJustification S F' h_f →
+          rF.IdInjectiveAgainstStore S →
+          (F' ≼ S.F ∨ (S.F ≼ F' ∧ S.F ≠ F')) →
+          F' ≼ (S.updateFinalized F').F
+
 /-- Lock-in for any executable `getConfirmed` output. -/
 def LockInStatement (n f : ℕ) : Prop :=
   n = 3 * f + 1 →

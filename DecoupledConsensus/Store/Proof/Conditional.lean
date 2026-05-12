@@ -736,6 +736,30 @@ theorem updateFinalized_accepts_processed_finalization {f : ℕ}
   exact updateFinalized_accepts_finalized_record hn hNoSlash
     rF rRoot hId hhj hStrict hViable
 
+/-- Cleaner finality-update acceptance in monotone form. If finality is
+    already at/past `F'`, the result remains at/past `F'`; otherwise the
+    processed-finalization facts prove the guards needed to set `F = F'`. -/
+theorem updateFinalized_descends_or_sets_processed_finalization {f : ℕ}
+    (hn : n = 3 * f + 1)
+    (hNoSlash : ¬ @AtLeastFThirdSlashable n f)
+    {S : Store n} (hS : Reachable S)
+    {F' : Block n} {h_f : ℕ}
+    (rF : FinalizationRecord F' h_f)
+    (hProc : ProcessedJustification S F' h_f)
+    (hId : rF.IdInjectiveAgainstStore S)
+    (hAlreadyOrStrict : F' ≼ S.F ∨ (S.F ≼ F' ∧ S.F ≠ F')) :
+    F' ≼ (S.updateFinalized F').F := by
+  have rRoot : JustificationRecord S S.J S.hj :=
+    reachable_currentJustificationRecord hS
+  have hhj : h_f ≤ S.hj := reachable_noHighJustifications hS hProc
+  have hBelowJ : F' ≼ S.J :=
+    upgrade_of_current_root_record hn hNoSlash rF rRoot hId hhj
+  have hViable : S.isViableBool F' = true :=
+    finalized_viableBool_of_processedJustification hn hNoSlash hS
+      hId rF.chain rF.final_state rF.certificate hProc
+  exact updateFinalized_descends_or_sets_of_guards
+    hAlreadyOrStrict hBelowJ hViable
+
 /-- Upgrade with a clean processed-descriptor surface. The proof-side
     `JustificationRecord` for the future store's root is extracted internally
     from executable reachability. -/

@@ -97,10 +97,12 @@ def heightOf? (S : Store n) (B : Block n) : Option ℕ :=
 def keyGreater (h' : ℕ) (J' : Block n) (h : ℕ) (J : Block n) : Bool :=
   h < h' || (h = h' && J.id < J'.id)
 
-/-- Guard for `updateJustified`: only descendants of finalized root can
-    replace `J`, and only when their key is strictly larger. -/
+/-- Guard for `updateJustified`: only accepted descendants of the finalized
+    root can replace `J`, and only when their key is strictly larger. -/
 def shouldUpdateJustified (S : Store n) (J' : Block n) (h' : ℕ) : Bool :=
-  Block.isAncestorOf S.F J' && keyGreater h' J' S.hj S.J
+  S.containsBlockBool J' &&
+    Block.isAncestorOf S.F J' &&
+    keyGreater h' J' S.hj S.J
 
 /-! ## Viable tree -/
 

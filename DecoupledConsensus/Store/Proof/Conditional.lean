@@ -430,19 +430,43 @@ theorem lockin_of_records {f : ℕ}
 
 /-- Exact Section-3 no-high-justification invariant: every justification event
     represented in the accepted store history is at or below the current store
-    root height. This is proof-side history, not protocol state. -/
+    root height. This is stated over the executable processed-history
+    predicate; certificate-level records are only one way to supply such an
+    event. -/
 def NoHighJustifications (S : Store n) : Prop :=
-  ∀ {C : Block n} {h : ℕ}, JustificationRecord S C h → h ≤ S.hj
+  ∀ {C : Block n} {h : ℕ}, ProcessedJustification S C h → h ≤ S.hj
 
 /-- Section-3 `no-high-just`, stated against the explicit proof-side
     invariant. The nontrivial trace obligation is the invariant itself: the
     executable final store tuple stores entries and the current root, but not
     the chronological evidence that the root key was updated after every
     accepted descriptor. -/
+theorem no_high_processed_justifications {S : Store n} {C : Block n} {h : ℕ}
+    (hNoHigh : NoHighJustifications S) (hProc : ProcessedJustification S C h) :
+    h ≤ S.hj :=
+  hNoHigh hProc
+
+/-- Record-facing wrapper for `no_high_processed_justifications`. -/
 theorem no_high_justifications {S : Store n} {C : Block n} {h : ℕ}
     (hNoHigh : NoHighJustifications S) (r : JustificationRecord S C h) :
     h ≤ S.hj :=
-  hNoHigh r
+  hNoHigh r.processed
+
+/-- Future-facing no-high bound for a processed justification from an earlier
+    store, using executable monotonicity of the store root height. -/
+theorem future_no_high_processed_justification {S T : Store n}
+    {C : Block n} {h : ℕ}
+    (hNoHigh : NoHighJustifications S) (hFuture : Future S T)
+    (hProc : ProcessedJustification S C h) :
+    h ≤ T.hj :=
+  (hNoHigh hProc).trans (future_hj_mono hFuture)
+
+/-- Record-facing wrapper for the future no-high bound. -/
+theorem future_no_high_justification {S T : Store n} {C : Block n} {h : ℕ}
+    (hNoHigh : NoHighJustifications S) (hFuture : Future S T)
+    (r : JustificationRecord S C h) :
+    h ≤ T.hj :=
+  future_no_high_processed_justification hNoHigh hFuture r.processed
 
 /-! ### Order-independent views of executable stores -/
 
@@ -466,6 +490,16 @@ lemma OrderEquivalent.symm {S T : Store n}
   hj_eq := hEq.hj_eq.symm
   hmax_eq := hEq.hmax_eq.symm
 
+/-- Processed justification descriptors transfer across order-equivalent
+    stores because they depend only on membership in the accepted entry set,
+    not list order. -/
+lemma ProcessedJustification.transfer_orderEquivalent {S T : Store n}
+    {C : Block n} {h : ℕ} (hEq : OrderEquivalent S T)
+    (hProc : ProcessedJustification S C h) :
+    ProcessedJustification T C h := by
+  rcases hProc with ⟨e, he, hJ, hhj⟩
+  exact ⟨e, (hEq.entries_iff e).mp he, hJ, hhj⟩
+
 /-- A justification record transfers across order-equivalent stores because it
     depends only on membership in the accepted entry set, not list order. -/
 def JustificationRecord.transfer_orderEquivalent {S T : Store n}
@@ -479,10 +513,10 @@ theorem orderindep_noHighJustifications {S T : Store n}
     (hEq : OrderEquivalent S T)
     (hNoHigh : NoHighJustifications S) :
     NoHighJustifications T := by
-  intro C h r
-  have rS : JustificationRecord S C h :=
-    r.transfer_orderEquivalent hEq.symm
-  have hle : h ≤ S.hj := hNoHigh rS
+  intro C h hProc
+  have hProcS : ProcessedJustification S C h :=
+    hProc.transfer_orderEquivalent hEq.symm
+  have hle : h ≤ S.hj := hNoHigh hProcS
   simpa [hEq.hj_eq] using hle
 
 private lemma heightThreshold_eq_of_orderEquivalent {S T : Store n}

@@ -41,6 +41,18 @@ lemma updateJustified_F_eq {S : Store n} {J' : Block n} {h' : ℕ} :
   cases hguard : S.shouldUpdateJustified J' h' <;>
     simp [updateJustified, hguard]
 
+lemma shouldUpdateJustified_parts {S : Store n} {J' : Block n} {h' : ℕ}
+    (hguard : S.shouldUpdateJustified J' h' = true) :
+    S.containsBlockBool J' = true ∧
+      Block.isAncestorOf S.F J' = true ∧
+      keyGreater h' J' S.hj S.J = true := by
+  have hparts :
+      (S.containsBlockBool J' = true ∧
+        Block.isAncestorOf S.F J' = true) ∧
+        keyGreater h' J' S.hj S.J = true := by
+    simpa [shouldUpdateJustified, Bool.and_eq_true] using hguard
+  exact ⟨hparts.1.1, hparts.1.2, hparts.2⟩
+
 lemma updateFinalized_J_eq {S : Store n} {F' : Block n} :
     (S.updateFinalized F').J = S.J := by
   cases hguard : S.shouldUpdateFinalized F' <;>
@@ -51,11 +63,9 @@ lemma updateJustified_F_ancestor_J {S : Store n} {J' : Block n} {h' : ℕ}
     (S.updateJustified J' h').F ≼ (S.updateJustified J' h').J := by
   cases hguard : S.shouldUpdateJustified J' h'
   · simpa [updateJustified, hguard] using h
-  · have hparts : Block.isAncestorOf S.F J' = true ∧
-        keyGreater h' J' S.hj S.J = true := by
-      simpa [shouldUpdateJustified, Bool.and_eq_true] using hguard
+  · have hparts := shouldUpdateJustified_parts hguard
     have hFJ' : S.F ≼ J' :=
-      (Block.isAncestorOf_eq_true_iff _ _).mp hparts.1
+      (Block.isAncestorOf_eq_true_iff _ _).mp hparts.2.1
     simpa [updateJustified, hguard] using hFJ'
 
 lemma updateFinalized_F_ancestor_J {S : Store n} {F' : Block n}
@@ -133,20 +143,16 @@ lemma updateJustified_hj_mono {S : Store n} {J' : Block n} {h' : ℕ} :
     S.hj ≤ (S.updateJustified J' h').hj := by
   cases hguard : S.shouldUpdateJustified J' h'
   · simp [updateJustified, hguard]
-  · have hparts : Block.isAncestorOf S.F J' = true ∧
-        keyGreater h' J' S.hj S.J = true := by
-      simpa [shouldUpdateJustified, Bool.and_eq_true] using hguard
-    simpa [updateJustified, hguard] using keyGreater_height_ge hparts.2
+  · have hparts := shouldUpdateJustified_parts hguard
+    simpa [updateJustified, hguard] using keyGreater_height_ge hparts.2.2
 
 lemma updateJustified_key_mono {S : Store n} {J' : Block n} {h' : ℕ} :
     KeyLE S.hj S.J (S.updateJustified J' h').hj
       (S.updateJustified J' h').J := by
   cases hguard : S.shouldUpdateJustified J' h'
   · simpa [updateJustified, hguard] using KeyLE.refl S.hj S.J
-  · have hparts : Block.isAncestorOf S.F J' = true ∧
-        keyGreater h' J' S.hj S.J = true := by
-      simpa [shouldUpdateJustified, Bool.and_eq_true] using hguard
-    simpa [updateJustified, hguard] using keyGreater_keyLE hparts.2
+  · have hparts := shouldUpdateJustified_parts hguard
+    simpa [updateJustified, hguard] using keyGreater_keyLE hparts.2.2
 
 lemma updateFinalized_hj_eq {S : Store n} {F' : Block n} :
     (S.updateFinalized F').hj = S.hj := by
@@ -171,6 +177,25 @@ lemma addEntry_contains_of_contains {S : Store n} {e : StoreEntry n} {B : Block 
     (h : Contains S B) : Contains (S.addEntry e) B := by
   rcases h with ⟨x, hx, hEq⟩
   exact ⟨x, by simp [addEntry, hx], hEq⟩
+
+lemma addEntry_contains_J {S : Store n} {e : StoreEntry n}
+    (h : Contains S S.J) : Contains (S.addEntry e) (S.addEntry e).J := by
+  simpa [addEntry] using addEntry_contains_of_contains (e := e) h
+
+lemma updateJustified_contains_J {S : Store n} {J' : Block n} {h' : ℕ}
+    (h : Contains S S.J) :
+    Contains (S.updateJustified J' h') (S.updateJustified J' h').J := by
+  cases hguard : S.shouldUpdateJustified J' h'
+  · simpa [updateJustified, hguard] using h
+  · have hparts := shouldUpdateJustified_parts hguard
+    have hJ' : Contains S J' := contains_of_containsBlockBool hparts.1
+    simpa [updateJustified, hguard] using hJ'
+
+lemma updateFinalized_contains_J {S : Store n} {F' : Block n}
+    (h : Contains S S.J) :
+    Contains (S.updateFinalized F') (S.updateFinalized F').J := by
+  cases hguard : S.shouldUpdateFinalized F' <;>
+    simpa [updateFinalized, hguard] using h
 
 lemma genesis_ancestorClosed : AncestorClosed (Store.genesis n) := by
   intro A B hB hAnc
@@ -274,6 +299,10 @@ lemma addChild_ancestorClosed {S : Store n} {parent : Block n}
     | step hParentAnc =>
         exact addEntry_contains_of_contains (hClosed hParent hParentAnc)
 
+/-- Genesis contains its justified root. -/
+lemma genesis_contains_J : Contains (Store.genesis n) (Store.genesis n).J := by
+  exact ⟨StoreEntry.genesis n, by simp [Store.genesis], by rfl⟩
+
 /-- One successful `onBlock` step preserves the store invariant `F ≼ J`. -/
 lemma onBlock_F_ancestor_J {S S' : Store n} {B : Block n}
     (h : S.F ≼ S.J) (hstep : S.onBlock B = some S') :
@@ -370,6 +399,48 @@ lemma onBlock_F_viableBool {S S' : Store n} {B : Block n}
               · simp [child, hAnc] at hstep
             · simp [hFind, hSlot] at hstep
 
+/-- One successful `onBlock` step preserves membership of the store justified
+    root in the accepted tree. -/
+lemma onBlock_contains_J {S S' : Store n} {B : Block n}
+    (hJ : Contains S S.J) (hstep : S.onBlock B = some S') :
+    Contains S' S'.J := by
+  unfold onBlock at hstep
+  by_cases hContains : S.containsBlockBool B
+  · simp [hContains] at hstep
+    cases hstep
+    exact hJ
+  · simp [hContains] at hstep
+    cases B with
+    | genesis =>
+        simp at hstep
+    | mk bid parent newSlot votes =>
+        cases hFind : S.findChain? parent with
+        | none =>
+            simp [hFind] at hstep
+        | some parentChain =>
+            by_cases hSlot : newSlot > parent.slot
+            · simp [hFind, hSlot] at hstep
+              let child := Block.mk bid parent newSlot votes
+              by_cases hAnc : Block.isAncestorOf S.F child
+              · simp [child, hAnc] at hstep
+                let entry : StoreEntry n :=
+                  { block := child
+                    chain := Chain.extend parentChain bid newSlot votes hSlot }
+                let σ' := entry.state
+                let S1 := S.addEntry entry
+                let S2 := S1.updateJustified σ'.J σ'.hj
+                have hS1 : Contains S1 S1.J := by
+                  simpa [S1] using addEntry_contains_J (S := S) (e := entry) hJ
+                have hS2 : Contains S2 S2.J := by
+                  simpa [S2] using
+                    updateJustified_contains_J
+                      (S := S1) (J' := σ'.J) (h' := σ'.hj) hS1
+                cases hstep
+                simpa [S2] using
+                  updateFinalized_contains_J (S := S2) (F' := σ'.F) hS2
+              · simp [child, hAnc] at hstep
+            · simp [hFind, hSlot] at hstep
+
 /-- One successful `onBlock` step preserves accepted-tree ancestor closure. -/
 lemma onBlock_ancestorClosed {S S' : Store n} {B : Block n}
     (hClosed : AncestorClosed S) (hstep : S.onBlock B = some S') :
@@ -431,6 +502,25 @@ theorem reachable_F_viableBool {S : Store n}
         findChain?, StoreEntry.chainAs?, heightThreshold, Block.isAncestorOf]
   | onBlock hPrev hstep ih =>
       exact onBlock_F_viableBool ih hstep
+
+/-- Reachable stores keep the store-finalized root in the accepted tree. -/
+theorem reachable_contains_F {S : Store n}
+    (hS : Reachable S) : Contains S S.F := by
+  have hViable := reachable_F_viableBool hS
+  have hparts : S.containsBlockBool S.F = true ∧
+      S.entries.any (fun e =>
+        decide (S.heightThreshold ≤ e.height) && Block.isAncestorOf S.F e.block) = true := by
+    simpa [isViableBool, Bool.and_eq_true] using hViable
+  exact contains_of_containsBlockBool hparts.1
+
+/-- Reachable stores keep the store-justified root in the accepted tree. -/
+theorem reachable_contains_J {S : Store n}
+    (hS : Reachable S) : Contains S S.J := by
+  induction hS with
+  | genesis =>
+      exact genesis_contains_J
+  | onBlock hPrev hstep ih =>
+      exact onBlock_contains_J ih hstep
 
 /-- Reachable stores have ancestor-closed accepted trees. -/
 theorem reachable_ancestorClosed {S : Store n}

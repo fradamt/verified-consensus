@@ -129,6 +129,13 @@ theorem orderEquivalent_viableTree_property :
   intro S T B hEq
   exact orderindep_viableTree hEq
 
+/-! ## Live Store-Output Invariance -/
+
+theorem liveEquivalent_getConfirmed_property :
+    LiveEquivalentGetConfirmedStatement n := by
+  intro S T B hS hT hEq
+  exact liveEquivalent_getConfirmed hS hT hEq
+
 end Store
 
 end DecoupledConsensus

@@ -1090,6 +1090,81 @@ theorem orderindep_viableTree {S T : Store n} {B : Block n}
   · exact viableTree_mem_of_orderEquivalent hEq
   · exact viableTree_mem_of_orderEquivalent hEq.symm
 
+/-! ### Live-view output invariance -/
+
+lemma LiveEquivalent.symm {S T : Store n}
+    (hEq : LiveEquivalent S T) : LiveEquivalent T S where
+  F_eq := hEq.F_eq.symm
+  J_eq := hEq.J_eq.symm
+  hj_eq := hEq.hj_eq.symm
+  hmax_eq := hEq.hmax_eq.symm
+  live_entries_forward := hEq.live_entries_backward
+  live_entries_backward := hEq.live_entries_forward
+
+private lemma heightThreshold_eq_of_liveEquivalent {S T : Store n}
+    (hEq : LiveEquivalent S T) :
+    S.heightThreshold = T.heightThreshold := by
+  simp [heightThreshold, hEq.hmax_eq]
+
+private lemma confirmationRoot_eq_of_liveEquivalent {S T : Store n}
+    (hEq : LiveEquivalent S T) :
+    S.confirmationRoot = T.confirmationRoot := by
+  simp [confirmationRoot, hEq.hmax_eq, hEq.hj_eq, hEq.J_eq, hEq.F_eq]
+
+private lemma getConfirmed_mem_of_liveEquivalent {S T : Store n} {B : Block n}
+    (hS : Reachable S) (hEq : LiveEquivalent S T)
+    (hB : B ∈ S.getConfirmed) :
+    B ∈ T.getConfirmed := by
+  rcases getConfirmed_entry hB with ⟨e, heS, hBlock, hcandS⟩
+  subst B
+  have hLive : S.F ≼ e.block :=
+    future_getConfirmed_descends_from_F hS (Future.refl S)
+      (mem_getConfirmed_of_entry_candidate heS hcandS)
+  rcases hEq.live_entries_forward e heS hLive with
+    ⟨eT, heT, hBlockT, hHeightT_eq⟩
+  have hparts :
+      (S.isViableBool e.block = true ∧
+        Block.isAncestorOf S.confirmationRoot e.block = true) ∧
+        decide (S.heightThreshold ≤ e.height) = true := by
+    simpa [isConfirmedCandidateEntryBool, Bool.and_eq_true] using hcandS
+  have hViableT : T.isViableBool eT.block = true := by
+    rcases highDescendant_of_isViableBool hparts.1.1 with
+      ⟨w, hwS, hwHeightS, hAnc⟩
+    have hLiveW : S.F ≼ w.block := Block.Ancestor.trans hLive hAnc
+    rcases hEq.live_entries_forward w hwS hLiveW with
+      ⟨wT, hwT, hBlockWT, hHeightWT_eq⟩
+    have hContainsT : T.containsBlockBool eT.block = true :=
+      containsBlockBool_of_entry_mem heT
+    have hAncT : eT.block ≼ wT.block := by
+      simpa [hBlockT, hBlockWT] using hAnc
+    have hHeightT : T.heightThreshold ≤ wT.height := by
+      rw [hHeightWT_eq]
+      simpa [← heightThreshold_eq_of_liveEquivalent hEq] using hwHeightS
+    exact isViableBool_of_entry_ancestor_height hContainsT hwT hAncT hHeightT
+  have hRootT : Block.isAncestorOf T.confirmationRoot eT.block = true := by
+    have hRootS : Block.isAncestorOf S.confirmationRoot e.block = true := hparts.1.2
+    simpa [← confirmationRoot_eq_of_liveEquivalent hEq, hBlockT] using hRootS
+  have hHeightT : decide (T.heightThreshold ≤ eT.height) = true := by
+    have hHeightS : S.heightThreshold ≤ e.height := of_decide_eq_true hparts.2
+    apply decide_eq_true
+    rw [hHeightT_eq]
+    simpa [← heightThreshold_eq_of_liveEquivalent hEq] using hHeightS
+  have hcandT : T.isConfirmedCandidateEntryBool eT = true := by
+    simp [isConfirmedCandidateEntryBool, hViableT, hRootT, hHeightT]
+  have hmemT := mem_getConfirmed_of_entry_candidate heT hcandT
+  simpa [hBlockT] using hmemT
+
+/-- Reachable stores with the same finalized live view have the same
+    executable confirmed-output set. This is the output-level order
+    independence principle used when full accepted-entry equality is false. -/
+theorem liveEquivalent_getConfirmed {S T : Store n} {B : Block n}
+    (hS : Reachable S) (hT : Reachable T)
+    (hEq : LiveEquivalent S T) :
+    B ∈ S.getConfirmed ↔ B ∈ T.getConfirmed := by
+  constructor
+  · exact getConfirmed_mem_of_liveEquivalent hS hEq
+  · exact getConfirmed_mem_of_liveEquivalent hT hEq.symm
+
 end Store
 
 end DecoupledConsensus

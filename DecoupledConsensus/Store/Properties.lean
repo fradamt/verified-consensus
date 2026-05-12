@@ -17,6 +17,12 @@ extensional form (`OrderEquivalent`). They are not the stronger TeX replay
 claim that arbitrary valid processing orders over the same block set produce
 equivalent stores; the replay/order machinery needed to state that premise is
 not part of the current formalization.
+
+Section 3's full-store order-independence claim is too strong for the
+executable store: a block accepted before finality moves may remain in
+`entries` even if another replay would reject it after finality moves. The
+observable invariant is the live view rooted at the final store `F`, which is
+what `LiveEquivalent` captures below.
 -/
 
 variable {n : ℕ}
@@ -93,6 +99,28 @@ structure OrderEquivalent (S T : Store n) : Prop where
   J_eq : S.J = T.J
   hj_eq : S.hj = T.hj
   hmax_eq : S.hmax = T.hmax
+
+/-- Entry-level agreement for a block in the live subtree. The transferred
+    entry must carry the same block and state-height, which is enough for the
+    executable height filter and confirmed-output tests. -/
+def HasMatchingEntry (S T : Store n) (e : StoreEntry n) : Prop :=
+  ∃ e' ∈ T.entries, e'.block = e.block ∧ e'.height = e.height
+
+/-- Equivalence of the observable store view rooted at finality.
+
+    The raw accepted-entry lists may differ outside the subtree of `F`; those
+    blocks are unobservable to `getConfirmed`. Entries descending from the
+    final root must match in both directions, with their derived state-heights
+    preserved. -/
+structure LiveEquivalent (S T : Store n) : Prop where
+  F_eq : S.F = T.F
+  J_eq : S.J = T.J
+  hj_eq : S.hj = T.hj
+  hmax_eq : S.hmax = T.hmax
+  live_entries_forward :
+    ∀ e : StoreEntry n, e ∈ S.entries → S.F ≼ e.block → HasMatchingEntry S T e
+  live_entries_backward :
+    ∀ e : StoreEntry n, e ∈ T.entries → T.F ≼ e.block → HasMatchingEntry T S e
 
 /-! ## Unconditional Store Statements -/
 
@@ -265,6 +293,16 @@ def OrderEquivalentGetConfirmedStatement (n : ℕ) : Prop :=
 def OrderEquivalentViableTreeStatement (n : ℕ) : Prop :=
   ∀ {S T : Store n} {B : Block n},
     OrderEquivalent S T → (B ∈ S.viableTree ↔ B ∈ T.viableTree)
+
+/-! ## Live Store-Output Invariance -/
+
+/-- Live-equivalent reachable stores have the same `getConfirmed` membership.
+    This is the order-independence consequence compatible with pruning/rejecting
+    irrelevant blocks outside the finalized subtree. -/
+def LiveEquivalentGetConfirmedStatement (n : ℕ) : Prop :=
+  ∀ {S T : Store n} {B : Block n},
+    Reachable S → Reachable T →
+      LiveEquivalent S T → (B ∈ S.getConfirmed ↔ B ∈ T.getConfirmed)
 
 end Store
 

@@ -34,7 +34,7 @@ namespace FinalityEvidence
     directly to `FinalizedCertificate`. -/
 def FinalityEvidenceInv {B : Block n} (chain : Chain n B)
     (votes : List (Vote n)) (σ : State n) : Prop :=
-  ∃ C : Block n, ∃ h_f, C = σ.F ∧ ∃ hC : C ≼ B,
+  ∃ C : Block n, ∃ h_f, C = σ.F ∧ h_f ≤ σ.hj ∧ ∃ hC : C ≼ B,
     (h_f = 0 ∧ C = Block.genesis) ∨
       (h_f > 0 ∧
         FinalizeQuorumWitness votes C h_f ∧
@@ -66,8 +66,8 @@ lemma FinalityEvidenceInv.append_votes {B : Block n} {chain : Chain n B}
     {votes extra : List (Vote n)} {σ : State n}
     (h : FinalityEvidenceInv chain votes σ) :
     FinalityEvidenceInv chain (votes ++ extra) σ := by
-  rcases h with ⟨C, h_f, hCeq, hC, hCert⟩
-  refine ⟨C, h_f, hCeq, hC, ?_⟩
+  rcases h with ⟨C, h_f, hCeq, hhj, hC, hCert⟩
+  refine ⟨C, h_f, hCeq, hhj, hC, ?_⟩
   rcases hCert with hZero | hPos
   · exact Or.inl hZero
   · exact Or.inr
@@ -79,11 +79,11 @@ lemma FinalityEvidenceInv.append_votes {B : Block n} {chain : Chain n B}
 
 lemma FinalityEvidenceInv.height_mono {B : Block n} {chain : Chain n B}
     {votes : List (Vote n)} {σ τ : State n}
-    (hF : τ.F = σ.F) (hh : σ.h ≤ τ.h)
+    (hF : τ.F = σ.F) (hh : σ.h ≤ τ.h) (hhj : σ.hj ≤ τ.hj)
     (h : FinalityEvidenceInv chain votes σ) :
     FinalityEvidenceInv chain votes τ := by
-  rcases h with ⟨C, h_f, hCeq, hC, hCert⟩
-  refine ⟨C, h_f, ?_, hC, ?_⟩
+  rcases h with ⟨C, h_f, hCeq, hle_hj, hC, hCert⟩
+  refine ⟨C, h_f, ?_, hle_hj.trans hhj, hC, ?_⟩
   · exact hCeq.trans hF.symm
   rcases hCert with hZero | hPos
   · exact Or.inl hZero
@@ -98,7 +98,8 @@ lemma processVote_finalityEvidence_pres {B : Block n} (chain : Chain n B)
   have hApp : FinalityEvidenceInv chain (votes ++ [v]) σ :=
     h.append_votes
   exact FinalityEvidenceInv.height_mono
-    (by simp [processVote_F]) (by simp [processVote_h]) hApp
+    (by simp [processVote_F]) (by simp [processVote_h])
+    (by simp [processVote_hj]) hApp
 
 lemma processBlock_finalityEvidence_pres {B : Block n} (chain : Chain n B)
     (votes : List (Vote n)) (σ : State n)
@@ -135,8 +136,10 @@ lemma processHeight_finalityEvidence_pres {B : Block n} (chain : Chain n B)
       rw [processHeight_F]
       unfold applyFinality
       simp [hFinal]
+    have hhj_mono : σ.hj ≤ (processHeight σ).hj :=
+      processHeight_hj_mono σ (Nat.le_of_lt hhj_lt_h)
     by_cases hhj0 : σ.hj = 0
-    · refine ⟨Block.genesis, 0, ?_, Block.genesis_ancestor B,
+    · refine ⟨Block.genesis, 0, ?_, by omega, Block.genesis_ancestor B,
         Or.inl ⟨rfl, rfl⟩⟩
       exact (hFpost.trans (hZeroJ hhj0)).symm
     · rcases hJ with hJZero | hJPos
@@ -155,13 +158,14 @@ lemma processHeight_finalityEvidence_pres {B : Block n} (chain : Chain n B)
           · exact hJWPos
         have hPostHigh : (processHeight σ).h > σ.hj :=
           lt_of_lt_of_le hhj_lt_h (processHeight_h_le σ)
-        refine ⟨σ.J, σ.hj, hFpost.symm, hAnc, Or.inr ?_⟩
+        refine ⟨σ.J, σ.hj, hFpost.symm, hhj_mono, hAnc, Or.inr ?_⟩
         exact ⟨Nat.pos_of_ne_zero hhj0, hFinalize, hJustify, hHeight, hPostHigh⟩
   · have hFpost : (processHeight σ).F = σ.F := by
       rw [processHeight_F]
       unfold applyFinality
       simp [hFinal]
-    exact FinalityEvidenceInv.height_mono hFpost (processHeight_h_le σ) hE
+    exact FinalityEvidenceInv.height_mono hFpost (processHeight_h_le σ)
+      (processHeight_hj_mono σ (Nat.le_of_lt hhj_lt_h)) hE
 
 lemma processSlot_finalityEvidence_pres {B : Block n} (chain : Chain n B)
     (votes : List (Vote n)) (σ : State n)
@@ -178,10 +182,11 @@ lemma processSlot_finalityEvidence_pres {B : Block n} (chain : Chain n B)
         hhj_lt_h
     have hSet : FinalityEvidenceInv chain votes
         ({processHeight σ with s := σ.s + 1} : State n) := by
-      exact FinalityEvidenceInv.height_mono (by simp) (by simp) hPH
+      exact FinalityEvidenceInv.height_mono (by simp) (by simp) (by simp) hPH
     simpa [processSlot, hEmpty] using hSet
   · exact FinalityEvidenceInv.height_mono
-      (by simp [processSlot, hEmpty]) (by simp [processSlot, hEmpty]) hE
+      (by simp [processSlot, hEmpty]) (by simp [processSlot, hEmpty])
+      (by simp [processSlot, hEmpty]) hE
 
 lemma iterateProcessSlot_finalityEvidence_pres {B : Block n}
     (chain : Chain n B) (votes : List (Vote n)) (σ : State n) (k : ℕ)
@@ -221,8 +226,8 @@ lemma FinalityEvidenceInv.extend_chain {parent : Block n}
     (h : FinalityEvidenceInv c votes σ) :
     FinalityEvidenceInv (Chain.extend c bid newSlot votesNew hSlot)
       votes ({σ with L := Block.mk bid parent newSlot votesNew} : State n) := by
-  rcases h with ⟨C, h_f, hCeq, hC, hCert⟩
-  refine ⟨C, h_f, hCeq, Block.Ancestor.step hC, ?_⟩
+  rcases h with ⟨C, h_f, hCeq, hhj, hC, hCert⟩
+  refine ⟨C, h_f, hCeq, hhj, Block.Ancestor.step hC, ?_⟩
   rcases hCert with hZero | hPos
   · exact Or.inl hZero
   · right
@@ -239,7 +244,8 @@ theorem chain_finalityEvidence {B : Block n} (chain : Chain n B) :
     FinalityEvidenceInv chain (votesIncluded chain) (stateOf chain) := by
   induction chain with
   | genesis =>
-      refine ⟨Block.genesis, 0, rfl, Block.Ancestor.refl Block.genesis, Or.inl ?_⟩
+      refine ⟨Block.genesis, 0, rfl, by simp [stateOf, State.genesis],
+        Block.Ancestor.refl Block.genesis, Or.inl ?_⟩
       exact ⟨rfl, rfl⟩
   | @extend parent c bid newSlot votes hSlot ih =>
       let B' : Block n := Block.mk bid parent newSlot votes
@@ -366,9 +372,20 @@ theorem chain_finalityEvidence {B : Block n} (chain : Chain n B) :
 theorem chain_finalizedCertificate {B : Block n} (chain : Chain n B) :
     ∃ h_f, ∃ hF : (stateOf chain).F ≼ B,
       FinalizedCertificate chain (stateOf chain).F h_f hF := by
-  rcases chain_finalityEvidence chain with ⟨C, h_f, hCeq, hC, hCert⟩
+  rcases chain_finalityEvidence chain with ⟨C, h_f, hCeq, _hhj, hC, hCert⟩
   subst hCeq
   refine ⟨h_f, hC, ?_⟩
+  rcases hCert with hZero | hPos
+  · exact Or.inl hZero
+  · exact Or.inr hPos
+
+theorem chain_finalizedCertificate_le_hj {B : Block n} (chain : Chain n B) :
+    ∃ h_f, ∃ hF : (stateOf chain).F ≼ B,
+      FinalizedCertificate chain (stateOf chain).F h_f hF ∧
+        h_f ≤ (stateOf chain).hj := by
+  rcases chain_finalityEvidence chain with ⟨C, h_f, hCeq, hhj, hC, hCert⟩
+  subst hCeq
+  refine ⟨h_f, hC, ?_, hhj⟩
   rcases hCert with hZero | hPos
   · exact Or.inl hZero
   · exact Or.inr hPos

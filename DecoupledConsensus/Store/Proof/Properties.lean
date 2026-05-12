@@ -91,6 +91,18 @@ theorem finality_update_descends_property {f : ℕ} :
   exact updateFinalized_descends_or_sets_processed_finalization
     hn hNoSlash hS rF hProc hId hAlreadyOrStrict
 
+theorem onBlock_finality_update_acceptance_property {f : ℕ} :
+    OnBlockFinalityUpdateAcceptanceStatement n f := by
+  intro hn hNoSlash S S' B σB hS hFresh hstep hAcc hId hStrict
+  exact onBlock_accepts_state_finalization
+    hn hNoSlash hS hFresh hstep hAcc hId hStrict
+
+theorem onBlock_finality_update_descends_property {f : ℕ} :
+    OnBlockFinalityUpdateDescendsStatement n f := by
+  intro hn hNoSlash S S' B σB hS hFresh hstep hAcc hId hAlreadyOrStrict
+  exact onBlock_descends_or_accepts_state_finalization
+    hn hNoSlash hS hFresh hstep hAcc hId hAlreadyOrStrict
+
 theorem lockIn_property {f : ℕ} :
     LockInStatement n f := by
   intro hn hNoSlash S T hS hFuture F B h_f rF hProc hId hB

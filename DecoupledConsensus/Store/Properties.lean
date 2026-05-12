@@ -50,6 +50,11 @@ def KeyLE (h : ℕ) (J : Block n) (h' : ℕ) (J' : Block n) : Prop :=
 def ProcessedJustification (S : Store n) (C : Block n) (h : ℕ) : Prop :=
   ∃ e ∈ S.entries, e.state.J = C ∧ e.state.hj = h
 
+/-- The derived TeX state map notation `σ[B]`: the store accepts `B` and the
+    returned state is the chain-computed post-state for `B`. -/
+def AcceptedBlockState (S : Store n) (B : Block n) (σ : State n) : Prop :=
+  ∃ chain : Chain n B, S.findChain? B = some chain ∧ stateOf chain = σ
+
 /-- The scoped hash/id injectivity needed to compare an external finalization
     witness against every accepted entry in a store. -/
 def IdInjectiveAgainstStore (tip : Block n) (S : Store n) : Prop :=
@@ -220,6 +225,38 @@ def FinalityUpdateDescendsStatement (n f : ℕ) : Prop :=
           rF.IdInjectiveAgainstStore S →
           (F' ≼ S.F ∨ (S.F ≼ F' ∧ S.F ≠ F')) →
           F' ≼ (S.updateFinalized F').F
+
+/-- `onBlock`-level finality update acceptance for fresh blocks. This is the
+    direct section-3 surface: if the processed block state `σ[B]` finalizes a
+    strict descendant of the old store-finalized root, the resulting store has
+    `F = σ[B].F`. Duplicate replays are excluded because they are an
+    executable convenience, not a TeX block-processing step. -/
+def OnBlockFinalityUpdateAcceptanceStatement (n f : ℕ) : Prop :=
+  n = 3 * f + 1 →
+    ¬ @AtLeastFThirdSlashable n f →
+      ∀ {S S' : Store n} {B : Block n} {σB : State n},
+        Reachable S →
+          S.containsBlockBool B = false →
+          S.onBlock B = some S' →
+          AcceptedBlockState S' B σB →
+          IdInjectiveAgainstStore B S' →
+          S.F ≼ σB.F ∧ S.F ≠ σB.F →
+          S'.F = σB.F
+
+/-- Monotone `onBlock` form: for a fresh processed block, if the block-state
+    finalized root is comparable with the previous store-finalized root, the
+    resulting store finality is at or beyond that block-state root. -/
+def OnBlockFinalityUpdateDescendsStatement (n f : ℕ) : Prop :=
+  n = 3 * f + 1 →
+    ¬ @AtLeastFThirdSlashable n f →
+      ∀ {S S' : Store n} {B : Block n} {σB : State n},
+        Reachable S →
+          S.containsBlockBool B = false →
+          S.onBlock B = some S' →
+          AcceptedBlockState S' B σB →
+          IdInjectiveAgainstStore B S' →
+          (σB.F ≼ S.F ∨ (S.F ≼ σB.F ∧ S.F ≠ σB.F)) →
+          σB.F ≼ S'.F
 
 /-- Lock-in for any executable `getConfirmed` output. -/
 def LockInStatement (n f : ℕ) : Prop :=

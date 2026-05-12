@@ -137,6 +137,30 @@ noncomputable def StoreEntry.finalizationRecordOfStateF (e : StoreEntry n)
       final_state := rfl
       certificate := hCert }
 
+/-- As above, also retaining the recovered fact that the certificate height is
+    no higher than the entry's post-state justified height. -/
+noncomputable def StoreEntry.finalizationRecordOfStateFWithHeight
+    (e : StoreEntry n) {F : Block n} (hF : e.state.F = F) :
+    Σ h_f, Subtype (fun _ : FinalizationRecord F h_f => h_f ≤ e.state.hj) := by
+  classical
+  let hExists := FinalityEvidence.chain_finalizedCertificate_le_hj e.chain
+  let h_f := Classical.choose hExists
+  let hRest := Classical.choose_spec hExists
+  let hAnc := Classical.choose hRest
+  let hCertAndHeight := Classical.choose_spec hRest
+  have hEq : (stateOf e.chain).F = F := by
+    simpa [StoreEntry.state] using hF
+  subst F
+  refine ⟨h_f, ⟨?_, ?_⟩⟩
+  · exact
+      { tip := e.block
+        chain := e.chain
+        target_ancestor := hAnc
+        final_state := rfl
+        certificate := hCertAndHeight.1 }
+  · change Classical.choose hExists ≤ e.state.hj
+    simpa [StoreEntry.state] using hCertAndHeight.2
+
 /-- `hmax` is exactly the maximum entry height and is attained by some entry. -/
 def HMaxOk (S : Store n) : Prop :=
   (∀ e ∈ S.entries, e.height ≤ S.hmax) ∧

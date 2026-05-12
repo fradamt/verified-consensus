@@ -26,6 +26,16 @@ lemma processHeight_hj_le_h (σ : State n) (h_inv : σ.hj ≤ σ.h) :
       · simpa [hFirst, hTO] using h_inv
       · simp [hFirst, hTO]; omega
 
+/-- `processHeight` cannot decrease `hj`, assuming the standard `hj ≤ h`
+    invariant for the justification branch. -/
+lemma processHeight_hj_mono (σ : State n) (h_inv : σ.hj ≤ σ.h) :
+    σ.hj ≤ (processHeight σ).hj := by
+  unfold processHeight processHeightEvents
+  cases hFirst : firstJustifiedTarget (applyFinality σ) with
+  | some T => simp [hFirst, h_inv]
+  | none =>
+      cases hTO : timeoutFiresBool (applyFinality σ) <;> simp [hFirst, hTO]
+
 /-- `processSlot` preserves `hj ≤ h`. -/
 lemma processSlot_hj_le_h (σ : State n) (h_inv : σ.hj ≤ σ.h) :
     (processSlot σ).hj ≤ (processSlot σ).h := by

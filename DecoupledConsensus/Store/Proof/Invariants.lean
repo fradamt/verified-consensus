@@ -98,6 +98,13 @@ lemma keyGreater_height_ge {h' h : ℕ} {J' J : Block n}
       simpa [hlt, Bool.and_eq_true] using hkey
     omega
 
+lemma keyGreater_false_height_le {h' h : ℕ} {J' J : Block n}
+    (hkey : keyGreater h' J' h J = false) : h' ≤ h := by
+  unfold keyGreater at hkey
+  by_cases hlt : h < h'
+  · simp [hlt] at hkey
+  · exact Nat.le_of_not_gt hlt
+
 lemma KeyLE.refl (h : ℕ) (J : Block n) : KeyLE h J h J := by
   exact Or.inr ⟨rfl, le_rfl⟩
 
@@ -135,6 +142,24 @@ lemma updateJustified_hj_mono {S : Store n} {J' : Block n} {h' : ℕ} :
   · simp [updateJustified, hguard]
   · have hparts := shouldUpdateJustified_parts hguard
     simpa [updateJustified, hguard] using keyGreater_height_ge hparts.2.2
+
+/-- If the accepted/descendant guards for `J'` hold, then after
+    `updateJustified J' h'` the store root height is at least `h'`, whether
+    the update writes `J'` or keeps an already-higher root. -/
+lemma updateJustified_candidate_height_le {S : Store n} {J' : Block n} {h' : ℕ}
+    (hContains : S.containsBlockBool J' = true)
+    (hBelowF : Block.isAncestorOf S.F J' = true) :
+    h' ≤ (S.updateJustified J' h').hj := by
+  cases hguard : S.shouldUpdateJustified J' h'
+  · have hkey : keyGreater h' J' S.hj S.J = false := by
+      cases hkey : keyGreater h' J' S.hj S.J
+      · rfl
+      · have htrue : S.shouldUpdateJustified J' h' = true := by
+          simp [shouldUpdateJustified, hContains, hBelowF, hkey]
+        rw [hguard] at htrue
+        cases htrue
+    simpa [updateJustified, hguard] using keyGreater_false_height_le hkey
+  · simp [updateJustified, hguard]
 
 lemma updateJustified_key_mono {S : Store n} {J' : Block n} {h' : ℕ} :
     KeyLE S.hj S.J (S.updateJustified J' h').hj

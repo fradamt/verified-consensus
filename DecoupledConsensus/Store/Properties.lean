@@ -121,6 +121,33 @@ def ReplayOf (blocks : List (Block n)) (S : Store n) : Prop :=
 def ReplayEntriesOf (input : List (StoreEntry n)) (S : Store n) : Prop :=
   ReplayOf (input.map StoreEntry.block) S
 
+/-- A block is ready once its parent is already in the replay prefix. Genesis is
+    always ready. -/
+def ParentReadyIn (seen : List (Block n)) : Block n → Prop
+  | Block.genesis => True
+  | Block.mk _ parent _ _ => parent = Block.genesis ∨ parent ∈ seen
+
+/-- Parent-first replay order, parameterized by the prefix already processed. -/
+def ParentFirstFrom (seen blocks : List (Block n)) : Prop :=
+  match blocks with
+  | [] => True
+  | B :: rest => ParentReadyIn seen B ∧ ParentFirstFrom (seen ++ [B]) rest
+
+/-- A replay list is parent-first when every non-genesis block appears after its
+    parent. Genesis is treated as already available because the store starts
+    from `Store.genesis`. -/
+def ParentFirst (blocks : List (Block n)) : Prop :=
+  ParentFirstFrom [Block.genesis] blocks
+
+/-- Parent-first replay order for proof-side input entries. -/
+def ParentFirstEntries (input : List (StoreEntry n)) : Prop :=
+  ParentFirst (input.map StoreEntry.block)
+
+/-- Blocks relevant to the observable final view are exactly the descendants of
+    the final root plus the prefix leading to that root. -/
+def RelevantToFinal (F B : Block n) : Prop :=
+  F ≼ B ∨ B ≼ F
+
 /-- Canonical observable summary for a replay input. The component proofs
     should identify these fields from the available block set alone. -/
 structure LiveSummary (n : ℕ) where
@@ -129,10 +156,13 @@ structure LiveSummary (n : ℕ) where
   hj : ℕ
   hmax : ℕ
 
-/-- An accepted entry is represented in a proof-side input entry set with the
-    same block and same derived state height. -/
+/-- An accepted entry is represented either by implicit genesis or by a
+    proof-side input entry with the same block and derived state height. Genesis
+    is implicit because every executable replay starts from `Store.genesis`, even
+    if the available block list omits it. -/
 def HasInputEntry (input : List (StoreEntry n)) (e : StoreEntry n) : Prop :=
-  ∃ a ∈ input, a.block = e.block ∧ a.height = e.height
+  e.block = Block.genesis ∨
+    ∃ a ∈ input, a.block = e.block ∧ a.height = e.height
 
 /-- The component invariant needed for observable order independence.
 

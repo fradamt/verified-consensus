@@ -20,6 +20,10 @@ namespace Store
 def ProcessedJustification (S : Store n) (C : Block n) (h : ℕ) : Prop :=
   ∃ e ∈ S.entries, e.state.J = C ∧ e.state.hj = h
 
+/-- The current store root is represented by some processed entry. -/
+def CurrentProcessedJustification (S : Store n) : Prop :=
+  ProcessedJustification S S.J S.hj
+
 /-- The scoped hash/id injectivity needed to compare an external finalization
     witness against every accepted entry in a store. -/
 def IdInjectiveAgainstStore (tip : Block n) (S : Store n) : Prop :=
@@ -254,6 +258,41 @@ lemma updateFinalized_processedJustification {S : Store n}
     ProcessedJustification (S.updateFinalized F') C h := by
   simpa [ProcessedJustification, updateFinalized_entries_eq] using hProc
 
+lemma genesis_currentProcessedJustification :
+    CurrentProcessedJustification (Store.genesis n) := by
+  refine ⟨StoreEntry.genesis n, ?_, ?_, ?_⟩
+  · simp [Store.genesis]
+  · simp [StoreEntry.state, StoreEntry.genesis, Store.genesis, stateOf,
+      State.genesis]
+  · simp [StoreEntry.state, StoreEntry.genesis, Store.genesis, stateOf,
+      State.genesis]
+
+lemma addEntry_currentProcessedJustification {S : Store n} {e : StoreEntry n}
+    (hCur : CurrentProcessedJustification S) :
+    CurrentProcessedJustification (S.addEntry e) := by
+  simpa [CurrentProcessedJustification, addEntry] using
+    addEntry_processedJustification (e := e) hCur
+
+lemma addEntry_newProcessedJustification {S : Store n} {e : StoreEntry n} :
+    ProcessedJustification (S.addEntry e) e.state.J e.state.hj := by
+  exact ⟨e, by simp [addEntry], rfl, rfl⟩
+
+lemma updateJustified_currentProcessedJustification {S : Store n}
+    {J' : Block n} {h' : ℕ}
+    (hCur : CurrentProcessedJustification S)
+    (hNew : ProcessedJustification S J' h') :
+    CurrentProcessedJustification (S.updateJustified J' h') := by
+  cases hguard : S.shouldUpdateJustified J' h'
+  · simpa [CurrentProcessedJustification, updateJustified, hguard] using hCur
+  · simpa [CurrentProcessedJustification, updateJustified, hguard] using hNew
+
+lemma updateFinalized_currentProcessedJustification {S : Store n}
+    {F' : Block n}
+    (hCur : CurrentProcessedJustification S) :
+    CurrentProcessedJustification (S.updateFinalized F') := by
+  cases hguard : S.shouldUpdateFinalized F' <;>
+    simpa [CurrentProcessedJustification, updateFinalized, hguard] using hCur
+
 lemma onBlock_processedJustification {S S' : Store n} {B C : Block n} {h : ℕ}
     (hProc : ProcessedJustification S C h)
     (hstep : S.onBlock B = some S') :
@@ -300,6 +339,63 @@ lemma Future.processedJustification_of_left {S T : Store n} {C : Block n} {h : �
       exact hProc
   | step hstep _ ih =>
       exact ih (onBlock_processedJustification hProc hstep)
+
+lemma onBlock_currentProcessedJustification {S S' : Store n} {B : Block n}
+    (hCur : CurrentProcessedJustification S)
+    (hstep : S.onBlock B = some S') :
+    CurrentProcessedJustification S' := by
+  unfold onBlock at hstep
+  by_cases hContains : S.containsBlockBool B
+  · simp [hContains] at hstep
+    cases hstep
+    exact hCur
+  · simp [hContains] at hstep
+    cases B with
+    | genesis =>
+        simp at hstep
+    | mk bid parent newSlot votes =>
+        cases hFind : S.findChain? parent with
+        | none =>
+            simp [hFind] at hstep
+        | some parentChain =>
+            by_cases hSlot : newSlot > parent.slot
+            · simp [hFind, hSlot] at hstep
+              let child := Block.mk bid parent newSlot votes
+              by_cases hAnc : Block.isAncestorOf S.F child
+              · simp [child, hAnc] at hstep
+                let entry : StoreEntry n :=
+                  { block := child
+                    chain := Chain.extend parentChain bid newSlot votes hSlot }
+                let σ' := entry.state
+                let S1 := S.addEntry entry
+                let S2 := S1.updateJustified σ'.J σ'.hj
+                have hS1 : CurrentProcessedJustification S1 :=
+                  addEntry_currentProcessedJustification hCur
+                have hNew : ProcessedJustification S1 σ'.J σ'.hj := by
+                  simpa [S1, σ'] using
+                    addEntry_newProcessedJustification (S := S) (e := entry)
+                have hS2 : CurrentProcessedJustification S2 :=
+                  updateJustified_currentProcessedJustification hS1 hNew
+                cases hstep
+                exact updateFinalized_currentProcessedJustification hS2
+              · simp [child, hAnc] at hstep
+            · simp [hFind, hSlot] at hstep
+
+/-- Reachable stores have a processed entry witnessing the current `(J, hj)`. -/
+theorem reachable_currentProcessedJustification {S : Store n}
+    (hS : Reachable S) : CurrentProcessedJustification S := by
+  induction hS with
+  | genesis =>
+      exact genesis_currentProcessedJustification
+  | onBlock hPrev hstep ih =>
+      exact onBlock_currentProcessedJustification ih hstep
+
+/-- The entry-derived evidence for the current root is available on every
+    reachable store. The stronger target-height certificate remains proof-side
+    certification data. -/
+theorem reachable_currentJustificationEvidence {S : Store n}
+    (hS : Reachable S) : JustificationEvidence S S.J S.hj :=
+  (reachable_currentProcessedJustification hS).evidence
 
 end Store
 

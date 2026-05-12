@@ -16,19 +16,9 @@ open scoped Block
 
 namespace Store
 
-/-- A processed block has offered the justified checkpoint `(C, h)` as its
-    post-state `(J, hj)`. -/
-def ProcessedJustification (S : Store n) (C : Block n) (h : ℕ) : Prop :=
-  ∃ e ∈ S.entries, e.state.J = C ∧ e.state.hj = h
-
 /-- The current store root is represented by some processed entry. -/
 def CurrentProcessedJustification (S : Store n) : Prop :=
   ProcessedJustification S S.J S.hj
-
-/-- The scoped hash/id injectivity needed to compare an external finalization
-    witness against every accepted entry in a store. -/
-def IdInjectiveAgainstStore (tip : Block n) (S : Store n) : Prop :=
-  ∀ e, e ∈ S.entries → Block.IdInjectiveOnAncestors tip e.block
 
 /-- Justification evidence derivable directly from an accepted store entry. -/
 def JustificationEvidence (S : Store n) (C : Block n) (h : ℕ) : Prop :=
@@ -39,40 +29,6 @@ def JustificationEvidence (S : Store n) (C : Block n) (h : ℕ) : Prop :=
     h < entry.height ∧
     ((h = 0 ∧ C = Block.genesis) ∨
       JustifyQuorumWitness (votesIncluded entry.chain) C h)
-
-/-- Certificate-level record for a justification event observed in an accepted
-    store entry. This is proof-side history, not protocol state: it packages
-    the facts needed by section-3 safety arguments when they need more than the
-    executable descriptor `(entry.state.J, entry.state.hj)`.
-
-    The target-height characterization is now derived from the state-level
-    freshness machinery (`chain_justified_target_height`), not stored here. -/
-structure JustificationRecord (S : Store n) (C : Block n) (h : ℕ) where
-  entry : StoreEntry n
-  mem : entry ∈ S.entries
-  target_eq : entry.state.J = C
-  height_eq : entry.state.hj = h
-  target_ancestor : C ≼ entry.block
-  tip_height : h < entry.height
-  witness :
-    (h = 0 ∧ C = Block.genesis) ∨
-      JustifyQuorumWitness (votesIncluded entry.chain) C h
-
-/-- Certificate-level record for a finality event. The witnessing chain need
-    not be in the local store: Section 3 often reasons about finality observed
-    on any chain and then compares it to a node-local store. -/
-structure FinalizationRecord (F : Block n) (h_f : ℕ) where
-  tip : Block n
-  chain : Chain n tip
-  target_ancestor : F ≼ tip
-  final_state : (stateOf chain).F = F
-  certificate : FinalizedCertificate chain F h_f target_ancestor
-
-/-- Scoped id injectivity for comparing a finalization record with all accepted
-    entries in a store. -/
-def FinalizationRecord.IdInjectiveAgainstStore
-    {F : Block n} {h_f : ℕ} (r : FinalizationRecord F h_f) (S : Store n) : Prop :=
-  DecoupledConsensus.Store.IdInjectiveAgainstStore r.tip S
 
 /-- A justification record also supplies the lighter processed-descriptor
     predicate used by basic store-history lemmas. -/

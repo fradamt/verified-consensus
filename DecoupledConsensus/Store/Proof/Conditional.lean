@@ -428,14 +428,6 @@ theorem lockin_of_records {f : ℕ}
 
 /-! ### No-high-justification invariant -/
 
-/-- Exact Section-3 no-high-justification invariant: every justification event
-    represented in the accepted store history is at or below the current store
-    root height. This is stated over the executable processed-history
-    predicate; certificate-level records are only one way to supply such an
-    event. -/
-def NoHighJustifications (S : Store n) : Prop :=
-  ∀ {C : Block n} {h : ℕ}, ProcessedJustification S C h → h ≤ S.hj
-
 private lemma ancestor_genesis_eq {B : Block n}
     (h : B ≼ Block.genesis) : B = Block.genesis := by
   cases h
@@ -788,18 +780,6 @@ theorem lockin_of_processed {f : ℕ}
     rF rProcessed rRoot hId hhj hB
 
 /-! ### Order-independent views of executable stores -/
-
-/-- Extensional equality for the order-independent store components. The raw
-    executable store keeps `entries` as a list, so two processing orders need
-    not be definitionally equal even when they contain the same accepted
-    `(block, chain)` entries. This predicate is the Section-3 equality notion
-    relevant to `viableTree` and `getConfirmed`. -/
-structure OrderEquivalent (S T : Store n) : Prop where
-  entries_iff : ∀ e : StoreEntry n, e ∈ S.entries ↔ e ∈ T.entries
-  F_eq : S.F = T.F
-  J_eq : S.J = T.J
-  hj_eq : S.hj = T.hj
-  hmax_eq : S.hmax = T.hmax
 
 lemma OrderEquivalent.symm {S T : Store n}
     (hEq : OrderEquivalent S T) : OrderEquivalent T S where

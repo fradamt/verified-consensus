@@ -4,4 +4,4 @@
 Public facade for the section-3 store model and invariants.
 -/
 
-import DecoupledConsensus.Store.Properties
+import DecoupledConsensus.Store.Proof.Properties

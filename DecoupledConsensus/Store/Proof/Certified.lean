@@ -19,11 +19,6 @@ open scoped Block
 
 namespace Store
 
-/-- A processed descriptor has a certificate-level record. Target-height facts
-    are derived from the entry chain, not stored in the certificate. -/
-def CertifiedJustification (S : Store n) (C : Block n) (h : ℕ) : Prop :=
-  Nonempty (JustificationRecord S C h)
-
 /-- The finalized root has certificate-level evidence, except for genesis,
     which is finalized by convention at height 0. -/
 def CertifiedFinalizedRoot (S : Store n) : Prop :=
@@ -32,14 +27,11 @@ def CertifiedFinalizedRoot (S : Store n) : Prop :=
 /-- Proof-side certification carried alongside an executable store.
 
 The fields are intentionally stronger than plain `Reachable`: they record the
-history/certificate obligations needed by the Section 3 arguments, especially
-current-root certification and the no-high-justification invariant. -/
+history/certificate obligations not recoverable from the current executable
+store tuple alone. Current-root and processed-justification records are derived
+from accepted entries in `History.lean`, so they are not stored here. -/
 structure StoreCertification (S : Store n) : Prop where
   reachable : Reachable S
-  current : CertifiedJustification S S.J S.hj
-  allProcessed :
-    ∀ {C : Block n} {h : ℕ},
-      ProcessedJustification S C h → CertifiedJustification S C h
   finalized : CertifiedFinalizedRoot S
   noHigh : NoHighJustifications S
 
@@ -47,34 +39,6 @@ structure StoreCertification (S : Store n) : Prop where
 structure CertifiedStore (n : ℕ) where
   store : Store n
   cert : StoreCertification store
-
-def genesisJustificationRecord :
-    JustificationRecord (Store.genesis n) Block.genesis 0 where
-  entry := StoreEntry.genesis n
-  mem := by simp [Store.genesis]
-  target_eq := by
-    simp [StoreEntry.state, StoreEntry.genesis, stateOf, State.genesis]
-  height_eq := by
-    simp [StoreEntry.state, StoreEntry.genesis, stateOf, State.genesis]
-  target_ancestor := Block.Ancestor.refl _
-  tip_height := by
-    simp [StoreEntry.height, StoreEntry.state, StoreEntry.genesis, stateOf,
-      State.genesis]
-  witness := Or.inl ⟨rfl, rfl⟩
-
-lemma genesis_allProcessed :
-    ∀ {C : Block n} {h : ℕ},
-      ProcessedJustification (Store.genesis n) C h →
-        CertifiedJustification (Store.genesis n) C h := by
-  intro C h hProc
-  rcases hProc with ⟨e, he, hJ, hhj⟩
-  have heq : e = StoreEntry.genesis n := by
-    simpa [Store.genesis] using he
-  subst e
-  simp [StoreEntry.state, StoreEntry.genesis, stateOf, State.genesis] at hJ hhj
-  subst C
-  subst h
-  exact ⟨genesisJustificationRecord⟩
 
 lemma genesis_noHigh : NoHighJustifications (Store.genesis n) := by
   intro C h hProc
@@ -88,8 +52,6 @@ lemma genesis_noHigh : NoHighJustifications (Store.genesis n) := by
 /-- Genesis satisfies the proof-side store certification. -/
 lemma genesisCertification : StoreCertification (Store.genesis n) where
   reachable := Reachable.genesis
-  current := ⟨genesisJustificationRecord⟩
-  allProcessed := genesis_allProcessed
   finalized := Or.inl rfl
   noHigh := genesis_noHigh
 
@@ -151,10 +113,8 @@ theorem certified_upgrade_of_processed {f : ℕ}
     (hProc : ProcessedJustification Sigma.store F h_f)
     (hId : rF.IdInjectiveAgainstStore T.store) :
     F ≼ T.store.J := by
-  rcases T.cert.current with ⟨rRoot⟩
-  have hhj : h_f ≤ T.store.hj :=
-    future_no_high_processed_justification Sigma.cert.noHigh hFuture hProc
-  exact upgrade_of_current_root_record hn hNoSlash rF rRoot hId hhj
+  exact upgrade_of_processed hn hNoSlash
+    Sigma.cert.reachable hFuture rF hProc hId Sigma.cert.noHigh
 
 /-- Certified lock-in wrapper matching the Section 3 shape more closely than
     `lockin_of_records`: the caller gives a processed descriptor, not the
@@ -169,13 +129,8 @@ theorem certified_lockin {f : ℕ}
     (hId : rF.IdInjectiveAgainstStore T.store)
     (hB : B ∈ T.store.getConfirmed) :
     F ≼ T.store.J ∧ T.store.isViableBool F = true ∧ F ≼ B := by
-  rcases Sigma.cert.allProcessed hProc with ⟨rProcessed⟩
-  rcases T.cert.current with ⟨rRoot⟩
-  have hhj : h_f ≤ T.store.hj :=
-    future_no_high_processed_justification Sigma.cert.noHigh hFuture hProc
-  exact lockin_of_records hn hNoSlash
-    Sigma.cert.reachable hFuture
-    rF rProcessed rRoot hId hhj hB
+  exact lockin_of_processed hn hNoSlash
+    Sigma.cert.reachable hFuture rF hProc hId Sigma.cert.noHigh hB
 
 end Store
 

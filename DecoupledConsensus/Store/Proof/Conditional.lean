@@ -468,6 +468,73 @@ theorem future_no_high_justification {S T : Store n} {C : Block n} {h : ℕ}
     h ≤ T.hj :=
   future_no_high_processed_justification hNoHigh hFuture r.processed
 
+/-- Cleaner finality-update acceptance surface. The caller supplies the
+    executable store, a processed descriptor for the finalized block, and the
+    strictness guard; the proof extracts the current-root record and viability
+    facts internally before calling the record-level lemma. -/
+theorem updateFinalized_accepts_processed_finalization {f : ℕ}
+    (hn : n = 3 * f + 1)
+    (hNoSlash : ¬ @AtLeastFThirdSlashable n f)
+    {S : Store n} (hS : Reachable S)
+    {F' : Block n} {h_f : ℕ}
+    (rF : FinalizationRecord F' h_f)
+    (hProc : ProcessedJustification S F' h_f)
+    (hId : rF.IdInjectiveAgainstStore S)
+    (hNoHigh : NoHighJustifications S)
+    (hStrict : S.F ≼ F' ∧ S.F ≠ F') :
+    (S.updateFinalized F').F = F' := by
+  have rRoot : JustificationRecord S S.J S.hj :=
+    reachable_currentJustificationRecord hS
+  have hhj : h_f ≤ S.hj := hNoHigh hProc
+  have hViable : S.isViableBool F' = true :=
+    finalized_viableBool_of_processedJustification hn hNoSlash hS
+      hId rF.chain rF.final_state rF.certificate hProc
+  exact updateFinalized_accepts_finalized_record hn hNoSlash
+    rF rRoot hId hhj hStrict hViable
+
+/-- Upgrade with a clean processed-descriptor surface. The proof-side
+    `JustificationRecord` for the future store's root is extracted internally
+    from executable reachability. -/
+theorem upgrade_of_processed {f : ℕ}
+    (hn : n = 3 * f + 1)
+    (hNoSlash : ¬ @AtLeastFThirdSlashable n f)
+    {S T : Store n} (hS : Reachable S) (hFuture : Future S T)
+    {F : Block n} {h_f : ℕ}
+    (rF : FinalizationRecord F h_f)
+    (hProc : ProcessedJustification S F h_f)
+    (hId : rF.IdInjectiveAgainstStore T)
+    (hNoHigh : NoHighJustifications S) :
+    F ≼ T.J := by
+  have hT : Reachable T := Future.reachable_of_left hS hFuture
+  have rRoot : JustificationRecord T T.J T.hj :=
+    reachable_currentJustificationRecord hT
+  have hhj : h_f ≤ T.hj :=
+    future_no_high_processed_justification hNoHigh hFuture hProc
+  exact upgrade_of_current_root_record hn hNoSlash rF rRoot hId hhj
+
+/-- Lock-in with a clean processed-descriptor surface. The record-level theorem
+    remains the proof engine, but callers no longer provide justification
+    records for the processed descriptor or current root. -/
+theorem lockin_of_processed {f : ℕ}
+    (hn : n = 3 * f + 1)
+    (hNoSlash : ¬ @AtLeastFThirdSlashable n f)
+    {S T : Store n} (hS : Reachable S) (hFuture : Future S T)
+    {F B : Block n} {h_f : ℕ}
+    (rF : FinalizationRecord F h_f)
+    (hProc : ProcessedJustification S F h_f)
+    (hId : rF.IdInjectiveAgainstStore T)
+    (hNoHigh : NoHighJustifications S)
+    (hB : B ∈ T.getConfirmed) :
+    F ≼ T.J ∧ T.isViableBool F = true ∧ F ≼ B := by
+  have hT : Reachable T := Future.reachable_of_left hS hFuture
+  have rProcessed : JustificationRecord S F h_f := hProc.toRecord
+  have rRoot : JustificationRecord T T.J T.hj :=
+    reachable_currentJustificationRecord hT
+  have hhj : h_f ≤ T.hj :=
+    future_no_high_processed_justification hNoHigh hFuture hProc
+  exact lockin_of_records hn hNoSlash hS hFuture
+    rF rProcessed rRoot hId hhj hB
+
 /-! ### Order-independent views of executable stores -/
 
 /-- Extensional equality for the order-independent store components. The raw

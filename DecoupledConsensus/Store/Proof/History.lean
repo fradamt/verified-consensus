@@ -114,6 +114,24 @@ lemma ProcessedJustification.evidence {S : Store n} {C : Block n} {h : ℕ}
       · simpa [hJ_state] using hv_target
       · simpa [hhj_state] using hv_height
 
+/-- Every processed justification descriptor can be upgraded to the
+    certificate-level record expected by the Section 3 safety lemmas. The
+    record is not extra protocol state; all fields are extracted from the
+    accepted entry's chain. -/
+def ProcessedJustification.toRecord
+    {S : Store n} {C : Block n} {h : ℕ}
+    (hProc : ProcessedJustification S C h) : JustificationRecord S C h := by
+  rcases hProc.evidence with
+    ⟨entry, mem, target_eq, height_eq, target_ancestor, tip_height, witness⟩
+  exact
+    { entry := entry
+      mem := mem
+      target_eq := target_eq
+      height_eq := height_eq
+      target_ancestor := target_ancestor
+      tip_height := tip_height
+      witness := witness }
+
 /-- Justification records expose the target-height fact derived from the
     Section-2 state-machine freshness invariant. -/
 lemma JustificationRecord.target_height
@@ -396,12 +414,18 @@ theorem reachable_currentProcessedJustification {S : Store n}
   | onBlock hPrev hstep ih =>
       exact onBlock_currentProcessedJustification ih hstep
 
+/-- Reachable stores expose their current justified root as an entry-derived
+    certificate record. -/
+theorem reachable_currentJustificationRecord {S : Store n}
+    (hS : Reachable S) : JustificationRecord S S.J S.hj :=
+  (reachable_currentProcessedJustification hS).toRecord
+
 /-- The entry-derived evidence for the current root is available on every
     reachable store. Target-height facts are derived from the witnessing
     entry chain when a full `JustificationRecord` is needed. -/
 theorem reachable_currentJustificationEvidence {S : Store n}
     (hS : Reachable S) : JustificationEvidence S S.J S.hj :=
-  (reachable_currentProcessedJustification hS).evidence
+  (reachable_currentJustificationRecord hS).evidence
 
 end Store
 

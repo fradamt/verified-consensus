@@ -314,6 +314,198 @@ lemma tryOnBlock_entryAccepted_of_ready {S : Store n}
             · exact StoreEntry.height_eq_of_block_eq (by
                 simpa [entry] using hBlock.symm)
 
+lemma tryOnBlock_entryAccepted_preserved {S : Store n} {B : Block n}
+    {e : StoreEntry n} (hAcc : EntryAcceptedIn S e) :
+    EntryAcceptedIn (S.tryOnBlock B) e := by
+  rcases hAcc with ⟨w, hw, hBlock, hHeight⟩
+  exact ⟨w, tryOnBlock_entry_mem_of_mem hw, hBlock, hHeight⟩
+
+lemma replayEntriesFrom_future :
+    ∀ (input : List (StoreEntry n)) (S : Store n),
+      Future S (input.foldl (fun S e => S.tryOnBlock e.block) S)
+  | [], S => Future.refl S
+  | e :: rest, S =>
+      Future.trans (tryOnBlock_future (S := S) (B := e.block))
+        (replayEntriesFrom_future rest (S.tryOnBlock e.block))
+
+lemma replayEntriesFrom_entryAccepted_preserved :
+    ∀ (input : List (StoreEntry n)) (S : Store n) (e : StoreEntry n),
+      EntryAcceptedIn S e →
+        EntryAcceptedIn (input.foldl (fun S a => S.tryOnBlock a.block) S) e
+  | [], _, _, hAcc => hAcc
+  | a :: rest, S, e, hAcc =>
+      replayEntriesFrom_entryAccepted_preserved rest (S.tryOnBlock a.block) e
+        (tryOnBlock_entryAccepted_preserved (B := a.block) hAcc)
+
+lemma parent_relevant_of_child_relevant {F parent : Block n}
+    {bid s : ℕ} {vs : List (Vote n)}
+    (hRel : RelevantToFinal F (Block.mk bid parent s vs)) :
+    RelevantToFinal F parent := by
+  have hParentChild : parent ≼ Block.mk bid parent s vs :=
+    Block.Ancestor.step (Block.Ancestor.refl parent)
+  rcases hRel with hFChild | hChildF
+  · rcases Block.Ancestor.linear hFChild hParentChild with hFParent | hParentF
+    · exact Or.inl hFParent
+    · exact Or.inr hParentF
+  · exact Or.inr (Block.Ancestor.trans hParentChild hChildF)
+
+private lemma Contains.of_entryAccepted {S : Store n} {e : StoreEntry n}
+    (hAcc : EntryAcceptedIn S e) : Contains S e.block := by
+  rcases hAcc with ⟨w, hw, hBlock, _⟩
+  exact ⟨w, hw, hBlock⟩
+
+lemma tryOnBlock_entryAccepted_of_parentReady_relevant {S T : Store n}
+    {seen : List (StoreEntry n)} (hS : Reachable S) (hFuture : Future S T)
+    (hSeen :
+      ∀ p : StoreEntry n, p ∈ seen → RelevantToFinal T.F p.block →
+        EntryAcceptedIn S p)
+    (e : StoreEntry n)
+    (hReady : ParentReadyIn (seen.map StoreEntry.block) e.block)
+    (hRel : RelevantToFinal T.F e.block) :
+    EntryAcceptedIn (S.tryOnBlock e.block) e := by
+  cases hBlock : e.block with
+  | genesis =>
+      have hContains : Contains S e.block := by
+        rw [hBlock]
+        exact reachable_contains_genesis hS
+      exact tryOnBlock_entryAccepted_of_contains e hContains
+  | mk bid parent s vs =>
+      have hReadyMk : parent = Block.genesis ∨
+          parent ∈ seen.map StoreEntry.block := by
+        simpa [ParentReadyIn, hBlock] using hReady
+      have hParentContains : Contains S parent := by
+        rcases hReadyMk with hGenesis | hSeenParent
+        · rw [hGenesis]
+          exact reachable_contains_genesis hS
+        · rcases List.mem_map.mp hSeenParent with ⟨p, hp, hpBlock⟩
+          have hRelParent :
+              RelevantToFinal T.F parent := by
+            have hRelChild :
+                RelevantToFinal T.F (Block.mk bid parent s vs) := by
+              simpa [hBlock] using hRel
+            exact parent_relevant_of_child_relevant hRelChild
+          have hAccParent : EntryAcceptedIn S p := hSeen p hp (by
+            simpa [hpBlock] using hRelParent)
+          have hContainsP : Contains S p.block :=
+            Contains.of_entryAccepted hAccParent
+          rcases hContainsP with ⟨w, hw, hWBlock⟩
+          exact ⟨w, hw, by rw [hWBlock, hpBlock]⟩
+      have hCurrentFinal : S.F ≼ T.F := future_F_ancestor hFuture
+      have hChildRel :
+          RelevantToFinal T.F (Block.mk bid parent s vs) := by
+        simpa [hBlock] using hRel
+      rcases hChildRel with hFinalChild | hChildFinal
+      · have hAnc : S.F ≼ e.block := by
+          rw [hBlock]
+          exact Block.Ancestor.trans hCurrentFinal hFinalChild
+        simpa [hBlock] using
+          tryOnBlock_entryAccepted_of_ready hS e (fun h => by
+          rw [hBlock] at h
+          injection h with _ hParentEq _ _
+          simpa [hParentEq] using hParentContains) hAnc
+      · rcases Block.Ancestor.linear hCurrentFinal hChildFinal with
+          hCurrentChild | hChildCurrent
+        · have hAnc : S.F ≼ e.block := by
+            rw [hBlock]
+            exact hCurrentChild
+          simpa [hBlock] using
+            tryOnBlock_entryAccepted_of_ready hS e (fun h => by
+            rw [hBlock] at h
+            injection h with _ hParentEq _ _
+            simpa [hParentEq] using hParentContains) hAnc
+        · have hContains : Contains S e.block := by
+            have hChildCurrent' : e.block ≼ S.F := by
+              simpa [hBlock] using hChildCurrent
+            exact reachable_ancestorClosed hS (reachable_contains_F hS)
+              hChildCurrent'
+          exact tryOnBlock_entryAccepted_of_contains e hContains
+
+lemma replayEntriesFrom_eq_replayBlocksFrom_map
+    (input : List (StoreEntry n)) (S : Store n) :
+    (input.map StoreEntry.block).foldl tryOnBlock S =
+      input.foldl (fun S e => S.tryOnBlock e.block) S := by
+  induction input generalizing S with
+  | nil => rfl
+  | cons e rest ih =>
+      simp [ih]
+
+lemma replayEntriesFrom_accepts_relevant_aux :
+    ∀ (todo seen : List (StoreEntry n)) (S : Store n),
+      Reachable S →
+        ParentFirstFrom (seen.map StoreEntry.block) (todo.map StoreEntry.block) →
+          (∀ p : StoreEntry n, p ∈ seen →
+            RelevantToFinal
+              (todo.foldl (fun S e => S.tryOnBlock e.block) S).F p.block →
+              EntryAcceptedIn S p) →
+            ∀ e : StoreEntry n, e ∈ seen ++ todo →
+              RelevantToFinal
+                (todo.foldl (fun S e => S.tryOnBlock e.block) S).F e.block →
+              EntryAcceptedIn
+                (todo.foldl (fun S e => S.tryOnBlock e.block) S) e
+  | [], seen, S, _hS, _hPF, hSeen, e, he, hRel => by
+      have heSeen : e ∈ seen := by simpa using he
+      exact hSeen e heSeen hRel
+  | a :: rest, seen, S, hS, hPF, hSeen, e, he, hRel => by
+      let S1 := S.tryOnBlock a.block
+      have hHead : ParentReadyIn (seen.map StoreEntry.block) a.block := hPF.1
+      have hTail :
+          ParentFirstFrom ((seen ++ [a]).map StoreEntry.block)
+            (rest.map StoreEntry.block) := by
+        simpa using hPF.2
+      have hS1 : Reachable S1 := tryOnBlock_reachable hS
+      have hFuture : Future S
+          (rest.foldl (fun S e => S.tryOnBlock e.block) S1) := by
+        exact Future.trans (tryOnBlock_future (S := S) (B := a.block))
+          (replayEntriesFrom_future rest S1)
+      have hSeen' :
+          ∀ p : StoreEntry n, p ∈ seen ++ [a] →
+            RelevantToFinal
+              (rest.foldl (fun S e => S.tryOnBlock e.block) S1).F p.block →
+            EntryAcceptedIn S1 p := by
+        intro p hp hRelP
+        have hpCases : p ∈ seen ∨ p = a := by
+          simpa using hp
+        rcases hpCases with hpSeen | hpA
+        · have hAcc : EntryAcceptedIn S p := hSeen p hpSeen hRelP
+          exact tryOnBlock_entryAccepted_preserved (B := a.block) hAcc
+        · subst p
+          exact tryOnBlock_entryAccepted_of_parentReady_relevant hS hFuture
+            hSeen a hHead hRelP
+      exact replayEntriesFrom_accepts_relevant_aux rest (seen ++ [a]) S1
+        hS1 hTail hSeen' e (by simpa [List.append_assoc] using he) hRel
+
+theorem parentFirstReplay_accepts_relevant_input
+    {input : List (StoreEntry n)} {S : Store n}
+    (hReplay : ReplayEntriesOf input S) (hPF : ParentFirstEntries input) :
+    ∀ e : StoreEntry n, e ∈ input → RelevantToFinal S.F e.block →
+      EntryAcceptedIn S e := by
+  intro e he hRel
+  rw [hReplay] at hRel ⊢
+  unfold Store.replayBlocks
+  rw [replayEntriesFrom_eq_replayBlocksFrom_map]
+  have hPF' :
+      ParentFirstFrom (List.map StoreEntry.block [StoreEntry.genesis n])
+        (List.map StoreEntry.block input) := by
+    simpa [ParentFirstEntries, ParentFirst, StoreEntry.genesis] using hPF
+  have hSeen :
+      ∀ p : StoreEntry n, p ∈ [StoreEntry.genesis n] →
+        RelevantToFinal
+          (input.foldl (fun S e => S.tryOnBlock e.block) (Store.genesis n)).F
+          p.block →
+        EntryAcceptedIn (Store.genesis n) p := by
+    intro p hp _hRelP
+    have hpEq : p = StoreEntry.genesis n := by simpa using hp
+    subst p
+    exact reachable_entryAccepted_genesis Reachable.genesis
+  have hRel' :
+      RelevantToFinal
+        (input.foldl (fun S e => S.tryOnBlock e.block) (Store.genesis n)).F
+        e.block := by
+    simpa [Store.replayBlocks, replayEntriesFrom_eq_replayBlocksFrom_map] using hRel
+  exact replayEntriesFrom_accepts_relevant_aux input [StoreEntry.genesis n]
+    (Store.genesis n) Reachable.genesis hPF' hSeen e
+    (by simp [he]) hRel'
+
 lemma replayBlocksFrom_entries_old_or_input :
     ∀ (blocks : List (Block n)) (S : Store n) {e : StoreEntry n},
       e ∈ (blocks.foldl tryOnBlock S).entries →

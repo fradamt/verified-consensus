@@ -1,5 +1,5 @@
 import DecoupledConsensus.Store.Properties
-import DecoupledConsensus.Store.Proof.Conditional
+import DecoupledConsensus.Store.Proof.Replay
 
 namespace DecoupledConsensus
 
@@ -135,6 +135,11 @@ theorem liveEquivalent_getConfirmed_property :
     LiveEquivalentGetConfirmedStatement n := by
   intro S T B hS hT hEq
   exact liveEquivalent_getConfirmed hS hT hEq
+
+theorem liveComplete_getConfirmed_property :
+    LiveCompleteGetConfirmedStatement n := by
+  intro input summary S T B hS hT
+  exact liveComplete_getConfirmed hS hT
 
 end Store
 

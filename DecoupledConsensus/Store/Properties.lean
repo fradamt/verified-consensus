@@ -103,8 +103,55 @@ structure OrderEquivalent (S T : Store n) : Prop where
 /-- Entry-level agreement for a block in the live subtree. The transferred
     entry must carry the same block and state-height, which is enough for the
     executable height filter and confirmed-output tests. -/
-def HasMatchingEntry (S T : Store n) (e : StoreEntry n) : Prop :=
+def EntryAcceptedIn (S : Store n) (e : StoreEntry n) : Prop :=
+  ∃ e' ∈ S.entries, e'.block = e.block ∧ e'.height = e.height
+
+/-- Entry-level agreement for a block in the live subtree. -/
+def HasMatchingEntry (_S T : Store n) (e : StoreEntry n) : Prop :=
   ∃ e' ∈ T.entries, e'.block = e.block ∧ e'.height = e.height
+
+/-- A replay order/list produced the final store by attempting every block and
+    ignoring failed `onBlock` calls. -/
+def ReplayOf (blocks : List (Block n)) (S : Store n) : Prop :=
+  S = Store.replayBlocks blocks
+
+/-- Replay over proof-side input entries, using only their block payloads for
+    execution. The entry state/height is available to canonical-summary proofs
+    but is not extra executable protocol state. -/
+def ReplayEntriesOf (input : List (StoreEntry n)) (S : Store n) : Prop :=
+  ReplayOf (input.map StoreEntry.block) S
+
+/-- Canonical observable summary for a replay input. The component proofs
+    should identify these fields from the available block set alone. -/
+structure LiveSummary (n : ℕ) where
+  F : Block n
+  J : Block n
+  hj : ℕ
+  hmax : ℕ
+
+/-- An accepted entry is represented in a proof-side input entry set with the
+    same block and same derived state height. -/
+def HasInputEntry (input : List (StoreEntry n)) (e : StoreEntry n) : Prop :=
+  ∃ a ∈ input, a.block = e.block ∧ a.height = e.height
+
+/-- The component invariant needed for observable order independence.
+
+    This is the intended target for the replay proof: prove each field from
+    the common input set (`F`, `J`, `hj`, `hmax`) and prove that the live
+    subtree rooted at canonical `F` is exactly the common input's live subtree.
+    Unlike `LiveEquivalent`, this predicate is one-store-at-a-time, so the
+    component lemmas can be proved independently and then combined. -/
+structure LiveComplete (input : List (StoreEntry n)) (summary : LiveSummary n)
+    (S : Store n) : Prop where
+  reachable : Reachable S
+  F_eq : S.F = summary.F
+  J_eq : S.J = summary.J
+  hj_eq : S.hj = summary.hj
+  hmax_eq : S.hmax = summary.hmax
+  live_input_accepted :
+    ∀ e : StoreEntry n, e ∈ input → summary.F ≼ e.block → EntryAcceptedIn S e
+  live_entries_from_input :
+    ∀ e : StoreEntry n, e ∈ S.entries → S.F ≼ e.block → HasInputEntry input e
 
 /-- Equivalence of the observable store view rooted at finality.
 
@@ -303,6 +350,16 @@ def LiveEquivalentGetConfirmedStatement (n : ℕ) : Prop :=
   ∀ {S T : Store n} {B : Block n},
     Reachable S → Reachable T →
       LiveEquivalent S T → (B ∈ S.getConfirmed ↔ B ∈ T.getConfirmed)
+
+/-- Shared live completeness over a common input implies equal `getConfirmed`
+    membership. The remaining replay-order work is to prove `LiveComplete` for
+    every parent-first replay of a fixed available block set. -/
+def LiveCompleteGetConfirmedStatement (n : ℕ) : Prop :=
+  ∀ {input : List (StoreEntry n)} {summary : LiveSummary n}
+      {S T : Store n} {B : Block n},
+    LiveComplete input summary S →
+      LiveComplete input summary T →
+        (B ∈ S.getConfirmed ↔ B ∈ T.getConfirmed)
 
 end Store
 

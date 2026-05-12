@@ -241,6 +241,22 @@ def onBlock (S : Store n) (B : Block n) : Option (Store n) :=
             else
               none
 
+/-! ## Replay -/
+
+/-- Attempt to process one available block. A rejected block leaves the store
+    unchanged; this models a node folding an available block set through
+    `onBlock`, where blocks outside the current finalized subtree may be
+    ignored rather than aborting the whole replay. -/
+def tryOnBlock (S : Store n) (B : Block n) : Store n :=
+  match S.onBlock B with
+  | some S' => S'
+  | none => S
+
+/-- Replay a list of available blocks from the genesis store. The list order
+    is the node's local parent-first processing order. -/
+def replayBlocks (blocks : List (Block n)) : Store n :=
+  blocks.foldl tryOnBlock (Store.genesis n)
+
 end Store
 
 end DecoupledConsensus

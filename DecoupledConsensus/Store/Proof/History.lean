@@ -1,4 +1,5 @@
 import DecoupledConsensus.Store.Proof.Invariants
+import DecoupledConsensus.State.Proof.TargetHeight
 
 namespace DecoupledConsensus
 
@@ -29,9 +30,7 @@ def CurrentProcessedJustification (S : Store n) : Prop :=
 def IdInjectiveAgainstStore (tip : Block n) (S : Store n) : Prop :=
   ∀ e, e ∈ S.entries → Block.IdInjectiveOnAncestors tip e.block
 
-/-- Justification evidence derivable directly from an accepted store entry.
-    This deliberately omits the stronger target-height characterization
-    `σ[C].h = h`, which requires the Section-2 slot/freshness machinery. -/
+/-- Justification evidence derivable directly from an accepted store entry. -/
 def JustificationEvidence (S : Store n) (C : Block n) (h : ℕ) : Prop :=
   ∃ entry : StoreEntry n, entry ∈ S.entries ∧
     entry.state.J = C ∧
@@ -46,18 +45,14 @@ def JustificationEvidence (S : Store n) (C : Block n) (h : ℕ) : Prop :=
     the facts needed by section-3 safety arguments when they need more than the
     executable descriptor `(entry.state.J, entry.state.hj)`.
 
-    The `target_height` field is the formal replacement for the Section-2
-    freshness/target-height characterization: it should ultimately be derived
-    from the state-height machinery, not stored in protocol state. -/
+    The target-height characterization is now derived from the state-level
+    freshness machinery (`chain_justified_target_height`), not stored here. -/
 structure JustificationRecord (S : Store n) (C : Block n) (h : ℕ) where
   entry : StoreEntry n
   mem : entry ∈ S.entries
   target_eq : entry.state.J = C
   height_eq : entry.state.hj = h
   target_ancestor : C ≼ entry.block
-  target_height :
-    (h = 0 ∧ C = Block.genesis) ∨
-      (stateOf (entry.chain.subchain target_ancestor)).h = h
   tip_height : h < entry.height
   witness :
     (h = 0 ∧ C = Block.genesis) ∨
@@ -91,8 +86,7 @@ lemma JustificationRecord.evidence {S : Store n} {C : Block n} {h : ℕ}
   ⟨r.entry, r.mem, r.target_eq, r.height_eq, r.target_ancestor,
     r.tip_height, r.witness⟩
 
-/-- Every processed justification descriptor has all entry-derived evidence.
-    The missing target-height fact is intentionally not part of this theorem. -/
+/-- Every processed justification descriptor has all entry-derived evidence. -/
 lemma ProcessedJustification.evidence {S : Store n} {C : Block n} {h : ℕ}
     (hProc : ProcessedJustification S C h) : JustificationEvidence S C h := by
   rcases hProc with ⟨e, he, hJ, hhj⟩
@@ -119,6 +113,18 @@ lemma ProcessedJustification.evidence {S : Store n} {C : Block n} {h : ℕ}
       refine ⟨v, hv_mem, hv_val, ?_, ?_⟩
       · simpa [hJ_state] using hv_target
       · simpa [hhj_state] using hv_height
+
+/-- Justification records expose the target-height fact derived from the
+    Section-2 state-machine freshness invariant. -/
+lemma JustificationRecord.target_height
+    {S : Store n} {C : Block n} {h : ℕ}
+    (r : JustificationRecord S C h) :
+    (h = 0 ∧ C = Block.genesis) ∨
+      (stateOf (r.entry.chain.subchain r.target_ancestor)).h = h := by
+  exact chain_justified_target_height r.entry.chain
+    (by simpa [StoreEntry.state] using r.target_eq)
+    (by simpa [StoreEntry.state] using r.height_eq)
+    r.target_ancestor
 
 /-- Non-genesis justification records expose the target state-height fact used
     by the safety arguments. The genesis convention is kept separate because
@@ -391,8 +397,8 @@ theorem reachable_currentProcessedJustification {S : Store n}
       exact onBlock_currentProcessedJustification ih hstep
 
 /-- The entry-derived evidence for the current root is available on every
-    reachable store. The stronger target-height certificate remains proof-side
-    certification data. -/
+    reachable store. Target-height facts are derived from the witnessing
+    entry chain when a full `JustificationRecord` is needed. -/
 theorem reachable_currentJustificationEvidence {S : Store n}
     (hS : Reachable S) : JustificationEvidence S S.J S.hj :=
   (reachable_currentProcessedJustification hS).evidence

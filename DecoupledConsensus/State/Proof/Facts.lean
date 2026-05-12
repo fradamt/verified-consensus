@@ -649,16 +649,17 @@ lemma processSlot_h_le (σ : State n) : σ.h ≤ (processSlot σ).h := by
   · simpa [processSlot, hEmpty] using processHeight_h_le σ
   · simp [processSlot, hEmpty]
 
-/-! ### Partial Lemma 2 (Checkpoint monotonicity)
+/-! ### Core Lemma 2 monotonicity pieces
 
 The full Lemma 2 of the paper has seven conjuncts: `s, h, hj, sh` non-decreasing,
 plus `F ≼ F'`, `J ≼ J'`, `F' ≼ J'`. We prove the two "easy" parts here
-(`s` and `h`) as standalone lemmas. The other five conjuncts require:
+(`s` and `h`) as standalone lemmas. The other conjuncts are proved through
+the invariant layer:
 
   - For `hj`: maintaining the invariant `hj ≤ h` (then hj only changes when
     justification fires, setting hj ← h, which preserves the monotonicity).
-  - For `sh`: requires slot-monotonicity along `≼` plus the state-height
-    boundary machinery from the paper.
+  - For `sh` and target heights: the slot/freshness boundary machinery lives
+    in `State.Proof.TargetHeight`.
   - For `F, J` along `≼`: requires the freshness machinery. We prove the
     chain-extension form used by safety (`chain_J_monotone_step`), rather
     than the paper's full all-conjunct Lemma 2 as one theorem. -/

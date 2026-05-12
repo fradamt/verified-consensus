@@ -19,9 +19,8 @@ open scoped Block
 
 namespace Store
 
-/-- A processed descriptor has a full certificate-level record, including the
-    target-height fact that is not currently derivable from
-    `ProcessedJustification` alone. -/
+/-- A processed descriptor has a certificate-level record. Target-height facts
+    are derived from the entry chain, not stored in the certificate. -/
 def CertifiedJustification (S : Store n) (C : Block n) (h : ℕ) : Prop :=
   Nonempty (JustificationRecord S C h)
 
@@ -58,7 +57,6 @@ def genesisJustificationRecord :
   height_eq := by
     simp [StoreEntry.state, StoreEntry.genesis, stateOf, State.genesis]
   target_ancestor := Block.Ancestor.refl _
-  target_height := Or.inl ⟨rfl, rfl⟩
   tip_height := by
     simp [StoreEntry.height, StoreEntry.state, StoreEntry.genesis, stateOf,
       State.genesis]

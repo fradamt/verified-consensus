@@ -42,7 +42,7 @@ theorem f_viable_property : FViableStatement n := by
 
 theorem getConfirmed_total_property : GetConfirmedTotalStatement n := by
   intro S hS
-  exact reachable_getConfirmed_total hS
+  exact ⟨reachable_getConfirmed_nonempty hS, fun hB => getConfirmed_candidate hB⟩
 
 theorem forkChoice_consistency_property :
     ForkChoiceConsistencyStatement n := by

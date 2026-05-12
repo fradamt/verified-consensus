@@ -136,7 +136,8 @@ def FViableStatement (n : ℕ) : Prop :=
     and every output satisfies the candidate predicate. -/
 def GetConfirmedTotalStatement (n : ℕ) : Prop :=
   ∀ {S : Store n}, Reachable S →
-    ∃ B : Block n, B ∈ S.getConfirmed ∧ ConfirmedCandidate S B
+    (∃ B : Block n, B ∈ S.getConfirmed) ∧
+      ∀ {B : Block n}, B ∈ S.getConfirmed → ConfirmedCandidate S B
 
 /-- Future confirmed outputs always descend from the earlier finalized root. -/
 def ForkChoiceConsistencyStatement (n : ℕ) : Prop :=

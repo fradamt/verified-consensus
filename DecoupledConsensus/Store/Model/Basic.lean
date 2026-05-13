@@ -110,19 +110,6 @@ def shouldUpdateJustified (S : Store n) (J' : Block n) (h' : ℕ) : Bool :=
 def heightThreshold (S : Store n) : ℕ :=
   S.hmax - 1
 
-/-- A store block has a strict accepted descendant. -/
-def hasStrictDescendantBool (S : Store n) (B : Block n) : Bool :=
-  S.entries.any fun e =>
-    Block.isAncestorOf B e.block && decide (B ≠ e.block)
-
-/-- Executable leaf test for accepted blocks. -/
-def isLeafBool (S : Store n) (B : Block n) : Bool :=
-  S.containsBlockBool B && !S.hasStrictDescendantBool B
-
-/-- Prop-level leaf predicate: accepted and with no proper accepted descendant. -/
-def IsLeaf (S : Store n) (B : Block n) : Prop :=
-  Contains S B ∧ ∀ {C : Block n}, Contains S C → B ≼ C → C = B
-
 /-- Prop-level state-height lower bound for an accepted block. -/
 def HasHeightAtLeast (S : Store n) (B : Block n) (k : ℕ) : Prop :=
   ∃ e ∈ S.entries, e.block = B ∧ k ≤ e.height

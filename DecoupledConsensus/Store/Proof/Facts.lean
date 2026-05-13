@@ -201,40 +201,6 @@ lemma getConfirmed_viableBool {S : Store n} {B : Block n}
     simpa [isConfirmedCandidateEntryBool, Bool.and_eq_true] using hcand
   exact hparts.1.1
 
-/-- An executable leaf result is sound for entries that are known to be in the
-    store. The membership premise avoids needing a separate lookup theorem for
-    the `containsBlockBool` conjunct. -/
-lemma isLeafBool_sound_of_mem {S : Store n} {e : StoreEntry n}
-    (he : e ∈ S.entries) (hLeaf : S.isLeafBool e.block = true) :
-    IsLeaf S e.block := by
-  have hparts : S.containsBlockBool e.block = true ∧
-      !S.hasStrictDescendantBool e.block = true := by
-    simpa [isLeafBool, Bool.and_eq_true] using hLeaf
-  have hNoDesc : S.hasStrictDescendantBool e.block = false := by
-    cases hDesc : S.hasStrictDescendantBool e.block
-    · rfl
-    · simp [hDesc] at hparts
-  constructor
-  · exact ⟨e, he, rfl⟩
-  · intro C hC hAnc
-    by_contra hNe
-    rcases hC with ⟨eC, heC, hEqC⟩
-    have hAncEntry : e.block ≼ eC.block := by
-      simpa [hEqC] using hAnc
-    have hAncBool : Block.isAncestorOf e.block eC.block = true :=
-      (Block.isAncestorOf_eq_true_iff _ _).mpr hAncEntry
-    have hNeBool : decide (e.block ≠ eC.block) = true := by
-      apply decide_eq_true
-      intro hEqBlocks
-      exact hNe (hEqC ▸ hEqBlocks.symm)
-    have hpFalse := list_any_false_forall hNoDesc eC heC
-    have hpTrue :
-        (Block.isAncestorOf e.block eC.block &&
-          decide (e.block ≠ eC.block)) = true := by
-      simp [hAncBool, hNeBool]
-    rw [hpTrue] at hpFalse
-    cases hpFalse
-
 /-- The executable viable-tree test is sound when the queried block is known
     to be accepted. -/
 lemma isViableBool_sound_of_contains {S : Store n} {B : Block n}

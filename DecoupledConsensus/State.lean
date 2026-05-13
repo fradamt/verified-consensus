@@ -6,4 +6,4 @@ Use `DecoupledConsensus.State.Model` when only executable/model definitions
 are needed.
 -/
 
-import DecoupledConsensus.State.Properties
+import DecoupledConsensus.State.ProvenTheorems

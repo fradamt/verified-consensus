@@ -1,5 +1,5 @@
 import DecoupledConsensus.State.Proof.Invariants
-import DecoupledConsensus.Store.Statements
+import DecoupledConsensus.Store.TheoremStatements
 import DecoupledConsensus.Store.Proof.Facts
 
 namespace DecoupledConsensus

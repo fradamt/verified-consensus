@@ -6,7 +6,7 @@ namespace DecoupledConsensus
 
 The main-safety, finalized-chain, and accountable-safety statements from the
 accountable-safety argument. The proof-free statement layer is
-`State.Statements`; `State.Properties` gives the proved facade. -/
+`State.TheoremStatements`; `State.ProvenTheorems` gives the proved facade. -/
 
 variable {n : ℕ}
 

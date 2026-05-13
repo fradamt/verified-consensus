@@ -12,23 +12,26 @@ lake build DecoupledConsensus
 
 ## File Layout
 
-The project is split first by protocol layer, then by model/statements/proofs:
+The project is split first by protocol layer, then by model/theorem-statements/proofs:
 
 - `DecoupledConsensus/State/Model`: executable Section 2 state-machine model.
-- `DecoupledConsensus/State/Statements.lean`: proof-free public Section 2
-  theorem statements.
+- `DecoupledConsensus/State/TheoremStatements.lean`: proof-free public
+  Section 2 theorem statements.
 - `DecoupledConsensus/State/Proof`: Section 2 proof internals.
-- `DecoupledConsensus/State/Properties.lean`: proved Section 2 facade.
+- `DecoupledConsensus/State/ProvenTheorems.lean`: proved Section 2 facade.
 - `DecoupledConsensus/Store/Model`: executable Section 3 store model.
-- `DecoupledConsensus/Store/Statements.lean`: proof-free public Section 3
-  theorem statements and specification vocabulary.
+- `DecoupledConsensus/Store/TheoremStatements.lean`: proof-free public
+  Section 3 theorem statements and specification vocabulary.
 - `DecoupledConsensus/Store/Proof`: Section 3 proof internals.
-- `DecoupledConsensus/Store/Properties.lean`: proved Section 3 facade.
+- `DecoupledConsensus/Store/ProvenTheorems.lean`: proved Section 3 facade.
 
 Use `DecoupledConsensus.State.Model` or `DecoupledConsensus.Store.Model` when
-only executable definitions are needed. Use the `Statements.lean` files to
-review the specification surface without proof scripts. `Properties.lean`
-facades import proofs because they expose actual theorem constants.
+only executable definitions are needed. Use the `TheoremStatements.lean` files
+to review the specification surface without proof scripts. These files are
+reserved for public-facing theorem/corollary statements that someone would care
+to verify externally; proof-internal lemmas and decomposition predicates stay
+under `Proof`. `ProvenTheorems.lean` facades import proofs because they expose
+actual theorem constants.
 
 `DecoupledConsensus.lean` exports both State and Store facades.
 
@@ -93,7 +96,7 @@ Justification selection is deterministic and executable: `firstJustifiedTarget`
 scans validators in index order and returns the first currently justified
 target.
 
-## Section 2 Statements
+## Section 2 Theorem Statements
 
 The public finalization predicate is chain-scoped:
 
@@ -155,18 +158,22 @@ transitions for proofs and reachability. `Store.replayBlocks` folds total
 rather than choosing one output with an oracle. The statements prove properties
 about every member of that output set.
 
-## Section 3 Statements
+## Section 3 Theorem Statements
 
-The Store statement layer includes:
+The public Store theorem-statement layer includes:
 
-- Unconditional invariants such as `HjMonotoneStatement`,
-  `FinalityIrreversibilityStatement`, `FAncestorJStatement`,
-  `FViableStatement`, `GetConfirmedTotalStatement`,
-  `ForkChoiceConsistencyStatement`, and `NoHighJustificationsStatement`.
-- Accountable/conditional statements such as `CertChainStatement`,
-  `UpgradeStatement`, `FinalizedViableStatement`,
-  `FinalityUpdateAcceptanceStatement`, and `LockInStatement`.
-- Observable order-independence statements.
+- `FinalityIrreversibilityStatement`
+- `FAncestorJStatement`
+- `GetConfirmedTotalStatement`
+- `ForkChoiceConsistencyStatement`
+- `LocalFinalityUpdateStatement`
+- `LockInStatement`
+- `ParentFirstReplayLiveEquivalentStatement`
+- `ParentFirstReplayGetConfirmedStatement`
+
+TeX lemma-level invariants and replay-decomposition predicates remain proved
+under `Store.Proof`, but are intentionally not part of the public statement
+facade.
 
 Raw full-store equality under different replay orders is not the right
 statement: a block accepted before finality moves can remain in one store while

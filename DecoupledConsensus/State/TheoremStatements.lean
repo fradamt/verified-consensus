@@ -2,14 +2,14 @@ import DecoupledConsensus.State.Model
 
 namespace DecoupledConsensus
 
-/-! # State Statements
+/-! # State Theorem Statements
 
 Proof-free statement layer for the Section 2 accountable-safety results.
 
 The executable definitions and certificate predicates live under
 `State.Model`. This file contains only the public `Prop`-valued statements
 that should be checked against the paper surface. Concrete proofs live under
-`State.Proof`; `State.Properties` gives the proved facade.
+`State.Proof`; `State.ProvenTheorems` gives the proved facade.
 -/
 
 open scoped Block
@@ -27,7 +27,7 @@ def IsFinalizedOn {B : Block n} (chain : Chain n B)
     (stateOf chain).F = C ∧
       FinalizedCertificate chain C h_f hC
 
-/-! ## Accountable-Safety Statements -/
+/-! ## Accountable-Safety Theorem Statements -/
 
 /-- **Main safety**. If `C` is finalized at height `h_f`,
     then every chain whose tip-state has advanced above `h_f` contains `C` as

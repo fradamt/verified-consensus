@@ -16,6 +16,95 @@ open scoped Block
 
 namespace Store
 
+/-! ## Internal replay-summary vocabulary -/
+
+/-- Entry-level agreement for a block in the live subtree. The transferred
+    entry must carry the same block and state-height, which is enough for the
+    executable height filter and confirmed-output tests. -/
+def EntryAcceptedIn (S : Store n) (e : StoreEntry n) : Prop :=
+  ∃ e' ∈ S.entries, e'.block = e.block ∧ e'.height = e.height
+
+/-- Blocks relevant to the observable final view are exactly the descendants of
+    the final root plus the prefix leading to that root. -/
+def RelevantToFinal (F B : Block n) : Prop :=
+  F ≼ B ∨ B ≼ F
+
+/-- Canonical observable summary for a replay input. The component proofs
+    identify these fields from the available block set alone. -/
+structure LiveSummary (n : ℕ) where
+  F : Block n
+  J : Block n
+  hj : ℕ
+  hmax : ℕ
+
+/-- Two replay inputs carry the same available block/state-height content,
+    with genesis implicit on both sides. This is the set-like equality notion
+    used by the internal component proof. -/
+def InputEquivalent (input₁ input₂ : List (StoreEntry n)) : Prop :=
+  ∀ e : StoreEntry n, HasInputEntry input₁ e ↔ HasInputEntry input₂ e
+
+/-- A possible final store root determined by the common replay input. Genesis
+    is always a candidate because every replay starts from the genesis store. -/
+def FinalityCandidate (input : List (StoreEntry n)) (F : Block n) : Prop :=
+  F = Block.genesis ∨ ∃ e ∈ input, e.state.F = F
+
+/-- `Fmax` is the greatest finalized root appearing in the input post-states
+    (with genesis included). Under the accountable-safety assumptions these
+    candidates form a chain; this predicate records the resulting maximum. -/
+def FinalityMax (input : List (StoreEntry n)) (Fmax : Block n) : Prop :=
+  FinalityCandidate input Fmax ∧
+    ∀ F, FinalityCandidate input F → F ≼ Fmax
+
+/-- A possible store frontier height determined by the common replay input.
+    Genesis contributes height `1` even when it is omitted from the available
+    block list. -/
+def HeightCandidate (input : List (StoreEntry n)) (h : ℕ) : Prop :=
+  h = 1 ∨ ∃ e ∈ input, e.height = h
+
+/-- `hmax` is the maximum post-state height appearing in the replay input,
+    with the implicit genesis height included. -/
+def HeightMax (input : List (StoreEntry n)) (hmax : ℕ) : Prop :=
+  HeightCandidate input hmax ∧
+    ∀ h, HeightCandidate input h → h ≤ hmax
+
+/-- A possible live justification key determined by the common replay input.
+    Only targets descending from the canonical finalized root are relevant. -/
+def JustificationCandidate
+    (input : List (StoreEntry n)) (F J : Block n) (h : ℕ) : Prop :=
+  F ≼ J ∧
+    ((J = Block.genesis ∧ h = 0) ∨
+      ∃ e ∈ input, e.state.J = J ∧ e.state.hj = h)
+
+/-- Lexicographically maximal live justification key in the common input.
+    The ordering matches the executable `updateJustified` tie-breaker. -/
+def JustificationMax
+    (input : List (StoreEntry n)) (F Jmax : Block n) (hjmax : ℕ) : Prop :=
+  JustificationCandidate input F Jmax hjmax ∧
+    ∀ J h, JustificationCandidate input F J h → KeyLE h J hjmax Jmax
+
+/-- Canonical live summary induced by one replay input. The fields are
+    specified extensionally, not computed by the store. -/
+def LiveSummaryMatches (input : List (StoreEntry n)) (summary : LiveSummary n) :
+    Prop :=
+  FinalityMax input summary.F ∧
+    JustificationMax input summary.F summary.J summary.hj ∧
+    HeightMax input summary.hmax
+
+/-- Component invariant used to prove observable order independence. This is
+    one-store-at-a-time so the `F`, `J`, `hj`, `hmax`, and live-subtree lemmas
+    can be proved independently before combining into `LiveEquivalent`. -/
+structure LiveComplete (input : List (StoreEntry n)) (summary : LiveSummary n)
+    (S : Store n) : Prop where
+  reachable : Reachable S
+  F_eq : S.F = summary.F
+  J_eq : S.J = summary.J
+  hj_eq : S.hj = summary.hj
+  hmax_eq : S.hmax = summary.hmax
+  live_input_accepted :
+    ∀ e : StoreEntry n, e ∈ input → summary.F ≼ e.block → EntryAcceptedIn S e
+  live_entries_from_input :
+    ∀ e : StoreEntry n, e ∈ S.entries → S.F ≼ e.block → HasInputEntry input e
+
 /-! ## Deterministic Entry Heights -/
 
 /-- The derived state of a fixed block is independent of the particular `Chain`

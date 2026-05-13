@@ -84,18 +84,6 @@ def FinalizedWithStoreIds (F : Block n) (h_f : ℕ) (S : Store n) : Prop :=
 def NoHighJustifications (S : Store n) : Prop :=
   ∀ {C : Block n} {h : ℕ}, ProcessedCheckpoint S C h → h ≤ S.hj
 
-/-- Extensional equality for the order-independent store components. The raw
-    executable store keeps `entries` as a list, so two processing orders need
-    not be definitionally equal even when they contain the same accepted
-    `(block, chain)` entries. This predicate is the equality notion relevant
-    to `viableTree` and `getConfirmed`. -/
-structure OrderEquivalent (S T : Store n) : Prop where
-  entries_iff : ∀ e : StoreEntry n, e ∈ S.entries ↔ e ∈ T.entries
-  F_eq : S.F = T.F
-  J_eq : S.J = T.J
-  hj_eq : S.hj = T.hj
-  hmax_eq : S.hmax = T.hmax
-
 /-- Entry-level agreement for a block in the live subtree. The transferred
     entry must carry the same block and state-height, which is enough for the
     executable height filter and confirmed-output tests. -/
@@ -419,22 +407,6 @@ def LockInStatement (n f : ℕ) : Prop :=
             ProcessedCheckpoint S F h_f →
             B ∈ T.getConfirmed →
             F ≼ T.J ∧ T.isViableBool F = true ∧ F ≼ B
-
-/-! ## Proved Extensional Store-Output Invariance -/
-
-/-- Order-equivalent stores have the same `getConfirmed` membership.
-    This is the proved extensional consequence of order-independence, not the
-    full replay theorem from the TeX. -/
-def OrderEquivalentGetConfirmedStatement (n : ℕ) : Prop :=
-  ∀ {S T : Store n} {B : Block n},
-    OrderEquivalent S T → (B ∈ S.getConfirmed ↔ B ∈ T.getConfirmed)
-
-/-- Order-equivalent stores have the same viable-tree membership.
-    This is the proved extensional consequence of order-independence, not the
-    full replay theorem from the TeX. -/
-def OrderEquivalentViableTreeStatement (n : ℕ) : Prop :=
-  ∀ {S T : Store n} {B : Block n},
-    OrderEquivalent S T → (B ∈ S.viableTree ↔ B ∈ T.viableTree)
 
 /-! ## Live Store-Output Invariance -/
 

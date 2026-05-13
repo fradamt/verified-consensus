@@ -82,16 +82,6 @@ theorem lockIn_property {f : ℕ} :
     LockInStatement n f :=
   proof_lockIn_property
 
-/-! ## Proved Extensional Order-Independence Surface -/
-
-theorem orderEquivalent_getConfirmed_property :
-    OrderEquivalentGetConfirmedStatement n :=
-  proof_orderEquivalent_getConfirmed_property
-
-theorem orderEquivalent_viableTree_property :
-    OrderEquivalentViableTreeStatement n :=
-  proof_orderEquivalent_viableTree_property
-
 /-! ## Live Store-Output Invariance -/
 
 theorem liveEquivalent_getConfirmed_property :

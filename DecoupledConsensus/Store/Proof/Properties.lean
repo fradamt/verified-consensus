@@ -117,18 +117,6 @@ theorem proof_lockIn_property {f : ℕ} :
   obtain ⟨rF, hId⟩ := hFinal.exists_record
   exact lockin_of_processed hn hNoSlash hS hFuture rF hProc hId hB
 
-/-! ## Proved Extensional Order-Independence Surface -/
-
-theorem proof_orderEquivalent_getConfirmed_property :
-    OrderEquivalentGetConfirmedStatement n := by
-  intro S T B hEq
-  exact orderindep_getConfirmed hEq
-
-theorem proof_orderEquivalent_viableTree_property :
-    OrderEquivalentViableTreeStatement n := by
-  intro S T B hEq
-  exact orderindep_viableTree hEq
-
 /-! ## Live Store-Output Invariance -/
 
 theorem proof_liveEquivalent_getConfirmed_property :

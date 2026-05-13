@@ -974,6 +974,17 @@ theorem lockin_of_processed {f : ℕ}
 
 /-! ### Order-independent views of executable stores -/
 
+/-- Internal extensional equality for all store components that affect
+    `viableTree` and `getConfirmed`. This is useful as a proof helper, but it
+    is not the public replay-order theorem: raw stores can legitimately differ
+    outside the finality subtree. -/
+structure OrderEquivalent (S T : Store n) : Prop where
+  entries_iff : ∀ e : StoreEntry n, e ∈ S.entries ↔ e ∈ T.entries
+  F_eq : S.F = T.F
+  J_eq : S.J = T.J
+  hj_eq : S.hj = T.hj
+  hmax_eq : S.hmax = T.hmax
+
 lemma OrderEquivalent.symm {S T : Store n}
     (hEq : OrderEquivalent S T) : OrderEquivalent T S where
   entries_iff := fun e => (hEq.entries_iff e).symm

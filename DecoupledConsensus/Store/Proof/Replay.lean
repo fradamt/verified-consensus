@@ -746,6 +746,28 @@ lemma replayBlocks_entries_genesis_or_input
     rfl
   · exact Or.inr hInput
 
+lemma ReplayEntriesOf.entries_from_input
+    {input : List (StoreEntry n)} {S : Store n}
+    (hReplay : ReplayEntriesOf input S) :
+    ∀ e : StoreEntry n, e ∈ S.entries → HasInputEntry input e := by
+  intro e he
+  rw [hReplay] at he
+  have hProv := replayBlocks_entries_genesis_or_input
+    (blocks := input.map StoreEntry.block) he
+  rcases hProv with hGenesis | hInput
+  · exact Or.inl hGenesis
+  · rcases List.mem_map.mp hInput with ⟨a, ha, hBlock⟩
+    right
+    refine ⟨a, ha, ?_, ?_⟩
+    · exact hBlock
+    · exact StoreEntry.height_eq_of_block_eq hBlock
+
+lemma ReplayEntriesOf.live_entries_from_input
+    {input : List (StoreEntry n)} {S : Store n}
+    (hReplay : ReplayEntriesOf input S) :
+    ∀ e : StoreEntry n, e ∈ S.entries → S.F ≼ e.block → HasInputEntry input e :=
+  fun e he _ => hReplay.entries_from_input e he
+
 lemma StoreEntry.state_F_le_block (e : StoreEntry n) : e.state.F ≼ e.block := by
   exact Block.Ancestor.trans
     (by simpa [StoreEntry.state] using chain_F_le_J e.chain)
@@ -1047,27 +1069,115 @@ theorem parentFirstReplay_F_eq_finalityMax {f : ℕ}
       exact StoreEntry.state_F_wellformed e
   exact Block.Ancestor.antisymm hUpper hLower hWF
 
-lemma ReplayEntriesOf.entries_from_input
-    {input : List (StoreEntry n)} {S : Store n}
-    (hReplay : ReplayEntriesOf input S) :
-    ∀ e : StoreEntry n, e ∈ S.entries → HasInputEntry input e := by
-  intro e he
-  rw [hReplay] at he
-  have hProv := replayBlocks_entries_genesis_or_input
-    (blocks := input.map StoreEntry.block) he
-  rcases hProv with hGenesis | hInput
-  · exact Or.inl hGenesis
-  · rcases List.mem_map.mp hInput with ⟨a, ha, hBlock⟩
-    right
-    refine ⟨a, ha, ?_, ?_⟩
-    · exact hBlock
-    · exact StoreEntry.height_eq_of_block_eq hBlock
+/-! ## Replay Frontier-Height Components -/
 
-lemma ReplayEntriesOf.live_entries_from_input
-    {input : List (StoreEntry n)} {S : Store n}
-    (hReplay : ReplayEntriesOf input S) :
-    ∀ e : StoreEntry n, e ∈ S.entries → S.F ≼ e.block → HasInputEntry input e :=
-  fun e he _ => hReplay.entries_from_input e he
+lemma ReplayEntriesOf.hmax_le_heightMax
+    {input : List (StoreEntry n)} {S : Store n} {hmax : ℕ}
+    (hReplay : ReplayEntriesOf input S) (hMax : HeightMax input hmax) :
+    S.hmax ≤ hmax := by
+  rcases reachable_hmax_witness hReplay.reachable with ⟨e, he, heHeight⟩
+  have hInput := hReplay.entries_from_input e he
+  have hCand : HeightCandidate input e.height := by
+    rcases hInput with hGenesis | hEntry
+    · left
+      exact StoreEntry.height_eq_one_of_block_genesis hGenesis
+    · rcases hEntry with ⟨a, ha, _hBlock, hHeight⟩
+      right
+      exact ⟨a, ha, hHeight⟩
+  rw [← heHeight]
+  exact hMax.2 e.height hCand
+
+lemma finalityMax_descends_heightMax_witness {f : ℕ}
+    (hn : n = 3 * f + 1)
+    (hNoSlash : ¬ @AtLeastFThirdSlashable n f)
+    {input : List (StoreEntry n)} {Fmax : Block n} {hmax : ℕ}
+    (hInputId : InputIdInjective input)
+    (hFMax : FinalityMax input Fmax)
+    (hHMax : HeightMax input hmax)
+    {e : StoreEntry n} (he : e ∈ input) (heHeight : e.height = hmax) :
+    Fmax ≼ e.block := by
+  rcases hFMax.1 with hGenesis | hFWitness
+  · rw [hGenesis]
+    exact Block.genesis_ancestor e.block
+  · rcases hFWitness with ⟨eF, heF, heFFinal⟩
+    have hEqF : (stateOf eF.chain).F = Fmax := by
+      simpa [StoreEntry.state] using heFFinal
+    subst Fmax
+    obtain ⟨h_f, hFAnc, hCert, hhf_le_hj_state⟩ :=
+      FinalityEvidence.chain_finalizedCertificate_le_hj eF.chain
+    have hhf_le_hj : h_f ≤ eF.state.hj := by
+      simpa [StoreEntry.state] using hhf_le_hj_state
+    have hhj_lt_height : eF.state.hj < eF.height := by
+      simpa [StoreEntry.height, StoreEntry.state] using chain_hj_lt_h eF.chain
+    have hEF_le_hmax : eF.height ≤ hmax :=
+      hHMax.2 eF.height (Or.inr ⟨eF, heF, rfl⟩)
+    have hHeightHigh : (stateOf e.chain).h > h_f := by
+      have hlt : h_f < hmax := by omega
+      have hEqHeight : (stateOf e.chain).h = hmax := by
+        simpa [StoreEntry.height, StoreEntry.state] using heHeight
+      omega
+    have hId : Block.IdInjectiveOnAncestors eF.block e.block :=
+      hInputId eF e
+        (Or.inr ⟨eF, heF, rfl, rfl⟩)
+        (Or.inr ⟨e, he, rfl, rfl⟩)
+    rcases main_safety hn hId eF.chain rfl hCert e.chain hHeightHigh
+        with hSlash | hDesc
+    · exact False.elim (hNoSlash hSlash)
+    · exact hDesc
+
+theorem parentFirstReplay_heightMax_le_hmax {f : ℕ}
+    (hn : n = 3 * f + 1)
+    (hNoSlash : ¬ @AtLeastFThirdSlashable n f)
+    {input : List (StoreEntry n)} {S : Store n} {Fmax : Block n} {hmax : ℕ}
+    (hReplay : ReplayEntriesOf input S)
+    (hPF : ParentFirstEntries input)
+    (hNoDup : (input.map StoreEntry.block).Nodup)
+    (hNoGenesis : Block.genesis ∉ input.map StoreEntry.block)
+    (hInputId : InputIdInjective input)
+    (hFMax : FinalityMax input Fmax)
+    (hHMax : HeightMax input hmax) :
+    hmax ≤ S.hmax := by
+  have hFEq : S.F = Fmax :=
+    parentFirstReplay_F_eq_finalityMax hn hNoSlash hReplay hPF
+      hNoDup hNoGenesis hInputId hFMax
+  rcases hHMax.1 with hGenesisHeight | hWitness
+  · rw [hGenesisHeight]
+    rcases reachable_entryAccepted_genesis hReplay.reachable with
+      ⟨w, hw, _hBlock, hHeight⟩
+    have hwLe := reachable_entry_height_le_hmax hReplay.reachable hw
+    have hwLe' : (StoreEntry.genesis n).height ≤ S.hmax := by
+      simpa [hHeight] using hwLe
+    simpa [StoreEntry.genesis, StoreEntry.height, StoreEntry.state, stateOf,
+      State.genesis] using hwLe'
+  · rcases hWitness with ⟨e, he, heHeight⟩
+    have hDesc : Fmax ≼ e.block :=
+      finalityMax_descends_heightMax_witness hn hNoSlash hInputId
+        hFMax hHMax he heHeight
+    have hRel : RelevantToFinal S.F e.block := by
+      left
+      simpa [hFEq] using hDesc
+    rcases parentFirstReplay_accepts_relevant_input hReplay hPF e he hRel with
+      ⟨w, hw, _hBlock, hHeight⟩
+    have hwLe := reachable_entry_height_le_hmax hReplay.reachable hw
+    rw [← heHeight, ← hHeight]
+    exact hwLe
+
+theorem parentFirstReplay_hmax_eq_heightMax {f : ℕ}
+    (hn : n = 3 * f + 1)
+    (hNoSlash : ¬ @AtLeastFThirdSlashable n f)
+    {input : List (StoreEntry n)} {S : Store n} {Fmax : Block n} {hmax : ℕ}
+    (hReplay : ReplayEntriesOf input S)
+    (hPF : ParentFirstEntries input)
+    (hNoDup : (input.map StoreEntry.block).Nodup)
+    (hNoGenesis : Block.genesis ∉ input.map StoreEntry.block)
+    (hInputId : InputIdInjective input)
+    (hFMax : FinalityMax input Fmax)
+    (hHMax : HeightMax input hmax) :
+    S.hmax = hmax := by
+  exact le_antisymm
+    (hReplay.hmax_le_heightMax hHMax)
+    (parentFirstReplay_heightMax_le_hmax hn hNoSlash hReplay hPF
+      hNoDup hNoGenesis hInputId hFMax hHMax)
 
 /-- Once component lemmas have identified the canonical store fields and shown
     that every common live input block is accepted, replay provenance supplies

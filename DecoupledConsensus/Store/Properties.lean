@@ -182,6 +182,36 @@ def FinalityMax (input : List (StoreEntry n)) (Fmax : Block n) : Prop :=
   FinalityCandidate input Fmax ∧
     ∀ F, FinalityCandidate input F → F ≼ Fmax
 
+/-- A possible store frontier height determined by the common replay input.
+    Genesis contributes height `1` even when it is omitted from the available
+    block list. -/
+def HeightCandidate (input : List (StoreEntry n)) (h : ℕ) : Prop :=
+  h = 1 ∨ ∃ e ∈ input, e.height = h
+
+/-- `hmax` is the maximum post-state height appearing in the replay input,
+    with the implicit genesis height included. -/
+def HeightMax (input : List (StoreEntry n)) (hmax : ℕ) : Prop :=
+  HeightCandidate input hmax ∧
+    ∀ h, HeightCandidate input h → h ≤ hmax
+
+/-- A possible live justification key determined by the common replay input.
+    Only targets descending from the canonical finalized root are relevant:
+    off-final-subtree blocks may be accepted in one replay order and rejected
+    in another, but they cannot affect confirmed outputs after finality roots
+    at `F`. -/
+def JustificationCandidate
+    (input : List (StoreEntry n)) (F J : Block n) (h : ℕ) : Prop :=
+  F ≼ J ∧
+    ((J = Block.genesis ∧ h = 0) ∨
+      ∃ e ∈ input, e.state.J = J ∧ e.state.hj = h)
+
+/-- Lexicographically maximal live justification key in the common input.
+    The ordering matches the executable `updateJustified` tie-breaker. -/
+def JustificationMax
+    (input : List (StoreEntry n)) (F Jmax : Block n) (hjmax : ℕ) : Prop :=
+  JustificationCandidate input F Jmax hjmax ∧
+    ∀ J h, JustificationCandidate input F J h → KeyLE h J hjmax Jmax
+
 /-- The component invariant needed for observable order independence.
 
     This is the intended target for the replay proof: prove each field from

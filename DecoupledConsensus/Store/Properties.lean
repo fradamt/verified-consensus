@@ -164,6 +164,24 @@ def HasInputEntry (input : List (StoreEntry n)) (e : StoreEntry n) : Prop :=
   e.block = Block.genesis ∨
     ∃ a ∈ input, a.block = e.block ∧ a.height = e.height
 
+/-- Scoped hash/id injectivity for every pair of histories considered by an
+    order-independence input. Genesis is implicit, matching `HasInputEntry`. -/
+def InputIdInjective (input : List (StoreEntry n)) : Prop :=
+  ∀ e a : StoreEntry n, HasInputEntry input e → HasInputEntry input a →
+    Block.IdInjectiveOnAncestors e.block a.block
+
+/-- A possible final store root determined by the common replay input. Genesis
+    is always a candidate because every replay starts from the genesis store. -/
+def FinalityCandidate (input : List (StoreEntry n)) (F : Block n) : Prop :=
+  F = Block.genesis ∨ ∃ e ∈ input, e.state.F = F
+
+/-- `Fmax` is the greatest finalized root appearing in the input post-states
+    (with genesis included). Under the accountable-safety assumptions these
+    candidates form a chain; this predicate records the resulting maximum. -/
+def FinalityMax (input : List (StoreEntry n)) (Fmax : Block n) : Prop :=
+  FinalityCandidate input Fmax ∧
+    ∀ F, FinalityCandidate input F → F ≼ Fmax
+
 /-- The component invariant needed for observable order independence.
 
     This is the intended target for the replay proof: prove each field from

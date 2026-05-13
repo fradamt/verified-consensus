@@ -43,6 +43,16 @@ lemma StoreEntry.height_eq_of_block_eq {e a : StoreEntry n}
           simp [StoreEntry.height, StoreEntry.state,
             chain_stateOf_eq echain achain]
 
+lemma StoreEntry.state_eq_of_block_eq {e a : StoreEntry n}
+    (hBlock : e.block = a.block) : e.state = a.state := by
+  cases e with
+  | mk eblock echain =>
+      cases a with
+      | mk ablock achain =>
+          simp at hBlock
+          subst ablock
+          simp [StoreEntry.state, chain_stateOf_eq echain achain]
+
 lemma StoreEntry.height_eq_one_of_block_genesis {e : StoreEntry n}
     (hBlock : e.block = Block.genesis) : e.height = 1 := by
   cases e with
@@ -64,6 +74,101 @@ lemma StoreEntry.slot_gt_of_block_eq_mk (e : StoreEntry n)
           subst hParent
           subst hSlotEq
           exact hSlot
+
+private lemma list_findSome?_append_singleton_of_none {α β : Type}
+    {l : List α} {f : α → Option β} {a : α}
+    (h : l.findSome? f = none) :
+    (l ++ [a]).findSome? f = f a := by
+  induction l with
+  | nil => simp
+  | cons x xs ih =>
+      cases hx : f x with
+      | none =>
+          have hxs : xs.findSome? f = none := by
+            simpa [hx] using h
+          simp [hx, ih hxs]
+      | some _ =>
+          simp [hx] at h
+
+lemma findChain?_addEntry_fresh {S : Store n} {e : StoreEntry n}
+    (hFresh : S.containsBlockBool e.block = false) :
+    (S.addEntry e).findChain? e.block = some e.chain := by
+  unfold containsBlockBool at hFresh
+  cases hFind : S.findChain? e.block with
+  | none =>
+      have hFindEntries :
+          S.entries.findSome? (fun x : StoreEntry n => x.chainAs? e.block) = none := by
+        simpa [findChain?] using hFind
+      have hAppend := list_findSome?_append_singleton_of_none
+        (l := S.entries) (f := fun x : StoreEntry n => x.chainAs? e.block)
+        (a := e) hFindEntries
+      simpa [findChain?, addEntry, StoreEntry.chainAs?] using hAppend
+  | some _ =>
+      simp [hFind] at hFresh
+
+lemma findChain?_updateJustified {S : Store n} {B J' : Block n} {h' : ℕ} :
+    (S.updateJustified J' h').findChain? B = S.findChain? B := by
+  cases hguard : S.shouldUpdateJustified J' h' <;>
+    simp [findChain?, updateJustified, hguard]
+
+lemma findChain?_updateFinalized {S : Store n} {B F' : Block n} :
+    (S.updateFinalized F').findChain? B = S.findChain? B := by
+  cases hguard : S.shouldUpdateFinalized F' <;>
+    simp [findChain?, updateFinalized, hguard]
+
+lemma onBlock_acceptedBlockState_of_ready {S : Store n}
+    (e : StoreEntry n)
+    (hFresh : S.containsBlockBool e.block = false)
+    (hParent : ∀ {bid : BlockId} {parent : Block n} {s : ℕ}
+        {vs : List (Vote n)}, e.block = Block.mk bid parent s vs → Contains S parent)
+    (hAnc : S.F ≼ e.block)
+    (hNonGenesis : e.block ≠ Block.genesis) :
+    ∃ S', S.onBlock e.block = some S' ∧ AcceptedBlockState S' e.block e.state := by
+  cases hBlock : e.block with
+  | genesis =>
+      exact False.elim (hNonGenesis hBlock)
+  | mk bid parent s vs =>
+      have hParentContains : Contains S parent := hParent hBlock
+      have hParentBool : S.containsBlockBool parent = true :=
+        containsBlockBool_of_contains hParentContains
+      cases hFind : S.findChain? parent with
+      | none =>
+          simp [containsBlockBool, hFind] at hParentBool
+      | some parentChain =>
+          have hSlot : s > parent.slot :=
+            StoreEntry.slot_gt_of_block_eq_mk e hBlock
+          have hFreshConcrete :
+              S.containsBlockBool (Block.mk bid parent s vs) = false := by
+            simpa [hBlock] using hFresh
+          have hAncConcrete : S.F ≼ Block.mk bid parent s vs := by
+            simpa [hBlock] using hAnc
+          have hAncBool :
+              Block.isAncestorOf S.F (Block.mk bid parent s vs) = true :=
+            (Block.isAncestorOf_eq_true_iff _ _).mpr hAncConcrete
+          let entry : StoreEntry n :=
+            { block := Block.mk bid parent s vs
+              chain := Chain.extend parentChain bid s vs hSlot }
+          let σ := entry.state
+          let S1 := S.addEntry entry
+          let S2 := S1.updateJustified σ.J σ.hj
+          let S' := S2.updateFinalized σ.F
+          have hstep : S.onBlock e.block = some S' := by
+            simp [onBlock, hBlock, hFreshConcrete, hFind, hSlot, hAncBool,
+              S', entry, σ, S1, S2]
+          refine ⟨S', by simpa [hBlock] using hstep, ?_⟩
+          refine ⟨entry.chain, ?_, ?_⟩
+          · have hLookupS1 : S1.findChain? entry.block = some entry.chain :=
+              findChain?_addEntry_fresh (S := S) (e := entry)
+                (by simpa [entry] using hFreshConcrete)
+            have hLookupS' : S'.findChain? entry.block = some entry.chain := by
+              simpa [S', S2, findChain?_updateFinalized,
+                findChain?_updateJustified] using hLookupS1
+            simpa [entry, hBlock] using hLookupS'
+          · cases e with
+            | mk block chain =>
+                simp at hBlock
+                subst block
+                exact chain_stateOf_eq entry.chain chain
 
 lemma Block.genesis_ancestor (B : Block n) : Block.genesis ≼ B := by
   induction B with
@@ -226,6 +331,55 @@ lemma tryOnBlock_entry_mem_of_mem {S : Store n} {B : Block n}
           simpa [hContains] using hstep.symm
         subst S'
         simpa [tryOnBlock, hstep] using he
+
+lemma tryOnBlock_F_old_or_entry (S : Store n) (e : StoreEntry n) :
+    (S.tryOnBlock e.block).F = S.F ∨
+      (S.tryOnBlock e.block).F = e.state.F := by
+  cases hstep : S.onBlock e.block with
+  | none =>
+      left
+      simp [tryOnBlock, hstep]
+  | some S' =>
+      by_cases hFresh : S.containsBlockBool e.block = false
+      · obtain
+          ⟨bid, parent, newSlot, votes, hBlockEq, parentChain, _hFind,
+            hSlot, _hAnc, hResult⟩ := freshOnBlockStep_of_onBlock hFresh hstep
+        let entry : StoreEntry n :=
+          { block := Block.mk bid parent newSlot votes
+            chain := Chain.extend parentChain bid newSlot votes hSlot }
+        let σ := entry.state
+        let S1 := S.addEntry entry
+        let S2 := S1.updateJustified σ.J σ.hj
+        have hS' : S' = S2.updateFinalized σ.F := by
+          simpa [entry, σ, S1, S2] using hResult
+        have hS2F : S2.F = S.F := by
+          simp [S2, S1, addEntry, updateJustified_F_eq]
+        have hStateF : σ.F = e.state.F := by
+          have hState : entry.state = e.state := by
+            apply StoreEntry.state_eq_of_block_eq
+            simpa [entry] using hBlockEq.symm
+          simpa [σ] using congrArg State.F hState
+        cases hFin : S2.shouldUpdateFinalized σ.F
+        · left
+          simp [tryOnBlock, hstep, hS', updateFinalized, hFin, hS2F]
+        · right
+          have hFinal : (S2.updateFinalized σ.F).F = σ.F := by
+            simp [updateFinalized, hFin]
+          calc
+            (S.tryOnBlock e.block).F = (S2.updateFinalized σ.F).F := by
+              simp [tryOnBlock, hstep, hS']
+            _ = σ.F := hFinal
+            _ = e.state.F := hStateF
+      · have hContains : S.containsBlockBool e.block = true := by
+          cases h : S.containsBlockBool e.block
+          · exact False.elim (hFresh h)
+          · rfl
+        have hEq : S' = S := by
+          unfold onBlock at hstep
+          simpa [hContains] using hstep.symm
+        subst S'
+        left
+        simp [tryOnBlock, hstep]
 
 lemma tryOnBlock_contains_of_contains {S : Store n} {B A : Block n}
     (hA : Contains S A) : Contains (S.tryOnBlock B) A := by
@@ -506,6 +660,64 @@ theorem parentFirstReplay_accepts_relevant_input
     (Store.genesis n) Reachable.genesis hPF' hSeen e
     (by simp [he]) hRel'
 
+/-! ## Replay Finality Components -/
+
+lemma FinalityCandidate.mono {input input' : List (StoreEntry n)}
+    {F : Block n}
+    (hSub : ∀ e, e ∈ input → e ∈ input')
+    (h : FinalityCandidate input F) : FinalityCandidate input' F := by
+  rcases h with hGen | hEntry
+  · exact Or.inl hGen
+  · rcases hEntry with ⟨e, he, hF⟩
+    exact Or.inr ⟨e, hSub e he, hF⟩
+
+lemma FinalityCandidate.mem_append_left
+    {seen todo : List (StoreEntry n)} {F : Block n}
+    (h : FinalityCandidate seen F) : FinalityCandidate (seen ++ todo) F := by
+  exact FinalityCandidate.mono (fun e he => by simp [he]) h
+
+lemma FinalityCandidate.mem_append_cons_last
+    {seen : List (StoreEntry n)} (a : StoreEntry n) :
+    FinalityCandidate (seen ++ [a]) a.state.F := by
+  right
+  exact ⟨a, by simp, rfl⟩
+
+lemma replayEntriesFrom_F_candidate_aux :
+    ∀ (todo seen : List (StoreEntry n)) (S : Store n),
+      FinalityCandidate seen S.F →
+        FinalityCandidate (seen ++ todo)
+          ((todo.foldl (fun S e => S.tryOnBlock e.block) S).F)
+  | [], _seen, _S, hCand => by
+      simpa using hCand
+  | a :: rest, seen, S, hCand => by
+      let S1 := S.tryOnBlock a.block
+      have hCandS1 : FinalityCandidate (seen ++ [a]) S1.F := by
+        rcases tryOnBlock_F_old_or_entry S a with hOld | hNew
+        · rw [hOld]
+          exact FinalityCandidate.mem_append_left (todo := [a]) hCand
+        · rw [hNew]
+          exact FinalityCandidate.mem_append_cons_last (seen := seen) a
+      have hTail := replayEntriesFrom_F_candidate_aux rest
+        (seen ++ [a]) S1 hCandS1
+      simpa [List.append_assoc, S1] using hTail
+
+theorem replayEntries_F_candidate (input : List (StoreEntry n)) :
+    FinalityCandidate input
+      ((input.foldl (fun S e => S.tryOnBlock e.block) (Store.genesis n)).F) := by
+  have h := replayEntriesFrom_F_candidate_aux input [] (Store.genesis n) (by
+    left
+    rfl : FinalityCandidate ([] : List (StoreEntry n)) (Store.genesis n).F)
+  simpa [Store.genesis] using h
+
+theorem ReplayEntriesOf.F_le_finalityMax
+    {input : List (StoreEntry n)} {S : Store n} {Fmax : Block n}
+    (hReplay : ReplayEntriesOf input S) (hMax : FinalityMax input Fmax) :
+    S.F ≼ Fmax := by
+  rw [hReplay]
+  unfold Store.replayBlocks
+  rw [replayEntriesFrom_eq_replayBlocksFrom_map]
+  exact hMax.2 _ (replayEntries_F_candidate input)
+
 lemma replayBlocksFrom_entries_old_or_input :
     ∀ (blocks : List (Block n)) (S : Store n) {e : StoreEntry n},
       e ∈ (blocks.foldl tryOnBlock S).entries →
@@ -533,6 +745,307 @@ lemma replayBlocks_entries_genesis_or_input
     rw [hEq]
     rfl
   · exact Or.inr hInput
+
+lemma StoreEntry.state_F_le_block (e : StoreEntry n) : e.state.F ≼ e.block := by
+  exact Block.Ancestor.trans
+    (by simpa [StoreEntry.state] using chain_F_le_J e.chain)
+    (by simpa [StoreEntry.state] using chain_J_le_L e.chain)
+
+lemma StoreEntry.state_F_wellformed (e : StoreEntry n) :
+    Block.WellFormed e.state.F := by
+  exact (StoreEntry.state_F_le_block e).wellformed_of
+    (chain_tip_wellformed e.chain)
+
+lemma ParentFirstFrom.prefix :
+    ∀ (seen pre post : List (Block n)),
+      ParentFirstFrom seen (pre ++ post) → ParentFirstFrom seen pre
+  | _seen, [], _post, _h => by
+      simp [ParentFirstFrom]
+  | seen, b :: pre, post, h => by
+      constructor
+      · exact h.1
+      · exact ParentFirstFrom.prefix (seen ++ [b]) pre post h.2
+
+lemma ParentFirstFrom.ready_of_split :
+    ∀ (seen : List (Block n)) (pre : List (StoreEntry n))
+      (e : StoreEntry n) (post : List (StoreEntry n)),
+      ParentFirstFrom seen ((pre ++ e :: post).map StoreEntry.block) →
+        ParentReadyIn (seen ++ pre.map StoreEntry.block) e.block
+  | seen, [], _e, _post, h => by
+      simpa using h.1
+  | seen, p :: pre, e, post, h => by
+      have hTail := h.2
+      have hReady := ParentFirstFrom.ready_of_split
+        (seen ++ [p.block]) pre e post hTail
+      simpa [List.append_assoc] using hReady
+
+lemma ParentFirstEntries.prefix_of_split {pre : List (StoreEntry n)}
+    {e : StoreEntry n} {post : List (StoreEntry n)}
+    (hPF : ParentFirstEntries (pre ++ e :: post)) :
+    ParentFirstEntries pre := by
+  change ParentFirstFrom [Block.genesis] (pre.map StoreEntry.block)
+  exact ParentFirstFrom.prefix [Block.genesis] (pre.map StoreEntry.block)
+    (e.block :: post.map StoreEntry.block) (by
+      simpa [ParentFirstEntries, ParentFirst, List.map_append] using hPF)
+
+lemma replayPrefix_contains_of_mem_relevant
+    {pre : List (StoreEntry n)} {Spre : Store n} {p : StoreEntry n}
+    (hReplayPre : ReplayEntriesOf pre Spre)
+    (hPFPre : ParentFirstEntries pre)
+    (hp : p ∈ pre)
+    (hRel : RelevantToFinal Spre.F p.block) : Contains Spre p.block := by
+  have hAcc := parentFirstReplay_accepts_relevant_input
+    hReplayPre hPFPre p hp hRel
+  rcases hAcc with ⟨w, hw, hBlock, _⟩
+  exact ⟨w, hw, hBlock⟩
+
+lemma replayPrefix_parent_contains_of_ready
+    {input pre : List (StoreEntry n)} {e : StoreEntry n}
+    {post : List (StoreEntry n)} {Spre : Store n} {Fmax : Block n}
+    (hInputEq : input = pre ++ e :: post)
+    (hReplayPre : ReplayEntriesOf pre Spre)
+    (hPF : ParentFirstEntries input)
+    (hSpreF : Spre.F ≼ Fmax)
+    (heF : e.state.F = Fmax)
+    (hReady : ParentReadyIn ([Block.genesis] ++ pre.map StoreEntry.block) e.block)
+    {bid : BlockId} {parent : Block n} {s : ℕ} {vs : List (Vote n)}
+    (hBlock : e.block = Block.mk bid parent s vs) : Contains Spre parent := by
+  have hReadyMk :
+      parent = Block.genesis ∨
+        parent ∈ [Block.genesis] ++ pre.map StoreEntry.block := by
+    simpa [ParentReadyIn, hBlock] using hReady
+  rcases hReadyMk with hGenesis | hMem
+  · rw [hGenesis]
+    exact reachable_contains_genesis hReplayPre.reachable
+  · have hMem' : parent = Block.genesis ∨
+        parent ∈ pre.map StoreEntry.block := by
+      simpa using hMem
+    rcases hMem' with hGenesis | hParentPre
+    · rw [hGenesis]
+      exact reachable_contains_genesis hReplayPre.reachable
+    · rcases List.mem_map.mp hParentPre with ⟨p, hpPre, hpBlock⟩
+      have hParentE : parent ≼ e.block := by
+        rw [hBlock]
+        exact Block.Ancestor.step (Block.Ancestor.refl parent)
+      have hFmaxE : Fmax ≼ e.block := by
+        rw [← heF]
+        exact StoreEntry.state_F_le_block e
+      have hSpreE : Spre.F ≼ e.block :=
+        Block.Ancestor.trans hSpreF hFmaxE
+      have hParentRel : RelevantToFinal Spre.F p.block := by
+        have hpE : p.block ≼ e.block := by simpa [hpBlock] using hParentE
+        rcases Block.Ancestor.linear hSpreE hpE with hSP | hPS
+        · exact Or.inl hSP
+        · exact Or.inr hPS
+      have hContP := replayPrefix_contains_of_mem_relevant hReplayPre
+        (ParentFirstEntries.prefix_of_split (pre := pre) (e := e) (post := post)
+          (by simpa [hInputEq] using hPF))
+        hpPre hParentRel
+      simpa [hpBlock] using hContP
+
+lemma replay_prefix_F_le_finalityMax {input pre : List (StoreEntry n)}
+    {Fmax : Block n}
+    (hSub : ∀ a, a ∈ pre → a ∈ input)
+    (hMax : FinalityMax input Fmax) :
+    ((pre.foldl (fun S e => S.tryOnBlock e.block) (Store.genesis n)).F) ≼ Fmax := by
+  have hCandPre := replayEntries_F_candidate (n := n) pre
+  have hCandInput : FinalityCandidate input
+      ((pre.foldl (fun S e => S.tryOnBlock e.block) (Store.genesis n)).F) :=
+    FinalityCandidate.mono hSub hCandPre
+  exact hMax.2 _ hCandInput
+
+lemma fresh_of_prefix_nodup
+    {input pre : List (StoreEntry n)} {e : StoreEntry n}
+    {post : List (StoreEntry n)} {Spre : Store n}
+    (hInputEq : input = pre ++ e :: post)
+    (hReplayPre : ReplayEntriesOf pre Spre)
+    (hNoDup : (input.map StoreEntry.block).Nodup)
+    (hNoGenesis : Block.genesis ∉ input.map StoreEntry.block) :
+    Spre.containsBlockBool e.block = false := by
+  by_cases h : Spre.containsBlockBool e.block = true
+  · have hContains : Contains Spre e.block := contains_of_containsBlockBool h
+    rcases hContains with ⟨w, hw, hBlockW⟩
+    rw [hReplayPre] at hw
+    unfold Store.replayBlocks at hw
+    rw [replayEntriesFrom_eq_replayBlocksFrom_map] at hw
+    have hwReplay :
+        w ∈ (Store.replayBlocks (n := n) (pre.map StoreEntry.block)).entries := by
+      simpa [Store.replayBlocks, replayEntriesFrom_eq_replayBlocksFrom_map] using hw
+    have hProv := replayBlocks_entries_genesis_or_input
+      (blocks := pre.map StoreEntry.block) hwReplay
+    have heInput : e.block ∈ input.map StoreEntry.block := by
+      rw [hInputEq]
+      simp
+    rcases hProv with hGenesis | hPre
+    · have : Block.genesis ∈ input.map StoreEntry.block := by
+        simpa [← hBlockW, hGenesis] using heInput
+      exact False.elim (hNoGenesis this)
+    · have hDup : ¬ (input.map StoreEntry.block).Nodup := by
+        intro hND
+        have hPreInput : e.block ∈ pre.map StoreEntry.block := by
+          simpa [hBlockW] using hPre
+        have hNotMem : e.block ∉ pre.map StoreEntry.block := by
+          have hND' :
+              ((pre.map StoreEntry.block) ++
+                e.block :: post.map StoreEntry.block).Nodup := by
+            simpa [hInputEq, List.map_append] using hND
+          intro hPreMem
+          have hCross := (List.nodup_append.mp hND').2.2
+          exact hCross e.block hPreMem e.block (by simp) rfl
+        exact hNotMem hPreInput
+      exact False.elim (hDup hNoDup)
+  · cases hb : Spre.containsBlockBool e.block
+    · rfl
+    · exact False.elim (h hb)
+
+lemma idInjectiveAgainstStore_of_input
+    {input pre : List (StoreEntry n)} {e : StoreEntry n}
+    {post : List (StoreEntry n)} {Spre Safter : Store n}
+    (hInputEq : input = pre ++ e :: post)
+    (hReplayPre : ReplayEntriesOf pre Spre)
+    (hstep : Spre.onBlock e.block = some Safter)
+    (hInputId : InputIdInjective input) :
+    IdInjectiveAgainstStore e.block Safter := by
+  intro a ha
+  have haTry : a ∈ (Spre.tryOnBlock e.block).entries := by
+    simpa [tryOnBlock, hstep] using ha
+  have hOldOrNew := tryOnBlock_entries_old_or_new haTry
+  have heInput : HasInputEntry input e := by
+    right
+    refine ⟨e, ?_, rfl, rfl⟩
+    rw [hInputEq]
+    simp
+  have haInput : HasInputEntry input a := by
+    rcases hOldOrNew with hOld | hNew
+    · rw [hReplayPre] at hOld
+      unfold Store.replayBlocks at hOld
+      rw [replayEntriesFrom_eq_replayBlocksFrom_map] at hOld
+      have hOldReplay :
+          a ∈ (Store.replayBlocks (n := n) (pre.map StoreEntry.block)).entries := by
+        simpa [Store.replayBlocks, replayEntriesFrom_eq_replayBlocksFrom_map] using hOld
+      have hProv := replayBlocks_entries_genesis_or_input
+        (blocks := pre.map StoreEntry.block) hOldReplay
+      rcases hProv with hGenesis | hPre
+      · exact Or.inl hGenesis
+      · rcases List.mem_map.mp hPre with ⟨p, hp, hpBlock⟩
+        right
+        refine ⟨p, ?_, hpBlock, ?_⟩
+        · rw [hInputEq]
+          simp [hp]
+        · exact StoreEntry.height_eq_of_block_eq hpBlock
+    · right
+      refine ⟨e, ?_, hNew.symm, ?_⟩
+      · rw [hInputEq]
+        simp
+      · exact StoreEntry.height_eq_of_block_eq hNew.symm
+  change Block.IdInjectiveOnAncestors e.block a.block
+  exact hInputId e a heInput haInput
+
+lemma parentFirstReplay_finalityMax_le_F_of_split {f : ℕ}
+    (hn : n = 3 * f + 1)
+    (hNoSlash : ¬ @AtLeastFThirdSlashable n f)
+    {input pre : List (StoreEntry n)} {e : StoreEntry n}
+    {post : List (StoreEntry n)} {S : Store n} {Fmax : Block n}
+    (hInputEq : input = pre ++ e :: post)
+    (hReplay : ReplayEntriesOf input S)
+    (hPF : ParentFirstEntries input)
+    (hNoDup : (input.map StoreEntry.block).Nodup)
+    (hNoGenesis : Block.genesis ∉ input.map StoreEntry.block)
+    (hInputId : InputIdInjective input)
+    (hMax : FinalityMax input Fmax)
+    (heF : e.state.F = Fmax) :
+    Fmax ≼ S.F := by
+  let Spre : Store n :=
+    pre.foldl (fun S e => S.tryOnBlock e.block) (Store.genesis n)
+  have hReplayPre : ReplayEntriesOf pre Spre := by
+    unfold ReplayEntriesOf ReplayOf Store.replayBlocks Spre
+    rw [replayEntriesFrom_eq_replayBlocksFrom_map]
+  have hSubPre : ∀ a, a ∈ pre → a ∈ input := by
+    intro a ha
+    rw [hInputEq]
+    simp [ha]
+  have hSpreF : Spre.F ≼ Fmax :=
+    replay_prefix_F_le_finalityMax hSubPre hMax
+  have hFmaxE : Fmax ≼ e.block := by
+    rw [← heF]
+    exact StoreEntry.state_F_le_block e
+  have hAnc : Spre.F ≼ e.block := Block.Ancestor.trans hSpreF hFmaxE
+  have hFresh : Spre.containsBlockBool e.block = false :=
+    fresh_of_prefix_nodup hInputEq hReplayPre hNoDup hNoGenesis
+  have hReady :
+      ParentReadyIn ([Block.genesis] ++ pre.map StoreEntry.block) e.block := by
+    have hPF' :
+        ParentFirstFrom [Block.genesis]
+          ((pre ++ e :: post).map StoreEntry.block) := by
+      simpa [ParentFirstEntries, ParentFirst, hInputEq] using hPF
+    exact ParentFirstFrom.ready_of_split [Block.genesis] pre e post hPF'
+  have hNonGenesis : e.block ≠ Block.genesis := by
+    intro hEq
+    have : Block.genesis ∈ input.map StoreEntry.block := by
+      rw [hInputEq]
+      simp [hEq]
+    exact hNoGenesis this
+  obtain ⟨Sstep, hstep, hAcc⟩ := onBlock_acceptedBlockState_of_ready
+    (S := Spre) e hFresh
+    (fun hBlock => replayPrefix_parent_contains_of_ready
+      hInputEq hReplayPre hPF hSpreF heF hReady hBlock)
+    hAnc hNonGenesis
+  have hIdStore : IdInjectiveAgainstStore e.block Sstep :=
+    idInjectiveAgainstStore_of_input hInputEq hReplayPre hstep hInputId
+  have hComp :
+      e.state.F ≼ Spre.F ∨ (Spre.F ≼ e.state.F ∧ Spre.F ≠ e.state.F) := by
+    by_cases hEq : Spre.F = e.state.F
+    · left
+      rw [hEq]
+      exact Block.Ancestor.refl _
+    · right
+      exact ⟨by simpa [heF] using hSpreF, hEq⟩
+  have hDesc : e.state.F ≼ Sstep.F :=
+    onBlock_descends_or_accepts_state_finalization hn hNoSlash
+      hReplayPre.reachable hFresh hstep hAcc hIdStore hComp
+  have hFuturePost : Future Sstep
+      (post.foldl (fun S e => S.tryOnBlock e.block) Sstep) :=
+    replayEntriesFrom_future post Sstep
+  have hFinalEq :
+      S = post.foldl (fun S e => S.tryOnBlock e.block) Sstep := by
+    rw [hReplay, hInputEq]
+    unfold Store.replayBlocks
+    rw [replayEntriesFrom_eq_replayBlocksFrom_map]
+    simp
+    rw [show Spre.tryOnBlock e.block = Sstep by simp [tryOnBlock, hstep]]
+  rw [hFinalEq]
+  have hDescFmax : Fmax ≼ Sstep.F := by
+    simpa [heF] using hDesc
+  exact hDescFmax.trans (future_F_ancestor hFuturePost)
+
+theorem parentFirstReplay_F_eq_finalityMax {f : ℕ}
+    (hn : n = 3 * f + 1)
+    (hNoSlash : ¬ @AtLeastFThirdSlashable n f)
+    {input : List (StoreEntry n)} {S : Store n} {Fmax : Block n}
+    (hReplay : ReplayEntriesOf input S)
+    (hPF : ParentFirstEntries input)
+    (hNoDup : (input.map StoreEntry.block).Nodup)
+    (hNoGenesis : Block.genesis ∉ input.map StoreEntry.block)
+    (hInputId : InputIdInjective input)
+    (hMax : FinalityMax input Fmax) :
+    S.F = Fmax := by
+  have hUpper : S.F ≼ Fmax := hReplay.F_le_finalityMax hMax
+  have hLower : Fmax ≼ S.F := by
+    rcases hMax.1 with hGenesis | hWitness
+    · rw [hGenesis]
+      exact Block.genesis_ancestor S.F
+    · rcases hWitness with ⟨e, he, heF⟩
+      rcases (List.mem_iff_append.mp he) with ⟨pre, post, hInputEq⟩
+      exact parentFirstReplay_finalityMax_le_F_of_split hn hNoSlash
+        hInputEq hReplay hPF hNoDup hNoGenesis hInputId hMax heF
+  have hWF : Block.WellFormed Fmax := by
+    rcases hMax.1 with hGenesis | hWitness
+    · rw [hGenesis]
+      trivial
+    · rcases hWitness with ⟨e, _he, heF⟩
+      rw [← heF]
+      exact StoreEntry.state_F_wellformed e
+  exact Block.Ancestor.antisymm hUpper hLower hWF
 
 lemma ReplayEntriesOf.entries_from_input
     {input : List (StoreEntry n)} {S : Store n}

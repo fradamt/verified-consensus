@@ -1179,6 +1179,339 @@ theorem parentFirstReplay_hmax_eq_heightMax {f : ℕ}
     (parentFirstReplay_heightMax_le_hmax hn hNoSlash hReplay hPF
       hNoDup hNoGenesis hInputId hFMax hHMax)
 
+/-! ## Replay Justification-Key Components -/
+
+lemma keyGreater_false_keyLE {h' h : ℕ} {J' J : Block n}
+    (hkey : keyGreater h' J' h J = false) : KeyLE h' J' h J := by
+  by_cases hlt : h < h'
+  · unfold keyGreater at hkey
+    simp [hlt] at hkey
+  · have hle : h' ≤ h := Nat.le_of_not_gt hlt
+    by_cases heq : h' = h
+    · right
+      refine ⟨heq, ?_⟩
+      by_contra hNotLe
+      have hidLt : J.id < J'.id := Nat.lt_of_not_ge hNotLe
+      have htrue : keyGreater h' J' h J = true := by
+        unfold keyGreater
+        simp [heq, hidLt]
+      rw [hkey] at htrue
+      cases htrue
+    · left
+      omega
+
+lemma updateJustified_candidate_key_le {S : Store n} {J' : Block n} {h' : ℕ}
+    (hContains : S.containsBlockBool J' = true)
+    (hBelowF : Block.isAncestorOf S.F J' = true) :
+    KeyLE h' J'
+      (S.updateJustified J' h').hj
+      (S.updateJustified J' h').J := by
+  cases hguard : S.shouldUpdateJustified J' h'
+  · have hkey : keyGreater h' J' S.hj S.J = false := by
+      cases hkey : keyGreater h' J' S.hj S.J
+      · rfl
+      · have htrue : S.shouldUpdateJustified J' h' = true := by
+          simp [shouldUpdateJustified, hContains, hBelowF, hkey]
+        rw [hguard] at htrue
+        cases htrue
+    simpa [updateJustified, hguard] using keyGreater_false_keyLE hkey
+  · simp [updateJustified, hguard, KeyLE.refl]
+
+lemma onBlock_accepted_state_key_le {S S' : Store n} {B : Block n}
+    {σB : State n}
+    (hS : Reachable S)
+    (hFresh : S.containsBlockBool B = false)
+    (hstep : S.onBlock B = some S')
+    (hAcc : AcceptedBlockState S' B σB)
+    (hBelow : S.F ≼ σB.J) :
+    KeyLE σB.hj σB.J S'.hj S'.J := by
+  rcases hAcc with ⟨chainB, _hLookup, hStateEq⟩
+  obtain
+    ⟨bid, parent, newSlot, votes, _hBlockEq, parentChain, hFind, hSlot,
+      _hAnc, hResult⟩ := freshOnBlockStep_of_onBlock hFresh hstep
+  subst B
+  let child := Block.mk bid parent newSlot votes
+  let entry : StoreEntry n :=
+    { block := child
+      chain := Chain.extend parentChain bid newSlot votes hSlot }
+  let σ' := entry.state
+  let S1 := S.addEntry entry
+  let S2 := S1.updateJustified σ'.J σ'.hj
+  have hResult' : S' = S2.updateFinalized σ'.F := by
+    simpa [child, entry, σ', S1, S2] using hResult
+  subst S'
+  have hState : σB = σ' := by
+    rw [← hStateEq]
+    simpa [σ', StoreEntry.state, entry, child] using
+      (chain_unique chainB entry.chain)
+  have hBelow' : S.F ≼ σ'.J := by
+    simpa [hState] using hBelow
+  have hParent : Contains S parent := findChain?_some_contains hFind
+  have hSClosed : AncestorClosed S := reachable_ancestorClosed hS
+  have hBlock : entry.block = Block.mk bid parent newSlot votes := by
+    rfl
+  have hS1Closed : AncestorClosed S1 := by
+    change AncestorClosed (S.addEntry entry)
+    exact addChild_ancestorClosed hBlock hSClosed hParent
+  have hEntryMemS1 : entry ∈ S1.entries := by
+    simp [S1, addEntry]
+  have hJAnc : σ'.J ≼ entry.block := by
+    simpa [σ', StoreEntry.state] using chain_J_le_L entry.chain
+  have hJContains : Contains S1 σ'.J :=
+    hS1Closed ⟨entry, hEntryMemS1, rfl⟩ hJAnc
+  have hJBool : S1.containsBlockBool σ'.J = true :=
+    containsBlockBool_of_contains hJContains
+  have hBelowS1 : Block.isAncestorOf S1.F σ'.J = true := by
+    have hProp : S1.F ≼ σ'.J := by
+      simpa [S1, addEntry] using hBelow'
+    exact (Block.isAncestorOf_eq_true_iff _ _).mpr hProp
+  have hS2Key : KeyLE σ'.hj σ'.J S2.hj S2.J :=
+    updateJustified_candidate_key_le hJBool hBelowS1
+  simpa [hState, S2, updateFinalized_hj_eq, updateFinalized_J_eq] using hS2Key
+
+lemma replayPrefix_parent_contains_of_ready_desc
+    {input pre : List (StoreEntry n)} {e : StoreEntry n}
+    {post : List (StoreEntry n)} {Spre : Store n} {Fmax : Block n}
+    (hInputEq : input = pre ++ e :: post)
+    (hReplayPre : ReplayEntriesOf pre Spre)
+    (hPF : ParentFirstEntries input)
+    (hSpreF : Spre.F ≼ Fmax)
+    (hFmaxE : Fmax ≼ e.block)
+    (hReady : ParentReadyIn ([Block.genesis] ++ pre.map StoreEntry.block) e.block)
+    {bid : BlockId} {parent : Block n} {s : ℕ} {vs : List (Vote n)}
+    (hBlock : e.block = Block.mk bid parent s vs) : Contains Spre parent := by
+  have hReadyMk :
+      parent = Block.genesis ∨
+        parent ∈ [Block.genesis] ++ pre.map StoreEntry.block := by
+    simpa [ParentReadyIn, hBlock] using hReady
+  rcases hReadyMk with hGenesis | hMem
+  · rw [hGenesis]
+    exact reachable_contains_genesis hReplayPre.reachable
+  · have hMem' : parent = Block.genesis ∨
+        parent ∈ pre.map StoreEntry.block := by
+      simpa using hMem
+    rcases hMem' with hGenesis | hParentPre
+    · rw [hGenesis]
+      exact reachable_contains_genesis hReplayPre.reachable
+    · rcases List.mem_map.mp hParentPre with ⟨p, hpPre, hpBlock⟩
+      have hParentE : parent ≼ e.block := by
+        rw [hBlock]
+        exact Block.Ancestor.step (Block.Ancestor.refl parent)
+      have hSpreE : Spre.F ≼ e.block :=
+        Block.Ancestor.trans hSpreF hFmaxE
+      have hParentRel : RelevantToFinal Spre.F p.block := by
+        have hpE : p.block ≼ e.block := by simpa [hpBlock] using hParentE
+        rcases Block.Ancestor.linear hSpreE hpE with hSP | hPS
+        · exact Or.inl hSP
+        · exact Or.inr hPS
+      have hContP := replayPrefix_contains_of_mem_relevant hReplayPre
+        (ParentFirstEntries.prefix_of_split (pre := pre) (e := e) (post := post)
+          (by simpa [hInputEq] using hPF))
+        hpPre hParentRel
+      simpa [hpBlock] using hContP
+
+lemma ReplayEntriesOf.genesis_key_le
+    {input : List (StoreEntry n)} {S : Store n}
+    (hReplay : ReplayEntriesOf input S) :
+    KeyLE 0 (Block.genesis : Block n) S.hj S.J := by
+  rw [hReplay]
+  unfold Store.replayBlocks
+  rw [replayEntriesFrom_eq_replayBlocksFrom_map]
+  simpa [Store.genesis] using
+    future_key_mono (replayEntriesFrom_future input (Store.genesis n))
+
+lemma ReplayEntriesOf.current_justification_candidate
+    {input : List (StoreEntry n)} {S : Store n} {Fmax : Block n}
+    (hReplay : ReplayEntriesOf input S)
+    (hF : S.F = Fmax) :
+    JustificationCandidate input Fmax S.J S.hj := by
+  refine ⟨?_, ?_⟩
+  · simpa [← hF] using reachable_F_ancestor_J hReplay.reachable
+  · have hProc : ProcessedJustification S S.J S.hj :=
+      reachable_currentProcessedJustification hReplay.reachable
+    rcases hProc with ⟨e, he, hJ, hhj⟩
+    have hInput := hReplay.entries_from_input e he
+    rcases hInput with hGenesis | hEntry
+    · left
+      have hState :
+          e.state = (StoreEntry.genesis n).state :=
+        StoreEntry.state_eq_of_block_eq (a := StoreEntry.genesis n)
+          (by simpa [StoreEntry.genesis] using hGenesis)
+      constructor
+      · calc
+          S.J = e.state.J := hJ.symm
+          _ = (StoreEntry.genesis n).state.J := by rw [hState]
+          _ = Block.genesis := by
+            simp [StoreEntry.genesis, StoreEntry.state, stateOf, State.genesis]
+      · calc
+          S.hj = e.state.hj := hhj.symm
+          _ = (StoreEntry.genesis n).state.hj := by rw [hState]
+          _ = 0 := by
+            simp [StoreEntry.genesis, StoreEntry.state, stateOf, State.genesis]
+    · rcases hEntry with ⟨a, ha, hBlock, _hHeight⟩
+      right
+      refine ⟨a, ha, ?_, ?_⟩
+      · have hState := StoreEntry.state_eq_of_block_eq hBlock
+        rw [hState]
+        exact hJ
+      · have hState := StoreEntry.state_eq_of_block_eq hBlock
+        rw [hState]
+        exact hhj
+
+lemma parentFirstReplay_justificationMax_le_key_of_split
+    {input pre : List (StoreEntry n)} {e : StoreEntry n}
+    {post : List (StoreEntry n)} {S : Store n}
+    {Fmax Jmax : Block n} {hjmax : ℕ}
+    (hInputEq : input = pre ++ e :: post)
+    (hReplay : ReplayEntriesOf input S)
+    (hPF : ParentFirstEntries input)
+    (hNoDup : (input.map StoreEntry.block).Nodup)
+    (hNoGenesis : Block.genesis ∉ input.map StoreEntry.block)
+    (hFMax : FinalityMax input Fmax)
+    (hJMax : JustificationMax input Fmax Jmax hjmax)
+    (heJ : e.state.J = Jmax)
+    (heHj : e.state.hj = hjmax) :
+    KeyLE hjmax Jmax S.hj S.J := by
+  let Spre : Store n :=
+    pre.foldl (fun S e => S.tryOnBlock e.block) (Store.genesis n)
+  have hReplayPre : ReplayEntriesOf pre Spre := by
+    unfold ReplayEntriesOf ReplayOf Store.replayBlocks Spre
+    rw [replayEntriesFrom_eq_replayBlocksFrom_map]
+  have hSubPre : ∀ a, a ∈ pre → a ∈ input := by
+    intro a ha
+    rw [hInputEq]
+    simp [ha]
+  have hSpreF : Spre.F ≼ Fmax :=
+    replay_prefix_F_le_finalityMax hSubPre hFMax
+  have hFmaxJ : Fmax ≼ e.state.J := by
+    have hCand : JustificationCandidate input Fmax e.state.J e.state.hj := by
+      refine ⟨?_, Or.inr ?_⟩
+      · simpa [heJ] using hJMax.1.1
+      · refine ⟨e, ?_, rfl, rfl⟩
+        rw [hInputEq]
+        simp
+    exact hCand.1
+  have hJAnc : e.state.J ≼ e.block := by
+    simpa [StoreEntry.state] using chain_J_le_L e.chain
+  have hFmaxE : Fmax ≼ e.block := hFmaxJ.trans hJAnc
+  have hAnc : Spre.F ≼ e.block := hSpreF.trans hFmaxE
+  have hFresh : Spre.containsBlockBool e.block = false :=
+    fresh_of_prefix_nodup hInputEq hReplayPre hNoDup hNoGenesis
+  have hReady :
+      ParentReadyIn ([Block.genesis] ++ pre.map StoreEntry.block) e.block := by
+    have hPF' :
+        ParentFirstFrom [Block.genesis]
+          ((pre ++ e :: post).map StoreEntry.block) := by
+      simpa [ParentFirstEntries, ParentFirst, hInputEq] using hPF
+    exact ParentFirstFrom.ready_of_split [Block.genesis] pre e post hPF'
+  have hNonGenesis : e.block ≠ Block.genesis := by
+    intro hEq
+    have : Block.genesis ∈ input.map StoreEntry.block := by
+      rw [hInputEq]
+      simp [hEq]
+    exact hNoGenesis this
+  obtain ⟨Sstep, hstep, hAcc⟩ := onBlock_acceptedBlockState_of_ready
+    (S := Spre) e hFresh
+    (fun hBlock => replayPrefix_parent_contains_of_ready_desc
+      hInputEq hReplayPre hPF hSpreF hFmaxE hReady hBlock)
+    hAnc hNonGenesis
+  have hBelow : Spre.F ≼ e.state.J := hSpreF.trans hFmaxJ
+  have hStepKey : KeyLE e.state.hj e.state.J Sstep.hj Sstep.J :=
+    onBlock_accepted_state_key_le hReplayPre.reachable hFresh hstep hAcc hBelow
+  have hFuturePost : Future Sstep
+      (post.foldl (fun S e => S.tryOnBlock e.block) Sstep) :=
+    replayEntriesFrom_future post Sstep
+  have hFinalEq :
+      S = post.foldl (fun S e => S.tryOnBlock e.block) Sstep := by
+    rw [hReplay, hInputEq]
+    unfold Store.replayBlocks
+    rw [replayEntriesFrom_eq_replayBlocksFrom_map]
+    simp
+    rw [show Spre.tryOnBlock e.block = Sstep by simp [tryOnBlock, hstep]]
+  rw [hFinalEq]
+  have hStepKey' : KeyLE hjmax Jmax Sstep.hj Sstep.J := by
+    simpa [heJ, heHj] using hStepKey
+  exact hStepKey'.trans (future_key_mono hFuturePost)
+
+theorem parentFirstReplay_justificationMax_le_key
+    {input : List (StoreEntry n)} {S : Store n}
+    {Fmax Jmax : Block n} {hjmax : ℕ}
+    (hReplay : ReplayEntriesOf input S)
+    (hPF : ParentFirstEntries input)
+    (hNoDup : (input.map StoreEntry.block).Nodup)
+    (hNoGenesis : Block.genesis ∉ input.map StoreEntry.block)
+    (hFMax : FinalityMax input Fmax)
+    (hJMax : JustificationMax input Fmax Jmax hjmax) :
+    KeyLE hjmax Jmax S.hj S.J := by
+  rcases hJMax.1.2 with hGenesis | hWitness
+  · rcases hGenesis with ⟨hJ, hhj⟩
+    simpa [hJ, hhj] using hReplay.genesis_key_le
+  · rcases hWitness with ⟨e, he, heJ, heHj⟩
+    rcases (List.mem_iff_append.mp he) with ⟨pre, post, hInputEq⟩
+    exact parentFirstReplay_justificationMax_le_key_of_split
+      hInputEq hReplay hPF hNoDup hNoGenesis hFMax hJMax heJ heHj
+
+lemma KeyLE.antisymm_height {h₁ h₂ : ℕ} {J₁ J₂ : Block n}
+    (h12 : KeyLE h₁ J₁ h₂ J₂) (h21 : KeyLE h₂ J₂ h₁ J₁) :
+    h₁ = h₂ := by
+  rcases h12 with hlt12 | ⟨heq, _⟩
+  · rcases h21 with hlt21 | ⟨heq21, _⟩
+    · omega
+    · omega
+  · exact heq
+
+lemma KeyLE.antisymm_id {h₁ h₂ : ℕ} {J₁ J₂ : Block n}
+    (h12 : KeyLE h₁ J₁ h₂ J₂) (h21 : KeyLE h₂ J₂ h₁ J₁) :
+    J₁.id = J₂.id := by
+  have hh : h₁ = h₂ := KeyLE.antisymm_height h12 h21
+  rcases h12 with hlt12 | ⟨_heq12, hid12⟩
+  · omega
+  · rcases h21 with hlt21 | ⟨_heq21, hid21⟩
+    · omega
+    · exact le_antisymm hid12 hid21
+
+lemma JustificationCandidate.support
+    {input : List (StoreEntry n)} {F J : Block n} {h : ℕ}
+    (hCand : JustificationCandidate input F J h) :
+    ∃ e : StoreEntry n, HasInputEntry input e ∧ J ≼ e.block := by
+  rcases hCand.2 with hGenesis | hEntry
+  · rcases hGenesis with ⟨hJ, _hh⟩
+    refine ⟨StoreEntry.genesis n, Or.inl rfl, ?_⟩
+    rw [hJ]
+    exact .refl _
+  · rcases hEntry with ⟨e, he, hJ, _hh⟩
+    refine ⟨e, Or.inr ⟨e, he, rfl, rfl⟩, ?_⟩
+    rw [← hJ]
+    simpa [StoreEntry.state] using chain_J_le_L e.chain
+
+theorem parentFirstReplay_justification_eq_justificationMax
+    {input : List (StoreEntry n)} {S : Store n}
+    {Fmax Jmax : Block n} {hjmax : ℕ}
+    (hReplay : ReplayEntriesOf input S)
+    (hPF : ParentFirstEntries input)
+    (hNoDup : (input.map StoreEntry.block).Nodup)
+    (hNoGenesis : Block.genesis ∉ input.map StoreEntry.block)
+    (hInputId : InputIdInjective input)
+    (hFMax : FinalityMax input Fmax)
+    (hFEq : S.F = Fmax)
+    (hJMax : JustificationMax input Fmax Jmax hjmax) :
+    S.J = Jmax ∧ S.hj = hjmax := by
+  have hCurrentCand : JustificationCandidate input Fmax S.J S.hj :=
+    hReplay.current_justification_candidate hFEq
+  have hUpper : KeyLE S.hj S.J hjmax Jmax :=
+    hJMax.2 S.J S.hj hCurrentCand
+  have hLower : KeyLE hjmax Jmax S.hj S.J :=
+    parentFirstReplay_justificationMax_le_key hReplay hPF hNoDup
+      hNoGenesis hFMax hJMax
+  have hh : S.hj = hjmax := KeyLE.antisymm_height hUpper hLower
+  have hid : S.J.id = Jmax.id := KeyLE.antisymm_id hUpper hLower
+  have hJ : S.J = Jmax := by
+    rcases hCurrentCand.support with ⟨eS, heSInput, hSJAnc⟩
+    rcases hJMax.1.support with ⟨eM, heMInput, hJMAnc⟩
+    exact hInputId eS eM heSInput heMInput
+      (Or.inl hSJAnc) (Or.inr hJMAnc) hid
+  exact ⟨hJ, hh⟩
+
 /-- Once component lemmas have identified the canonical store fields and shown
     that every common live input block is accepted, replay provenance supplies
     the reverse live-entry direction automatically. -/

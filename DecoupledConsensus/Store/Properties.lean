@@ -12,12 +12,6 @@ specification vocabulary and `Prop`-valued theorem statements that are useful
 to read without opening proof scripts. Concrete proofs live under
 `Store.Proof`.
 
-The order-independence-facing statements below are deliberately the proved
-extensional form (`OrderEquivalent`). They are not the stronger TeX replay
-claim that arbitrary valid processing orders over the same block set produce
-equivalent stores; the replay/order machinery needed to state that premise is
-not part of the current formalization.
-
 Section 3's full-store order-independence claim is too strong for the
 executable store: a block accepted before finality moves may remain in
 `entries` even if another replay would reject it after finality moves. The
@@ -164,6 +158,12 @@ def HasInputEntry (input : List (StoreEntry n)) (e : StoreEntry n) : Prop :=
   e.block = Block.genesis ∨
     ∃ a ∈ input, a.block = e.block ∧ a.height = e.height
 
+/-- Two replay inputs carry the same available block/state-height content,
+    with genesis implicit on both sides. This is the set-like equality notion
+    used for comparing two different parent-first orders. -/
+def InputEquivalent (input₁ input₂ : List (StoreEntry n)) : Prop :=
+  ∀ e : StoreEntry n, HasInputEntry input₁ e ↔ HasInputEntry input₂ e
+
 /-- Scoped hash/id injectivity for every pair of histories considered by an
     order-independence input. Genesis is implicit, matching `HasInputEntry`. -/
 def InputIdInjective (input : List (StoreEntry n)) : Prop :=
@@ -211,6 +211,14 @@ def JustificationMax
     (input : List (StoreEntry n)) (F Jmax : Block n) (hjmax : ℕ) : Prop :=
   JustificationCandidate input F Jmax hjmax ∧
     ∀ J h, JustificationCandidate input F J h → KeyLE h J hjmax Jmax
+
+/-- Canonical live summary induced by one replay input. The fields are
+    specified extensionally, not computed by the store. -/
+def LiveSummaryMatches (input : List (StoreEntry n)) (summary : LiveSummary n) :
+    Prop :=
+  FinalityMax input summary.F ∧
+    JustificationMax input summary.F summary.J summary.hj ∧
+    HeightMax input summary.hmax
 
 /-- The component invariant needed for observable order independence.
 
@@ -438,6 +446,42 @@ def LiveCompleteGetConfirmedStatement (n : ℕ) : Prop :=
     LiveComplete input summary S →
       LiveComplete input summary T →
         (B ∈ S.getConfirmed ↔ B ∈ T.getConfirmed)
+
+/-- Parent-first replay computes the canonical live summary for its input. -/
+def ParentFirstReplayLiveCompleteStatement (n f : ℕ) : Prop :=
+  n = 3 * f + 1 →
+    ¬ @AtLeastFThirdSlashable n f →
+      ∀ {input : List (StoreEntry n)} {summary : LiveSummary n}
+          {S : Store n},
+        ReplayEntriesOf input S →
+          ParentFirstEntries input →
+          (input.map StoreEntry.block).Nodup →
+          Block.genesis ∉ input.map StoreEntry.block →
+          InputIdInjective input →
+          LiveSummaryMatches input summary →
+          LiveComplete input summary S
+
+/-- Observable order independence for two parent-first replays of equivalent
+    input sets. The raw stores may differ outside the finalized subtree; the
+    executable `getConfirmed` set does not. -/
+def ParentFirstReplayGetConfirmedStatement (n f : ℕ) : Prop :=
+  n = 3 * f + 1 →
+    ¬ @AtLeastFThirdSlashable n f →
+      ∀ {input₁ input₂ : List (StoreEntry n)} {summary : LiveSummary n}
+          {S T : Store n} {B : Block n},
+        ReplayEntriesOf input₁ S →
+          ReplayEntriesOf input₂ T →
+          ParentFirstEntries input₁ →
+          ParentFirstEntries input₂ →
+          (input₁.map StoreEntry.block).Nodup →
+          (input₂.map StoreEntry.block).Nodup →
+          Block.genesis ∉ input₁.map StoreEntry.block →
+          Block.genesis ∉ input₂.map StoreEntry.block →
+          InputIdInjective input₁ →
+          InputIdInjective input₂ →
+          InputEquivalent input₁ input₂ →
+          LiveSummaryMatches input₁ summary →
+          (B ∈ S.getConfirmed ↔ B ∈ T.getConfirmed)
 
 end Store
 

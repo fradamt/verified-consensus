@@ -141,6 +141,22 @@ theorem liveComplete_getConfirmed_property :
   intro input summary S T B hS hT
   exact liveComplete_getConfirmed hS hT
 
+theorem parentFirstReplay_liveComplete_property {f : ℕ} :
+    ParentFirstReplayLiveCompleteStatement n f := by
+  intro hn hNoSlash input summary S hReplay hPF hNoDup hNoGenesis hInputId
+    hSummary
+  exact parentFirstReplay_liveComplete hn hNoSlash hReplay hPF hNoDup
+    hNoGenesis hInputId hSummary
+
+theorem parentFirstReplay_getConfirmed_property {f : ℕ} :
+    ParentFirstReplayGetConfirmedStatement n f := by
+  intro hn hNoSlash input₁ input₂ summary S T B hReplayS hReplayT hPFS
+    hPFT hNoDupS hNoDupT hNoGenesisS hNoGenesisT hInputIdS hInputIdT
+    hInputEq hSummary
+  exact parentFirstReplay_getConfirmed_order_independent hn hNoSlash
+    hReplayS hReplayT hPFS hPFT hNoDupS hNoDupT hNoGenesisS hNoGenesisT
+    hInputIdS hInputIdT hInputEq hSummary
+
 end Store
 
 end DecoupledConsensus

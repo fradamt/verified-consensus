@@ -1484,6 +1484,142 @@ lemma JustificationCandidate.support
     rw [← hJ]
     simpa [StoreEntry.state] using chain_J_le_L e.chain
 
+/-! ## Input-Equivalent Summary Transfer -/
+
+lemma InputEquivalent.symm {input₁ input₂ : List (StoreEntry n)}
+    (hEq : InputEquivalent input₁ input₂) :
+    InputEquivalent input₂ input₁ := by
+  intro e
+  exact Iff.symm (hEq e)
+
+lemma InputEquivalent.finalityCandidate
+    {input₁ input₂ : List (StoreEntry n)} {F : Block n}
+    (hEq : InputEquivalent input₁ input₂)
+    (hCand : FinalityCandidate input₁ F) :
+    FinalityCandidate input₂ F := by
+  rcases hCand with hGenesis | hEntry
+  · exact Or.inl hGenesis
+  · rcases hEntry with ⟨e, he, hF⟩
+    have hInput : HasInputEntry input₂ e :=
+      (hEq e).1 (Or.inr ⟨e, he, rfl, rfl⟩)
+    rcases hInput with hGenesis | hEntry₂
+    · left
+      have hState :
+          e.state = (StoreEntry.genesis n).state :=
+        StoreEntry.state_eq_of_block_eq (a := StoreEntry.genesis n)
+          (by simpa [StoreEntry.genesis] using hGenesis)
+      calc
+        F = e.state.F := hF.symm
+        _ = (StoreEntry.genesis n).state.F := by rw [hState]
+        _ = Block.genesis := by
+          simp [StoreEntry.genesis, StoreEntry.state, stateOf, State.genesis]
+    · rcases hEntry₂ with ⟨a, ha, hBlock, _hHeight⟩
+      right
+      refine ⟨a, ha, ?_⟩
+      have hState : a.state = e.state :=
+        StoreEntry.state_eq_of_block_eq (e := a) (a := e) hBlock
+      rw [hState]
+      exact hF
+
+lemma InputEquivalent.heightCandidate
+    {input₁ input₂ : List (StoreEntry n)} {h : ℕ}
+    (hEq : InputEquivalent input₁ input₂)
+    (hCand : HeightCandidate input₁ h) :
+    HeightCandidate input₂ h := by
+  rcases hCand with hOne | hEntry
+  · exact Or.inl hOne
+  · rcases hEntry with ⟨e, he, hh⟩
+    have hInput : HasInputEntry input₂ e :=
+      (hEq e).1 (Or.inr ⟨e, he, rfl, rfl⟩)
+    rcases hInput with hGenesis | hEntry₂
+    · left
+      calc
+        h = e.height := hh.symm
+        _ = 1 := StoreEntry.height_eq_one_of_block_genesis hGenesis
+    · rcases hEntry₂ with ⟨a, ha, hBlock, _hHeight⟩
+      right
+      refine ⟨a, ha, ?_⟩
+      have hHeight : a.height = e.height :=
+        StoreEntry.height_eq_of_block_eq (e := a) (a := e) hBlock
+      rw [hHeight]
+      exact hh
+
+lemma InputEquivalent.justificationCandidate
+    {input₁ input₂ : List (StoreEntry n)} {F J : Block n} {h : ℕ}
+    (hEq : InputEquivalent input₁ input₂)
+    (hCand : JustificationCandidate input₁ F J h) :
+    JustificationCandidate input₂ F J h := by
+  refine ⟨hCand.1, ?_⟩
+  rcases hCand.2 with hGenesis | hEntry
+  · exact Or.inl hGenesis
+  · rcases hEntry with ⟨e, he, hJ, hh⟩
+    have hInput : HasInputEntry input₂ e :=
+      (hEq e).1 (Or.inr ⟨e, he, rfl, rfl⟩)
+    rcases hInput with hGenesis | hEntry₂
+    · left
+      have hState :
+          e.state = (StoreEntry.genesis n).state :=
+        StoreEntry.state_eq_of_block_eq (a := StoreEntry.genesis n)
+          (by simpa [StoreEntry.genesis] using hGenesis)
+      constructor
+      · calc
+          J = e.state.J := hJ.symm
+          _ = (StoreEntry.genesis n).state.J := by rw [hState]
+          _ = Block.genesis := by
+            simp [StoreEntry.genesis, StoreEntry.state, stateOf, State.genesis]
+      · calc
+          h = e.state.hj := hh.symm
+          _ = (StoreEntry.genesis n).state.hj := by rw [hState]
+          _ = 0 := by
+            simp [StoreEntry.genesis, StoreEntry.state, stateOf, State.genesis]
+    · rcases hEntry₂ with ⟨a, ha, hBlock, _hHeight⟩
+      right
+      refine ⟨a, ha, ?_, ?_⟩
+      · have hState : a.state = e.state :=
+          StoreEntry.state_eq_of_block_eq (e := a) (a := e) hBlock
+        rw [hState]
+        exact hJ
+      · have hState : a.state = e.state :=
+          StoreEntry.state_eq_of_block_eq (e := a) (a := e) hBlock
+        rw [hState]
+        exact hh
+
+lemma InputEquivalent.finalityMax
+    {input₁ input₂ : List (StoreEntry n)} {Fmax : Block n}
+    (hEq : InputEquivalent input₁ input₂)
+    (hMax : FinalityMax input₁ Fmax) :
+    FinalityMax input₂ Fmax := by
+  refine ⟨hEq.finalityCandidate hMax.1, ?_⟩
+  intro F hCand
+  exact hMax.2 F ((InputEquivalent.symm hEq).finalityCandidate hCand)
+
+lemma InputEquivalent.heightMax
+    {input₁ input₂ : List (StoreEntry n)} {hmax : ℕ}
+    (hEq : InputEquivalent input₁ input₂)
+    (hMax : HeightMax input₁ hmax) :
+    HeightMax input₂ hmax := by
+  refine ⟨hEq.heightCandidate hMax.1, ?_⟩
+  intro h hCand
+  exact hMax.2 h ((InputEquivalent.symm hEq).heightCandidate hCand)
+
+lemma InputEquivalent.justificationMax
+    {input₁ input₂ : List (StoreEntry n)} {F Jmax : Block n} {hjmax : ℕ}
+    (hEq : InputEquivalent input₁ input₂)
+    (hMax : JustificationMax input₁ F Jmax hjmax) :
+    JustificationMax input₂ F Jmax hjmax := by
+  refine ⟨hEq.justificationCandidate hMax.1, ?_⟩
+  intro J h hCand
+  exact hMax.2 J h
+    ((InputEquivalent.symm hEq).justificationCandidate hCand)
+
+lemma InputEquivalent.liveSummaryMatches
+    {input₁ input₂ : List (StoreEntry n)} {summary : LiveSummary n}
+    (hEq : InputEquivalent input₁ input₂)
+    (hSummary : LiveSummaryMatches input₁ summary) :
+    LiveSummaryMatches input₂ summary := by
+  refine ⟨hEq.finalityMax hSummary.1, ?_⟩
+  exact ⟨hEq.justificationMax hSummary.2.1, hEq.heightMax hSummary.2.2⟩
+
 theorem parentFirstReplay_justification_eq_justificationMax
     {input : List (StoreEntry n)} {S : Store n}
     {Fmax Jmax : Block n} {hjmax : ℕ}
@@ -1535,15 +1671,18 @@ theorem liveComplete_of_replay_components
 
 /-! ## Live Completeness Combination -/
 
-private lemma liveComplete_matching_forward
-    {input : List (StoreEntry n)} {summary : LiveSummary n}
+private lemma liveComplete_matching_forward_of_input
+    {inputS inputT : List (StoreEntry n)} {summary : LiveSummary n}
     {S T : Store n}
-    (hS : LiveComplete input summary S)
-    (hT : LiveComplete input summary T)
+    (hInput : ∀ e : StoreEntry n, HasInputEntry inputS e → HasInputEntry inputT e)
+    (hS : LiveComplete inputS summary S)
+    (hT : LiveComplete inputT summary T)
     {e : StoreEntry n}
     (he : e ∈ S.entries) (hLive : S.F ≼ e.block) :
     HasMatchingEntry S T e := by
-  rcases hS.live_entries_from_input e he hLive with hGenesis | hInput
+  have hInputE : HasInputEntry inputT e :=
+    hInput e (hS.live_entries_from_input e he hLive)
+  rcases hInputE with hGenesis | hEntry
   · rcases reachable_entryAccepted_genesis hT.reachable with
       ⟨eT, heT, hBlockT, hHeightT⟩
     refine ⟨eT, heT, ?_, ?_⟩
@@ -1552,7 +1691,7 @@ private lemma liveComplete_matching_forward
         exact StoreEntry.height_eq_of_block_eq (by
           simpa [StoreEntry.genesis, hGenesis])
       rw [hHeightT, hHeightE]
-  · rcases hInput with ⟨a, ha, hBlockA, hHeightA⟩
+  · rcases hEntry with ⟨a, ha, hBlockA, hHeightA⟩
     have hLiveA : summary.F ≼ a.block := by
       rw [hBlockA]
       simpa [hS.F_eq] using hLive
@@ -1574,9 +1713,29 @@ theorem liveEquivalent_of_liveComplete
   hj_eq := hS.hj_eq.trans hT.hj_eq.symm
   hmax_eq := hS.hmax_eq.trans hT.hmax_eq.symm
   live_entries_forward := fun e he hLive =>
-    liveComplete_matching_forward hS hT (e := e) he hLive
+    liveComplete_matching_forward_of_input (fun _ h => h) hS hT (e := e) he hLive
   live_entries_backward := fun e he hLive =>
-    liveComplete_matching_forward hT hS (e := e) he hLive
+    liveComplete_matching_forward_of_input (fun _ h => h) hT hS (e := e) he hLive
+
+/-- Live completeness over equivalent input sets is enough for live
+    equivalence, allowing two different parent-first replay orders. -/
+theorem liveEquivalent_of_liveComplete_inputEquivalent
+    {inputS inputT : List (StoreEntry n)} {summary : LiveSummary n}
+    {S T : Store n}
+    (hInput : InputEquivalent inputS inputT)
+    (hS : LiveComplete inputS summary S)
+    (hT : LiveComplete inputT summary T) :
+    LiveEquivalent S T where
+  F_eq := hS.F_eq.trans hT.F_eq.symm
+  J_eq := hS.J_eq.trans hT.J_eq.symm
+  hj_eq := hS.hj_eq.trans hT.hj_eq.symm
+  hmax_eq := hS.hmax_eq.trans hT.hmax_eq.symm
+  live_entries_forward := fun e he hLive =>
+    liveComplete_matching_forward_of_input
+      (fun e h => (hInput e).1 h) hS hT (e := e) he hLive
+  live_entries_backward := fun e he hLive =>
+    liveComplete_matching_forward_of_input
+      (fun e h => (hInput e).2 h) hT hS (e := e) he hLive
 
 /-- Shared live completeness is enough to make executable confirmed-output
     membership order-independent. -/
@@ -1588,6 +1747,80 @@ theorem liveComplete_getConfirmed
     B ∈ S.getConfirmed ↔ B ∈ T.getConfirmed := by
   exact liveEquivalent_getConfirmed hS.reachable hT.reachable
     (liveEquivalent_of_liveComplete hS hT)
+
+theorem liveComplete_getConfirmed_inputEquivalent
+    {inputS inputT : List (StoreEntry n)} {summary : LiveSummary n}
+    {S T : Store n} {B : Block n}
+    (hInput : InputEquivalent inputS inputT)
+    (hS : LiveComplete inputS summary S)
+    (hT : LiveComplete inputT summary T) :
+    B ∈ S.getConfirmed ↔ B ∈ T.getConfirmed := by
+  exact liveEquivalent_getConfirmed hS.reachable hT.reachable
+    (liveEquivalent_of_liveComplete_inputEquivalent hInput hS hT)
+
+/-! ## Parent-First Replay Order Independence -/
+
+theorem parentFirstReplay_liveComplete {f : ℕ}
+    (hn : n = 3 * f + 1)
+    (hNoSlash : ¬ @AtLeastFThirdSlashable n f)
+    {input : List (StoreEntry n)} {summary : LiveSummary n} {S : Store n}
+    (hReplay : ReplayEntriesOf input S)
+    (hPF : ParentFirstEntries input)
+    (hNoDup : (input.map StoreEntry.block).Nodup)
+    (hNoGenesis : Block.genesis ∉ input.map StoreEntry.block)
+    (hInputId : InputIdInjective input)
+    (hSummary : LiveSummaryMatches input summary) :
+    LiveComplete input summary S := by
+  have hFMax : FinalityMax input summary.F := hSummary.1
+  have hJMax : JustificationMax input summary.F summary.J summary.hj :=
+    hSummary.2.1
+  have hHMax : HeightMax input summary.hmax := hSummary.2.2
+  have hF : S.F = summary.F :=
+    parentFirstReplay_F_eq_finalityMax hn hNoSlash hReplay hPF
+      hNoDup hNoGenesis hInputId hFMax
+  have hJHj : S.J = summary.J ∧ S.hj = summary.hj :=
+    parentFirstReplay_justification_eq_justificationMax
+      hReplay hPF hNoDup hNoGenesis hInputId hFMax hF hJMax
+  have hHmax : S.hmax = summary.hmax :=
+    parentFirstReplay_hmax_eq_heightMax hn hNoSlash hReplay hPF
+      hNoDup hNoGenesis hInputId hFMax hHMax
+  have hAccepted :
+      ∀ e : StoreEntry n, e ∈ input → summary.F ≼ e.block →
+        EntryAcceptedIn S e := by
+    intro e he hLive
+    have hRel : RelevantToFinal S.F e.block := by
+      left
+      simpa [hF] using hLive
+    exact parentFirstReplay_accepts_relevant_input hReplay hPF e he hRel
+  exact liveComplete_of_replay_components hReplay hF hJHj.1 hJHj.2 hHmax hAccepted
+
+theorem parentFirstReplay_getConfirmed_order_independent {f : ℕ}
+    (hn : n = 3 * f + 1)
+    (hNoSlash : ¬ @AtLeastFThirdSlashable n f)
+    {input₁ input₂ : List (StoreEntry n)} {summary : LiveSummary n}
+    {S T : Store n} {B : Block n}
+    (hReplayS : ReplayEntriesOf input₁ S)
+    (hReplayT : ReplayEntriesOf input₂ T)
+    (hPFS : ParentFirstEntries input₁)
+    (hPFT : ParentFirstEntries input₂)
+    (hNoDupS : (input₁.map StoreEntry.block).Nodup)
+    (hNoDupT : (input₂.map StoreEntry.block).Nodup)
+    (hNoGenesisS : Block.genesis ∉ input₁.map StoreEntry.block)
+    (hNoGenesisT : Block.genesis ∉ input₂.map StoreEntry.block)
+    (hInputIdS : InputIdInjective input₁)
+    (hInputIdT : InputIdInjective input₂)
+    (hInputEq : InputEquivalent input₁ input₂)
+    (hSummaryS : LiveSummaryMatches input₁ summary) :
+    B ∈ S.getConfirmed ↔ B ∈ T.getConfirmed := by
+  have hLiveS : LiveComplete input₁ summary S :=
+    parentFirstReplay_liveComplete hn hNoSlash hReplayS hPFS hNoDupS
+      hNoGenesisS hInputIdS hSummaryS
+  have hSummaryT : LiveSummaryMatches input₂ summary :=
+    hInputEq.liveSummaryMatches hSummaryS
+  have hLiveT : LiveComplete input₂ summary T :=
+    parentFirstReplay_liveComplete hn hNoSlash hReplayT hPFT hNoDupT
+      hNoGenesisT hInputIdT hSummaryT
+  exact liveComplete_getConfirmed_inputEquivalent hInputEq hLiveS hLiveT
 
 end Store
 

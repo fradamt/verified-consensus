@@ -58,15 +58,6 @@ def FinalizedCertificate {n : ℕ} {B : Block n}
 
 /-! ## Slashing aggregate -/
 
-namespace Vote
-
-theorem Slashable.symm {a b : Vote n} (h : Slashable a b) : Slashable b a := by
-  rcases h with ⟨hValidator, hConflict | hConflict⟩
-  · exact ⟨hValidator.symm, Or.inr hConflict⟩
-  · exact ⟨hValidator.symm, Or.inl hConflict⟩
-
-end Vote
-
 /-- A validator is slashable in two concrete histories if each history contains
     one side of a conflicting vote pair by that validator. This is the
     accountability notion used by the public safety statements: the offending
@@ -96,39 +87,5 @@ def IsSlashable (i : Validator n) : Prop :=
     `AtLeastFThirdSlashableBetween` when the offending histories are known. -/
 def AtLeastFThirdSlashable (f : ℕ) : Prop :=
   ∃ S : Finset (Validator n), S.card ≥ f + 1 ∧ ∀ i ∈ S, IsSlashable i
-
-namespace IsSlashableBetween
-
-theorem to_global {B₁ B₂ : Block n} {chain₁ : Chain n B₁}
-    {chain₂ : Chain n B₂} {i : Validator n}
-    (h : IsSlashableBetween chain₁ chain₂ i) : IsSlashable i :=
-  ⟨B₁, chain₁, B₂, chain₂, h⟩
-
-theorem symm {B₁ B₂ : Block n} {chain₁ : Chain n B₁}
-    {chain₂ : Chain n B₂} {i : Validator n}
-    (h : IsSlashableBetween chain₁ chain₂ i) :
-    IsSlashableBetween chain₂ chain₁ i := by
-  rcases h with ⟨a, ha, b, hb, hvalA, hvalB, hSlash⟩
-  exact ⟨b, hb, a, ha, hvalB, hvalA, hSlash.symm⟩
-
-end IsSlashableBetween
-
-namespace AtLeastFThirdSlashableBetween
-
-theorem to_global {B₁ B₂ : Block n} {chain₁ : Chain n B₁}
-    {chain₂ : Chain n B₂} {f : ℕ}
-    (h : AtLeastFThirdSlashableBetween chain₁ chain₂ f) :
-    @AtLeastFThirdSlashable n f := by
-  rcases h with ⟨S, hcard, hS⟩
-  exact ⟨S, hcard, fun i hi => (hS i hi).to_global⟩
-
-theorem symm {B₁ B₂ : Block n} {chain₁ : Chain n B₁}
-    {chain₂ : Chain n B₂} {f : ℕ}
-    (h : AtLeastFThirdSlashableBetween chain₁ chain₂ f) :
-    AtLeastFThirdSlashableBetween chain₂ chain₁ f := by
-  rcases h with ⟨S, hcard, hS⟩
-  exact ⟨S, hcard, fun i hi => (hS i hi).symm⟩
-
-end AtLeastFThirdSlashableBetween
 
 end DecoupledConsensus

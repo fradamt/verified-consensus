@@ -127,10 +127,6 @@ def IsLeaf (S : Store n) (B : Block n) : Prop :=
 def HasHeightAtLeast (S : Store n) (B : Block n) (k : ℕ) : Prop :=
   ∃ e ∈ S.entries, e.block = B ∧ k ≤ e.height
 
-/-- Executable viable leaf test. -/
-def isViableLeafEntryBool (S : Store n) (e : StoreEntry n) : Bool :=
-  S.isLeafBool e.block && decide (S.heightThreshold ≤ e.height)
-
 /-- Executable viable-tree membership.
 
 For valid stores this is equivalent to the leaf-witness characterization in

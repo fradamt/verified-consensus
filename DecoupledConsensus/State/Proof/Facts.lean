@@ -58,6 +58,49 @@ lemma quorum_intersection_f {f : ℕ} (hn : n = 3 * f + 1)
   unfold IsQuorum at hQ hQ'
   omega
 
+namespace Vote
+
+theorem Slashable.symm {a b : Vote n} (h : Slashable a b) : Slashable b a := by
+  rcases h with ⟨hValidator, hConflict | hConflict⟩
+  · exact ⟨hValidator.symm, Or.inr hConflict⟩
+  · exact ⟨hValidator.symm, Or.inl hConflict⟩
+
+end Vote
+
+namespace IsSlashableBetween
+
+theorem to_global {B₁ B₂ : Block n} {chain₁ : Chain n B₁}
+    {chain₂ : Chain n B₂} {i : Validator n}
+    (h : IsSlashableBetween chain₁ chain₂ i) : IsSlashable i :=
+  ⟨B₁, chain₁, B₂, chain₂, h⟩
+
+theorem symm {B₁ B₂ : Block n} {chain₁ : Chain n B₁}
+    {chain₂ : Chain n B₂} {i : Validator n}
+    (h : IsSlashableBetween chain₁ chain₂ i) :
+    IsSlashableBetween chain₂ chain₁ i := by
+  rcases h with ⟨a, ha, b, hb, hvalA, hvalB, hSlash⟩
+  exact ⟨b, hb, a, ha, hvalB, hvalA, hSlash.symm⟩
+
+end IsSlashableBetween
+
+namespace AtLeastFThirdSlashableBetween
+
+theorem to_global {B₁ B₂ : Block n} {chain₁ : Chain n B₁}
+    {chain₂ : Chain n B₂} {f : ℕ}
+    (h : AtLeastFThirdSlashableBetween chain₁ chain₂ f) :
+    @AtLeastFThirdSlashable n f := by
+  rcases h with ⟨S, hcard, hS⟩
+  exact ⟨S, hcard, fun i hi => (hS i hi).to_global⟩
+
+theorem symm {B₁ B₂ : Block n} {chain₁ : Chain n B₁}
+    {chain₂ : Chain n B₂} {f : ℕ}
+    (h : AtLeastFThirdSlashableBetween chain₁ chain₂ f) :
+    AtLeastFThirdSlashableBetween chain₂ chain₁ f := by
+  rcases h with ⟨S, hcard, hS⟩
+  exact ⟨S, hcard, fun i hi => (hS i hi).symm⟩
+
+end AtLeastFThirdSlashableBetween
+
 namespace Block
 
 /-- A successful lookup returns a block whose id is the queried id. This does

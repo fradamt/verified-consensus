@@ -2136,6 +2136,59 @@ theorem parentFirstReplay_liveComplete {f : ℕ}
     exact parentFirstReplay_accepts_relevant_input hReplay hPF e he hRel
   exact liveComplete_of_replay_components hReplay hF hJHj.1 hJHj.2 hHmax hAccepted
 
+theorem parentFirstReplay_liveEquivalent_order_independent_of_summary {f : ℕ}
+    (hn : n = 3 * f + 1)
+    (hNoSlash : ¬ @AtLeastFThirdSlashable n f)
+    {input₁ input₂ : List (StoreEntry n)} {summary : LiveSummary n}
+    {S T : Store n}
+    (hReplayS : ReplayEntriesOf input₁ S)
+    (hReplayT : ReplayEntriesOf input₂ T)
+    (hPFS : ParentFirstEntries input₁)
+    (hPFT : ParentFirstEntries input₂)
+    (hNoDupS : (input₁.map StoreEntry.block).Nodup)
+    (hNoDupT : (input₂.map StoreEntry.block).Nodup)
+    (hNoGenesisS : Block.genesis ∉ input₁.map StoreEntry.block)
+    (hNoGenesisT : Block.genesis ∉ input₂.map StoreEntry.block)
+    (hInputIdS : InputIdInjective input₁)
+    (hInputEq : InputEquivalent input₁ input₂)
+    (hSummaryS : LiveSummaryMatches input₁ summary) :
+    LiveEquivalent S T := by
+  have hLiveS : LiveComplete input₁ summary S :=
+    parentFirstReplay_liveComplete hn hNoSlash hReplayS hPFS hNoDupS
+      hNoGenesisS hInputIdS hSummaryS
+  have hSummaryT : LiveSummaryMatches input₂ summary :=
+    hInputEq.liveSummaryMatches hSummaryS
+  have hInputIdT : InputIdInjective input₂ :=
+    hInputEq.inputIdInjective hInputIdS
+  have hLiveT : LiveComplete input₂ summary T :=
+    parentFirstReplay_liveComplete hn hNoSlash hReplayT hPFT hNoDupT
+      hNoGenesisT hInputIdT hSummaryT
+  exact liveEquivalent_of_liveComplete_inputEquivalent hInputEq hLiveS hLiveT
+
+theorem parentFirstReplay_liveEquivalent_order_independent {f : ℕ}
+    (hn : n = 3 * f + 1)
+    (hNoSlash : ¬ @AtLeastFThirdSlashable n f)
+    {input₁ input₂ : List (StoreEntry n)}
+    {S T : Store n}
+    (hReplayS : ReplayEntriesOf input₁ S)
+    (hReplayT : ReplayEntriesOf input₂ T)
+    (hPFS : ParentFirstEntries input₁)
+    (hPFT : ParentFirstEntries input₂)
+    (hNoDupS : (input₁.map StoreEntry.block).Nodup)
+    (hNoDupT : (input₂.map StoreEntry.block).Nodup)
+    (hNoGenesisS : Block.genesis ∉ input₁.map StoreEntry.block)
+    (hNoGenesisT : Block.genesis ∉ input₂.map StoreEntry.block)
+    (hInputIdS : InputIdInjective input₁)
+    (hInputBlockEq : InputBlockEquivalent input₁ input₂) :
+    LiveEquivalent S T := by
+  have hInputEq : InputEquivalent input₁ input₂ :=
+    hInputBlockEq.inputEquivalent
+  obtain ⟨summary, hSummary⟩ :=
+    liveSummaryMatches_exists hn hNoSlash hInputIdS
+  exact parentFirstReplay_liveEquivalent_order_independent_of_summary hn hNoSlash
+    hReplayS hReplayT hPFS hPFT hNoDupS hNoDupT hNoGenesisS hNoGenesisT
+    hInputIdS hInputEq hSummary
+
 theorem parentFirstReplay_getConfirmed_order_independent_of_summary {f : ℕ}
     (hn : n = 3 * f + 1)
     (hNoSlash : ¬ @AtLeastFThirdSlashable n f)
@@ -2153,17 +2206,11 @@ theorem parentFirstReplay_getConfirmed_order_independent_of_summary {f : ℕ}
     (hInputEq : InputEquivalent input₁ input₂)
     (hSummaryS : LiveSummaryMatches input₁ summary) :
     B ∈ S.getConfirmed ↔ B ∈ T.getConfirmed := by
-  have hLiveS : LiveComplete input₁ summary S :=
-    parentFirstReplay_liveComplete hn hNoSlash hReplayS hPFS hNoDupS
-      hNoGenesisS hInputIdS hSummaryS
-  have hSummaryT : LiveSummaryMatches input₂ summary :=
-    hInputEq.liveSummaryMatches hSummaryS
-  have hInputIdT : InputIdInjective input₂ :=
-    hInputEq.inputIdInjective hInputIdS
-  have hLiveT : LiveComplete input₂ summary T :=
-    parentFirstReplay_liveComplete hn hNoSlash hReplayT hPFT hNoDupT
-      hNoGenesisT hInputIdT hSummaryT
-  exact liveComplete_getConfirmed_inputEquivalent hInputEq hLiveS hLiveT
+  have hEq : LiveEquivalent S T :=
+    parentFirstReplay_liveEquivalent_order_independent_of_summary hn hNoSlash
+      hReplayS hReplayT hPFS hPFT hNoDupS hNoDupT hNoGenesisS hNoGenesisT
+      hInputIdS hInputEq hSummaryS
+  exact liveEquivalent_getConfirmed hReplayS.reachable hReplayT.reachable hEq
 
 theorem parentFirstReplay_getConfirmed_order_independent {f : ℕ}
     (hn : n = 3 * f + 1)
@@ -2181,13 +2228,11 @@ theorem parentFirstReplay_getConfirmed_order_independent {f : ℕ}
     (hInputIdS : InputIdInjective input₁)
     (hInputBlockEq : InputBlockEquivalent input₁ input₂) :
     B ∈ S.getConfirmed ↔ B ∈ T.getConfirmed := by
-  have hInputEq : InputEquivalent input₁ input₂ :=
-    hInputBlockEq.inputEquivalent
-  obtain ⟨summary, hSummary⟩ :=
-    liveSummaryMatches_exists hn hNoSlash hInputIdS
-  exact parentFirstReplay_getConfirmed_order_independent_of_summary hn hNoSlash
-    hReplayS hReplayT hPFS hPFT hNoDupS hNoDupT hNoGenesisS hNoGenesisT
-    hInputIdS hInputEq hSummary
+  have hEq : LiveEquivalent S T :=
+    parentFirstReplay_liveEquivalent_order_independent hn hNoSlash
+      hReplayS hReplayT hPFS hPFT hNoDupS hNoDupT hNoGenesisS hNoGenesisT
+      hInputIdS hInputBlockEq
+  exact liveEquivalent_getConfirmed hReplayS.reachable hReplayT.reachable hEq
 
 end Store
 

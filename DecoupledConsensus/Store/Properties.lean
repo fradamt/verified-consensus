@@ -468,6 +468,26 @@ def ParentFirstReplayLiveCompleteStatement (n f : ℕ) : Prop :=
           LiveSummaryMatches input summary →
           LiveComplete input summary S
 
+/-- Observable order independence for the live store view: two parent-first
+    replays of the same block set agree on `F`, `J`, `hj`, `hmax`, and on the
+    accepted subtree rooted at finality. They may still differ outside that
+    subtree. -/
+def ParentFirstReplayLiveEquivalentStatement (n f : ℕ) : Prop :=
+  n = 3 * f + 1 →
+    ¬ @AtLeastFThirdSlashable n f →
+      ∀ {input₁ input₂ : List (StoreEntry n)} {S T : Store n},
+        ReplayEntriesOf input₁ S →
+          ReplayEntriesOf input₂ T →
+          ParentFirstEntries input₁ →
+          ParentFirstEntries input₂ →
+          (input₁.map StoreEntry.block).Nodup →
+          (input₂.map StoreEntry.block).Nodup →
+          Block.genesis ∉ input₁.map StoreEntry.block →
+          Block.genesis ∉ input₂.map StoreEntry.block →
+          InputIdInjective input₁ →
+          InputBlockEquivalent input₁ input₂ →
+          LiveEquivalent S T
+
 /-- Observable order independence for two parent-first replays of equivalent
     input sets. The raw stores may differ outside the finalized subtree; the
     executable `getConfirmed` set does not. -/

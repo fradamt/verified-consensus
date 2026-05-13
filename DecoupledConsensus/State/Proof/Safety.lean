@@ -83,14 +83,14 @@ private lemma idInjectiveOnAncestors_sym {B₁ B₂ : Block n}
 
     The hash/no-collision assumption is scoped to ancestors of the two chain
     tips involved in this comparison. -/
-lemma main_safety {f : ℕ} (hn : n = 3 * f + 1)
+lemma main_safety_between {f : ℕ} (hn : n = 3 * f + 1)
     {B₁ B₂ C : Block n} {h_f : ℕ}
     (hId : Block.IdInjectiveOnAncestors B₁ B₂)
     (chain₁ : Chain n B₁) {hC₁ : C ≼ B₁}
     (_hF₁ : (stateOf chain₁).F = C)
     (hCert₁ : FinalizedCertificate chain₁ C h_f hC₁)
     (chain₂ : Chain n B₂) (hHeight : (stateOf chain₂).h > h_f) :
-    @AtLeastFThirdSlashable n f ∨ C ≼ B₂ := by
+    AtLeastFThirdSlashableBetween chain₁ chain₂ f ∨ C ≼ B₂ := by
   by_cases h_hf_zero : h_f = 0
   · subst h_hf_zero
     have hC_genesis : C = Block.genesis := by
@@ -132,15 +132,29 @@ lemma main_safety {f : ℕ} (hn : n = 3 * f + 1)
         rw [hTC_block] at hT_anc
         exact h_conclusion (hT_anc.trans hB_star)
     have hVal_eq : v_a.validator = v_b.validator := by rw [hv_a_val, hv_b_val]
-    refine ⟨B₂, chain₂, B₁, chain₁, v_a, hv_a_mem, v_b, hv_b_mem,
-      hv_a_val, hv_b_val, ?_⟩
-    refine ⟨hVal_eq, Or.inl ?_⟩
+    refine ⟨v_b, hv_b_mem, v_a, hv_a_mem, hv_b_val, hv_a_val, ?_⟩
+    refine ⟨hVal_eq.symm, Or.inr ?_⟩
     refine ⟨h_f, C.id, hv_b_fin, ?_, hv_a_neq⟩
     exact hv_a_height
 
+/-- Legacy unscoped main-safety wrapper. Prefer `main_safety_between` when the
+    offending histories should be exposed in the conclusion. -/
+lemma main_safety {f : ℕ} (hn : n = 3 * f + 1)
+    {B₁ B₂ C : Block n} {h_f : ℕ}
+    (hId : Block.IdInjectiveOnAncestors B₁ B₂)
+    (chain₁ : Chain n B₁) {hC₁ : C ≼ B₁}
+    (hF₁ : (stateOf chain₁).F = C)
+    (hCert₁ : FinalizedCertificate chain₁ C h_f hC₁)
+    (chain₂ : Chain n B₂) (hHeight : (stateOf chain₂).h > h_f) :
+    @AtLeastFThirdSlashable n f ∨ C ≼ B₂ := by
+  rcases main_safety_between hn hId chain₁ hF₁ hCert₁ chain₂ hHeight with
+    hSlash | hAnc
+  · exact Or.inl hSlash.to_global
+  · exact Or.inr hAnc
+
 /-! ### Finalized blocks form a chain — using explicit witnesses. -/
 
-private lemma finalized_chain_lt {f : ℕ} (hn : n = 3 * f + 1)
+private lemma finalized_chain_lt_between {f : ℕ} (hn : n = 3 * f + 1)
     {B₁ B₂ C C' : Block n} {h_f h_f' : ℕ}
     (hId : Block.IdInjectiveOnAncestors B₁ B₂)
     (chain₁ : Chain n B₁) {hC₁ : C ≼ B₁}
@@ -150,7 +164,7 @@ private lemma finalized_chain_lt {f : ℕ} (hn : n = 3 * f + 1)
     (_hF₂ : (stateOf chain₂).F = C')
     (hCert₂ : FinalizedCertificate chain₂ C' h_f' hC₂)
     (h_lt : h_f < h_f') :
-    @AtLeastFThirdSlashable n f ∨ C ≼ C' := by
+    AtLeastFThirdSlashableBetween chain₁ chain₂ f ∨ C ≼ C' := by
   by_cases h_hf_zero : h_f = 0
   · have hCert₁0 : FinalizedCertificate chain₁ C 0 hC₁ := by
       simpa [h_hf_zero] using hCert₁
@@ -160,7 +174,8 @@ private lemma finalized_chain_lt {f : ℕ} (hn : n = 3 * f + 1)
   have h_state_gt : (stateOf chain₂).h > h_f := by
     have h_chain_gt := finalized_chain_height_gt h_hf'_ne hCert₂
     omega
-  rcases main_safety hn hId chain₁ hF₁ hCert₁ chain₂ h_state_gt with hSlash | hC_anc
+  rcases main_safety_between hn hId chain₁ hF₁ hCert₁ chain₂ h_state_gt with
+      hSlash | hC_anc
   · exact Or.inl hSlash
   rcases Block.Ancestor.linear hC_anc hC₂ with h_CC' | h_C'C
   · exact Or.inr h_CC'
@@ -191,7 +206,7 @@ private lemma finalized_chain_lt {f : ℕ} (hn : n = 3 * f + 1)
         exact hSubLe'
       omega
 
-private lemma finalized_chain_eq {f : ℕ} (hn : n = 3 * f + 1)
+private lemma finalized_chain_eq_between {f : ℕ} (hn : n = 3 * f + 1)
     {B₁ B₂ C C' : Block n} {h_f : ℕ}
     (hId : Block.IdInjectiveOnAncestors B₁ B₂)
     (chain₁ : Chain n B₁) {hC₁ : C ≼ B₁}
@@ -200,7 +215,7 @@ private lemma finalized_chain_eq {f : ℕ} (hn : n = 3 * f + 1)
     (chain₂ : Chain n B₂) {hC₂ : C' ≼ B₂}
     (_hF₂ : (stateOf chain₂).F = C')
     (hCert₂ : FinalizedCertificate chain₂ C' h_f hC₂) :
-    @AtLeastFThirdSlashable n f ∨ C ≼ C' := by
+    AtLeastFThirdSlashableBetween chain₁ chain₂ f ∨ C ≼ C' := by
   by_cases h_hf_zero : h_f = 0
   · subst h_hf_zero
     have hC_genesis : C = Block.genesis := finalized_zero_eq_genesis hCert₁
@@ -230,9 +245,8 @@ private lemma finalized_chain_eq {f : ℕ} (hn : n = 3 * f + 1)
     obtain ⟨v_J, hv_J_mem, hv_J_val, hv_J_target, hv_J_height⟩ :=
       hQ_just_C'_votes i hi_Qj
     have hVal_eq : v_J.validator = v_F.validator := by rw [hv_J_val, hv_F_val]
-    refine ⟨B₂, chain₂, B₁, chain₁, v_J, hv_J_mem, v_F, hv_F_mem,
-      hv_J_val, hv_F_val, ?_⟩
-    refine ⟨hVal_eq, Or.inl ?_⟩
+    refine ⟨v_F, hv_F_mem, v_J, hv_J_mem, hv_F_val, hv_J_val, ?_⟩
+    refine ⟨hVal_eq.symm, Or.inr ?_⟩
     refine ⟨h_f, C.id, hv_F_fin, ?_, ?_⟩
     · exact hv_J_height
     · rw [hv_J_target]
@@ -243,6 +257,25 @@ private lemma finalized_chain_eq {f : ℕ} (hn : n = 3 * f + 1)
 /-- **Finalized blocks form a chain**. Any two finalized
     checkpoints `(C, h_f)` and `(C', h_f')` with `h_f ≤ h_f'` are ordered
     as `C ≼ C'` (or at least `f + 1` validators are slashable). -/
+lemma finalized_chain_between {f : ℕ} (hn : n = 3 * f + 1)
+    {B₁ B₂ C C' : Block n} {h_f h_f' : ℕ}
+    (hId : Block.IdInjectiveOnAncestors B₁ B₂)
+    (chain₁ : Chain n B₁) {hC₁ : C ≼ B₁}
+    (hF₁ : (stateOf chain₁).F = C)
+    (hCert₁ : FinalizedCertificate chain₁ C h_f hC₁)
+    (chain₂ : Chain n B₂) {hC₂ : C' ≼ B₂}
+    (hF₂ : (stateOf chain₂).F = C')
+    (hCert₂ : FinalizedCertificate chain₂ C' h_f' hC₂)
+    (hLE : h_f ≤ h_f') :
+    AtLeastFThirdSlashableBetween chain₁ chain₂ f ∨ C ≼ C' := by
+  rcases (Nat.lt_or_ge h_f h_f') with h_lt | h_ge
+  · exact finalized_chain_lt_between hn hId chain₁ hF₁ hCert₁ chain₂ hF₂ hCert₂ h_lt
+  · have hEq : h_f = h_f' := le_antisymm hLE h_ge
+    subst h_f'
+    exact finalized_chain_eq_between hn hId chain₁ hF₁ hCert₁ chain₂ hF₂ hCert₂
+
+/-- Legacy unscoped finalized-chain wrapper. Prefer
+    `finalized_chain_between` for accountability-facing statements. -/
 lemma finalized_chain {f : ℕ} (hn : n = 3 * f + 1)
     {B₁ B₂ C C' : Block n} {h_f h_f' : ℕ}
     (hId : Block.IdInjectiveOnAncestors B₁ B₂)
@@ -254,11 +287,10 @@ lemma finalized_chain {f : ℕ} (hn : n = 3 * f + 1)
     (hCert₂ : FinalizedCertificate chain₂ C' h_f' hC₂)
     (hLE : h_f ≤ h_f') :
     @AtLeastFThirdSlashable n f ∨ C ≼ C' := by
-  rcases (Nat.lt_or_ge h_f h_f') with h_lt | h_ge
-  · exact finalized_chain_lt hn hId chain₁ hF₁ hCert₁ chain₂ hF₂ hCert₂ h_lt
-  · have hEq : h_f = h_f' := le_antisymm hLE h_ge
-    subst h_f'
-    exact finalized_chain_eq hn hId chain₁ hF₁ hCert₁ chain₂ hF₂ hCert₂
+  rcases finalized_chain_between hn hId chain₁ hF₁ hCert₁ chain₂ hF₂ hCert₂ hLE with
+    hSlash | hAnc
+  · exact Or.inl hSlash.to_global
+  · exact Or.inr hAnc
 
 /-- **Accountable safety**. No two conflicting blocks can be
     finalized — unless at least `f + 1` validators are provably slashable
@@ -268,6 +300,29 @@ lemma finalized_chain {f : ℕ} (hn : n = 3 * f + 1)
     that witness the finalization events. This models collision-free hashes
     only for the protocol histories under consideration, not for arbitrary raw
     `Block` syntax. -/
+theorem accountable_safety_between {f : ℕ} (hn : n = 3 * f + 1)
+    {B₁ B₂ C C' : Block n} {h_f h_f' : ℕ}
+    (hId : Block.IdInjectiveOnAncestors B₁ B₂)
+    (chain₁ : Chain n B₁) {hC₁ : C ≼ B₁}
+    (hF₁ : (stateOf chain₁).F = C)
+    (hCert₁ : FinalizedCertificate chain₁ C h_f hC₁)
+    (chain₂ : Chain n B₂) {hC₂ : C' ≼ B₂}
+    (hF₂ : (stateOf chain₂).F = C')
+    (hCert₂ : FinalizedCertificate chain₂ C' h_f' hC₂) :
+    AtLeastFThirdSlashableBetween chain₁ chain₂ f ∨ C ~ C' := by
+  by_cases h : h_f ≤ h_f'
+  · rcases finalized_chain_between hn hId chain₁ hF₁ hCert₁ chain₂ hF₂ hCert₂ h with
+      hslash | hcompat
+    · exact Or.inl hslash
+    · exact Or.inr (Or.inl hcompat)
+  · have h' : h_f' ≤ h_f := Nat.le_of_lt (Nat.lt_of_not_le h)
+    rcases finalized_chain_between hn (idInjectiveOnAncestors_sym hId)
+        chain₂ hF₂ hCert₂ chain₁ hF₁ hCert₁ h' with hslash | hcompat
+    · exact Or.inl hslash.symm
+    · exact Or.inr (Or.inr hcompat)
+
+/-- Legacy unscoped accountable-safety wrapper. Prefer
+    `accountable_safety_between` for accountability-facing statements. -/
 theorem accountable_safety {f : ℕ} (hn : n = 3 * f + 1)
     {B₁ B₂ C C' : Block n} {h_f h_f' : ℕ}
     (hId : Block.IdInjectiveOnAncestors B₁ B₂)
@@ -278,16 +333,10 @@ theorem accountable_safety {f : ℕ} (hn : n = 3 * f + 1)
     (hF₂ : (stateOf chain₂).F = C')
     (hCert₂ : FinalizedCertificate chain₂ C' h_f' hC₂) :
     @AtLeastFThirdSlashable n f ∨ C ~ C' := by
-  by_cases h : h_f ≤ h_f'
-  · rcases finalized_chain hn hId chain₁ hF₁ hCert₁ chain₂ hF₂ hCert₂ h with
-      hslash | hcompat
-    · exact Or.inl hslash
-    · exact Or.inr (Or.inl hcompat)
-  · have h' : h_f' ≤ h_f := Nat.le_of_lt (Nat.lt_of_not_le h)
-    rcases finalized_chain hn (idInjectiveOnAncestors_sym hId)
-        chain₂ hF₂ hCert₂ chain₁ hF₁ hCert₁ h' with hslash | hcompat
-    · exact Or.inl hslash
-    · exact Or.inr (Or.inr hcompat)
+  rcases accountable_safety_between hn hId chain₁ hF₁ hCert₁ chain₂ hF₂ hCert₂ with
+    hSlash | hCompat
+  · exact Or.inl hSlash.to_global
+  · exact Or.inr hCompat
 
 
 end DecoupledConsensus

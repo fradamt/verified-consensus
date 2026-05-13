@@ -18,14 +18,19 @@ namespace State
 
 /-! ## Finality Vocabulary -/
 
-/-- Tip-scoped finalization evidence used by the public safety statements.
-    `IsFinalized C h_f B` says that some valid chain with tip `B` has `C` as
-    an ancestor, records `F = C` at the tip state, and carries a finalization
-    certificate for `(C, h_f)`. -/
-def IsFinalized (C : Block n) (h_f : ℕ) (B : Block n) : Prop :=
-  ∃ chain : Chain n B, ∃ hC : C ≼ B,
+/-- Chain-scoped finalization evidence. This is the preferred public predicate
+    for accountability statements because it keeps the offending history
+    available for slashable-witness extraction. -/
+def IsFinalizedOn {B : Block n} (chain : Chain n B)
+    (C : Block n) (h_f : ℕ) : Prop :=
+  ∃ hC : C ≼ B,
     (stateOf chain).F = C ∧
       FinalizedCertificate chain C h_f hC
+
+/-- Tip-scoped finalization evidence, retaining the old existential surface for
+    callers that do not need the witnessing history. -/
+def IsFinalized (C : Block n) (h_f : ℕ) (B : Block n) : Prop :=
+  ∃ chain : Chain n B, IsFinalizedOn chain C h_f
 
 /-! ## Accountable-Safety Statements -/
 
@@ -39,10 +44,11 @@ def MainSafetyStatement (n f : ℕ) : Prop :=
   n = 3 * f + 1 →
     ∀ {B₁ B₂ C : Block n} {h_f : ℕ},
       Block.IdInjectiveOnAncestors B₁ B₂ →
-        IsFinalized C h_f B₁ →
+        (chain₁ : Chain n B₁) →
+          IsFinalizedOn chain₁ C h_f →
           (chain₂ : Chain n B₂) →
             (stateOf chain₂).h > h_f →
-              @AtLeastFThirdSlashable n f ∨ C ≼ B₂
+              AtLeastFThirdSlashableBetween chain₁ chain₂ f ∨ C ≼ B₂
 
 /-- **Finalized blocks form a chain**. Any two finalized
     checkpoints `(C, h_f)` and `(C', h_f')` with `h_f ≤ h_f'` are ordered as
@@ -54,10 +60,12 @@ def FinalizedBlocksFormChainStatement (n f : ℕ) : Prop :=
   n = 3 * f + 1 →
     ∀ {B₁ B₂ C C' : Block n} {h_f h_f' : ℕ},
       Block.IdInjectiveOnAncestors B₁ B₂ →
-        IsFinalized C h_f B₁ →
-          IsFinalized C' h_f' B₂ →
+        (chain₁ : Chain n B₁) →
+          IsFinalizedOn chain₁ C h_f →
+          (chain₂ : Chain n B₂) →
+            IsFinalizedOn chain₂ C' h_f' →
             h_f ≤ h_f' →
-              @AtLeastFThirdSlashable n f ∨ C ≼ C'
+              AtLeastFThirdSlashableBetween chain₁ chain₂ f ∨ C ≼ C'
 
 /-- **Accountable safety**. No two conflicting blocks
     can both be finalized unless at least `f + 1` validators are slashable.
@@ -68,9 +76,11 @@ def AccountableSafetyStatement (n f : ℕ) : Prop :=
   n = 3 * f + 1 →
     ∀ {B₁ B₂ C C' : Block n} {h_f h_f' : ℕ},
       Block.IdInjectiveOnAncestors B₁ B₂ →
-        IsFinalized C h_f B₁ →
-          IsFinalized C' h_f' B₂ →
-            @AtLeastFThirdSlashable n f ∨ C ~ C'
+        (chain₁ : Chain n B₁) →
+          IsFinalizedOn chain₁ C h_f →
+          (chain₂ : Chain n B₂) →
+            IsFinalizedOn chain₂ C' h_f' →
+            AtLeastFThirdSlashableBetween chain₁ chain₂ f ∨ C ~ C'
 
 end State
 

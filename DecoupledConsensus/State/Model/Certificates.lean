@@ -58,20 +58,77 @@ def FinalizedCertificate {n : ℕ} {B : Block n}
 
 /-! ## Slashing aggregate -/
 
-/-- A validator is slashable if two conflicting votes with that validator field
-    appear in chain histories. This is the structural accountability conclusion;
-    a concrete signature layer can authenticate the vote payloads externally. -/
-def IsSlashable (i : Validator n) : Prop :=
-  ∃ B₁ : Block n, ∃ chain₁ : Chain n B₁,
-  ∃ B₂ : Block n, ∃ chain₂ : Chain n B₂,
+namespace Vote
+
+theorem Slashable.symm {a b : Vote n} (h : Slashable a b) : Slashable b a := by
+  rcases h with ⟨hValidator, hConflict | hConflict⟩
+  · exact ⟨hValidator.symm, Or.inr hConflict⟩
+  · exact ⟨hValidator.symm, Or.inl hConflict⟩
+
+end Vote
+
+/-- A validator is slashable in two concrete histories if each history contains
+    one side of a conflicting vote pair by that validator. This is the
+    accountability notion used by the public safety statements: the offending
+    histories themselves expose the evidence. -/
+def IsSlashableBetween {B₁ B₂ : Block n}
+    (chain₁ : Chain n B₁) (chain₂ : Chain n B₂)
+    (i : Validator n) : Prop :=
   ∃ a ∈ votesIncluded chain₁, ∃ b ∈ votesIncluded chain₂,
     a.validator = i ∧ b.validator = i ∧ Vote.Slashable a b
 
-/-- "At least `f + 1` slashable validators" — strictly more than the
-    adversary budget `f`, i.e., the safety property is broken accountably.
-    This is the literal `card ≥ f + 1` form under the BFT convention
-    `n = 3 * f + 1`. -/
+/-- "At least `f + 1` validators are slashable between these two histories." -/
+def AtLeastFThirdSlashableBetween {B₁ B₂ : Block n}
+    (chain₁ : Chain n B₁) (chain₂ : Chain n B₂) (f : ℕ) : Prop :=
+  ∃ S : Finset (Validator n), S.card ≥ f + 1 ∧
+    ∀ i ∈ S, IsSlashableBetween chain₁ chain₂ i
+
+/-- Legacy unscoped slashability: useful for older Store statements, but weaker
+    as an accountability conclusion because it does not identify the histories
+    exposing the evidence. Prefer `IsSlashableBetween` for public safety
+    statements. -/
+def IsSlashable (i : Validator n) : Prop :=
+  ∃ B₁ : Block n, ∃ chain₁ : Chain n B₁,
+  ∃ B₂ : Block n, ∃ chain₂ : Chain n B₂,
+    IsSlashableBetween chain₁ chain₂ i
+
+/-- Legacy unscoped aggregate slashability. Prefer
+    `AtLeastFThirdSlashableBetween` when the offending histories are known. -/
 def AtLeastFThirdSlashable (f : ℕ) : Prop :=
   ∃ S : Finset (Validator n), S.card ≥ f + 1 ∧ ∀ i ∈ S, IsSlashable i
+
+namespace IsSlashableBetween
+
+theorem to_global {B₁ B₂ : Block n} {chain₁ : Chain n B₁}
+    {chain₂ : Chain n B₂} {i : Validator n}
+    (h : IsSlashableBetween chain₁ chain₂ i) : IsSlashable i :=
+  ⟨B₁, chain₁, B₂, chain₂, h⟩
+
+theorem symm {B₁ B₂ : Block n} {chain₁ : Chain n B₁}
+    {chain₂ : Chain n B₂} {i : Validator n}
+    (h : IsSlashableBetween chain₁ chain₂ i) :
+    IsSlashableBetween chain₂ chain₁ i := by
+  rcases h with ⟨a, ha, b, hb, hvalA, hvalB, hSlash⟩
+  exact ⟨b, hb, a, ha, hvalB, hvalA, hSlash.symm⟩
+
+end IsSlashableBetween
+
+namespace AtLeastFThirdSlashableBetween
+
+theorem to_global {B₁ B₂ : Block n} {chain₁ : Chain n B₁}
+    {chain₂ : Chain n B₂} {f : ℕ}
+    (h : AtLeastFThirdSlashableBetween chain₁ chain₂ f) :
+    @AtLeastFThirdSlashable n f := by
+  rcases h with ⟨S, hcard, hS⟩
+  exact ⟨S, hcard, fun i hi => (hS i hi).to_global⟩
+
+theorem symm {B₁ B₂ : Block n} {chain₁ : Chain n B₁}
+    {chain₂ : Chain n B₂} {f : ℕ}
+    (h : AtLeastFThirdSlashableBetween chain₁ chain₂ f) :
+    AtLeastFThirdSlashableBetween chain₂ chain₁ f := by
+  rcases h with ⟨S, hcard, hS⟩
+  exact ⟨S, hcard, fun i hi => (hS i hi).symm⟩
+
+end AtLeastFThirdSlashableBetween
 
 end DecoupledConsensus

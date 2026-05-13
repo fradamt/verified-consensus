@@ -4,8 +4,13 @@ Lean formalizations for decoupled-consensus protocol work.
 
 Current contents:
 
-- `DecoupledConsensus/AccountableSafety.lean`: accountable-safety formalization for `height_filter_and_timeouts.tex`.
-- `DecoupledConsensus/AccountableSafety.md`: architectural notes for the formalization.
+- `DecoupledConsensus/State`: Section 2 state-machine model, statements, and
+  accountable-safety proofs.
+- `DecoupledConsensus/Store`: Section 3 store model, statements, and proofs.
+- `DecoupledConsensus/AccountableSafety.lean`: compatibility facade for the
+  Section 2 accountable-safety results.
+- `DecoupledConsensus/AccountableSafety.md`: architectural notes for the
+  formalization.
 
 Build the current formalization with:
 

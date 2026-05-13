@@ -116,7 +116,7 @@ AtLeastFThirdSlashableBetween chain₁ chain₂ f
 
 This means the two offending histories themselves contain the slashable vote
 pairs. The older unscoped `AtLeastFThirdSlashable` remains as a legacy/global
-predicate for store-side assumptions and wrappers.
+predicate for store-side assumptions.
 
 `FinalizedCertificate` is proof/certificate vocabulary. For non-genesis
 finality it records a finalize quorum for `(C, h_f)`, a justify quorum for
@@ -187,4 +187,3 @@ the live view rooted at finality:
 - `FinalizedCertificate` packages height facts as certificate/proof evidence.
   This is not protocol state, but it is still part of the external finality
   predicate surface.
-

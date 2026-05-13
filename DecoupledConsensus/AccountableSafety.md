@@ -1,163 +1,190 @@
-# Accountable Safety — Architectural Notes
+# Decoupled Consensus Lean Architecture
 
-This Lean development formalizes the accountable-safety argument from
-`height_filter_and_timeouts.tex`. It currently builds with zero
-`sorry`s and uses only Lean/mathlib standard axioms.
+This repository formalizes the accountable-safety and store arguments from
+`height_filter_and_timeouts.tex`. The development builds with no `sorry`s and
+uses only Lean/mathlib standard axioms.
 
-The state-machine executable model lives under `DecoupledConsensus/State/Model`,
-while the proof-free statement surface lives in
-`DecoupledConsensus/State/Statements.lean`. State proof facts, invariants, and
-named proof constants live under `DecoupledConsensus/State/Proof`.
-`DecoupledConsensus/State/Properties.lean` is the proved property facade,
-showing which statements have proofs without exposing proof scripts.
-`DecoupledConsensus/AccountableSafety.lean` is the section-2 public facade.
-Section 3 store definitions live under `DecoupledConsensus/Store`.
+## File Layout
 
-## Core Model
+The project is split first by protocol layer, then by model/statements/proofs:
 
-Validators are `Fin n`. The state machine uses the strict quorum predicate
-`IsQuorumStrict n Q := 3 * Q.card ≥ 2 * n + 1`; public safety statements use
-the BFT form `IsQuorum f Q := Q.card ≥ 2 * f + 1`, converted under
-`n = 3 * f + 1`.
+- `DecoupledConsensus/State/Model`: executable Section 2 state-machine model.
+- `DecoupledConsensus/State/Statements.lean`: proof-free public Section 2
+  theorem statements.
+- `DecoupledConsensus/State/Proof`: Section 2 proof internals.
+- `DecoupledConsensus/State/Properties.lean`: proved Section 2 facade.
+- `DecoupledConsensus/Store/Model`: executable Section 3 store model.
+- `DecoupledConsensus/Store/Statements.lean`: proof-free public Section 3
+  theorem statements and specification vocabulary.
+- `DecoupledConsensus/Store/Proof`: Section 3 proof internals.
+- `DecoupledConsensus/Store/Properties.lean`: proved Section 3 facade.
 
-Blocks carry their own id and vote payload:
+Use `DecoupledConsensus.State.Model` or `DecoupledConsensus.Store.Model` when
+only executable definitions are needed. Use `Statements.lean` files to review
+the specification surface without proof scripts. The `Properties.lean` facades
+import proofs because they expose actual theorem constants.
+
+`DecoupledConsensus/AccountableSafety.lean` is the Section 2 public facade.
+`DecoupledConsensus.lean` exports both State and Store facades.
+
+## Blocks, Votes, And Chains
+
+Validators are `Fin n`. Blocks carry explicit ids and embedded vote payloads:
 
 ```lean
-abbrev BlockId := ℕ
+abbrev BlockId := Nat
 
-structure Vote (n : ℕ) where
+structure Vote (n : Nat) where
   validator : Validator n
-  height : ℕ
+  height : Nat
   target : Option BlockId
-  finalize : Option (ℕ × BlockId)
+  finalize : Option (Nat × BlockId)
 
-inductive Block (n : ℕ) where
+inductive Block (n : Nat) where
   | genesis
-  | mk (id : BlockId) (parent : Block n) (slot : ℕ) (votes : List (Vote n))
+  | mk (id : BlockId) (parent : Block n) (slot : Nat) (votes : List (Vote n))
 ```
 
-Votes refer to block ids rather than block values. `Block.findById` resolves
-an id against the current chain head. The safety theorem assumes
-`Block.IdInjectiveOnAncestors B₁ B₂`, modelling collision-free block hashes
-only over the two chain histories under consideration.
+Votes refer to block ids rather than recursively containing blocks.
+`Block.findById` resolves an id against the current chain head. Collision
+freedom is not assumed globally for all raw block syntax; the public safety
+statements assume `Block.IdInjectiveOnAncestors B₁ B₂` only for the compared
+histories.
 
-The finalize commitment is intentionally one optional pair. This avoids
-ill-formed votes that specify a finalize height without a target, or a target
-without a height.
+`Chain n B` is an indexed validity witness for a chain ending at `B`. Its
+`extend` constructor enforces strict slot growth. `stateOf chain` is the
+formal `sigma[B]`; it is computed from the chain, not stored in a separate
+map.
 
-## Chains And State
+## State Machine
 
-`Chain n B` is an indexed inductive witness that `B` is the tip of a valid
-chain. The `extend` constructor enforces strict slot growth. Since votes are
-embedded in blocks, there is no separate `World : Block -> Votes` mapping.
+`State` mirrors the paper tuple:
 
 ```lean
-inductive Chain (n : ℕ) : Block n → Type where
-  | genesis : Chain n Block.genesis
-  | extend {parent : Block n}
-      (c : Chain n parent)
-      (bid : BlockId)
-      (newSlot : ℕ)
-      (votes : List (Vote n))
-      (hSlot : newSlot > parent.slot) :
-      Chain n (Block.mk bid parent newSlot votes)
+(L, s, h, sh, targets, timeouts, J, hj, F, P)
 ```
 
-`stateOf : Chain n B -> State n` is the formal `σ[B]`. The per-block
-transition is:
+There is no finalized-height field in protocol state. Finalization height is
+certificate/proof data, not state data.
+
+The per-block transition is executable:
 
 ```lean
-stateTransition σ B =
-  processHeight (processBlock (iterateProcessSlot σ (B.slot - σ.s)) B)
+stateTransition sigma B =
+  processHeight (processBlock (iterateProcessSlot sigma (B.slot - sigma.s)) B)
 ```
 
-`processBlock` sets `L := B` and folds `processVote` over `B.votes`.
-`processHeight` is run before the block state is recorded, so block states are
-height-closed.
+`processSlot` closes empty slots when the current slot has no block on the
+chain, then increments `s`. `stateTransition` closes the block slot after
+`processBlock`, so a block whose votes justify the current height can be a
+target for the next height without forcing an extra block delay.
 
-## Freshness And Id Resolution
+`processVoteCore` updates `targets`/`timeouts` only when the target id resolves
+on the current chain, has `T.slot >= sigma.sh`, and is a strict ancestor of the
+current block (`T.slot < sigma.L.slot`). The finalize `P` gate is intentionally
+separate: a vote with a stale or unresolved target side can still count toward
+`P` if `v.finalize = some (sigma'.hj, sigma'.J.id)`.
 
-`processVoteCore` resolves `v.target : Option BlockId` through `σ.L.findById`.
-A target vote is fresh only if the id resolves on the current chain and the
-resolved block has `T.slot ≥ σ.sh`. A timeout vote (`target = none`) only
-checks the vote height.
+Justification selection is deterministic and executable: `firstJustifiedTarget`
+scans validators in index order and returns the first currently justified
+target.
 
-Finalize updates to `P` use the id form:
+## Section 2 Statement Surface
+
+The public finalization predicate is chain-scoped:
 
 ```lean
-v.finalize = some (σ'.hj, σ'.J.id)
+def State.IsFinalizedOn {B : Block n} (chain : Chain n B)
+    (C : Block n) (h_f : Nat) : Prop
 ```
 
-Unresolved or non-fresh target sides are ignored by `processVoteCore`, so they
-do not enter `targets` or `timeouts`. The finalize gate is intentionally
-separate and independent of target freshness: a vote can affect `P` whenever
-its finalize commitment matches the current `(hj, J.id)` after the core vote
-update.
+There is intentionally no tip-only existential `IsFinalized` wrapper. The
+public accountable-safety statements keep the two witnessing histories in the
+premises because the accountability conclusion is scoped to those histories.
 
-## Finality Predicate
+The three public State statements are:
 
-`State` stores `F : Block n` but no finalized height. The public finality
-predicate records the height as certificate data and scopes the evidence to a
-witnessing chain tip:
-
-```lean
-def IsFinalized (C : Block n) (h_f : ℕ) (B : Block n) : Prop :=
-  ∃ chain : Chain n B, ∃ hC : C ≼ B,
-    (stateOf chain).F = C ∧
-    FinalizedCertificate chain C h_f hC
-```
-
-For non-genesis finality, the certificate contains a finalize quorum for
-`(h_f, C.id)`, a justify quorum for `C.id` at `h_f`, the height-closed fact
-`(stateOf (chain.subchain hC)).h = h_f`, and that the witnessing chain has
-advanced past `h_f`.
-
-## Main Safety Surface
-
-The minimal state-machine review surface is the model plus finalization
-vocabulary and three statements in `DecoupledConsensus/State/Statements.lean`:
-
-- `State.IsFinalized`
 - `State.MainSafetyStatement`
 - `State.FinalizedBlocksFormChainStatement`
 - `State.AccountableSafetyStatement`
 
-All other state lemmas and theorems are proof internals used to discharge those
-statements. `DecoupledConsensus/State/Properties.lean` has the short proved
-facade, for example:
+Their accountability conclusion is:
 
 ```lean
-theorem main_safety_property {f : ℕ} :
-    MainSafetyStatement n f :=
-  proof_main_safety_property
+AtLeastFThirdSlashableBetween chain₁ chain₂ f
 ```
 
-The final statement has the collision-free id premise explicitly, while
-tip-scoped finalization evidence is bundled by `State.IsFinalized`:
+This means the two offending histories themselves contain the slashable vote
+pairs. The older unscoped `AtLeastFThirdSlashable` remains as a legacy/global
+predicate for store-side assumptions and wrappers.
+
+`FinalizedCertificate` is proof/certificate vocabulary. For non-genesis
+finality it records a finalize quorum for `(C, h_f)`, a justify quorum for
+`C.id` at `h_f`, the height-closed fact
+`(stateOf (chain.subchain hC)).h = h_f`, and that the witnessing chain has
+advanced past `h_f`.
+
+## Store Model
+
+`Store` is the executable Section 3 tuple:
 
 ```lean
-def AccountableSafetyStatement (n f : ℕ) : Prop :=
-  n = 3 * f + 1 →
-    ∀ {B₁ B₂ C C' : Block n} {h_f h_f' : ℕ},
-      Block.IdInjectiveOnAncestors B₁ B₂ →
-        State.IsFinalized C h_f B₁ →
-          State.IsFinalized C' h_f' B₂ →
-            AtLeastFThirdSlashable f ∨ C ~ C'
+(entries, F, J, hj, hmax)
 ```
 
-This scopes id injectivity to ancestors of the two witnessing chain tips. The
-protocol can use opaque ids, while the proof can turn equal ids into equal
-blocks exactly where the compared histories require it. Slashability is stated
-structurally over votes included in chain histories; a concrete signature layer
-can authenticate those payloads without changing the safety theorem.
+`entries` is the accepted tree plus a `Chain` witness for each accepted block.
+The derived TeX state map `sigma[B]` is represented by `AcceptedBlockState`
+and `Store.findChain?`.
 
-## Current Status
+The exposed store mutator is total:
 
-The Lean development currently proves:
+```lean
+Store.onBlock : Store n -> Block n -> Store n
+```
 
-- quorum intersection in both strict and BFT forms;
-- all transition field-preservation lemmas used by the invariants;
-- chain invariants for targets, slots, `J`, `F`, `hj`, `sh`, and witnesses;
-- `advance_witness` without a model-level assumption;
-- the three public state statements named main safety, finalized blocks form a
-  chain, and accountable safety.
+Rejected blocks are no-ops for the modeled store. The internal helper
+`acceptBlock? : Store n -> Block n -> Option (Store n)` records accepted
+transitions for proofs and reachability. `Store.replayBlocks` folds total
+`onBlock` directly; there is no `tryOnBlock`.
+
+`getConfirmed` is modeled as a finite list of all possible confirmed outputs,
+rather than choosing one output with an oracle. The statements prove properties
+about every member of that output set.
+
+## Section 3 Statement Surface
+
+The Store statement layer includes:
+
+- unconditional invariants such as `HjMonotoneStatement`,
+  `FinalityIrreversibilityStatement`, `FAncestorJStatement`,
+  `FViableStatement`, `GetConfirmedTotalStatement`,
+  `ForkChoiceConsistencyStatement`, and `NoHighJustificationsStatement`;
+- accountable/conditional statements such as `CertChainStatement`,
+  `UpgradeStatement`, `FinalizedViableStatement`,
+  `FinalityUpdateAcceptanceStatement`, and `LockInStatement`;
+- observable order-independence statements.
+
+Raw full-store equality under different replay orders is not the right
+statement: a block accepted before finality moves can remain in one store while
+another replay rejects it after finality moves. The proved replay surface uses
+the live view rooted at finality:
+
+- `LiveEquivalent` equates `F`, `J`, `hj`, `hmax`, and accepted entries in the
+  finality subtree.
+- `ParentFirstReplayLiveEquivalentStatement` proves this live equivalence for
+  parent-first replays of equivalent inputs.
+- `ParentFirstReplayGetConfirmedStatement` proves equality of `getConfirmed`
+  membership for those replays.
+
+## Current Caveats
+
+- Public quorum/safety statements still use the exact committee convention
+  `n = 3 * f + 1`. Generalizing to `n >= 3 * f + 1` requires refactoring the
+  quorum/advance arithmetic lemmas.
+- Store-side accountable assumptions still use the legacy global
+  `AtLeastFThirdSlashable` predicate. State accountable-safety conclusions are
+  already scoped to the two compared histories.
+- `FinalizedCertificate` packages height facts as certificate/proof evidence.
+  This is not protocol state, but it is still part of the external finality
+  predicate surface.
+

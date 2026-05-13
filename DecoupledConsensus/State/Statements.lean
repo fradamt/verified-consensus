@@ -27,11 +27,6 @@ def IsFinalizedOn {B : Block n} (chain : Chain n B)
     (stateOf chain).F = C ∧
       FinalizedCertificate chain C h_f hC
 
-/-- Tip-scoped finalization evidence, retaining the old existential surface for
-    callers that do not need the witnessing history. -/
-def IsFinalized (C : Block n) (h_f : ℕ) (B : Block n) : Prop :=
-  ∃ chain : Chain n B, IsFinalizedOn chain C h_f
-
 /-! ## Accountable-Safety Statements -/
 
 /-- **Main safety**. If `C` is finalized at height `h_f`,

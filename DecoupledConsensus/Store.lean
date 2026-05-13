@@ -6,4 +6,4 @@ Use `DecoupledConsensus.Store.Model` when only executable/model definitions
 are needed.
 -/
 
-import DecoupledConsensus.Store.Proof.Properties
+import DecoupledConsensus.Store.Properties

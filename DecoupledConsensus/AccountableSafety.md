@@ -5,10 +5,13 @@ This Lean development formalizes the accountable-safety argument from
 `sorry`s and uses only Lean/mathlib standard axioms.
 
 The state-machine executable model lives under `DecoupledConsensus/State/Model`,
-while state proof facts, invariants, the advance lemma, and the safety theorem
-live under `DecoupledConsensus/State/Proof`. `DecoupledConsensus/AccountableSafety.lean`
-is the section-2 public facade. Section 3 store definitions live under
-`DecoupledConsensus/Store`.
+while the proof-free statement surface lives in
+`DecoupledConsensus/State/Statements.lean`. State proof facts, invariants, and
+named proof constants live under `DecoupledConsensus/State/Proof`.
+`DecoupledConsensus/State/Properties.lean` is the proved property facade,
+showing which statements have proofs without exposing proof scripts.
+`DecoupledConsensus/AccountableSafety.lean` is the section-2 public facade.
+Section 3 store definitions live under `DecoupledConsensus/Store`.
 
 ## Core Model
 
@@ -93,12 +96,13 @@ update.
 
 ## Finality Predicate
 
-`State` stores `F : Block n` but no finalized height. The external predicate
-records the height as certificate data:
+`State` stores `F : Block n` but no finalized height. The public finality
+predicate records the height as certificate data and scopes the evidence to a
+witnessing chain tip:
 
 ```lean
-def IsFinalizedAt (f : ℕ) (C : Block n) (h_f : ℕ) : Prop :=
-  ∃ B : Block n, ∃ chain : Chain n B, ∃ hC : C ≼ B,
+def IsFinalized (C : Block n) (h_f : ℕ) (B : Block n) : Prop :=
+  ∃ chain : Chain n B, ∃ hC : C ≼ B,
     (stateOf chain).F = C ∧
     FinalizedCertificate chain C h_f hC
 ```
@@ -110,19 +114,35 @@ advanced past `h_f`.
 
 ## Main Safety Surface
 
-The final theorem has the collision-free id premise explicitly:
+The minimal state-machine review surface is the model plus finalization
+vocabulary and three statements in `DecoupledConsensus/State/Statements.lean`:
+
+- `State.IsFinalized`
+- `State.MainSafetyStatement`
+- `State.FinalizedBlocksFormChainStatement`
+- `State.AccountableSafetyStatement`
+
+All other state lemmas and theorems are proof internals used to discharge those
+statements. `DecoupledConsensus/State/Properties.lean` has the short proved
+facade, for example:
 
 ```lean
-theorem accountable_safety
-    (hn : n = 3 * f + 1)
-    (hId : Block.IdInjectiveOnAncestors B₁ B₂)
-    (chain₁ : Chain n B₁)
-    (hF₁ : (stateOf chain₁).F = C)
-    (hCert₁ : FinalizedCertificate chain₁ C h_f hC₁)
-    (chain₂ : Chain n B₂)
-    (hF₂ : (stateOf chain₂).F = C')
-    (hCert₂ : FinalizedCertificate chain₂ C' h_f' hC₂) :
-    AtLeastFThirdSlashable f ∨ C ~ C'
+theorem main_safety_property {f : ℕ} :
+    MainSafetyStatement n f :=
+  proof_main_safety_property
+```
+
+The final statement has the collision-free id premise explicitly, while
+tip-scoped finalization evidence is bundled by `State.IsFinalized`:
+
+```lean
+def AccountableSafetyStatement (n f : ℕ) : Prop :=
+  n = 3 * f + 1 →
+    ∀ {B₁ B₂ C C' : Block n} {h_f h_f' : ℕ},
+      Block.IdInjectiveOnAncestors B₁ B₂ →
+        State.IsFinalized C h_f B₁ →
+          State.IsFinalized C' h_f' B₂ →
+            AtLeastFThirdSlashable f ∨ C ~ C'
 ```
 
 This scopes id injectivity to ancestors of the two witnessing chain tips. The
@@ -139,4 +159,5 @@ The Lean development currently proves:
 - all transition field-preservation lemmas used by the invariants;
 - chain invariants for targets, slots, `J`, `F`, `hj`, `sh`, and witnesses;
 - `advance_witness` without a model-level assumption;
-- `main_safety`, `finalized_chain`, and `accountable_safety`.
+- the three public state statements named main safety, finalized blocks form a
+  chain, and accountable safety.

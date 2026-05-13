@@ -4,7 +4,7 @@ namespace DecoupledConsensus
 
 /-! # Accountable Safety Model: certificates
 
-External certificate, finality, and structural slashability predicates.
+External certificate and structural slashability predicates.
 These are model/spec predicates; their properties are proved in proof modules. -/
 
 variable {n : ℕ}
@@ -13,7 +13,7 @@ open scoped Block
 
 /-! ### Vote-tracking infrastructure
 
-For Lemma 3, we need to extract concrete votes from quorums in state.
+For the main-safety lemma, we need to extract concrete votes from quorums in state.
 `votesIncluded` flattens the embedded vote payloads along a chain. The model
 treats those payloads as the structural evidence; if a concrete protocol adds
 working signatures, this evidence is exactly what signatures authenticate. -/
@@ -55,17 +55,6 @@ def FinalizedCertificate {n : ℕ} {B : Block n}
       JustifyQuorumWitness (votesIncluded chain) C h_f ∧
       (stateOf (chain.subchain hC)).h = h_f ∧
       (stateOf chain).h > h_f)
-
-/-- "Block `C` is **finalized at height `h_f`**" iff there is a chain past
-    `C` whose tip-state has the state variable `F = C`, together with a
-    finalization certificate at height `h_f`.
-
-    The height `h_f` is intentionally a witness parameter of this predicate,
-    not a field of protocol `State`. -/
-def IsFinalizedAt {n : ℕ} (_f : ℕ) (C : Block n) (h_f : ℕ) : Prop :=
-  ∃ B : Block n, ∃ chain : Chain n B, ∃ hC : C ≼ B,
-    (stateOf chain).F = C ∧
-    FinalizedCertificate chain C h_f hC
 
 /-! ## Slashing aggregate -/
 

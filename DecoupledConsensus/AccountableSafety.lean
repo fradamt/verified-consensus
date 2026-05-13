@@ -6,4 +6,4 @@ machine lives under `DecoupledConsensus.State.*`. Section 3 store modules live
 under `DecoupledConsensus.Store.*` and are exported by `DecoupledConsensus.Store`.
 -/
 
-import DecoupledConsensus.State.Proof.Safety
+import DecoupledConsensus.State.Properties

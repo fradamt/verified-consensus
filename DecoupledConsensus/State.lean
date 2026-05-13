@@ -6,6 +6,4 @@ Use `DecoupledConsensus.State.Model` when only executable/model definitions
 are needed.
 -/
 
-import DecoupledConsensus.State.Proof.Safety
-import DecoupledConsensus.State.Proof.TargetHeight
-import DecoupledConsensus.State.Proof.FinalityEvidence
+import DecoupledConsensus.State.Properties

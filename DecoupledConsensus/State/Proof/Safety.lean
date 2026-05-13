@@ -4,7 +4,9 @@ namespace DecoupledConsensus
 
 /-! # Accountable Safety Proofs: main theorems
 
-Lemma 3, Lemma 4, and Theorem 1 from the accountable-safety argument. -/
+The main-safety, finalized-chain, and accountable-safety statements from the
+accountable-safety argument. The proof-free statement layer is
+`State.Statements`; `State.Properties` gives the proved facade. -/
 
 variable {n : ℕ}
 
@@ -73,9 +75,9 @@ private lemma idInjectiveOnAncestors_sym {B₁ B₂ : Block n}
     · exact Or.inl hB
   · exact hEq
 
-/-! ### Lemma 3 (Main safety) — using explicit finalization witnesses. -/
+/-! ### Main safety — using explicit finalization witnesses. -/
 
-/-- **Lemma 3 (Main safety)**. If `C` is finalized at height `h_f`, then
+/-- **Main safety**. If `C` is finalized at height `h_f`, then
     every chain whose tip-state has `h > h_f` contains `C` as an ancestor of
     the tip — unless at least `f + 1` validators are slashable.
 
@@ -136,7 +138,7 @@ lemma main_safety {f : ℕ} (hn : n = 3 * f + 1)
     refine ⟨h_f, C.id, hv_b_fin, ?_, hv_a_neq⟩
     exact hv_a_height
 
-/-! ### Lemma 4 (Finalized blocks form a chain) — using explicit witnesses. -/
+/-! ### Finalized blocks form a chain — using explicit witnesses. -/
 
 private lemma finalized_chain_lt {f : ℕ} (hn : n = 3 * f + 1)
     {B₁ B₂ C C' : Block n} {h_f h_f' : ℕ}
@@ -238,7 +240,7 @@ private lemma finalized_chain_eq {f : ℕ} (hn : n = 3 * f + 1)
       injection h_inj with hCC
       exact h_CC' (hId (Or.inr hC₂) (Or.inl hC₁) hCC).symm
 
-/-- **Lemma 4 (Finalized blocks form a chain)**. Any two finalized
+/-- **Finalized blocks form a chain**. Any two finalized
     checkpoints `(C, h_f)` and `(C', h_f')` with `h_f ≤ h_f'` are ordered
     as `C ≼ C'` (or at least `f + 1` validators are slashable). -/
 lemma finalized_chain {f : ℕ} (hn : n = 3 * f + 1)
@@ -258,7 +260,7 @@ lemma finalized_chain {f : ℕ} (hn : n = 3 * f + 1)
     subst h_f'
     exact finalized_chain_eq hn hId chain₁ hF₁ hCert₁ chain₂ hF₂ hCert₂
 
-/-- **Theorem 1 (Accountable safety)**. No two conflicting blocks can be
+/-- **Accountable safety**. No two conflicting blocks can be
     finalized — unless at least `f + 1` validators are provably slashable
     (under the BFT convention `n = 3 * f + 1`).
 

@@ -586,9 +586,9 @@ fields above. The outer `{ σ with L := B }` overwrites only `L`. -/
 -- after `height_progression` which they depend on.)
 
 /-! # Section 2: Accountable Safety
-    Lemmas 1–4 and the main theorem. -/
+    Named proof components used by the main theorem. -/
 
-/-- **Lemma 1 (Height progression).**
+/-- **Height progression.**
     `processHeight` increments `h` by 0 or 1 per invocation, and any increment
     is gated by a `≥ 2n/3` justification or timeout quorum (witnessed in the
     *pre-state* `σ`, since the height-advance branches reset `targets`/`timeouts`).
@@ -650,10 +650,10 @@ lemma processSlot_h_le (σ : State n) : σ.h ≤ (processSlot σ).h := by
   · simpa [processSlot, hEmpty] using processHeight_h_le σ
   · simp [processSlot, hEmpty]
 
-/-! ### Core Lemma 2 monotonicity pieces
+/-! ### Core monotonicity pieces
 
-The full Lemma 2 of the paper has seven conjuncts: `s, h, hj, sh` non-decreasing,
-plus `F ≼ F'`, `J ≼ J'`, `F' ≼ J'`. We prove the two "easy" parts here
+The full paper monotonicity statement has seven conjuncts: `s, h, hj, sh`
+non-decreasing, plus `F ≼ F'`, `J ≼ J'`, `F' ≼ J'`. We prove the two easy parts here
 (`s` and `h`) as standalone lemmas. The other conjuncts are proved through
 the invariant layer:
 
@@ -663,7 +663,7 @@ the invariant layer:
     in `State.Proof.TargetHeight`.
   - For `F, J` along `≼`: requires the freshness machinery. We prove the
     chain-extension form used by safety (`chain_J_monotone_step`), rather
-    than the paper's full all-conjunct Lemma 2 as one theorem. -/
+    than the paper's full all-conjunct monotonicity statement as one theorem. -/
 
 /-- `s` is non-decreasing across one `stateTransition`. -/
 lemma stateTransition_s_le (σ : State n) (B : Block n) :
@@ -889,7 +889,8 @@ lemma chain_unique {B : Block n} (chain1 chain2 : Chain n B) :
 
 /-! ### Subchain extraction
 
-(Subchain extraction is defined earlier, before `IsFinalizedAt`.) -/
+(Subchain extraction is defined earlier with the chain/state facts that consume
+it.) -/
 
 private theorem ancestor_genesis_eq {B' : Block n}
     (h : B' ≼ Block.genesis) : B' = Block.genesis := by
@@ -906,8 +907,8 @@ private theorem ancestor_mk_cases {B' parent : Block n} {bid s : ℕ} {vs : List
 /-! ### State-height monotonicity along ≼
 
 For any chain and any ancestor `B' ≼ B`, the state-height of the subchain
-at `B'` is at most the state-height at the tip. This is Lemma 2's
-state-height monotonicity. -/
+at `B'` is at most the state-height at the tip. This is the state-height
+monotonicity part of the paper monotonicity statement. -/
 
 /-- The subchain at the tip via `refl` produces a chain whose state matches
     the original (up to the `hEq ▸ ...` rewrite). -/

@@ -10,5 +10,5 @@ Current contents:
 Build the current formalization with:
 
 ```sh
-lake env lean DecoupledConsensus/AccountableSafety.lean
+lake build DecoupledConsensus
 ```

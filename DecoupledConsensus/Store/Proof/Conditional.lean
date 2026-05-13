@@ -527,10 +527,10 @@ private lemma not_keyGreater_height_le {S : Store n} {J' : Block n} {h' : ℕ}
 
 private lemma onBlock_noHigh {S S' : Store n} {B : Block n}
     (hS : Reachable S) (hNoHigh : NoHighJustifications S)
-    (hstep : S.onBlock B = some S') :
+    (hstep : S.acceptBlock? B = some S') :
     NoHighJustifications S' := by
   intro C h hProc
-  unfold onBlock at hstep
+  unfold acceptBlock? at hstep
   by_cases hContains : S.containsBlockBool B
   · simp [hContains] at hstep
     cases hstep
@@ -788,7 +788,7 @@ theorem onBlock_accepts_state_finalization {f : ℕ}
     {S S' : Store n} {B : Block n} {σB : State n}
     (hS : Reachable S)
     (hFresh : S.containsBlockBool B = false)
-    (hstep : S.onBlock B = some S')
+    (hstep : S.acceptBlock? B = some S')
     (hAcc : AcceptedBlockState S' B σB)
     (hId : IdInjectiveAgainstStore B S')
     (hStrict : S.F ≼ σB.F ∧ S.F ≠ σB.F) :
@@ -917,7 +917,7 @@ theorem onBlock_descends_or_accepts_state_finalization {f : ℕ}
     {S S' : Store n} {B : Block n} {σB : State n}
     (hS : Reachable S)
     (hFresh : S.containsBlockBool B = false)
-    (hstep : S.onBlock B = some S')
+    (hstep : S.acceptBlock? B = some S')
     (hAcc : AcceptedBlockState S' B σB)
     (hId : IdInjectiveAgainstStore B S')
     (hAlreadyOrStrict : σB.F ≼ S.F ∨ (S.F ≼ σB.F ∧ S.F ≠ σB.F)) :

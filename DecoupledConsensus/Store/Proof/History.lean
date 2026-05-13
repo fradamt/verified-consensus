@@ -267,8 +267,8 @@ lemma genesis_hmaxOk : HMaxOk (Store.genesis n) := by
         stateOf, State.genesis]
 
 lemma onBlock_hmaxOk {S S' : Store n} {B : Block n}
-    (h : HMaxOk S) (hstep : S.onBlock B = some S') : HMaxOk S' := by
-  unfold onBlock at hstep
+    (h : HMaxOk S) (hstep : S.acceptBlock? B = some S') : HMaxOk S' := by
+  unfold acceptBlock? at hstep
   by_cases hContains : S.containsBlockBool B
   · simp [hContains] at hstep
     cases hstep
@@ -373,9 +373,9 @@ lemma updateFinalized_currentProcessedJustification {S : Store n}
 
 lemma onBlock_processedJustification {S S' : Store n} {B C : Block n} {h : ℕ}
     (hProc : ProcessedJustification S C h)
-    (hstep : S.onBlock B = some S') :
+    (hstep : S.acceptBlock? B = some S') :
     ProcessedJustification S' C h := by
-  unfold onBlock at hstep
+  unfold acceptBlock? at hstep
   by_cases hContains : S.containsBlockBool B
   · simp [hContains] at hstep
     cases hstep
@@ -420,9 +420,9 @@ lemma Future.processedJustification_of_left {S T : Store n} {C : Block n} {h : �
 
 lemma onBlock_currentProcessedJustification {S S' : Store n} {B : Block n}
     (hCur : CurrentProcessedJustification S)
-    (hstep : S.onBlock B = some S') :
+    (hstep : S.acceptBlock? B = some S') :
     CurrentProcessedJustification S' := by
-  unfold onBlock at hstep
+  unfold acceptBlock? at hstep
   by_cases hContains : S.containsBlockBool B
   · simp [hContains] at hstep
     cases hstep

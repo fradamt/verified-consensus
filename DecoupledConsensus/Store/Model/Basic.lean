@@ -211,12 +211,13 @@ def getConfirmed (S : Store n) : List (Block n) :=
 def addEntry (S : Store n) (e : StoreEntry n) : Store n :=
   { S with entries := S.entries ++ [e], hmax := max S.hmax e.height }
 
-/-- Section-3 `onBlock`. Returns `none` when a TeX assertion fails.
+/-- Internal acceptance transition. It returns `none` exactly when one of the
+    assertion-style acceptance checks fails.
 
 Duplicate accepted blocks are treated as idempotent replays. For a fresh block,
 the parent must already be accepted, the slot must strictly extend the parent
 chain, and the current finalized root must be an ancestor of the block. -/
-def onBlock (S : Store n) (B : Block n) : Option (Store n) :=
+def acceptBlock? (S : Store n) (B : Block n) : Option (Store n) :=
   if S.containsBlockBool B then
     some S
   else
@@ -243,19 +244,19 @@ def onBlock (S : Store n) (B : Block n) : Option (Store n) :=
 
 /-! ## Replay -/
 
-/-- Attempt to process one available block. A rejected block leaves the store
-    unchanged; this models a node folding an available block set through
-    `onBlock`, where blocks outside the current finalized subtree may be
-    ignored rather than aborting the whole replay. -/
-def tryOnBlock (S : Store n) (B : Block n) : Store n :=
-  match S.onBlock B with
+/-- Section-3 store mutator. A rejected block is a no-op for the store.
+
+This is the executable client-facing transition: assertion failures may affect
+local networking/cache behavior, but the modeled store state is unchanged. -/
+def onBlock (S : Store n) (B : Block n) : Store n :=
+  match S.acceptBlock? B with
   | some S' => S'
   | none => S
 
 /-- Replay a list of available blocks from the genesis store. The list order
     is the node's local parent-first processing order. -/
 def replayBlocks (blocks : List (Block n)) : Store n :=
-  blocks.foldl tryOnBlock (Store.genesis n)
+  blocks.foldl onBlock (Store.genesis n)
 
 end Store
 

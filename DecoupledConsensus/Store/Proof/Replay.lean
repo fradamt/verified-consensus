@@ -123,7 +123,7 @@ lemma onBlock_acceptedBlockState_of_ready {S : Store n}
         {vs : List (Vote n)}, e.block = Block.mk bid parent s vs → Contains S parent)
     (hAnc : S.F ≼ e.block)
     (hNonGenesis : e.block ≠ Block.genesis) :
-    ∃ S', S.onBlock e.block = some S' ∧ AcceptedBlockState S' e.block e.state := by
+    ∃ S', S.acceptBlock? e.block = some S' ∧ AcceptedBlockState S' e.block e.state := by
   cases hBlock : e.block with
   | genesis =>
       exact False.elim (hNonGenesis hBlock)
@@ -152,8 +152,8 @@ lemma onBlock_acceptedBlockState_of_ready {S : Store n}
           let S1 := S.addEntry entry
           let S2 := S1.updateJustified σ.J σ.hj
           let S' := S2.updateFinalized σ.F
-          have hstep : S.onBlock e.block = some S' := by
-            simp [onBlock, hBlock, hFreshConcrete, hFind, hSlot, hAncBool,
+          have hstep : S.acceptBlock? e.block = some S' := by
+            simp [acceptBlock?, hBlock, hFreshConcrete, hFind, hSlot, hAncBool,
               S', entry, σ, S1, S2]
           refine ⟨S', by simpa [hBlock] using hstep, ?_⟩
           refine ⟨entry.chain, ?_, ?_⟩
@@ -191,21 +191,21 @@ lemma reachable_entryAccepted_genesis {S : Store n}
 
 /-! ## Executable Replay Reachability -/
 
-lemma tryOnBlock_reachable {S : Store n} {B : Block n}
-    (hS : Reachable S) : Reachable (S.tryOnBlock B) := by
-  cases hstep : S.onBlock B with
+lemma onBlock_reachable {S : Store n} {B : Block n}
+    (hS : Reachable S) : Reachable (S.onBlock B) := by
+  cases hstep : S.acceptBlock? B with
   | none =>
-      simpa [tryOnBlock, hstep] using hS
+      simpa [onBlock, hstep] using hS
   | some S' =>
-      simpa [tryOnBlock, hstep] using Reachable.onBlock hS hstep
+      simpa [onBlock, hstep] using Reachable.onBlock hS hstep
 
-lemma tryOnBlock_future {S : Store n} {B : Block n} :
-    Future S (S.tryOnBlock B) := by
-  cases hstep : S.onBlock B with
+lemma onBlock_future {S : Store n} {B : Block n} :
+    Future S (S.onBlock B) := by
+  cases hstep : S.acceptBlock? B with
   | none =>
-      simpa [tryOnBlock, hstep] using Future.refl S
+      simpa [onBlock, hstep] using Future.refl S
   | some S' =>
-      simpa [tryOnBlock, hstep] using
+      simpa [onBlock, hstep] using
         Future.step hstep (Future.refl S')
 
 lemma Future.trans {S T U : Store n}
@@ -216,19 +216,19 @@ lemma Future.trans {S T U : Store n}
 
 lemma replayBlocksFrom_future :
     ∀ (blocks : List (Block n)) (S : Store n),
-      Future S (blocks.foldl tryOnBlock S)
+      Future S (blocks.foldl onBlock S)
   | [], S => Future.refl S
   | B :: blocks, S =>
-      Future.trans (tryOnBlock_future (S := S) (B := B))
-        (replayBlocksFrom_future blocks (S.tryOnBlock B))
+      Future.trans (onBlock_future (S := S) (B := B))
+        (replayBlocksFrom_future blocks (S.onBlock B))
 
 lemma replayBlocksFrom_reachable :
     ∀ (blocks : List (Block n)) (S : Store n),
-      Reachable S → Reachable (blocks.foldl tryOnBlock S)
+      Reachable S → Reachable (blocks.foldl onBlock S)
   | [], _, hS => hS
   | B :: blocks, S, hS =>
-      replayBlocksFrom_reachable blocks (S.tryOnBlock B)
-        (tryOnBlock_reachable hS)
+      replayBlocksFrom_reachable blocks (S.onBlock B)
+        (onBlock_reachable hS)
 
 lemma replayBlocks_reachable (blocks : List (Block n)) :
     Reachable (Store.replayBlocks (n := n) blocks) := by
@@ -245,14 +245,14 @@ lemma ReplayEntriesOf.reachable {input : List (StoreEntry n)} {S : Store n}
 
 /-! ## Basic Replay Provenance -/
 
-lemma tryOnBlock_entries_old_or_new {S : Store n} {B : Block n}
+lemma onBlock_entries_old_or_new {S : Store n} {B : Block n}
     {e : StoreEntry n}
-    (he : e ∈ (S.tryOnBlock B).entries) :
+    (he : e ∈ (S.onBlock B).entries) :
     e ∈ S.entries ∨ e.block = B := by
-  cases hstep : S.onBlock B with
+  cases hstep : S.acceptBlock? B with
   | none =>
       left
-      simpa [tryOnBlock, hstep] using he
+      simpa [onBlock, hstep] using he
   | some S' =>
       by_cases hFresh : S.containsBlockBool B = false
       · obtain
@@ -269,7 +269,7 @@ lemma tryOnBlock_entries_old_or_new {S : Store n} {B : Block n}
               let S1 := S.addEntry entry
               let S2 := S1.updateJustified σ.J σ.hj
               S2.updateFinalized σ.F).entries := by
-          simpa [tryOnBlock, hstep] using he
+          simpa [onBlock, hstep] using he
         let entry : StoreEntry n :=
           { block := Block.mk bid parent newSlot votes
             chain := Chain.extend parentChain bid newSlot votes hSlot }
@@ -291,18 +291,18 @@ lemma tryOnBlock_entries_old_or_new {S : Store n} {B : Block n}
           · exact False.elim (hFresh h)
           · rfl
         have hEq : S' = S := by
-          unfold onBlock at hstep
+          unfold acceptBlock? at hstep
           simpa [hContains] using hstep.symm
         subst S'
         left
-        simpa [tryOnBlock, hstep] using he
+        simpa [onBlock, hstep] using he
 
-lemma tryOnBlock_entry_mem_of_mem {S : Store n} {B : Block n}
+lemma onBlock_entry_mem_of_mem {S : Store n} {B : Block n}
     {e : StoreEntry n} (he : e ∈ S.entries) :
-    e ∈ (S.tryOnBlock B).entries := by
-  cases hstep : S.onBlock B with
+    e ∈ (S.onBlock B).entries := by
+  cases hstep : S.acceptBlock? B with
   | none =>
-      simpa [tryOnBlock, hstep] using he
+      simpa [onBlock, hstep] using he
   | some S' =>
       by_cases hFresh : S.containsBlockBool B = false
       · obtain
@@ -321,24 +321,24 @@ lemma tryOnBlock_entry_mem_of_mem {S : Store n} {B : Block n}
         have heFinal : e ∈ (S2.updateFinalized σ.F).entries := by
           simpa [S2, updateFinalized_entries_eq, updateJustified_entries_eq]
             using heS1
-        simpa [tryOnBlock, hstep, entry, σ, S1, S2] using heFinal
+        simpa [onBlock, hstep, entry, σ, S1, S2] using heFinal
       · have hContains : S.containsBlockBool B = true := by
           cases h : S.containsBlockBool B
           · exact False.elim (hFresh h)
           · rfl
         have hEq : S' = S := by
-          unfold onBlock at hstep
+          unfold acceptBlock? at hstep
           simpa [hContains] using hstep.symm
         subst S'
-        simpa [tryOnBlock, hstep] using he
+        simpa [onBlock, hstep] using he
 
-lemma tryOnBlock_F_old_or_entry (S : Store n) (e : StoreEntry n) :
-    (S.tryOnBlock e.block).F = S.F ∨
-      (S.tryOnBlock e.block).F = e.state.F := by
-  cases hstep : S.onBlock e.block with
+lemma onBlock_F_old_or_entry (S : Store n) (e : StoreEntry n) :
+    (S.onBlock e.block).F = S.F ∨
+      (S.onBlock e.block).F = e.state.F := by
+  cases hstep : S.acceptBlock? e.block with
   | none =>
       left
-      simp [tryOnBlock, hstep]
+      simp [onBlock, hstep]
   | some S' =>
       by_cases hFresh : S.containsBlockBool e.block = false
       · obtain
@@ -361,13 +361,13 @@ lemma tryOnBlock_F_old_or_entry (S : Store n) (e : StoreEntry n) :
           simpa [σ] using congrArg State.F hState
         cases hFin : S2.shouldUpdateFinalized σ.F
         · left
-          simp [tryOnBlock, hstep, hS', updateFinalized, hFin, hS2F]
+          simp [onBlock, hstep, hS', updateFinalized, hFin, hS2F]
         · right
           have hFinal : (S2.updateFinalized σ.F).F = σ.F := by
             simp [updateFinalized, hFin]
           calc
-            (S.tryOnBlock e.block).F = (S2.updateFinalized σ.F).F := by
-              simp [tryOnBlock, hstep, hS']
+            (S.onBlock e.block).F = (S2.updateFinalized σ.F).F := by
+              simp [onBlock, hstep, hS']
             _ = σ.F := hFinal
             _ = e.state.F := hStateF
       · have hContains : S.containsBlockBool e.block = true := by
@@ -375,32 +375,32 @@ lemma tryOnBlock_F_old_or_entry (S : Store n) (e : StoreEntry n) :
           · exact False.elim (hFresh h)
           · rfl
         have hEq : S' = S := by
-          unfold onBlock at hstep
+          unfold acceptBlock? at hstep
           simpa [hContains] using hstep.symm
         subst S'
         left
-        simp [tryOnBlock, hstep]
+        simp [onBlock, hstep]
 
-lemma tryOnBlock_contains_of_contains {S : Store n} {B A : Block n}
-    (hA : Contains S A) : Contains (S.tryOnBlock B) A := by
+lemma onBlock_contains_of_contains {S : Store n} {B A : Block n}
+    (hA : Contains S A) : Contains (S.onBlock B) A := by
   rcases hA with ⟨e, he, hBlock⟩
-  exact ⟨e, tryOnBlock_entry_mem_of_mem he, hBlock⟩
+  exact ⟨e, onBlock_entry_mem_of_mem he, hBlock⟩
 
-lemma tryOnBlock_entryAccepted_of_contains {S : Store n} {B : Block n}
+lemma onBlock_entryAccepted_of_contains {S : Store n} {B : Block n}
     (e : StoreEntry n) (hContains : Contains S e.block) :
-    EntryAcceptedIn (S.tryOnBlock B) e := by
+    EntryAcceptedIn (S.onBlock B) e := by
   rcases hContains with ⟨w, hw, hBlock⟩
-  refine ⟨w, tryOnBlock_entry_mem_of_mem hw, hBlock, ?_⟩
+  refine ⟨w, onBlock_entry_mem_of_mem hw, hBlock, ?_⟩
   exact StoreEntry.height_eq_of_block_eq hBlock
 
-lemma tryOnBlock_entryAccepted_of_ready {S : Store n}
+lemma onBlock_entryAccepted_of_ready {S : Store n}
     (hS : Reachable S) (e : StoreEntry n)
     (hParent : ∀ {bid : BlockId} {parent : Block n} {s : ℕ}
         {vs : List (Vote n)}, e.block = Block.mk bid parent s vs → Contains S parent)
     (hAnc : S.F ≼ e.block) :
-    EntryAcceptedIn (S.tryOnBlock e.block) e := by
+    EntryAcceptedIn (S.onBlock e.block) e := by
   by_cases hContainsBool : S.containsBlockBool e.block = true
-  · exact tryOnBlock_entryAccepted_of_contains e
+  · exact onBlock_entryAccepted_of_contains e
       (contains_of_containsBlockBool hContainsBool)
   · have hFresh : S.containsBlockBool e.block = false := by
       cases h : S.containsBlockBool e.block
@@ -432,7 +432,7 @@ lemma tryOnBlock_entryAccepted_of_ready {S : Store n}
             have hAncBool : Block.isAncestorOf S.F (Block.mk bid parent s vs) = true :=
               (Block.isAncestorOf_eq_true_iff _ _).mpr hAncConcrete
             have hstep :
-                S.onBlock e.block =
+                S.acceptBlock? e.block =
                   some
                     (let entry : StoreEntry n :=
                       { block := Block.mk bid parent s vs
@@ -441,7 +441,7 @@ lemma tryOnBlock_entryAccepted_of_ready {S : Store n}
                     let S1 := S.addEntry entry
                     let S2 := S1.updateJustified σ.J σ.hj
                     S2.updateFinalized σ.F) := by
-              simp [onBlock, hBlock, hFreshConcrete, hFind, hSlot, hAncBool]
+              simp [acceptBlock?, hBlock, hFreshConcrete, hFind, hSlot, hAncBool]
             let entry : StoreEntry n :=
               { block := Block.mk bid parent s vs
                 chain := Chain.extend parentChain bid s vs hSlot }
@@ -455,41 +455,41 @@ lemma tryOnBlock_entryAccepted_of_ready {S : Store n}
                 using hMemS1
             refine ⟨entry, ?_, ?_, ?_⟩
             · have hEntries :
-                  (S.tryOnBlock (Block.mk bid parent s vs)).entries =
+                  (S.onBlock (Block.mk bid parent s vs)).entries =
                     (S2.updateFinalized σ.F).entries := by
                 have hstepConcrete :
-                    S.onBlock (Block.mk bid parent s vs) =
+                    S.acceptBlock? (Block.mk bid parent s vs) =
                       some (S2.updateFinalized σ.F) := by
                   simpa [hBlock, entry, σ, S1, S2] using hstep
-                simp [tryOnBlock, hstepConcrete]
+                simp [onBlock, hstepConcrete]
               rw [hEntries]
               exact hEntryMem
             · simp [entry, hBlock]
             · exact StoreEntry.height_eq_of_block_eq (by
                 simpa [entry] using hBlock.symm)
 
-lemma tryOnBlock_entryAccepted_preserved {S : Store n} {B : Block n}
+lemma onBlock_entryAccepted_preserved {S : Store n} {B : Block n}
     {e : StoreEntry n} (hAcc : EntryAcceptedIn S e) :
-    EntryAcceptedIn (S.tryOnBlock B) e := by
+    EntryAcceptedIn (S.onBlock B) e := by
   rcases hAcc with ⟨w, hw, hBlock, hHeight⟩
-  exact ⟨w, tryOnBlock_entry_mem_of_mem hw, hBlock, hHeight⟩
+  exact ⟨w, onBlock_entry_mem_of_mem hw, hBlock, hHeight⟩
 
 lemma replayEntriesFrom_future :
     ∀ (input : List (StoreEntry n)) (S : Store n),
-      Future S (input.foldl (fun S e => S.tryOnBlock e.block) S)
+      Future S (input.foldl (fun S e => S.onBlock e.block) S)
   | [], S => Future.refl S
   | e :: rest, S =>
-      Future.trans (tryOnBlock_future (S := S) (B := e.block))
-        (replayEntriesFrom_future rest (S.tryOnBlock e.block))
+      Future.trans (onBlock_future (S := S) (B := e.block))
+        (replayEntriesFrom_future rest (S.onBlock e.block))
 
 lemma replayEntriesFrom_entryAccepted_preserved :
     ∀ (input : List (StoreEntry n)) (S : Store n) (e : StoreEntry n),
       EntryAcceptedIn S e →
-        EntryAcceptedIn (input.foldl (fun S a => S.tryOnBlock a.block) S) e
+        EntryAcceptedIn (input.foldl (fun S a => S.onBlock a.block) S) e
   | [], _, _, hAcc => hAcc
   | a :: rest, S, e, hAcc =>
-      replayEntriesFrom_entryAccepted_preserved rest (S.tryOnBlock a.block) e
-        (tryOnBlock_entryAccepted_preserved (B := a.block) hAcc)
+      replayEntriesFrom_entryAccepted_preserved rest (S.onBlock a.block) e
+        (onBlock_entryAccepted_preserved (B := a.block) hAcc)
 
 lemma parent_relevant_of_child_relevant {F parent : Block n}
     {bid s : ℕ} {vs : List (Vote n)}
@@ -508,7 +508,7 @@ private lemma Contains.of_entryAccepted {S : Store n} {e : StoreEntry n}
   rcases hAcc with ⟨w, hw, hBlock, _⟩
   exact ⟨w, hw, hBlock⟩
 
-lemma tryOnBlock_entryAccepted_of_parentReady_relevant {S T : Store n}
+lemma onBlock_entryAccepted_of_parentReady_relevant {S T : Store n}
     {seen : List (StoreEntry n)} (hS : Reachable S) (hFuture : Future S T)
     (hSeen :
       ∀ p : StoreEntry n, p ∈ seen → RelevantToFinal T.F p.block →
@@ -516,13 +516,13 @@ lemma tryOnBlock_entryAccepted_of_parentReady_relevant {S T : Store n}
     (e : StoreEntry n)
     (hReady : ParentReadyIn (seen.map StoreEntry.block) e.block)
     (hRel : RelevantToFinal T.F e.block) :
-    EntryAcceptedIn (S.tryOnBlock e.block) e := by
+    EntryAcceptedIn (S.onBlock e.block) e := by
   cases hBlock : e.block with
   | genesis =>
       have hContains : Contains S e.block := by
         rw [hBlock]
         exact reachable_contains_genesis hS
-      exact tryOnBlock_entryAccepted_of_contains e hContains
+      exact onBlock_entryAccepted_of_contains e hContains
   | mk bid parent s vs =>
       have hReadyMk : parent = Block.genesis ∨
           parent ∈ seen.map StoreEntry.block := by
@@ -553,7 +553,7 @@ lemma tryOnBlock_entryAccepted_of_parentReady_relevant {S T : Store n}
           rw [hBlock]
           exact Block.Ancestor.trans hCurrentFinal hFinalChild
         simpa [hBlock] using
-          tryOnBlock_entryAccepted_of_ready hS e (fun h => by
+          onBlock_entryAccepted_of_ready hS e (fun h => by
           rw [hBlock] at h
           injection h with _ hParentEq _ _
           simpa [hParentEq] using hParentContains) hAnc
@@ -563,7 +563,7 @@ lemma tryOnBlock_entryAccepted_of_parentReady_relevant {S T : Store n}
             rw [hBlock]
             exact hCurrentChild
           simpa [hBlock] using
-            tryOnBlock_entryAccepted_of_ready hS e (fun h => by
+            onBlock_entryAccepted_of_ready hS e (fun h => by
             rw [hBlock] at h
             injection h with _ hParentEq _ _
             simpa [hParentEq] using hParentContains) hAnc
@@ -572,12 +572,12 @@ lemma tryOnBlock_entryAccepted_of_parentReady_relevant {S T : Store n}
               simpa [hBlock] using hChildCurrent
             exact reachable_ancestorClosed hS (reachable_contains_F hS)
               hChildCurrent'
-          exact tryOnBlock_entryAccepted_of_contains e hContains
+          exact onBlock_entryAccepted_of_contains e hContains
 
 lemma replayEntriesFrom_eq_replayBlocksFrom_map
     (input : List (StoreEntry n)) (S : Store n) :
-    (input.map StoreEntry.block).foldl tryOnBlock S =
-      input.foldl (fun S e => S.tryOnBlock e.block) S := by
+    (input.map StoreEntry.block).foldl onBlock S =
+      input.foldl (fun S e => S.onBlock e.block) S := by
   induction input generalizing S with
   | nil => rfl
   | cons e rest ih =>
@@ -589,41 +589,41 @@ lemma replayEntriesFrom_accepts_relevant_aux :
         ParentFirstFrom (seen.map StoreEntry.block) (todo.map StoreEntry.block) →
           (∀ p : StoreEntry n, p ∈ seen →
             RelevantToFinal
-              (todo.foldl (fun S e => S.tryOnBlock e.block) S).F p.block →
+              (todo.foldl (fun S e => S.onBlock e.block) S).F p.block →
               EntryAcceptedIn S p) →
             ∀ e : StoreEntry n, e ∈ seen ++ todo →
               RelevantToFinal
-                (todo.foldl (fun S e => S.tryOnBlock e.block) S).F e.block →
+                (todo.foldl (fun S e => S.onBlock e.block) S).F e.block →
               EntryAcceptedIn
-                (todo.foldl (fun S e => S.tryOnBlock e.block) S) e
+                (todo.foldl (fun S e => S.onBlock e.block) S) e
   | [], seen, S, _hS, _hPF, hSeen, e, he, hRel => by
       have heSeen : e ∈ seen := by simpa using he
       exact hSeen e heSeen hRel
   | a :: rest, seen, S, hS, hPF, hSeen, e, he, hRel => by
-      let S1 := S.tryOnBlock a.block
+      let S1 := S.onBlock a.block
       have hHead : ParentReadyIn (seen.map StoreEntry.block) a.block := hPF.1
       have hTail :
           ParentFirstFrom ((seen ++ [a]).map StoreEntry.block)
             (rest.map StoreEntry.block) := by
         simpa using hPF.2
-      have hS1 : Reachable S1 := tryOnBlock_reachable hS
+      have hS1 : Reachable S1 := onBlock_reachable hS
       have hFuture : Future S
-          (rest.foldl (fun S e => S.tryOnBlock e.block) S1) := by
-        exact Future.trans (tryOnBlock_future (S := S) (B := a.block))
+          (rest.foldl (fun S e => S.onBlock e.block) S1) := by
+        exact Future.trans (onBlock_future (S := S) (B := a.block))
           (replayEntriesFrom_future rest S1)
       have hSeen' :
           ∀ p : StoreEntry n, p ∈ seen ++ [a] →
             RelevantToFinal
-              (rest.foldl (fun S e => S.tryOnBlock e.block) S1).F p.block →
+              (rest.foldl (fun S e => S.onBlock e.block) S1).F p.block →
             EntryAcceptedIn S1 p := by
         intro p hp hRelP
         have hpCases : p ∈ seen ∨ p = a := by
           simpa using hp
         rcases hpCases with hpSeen | hpA
         · have hAcc : EntryAcceptedIn S p := hSeen p hpSeen hRelP
-          exact tryOnBlock_entryAccepted_preserved (B := a.block) hAcc
+          exact onBlock_entryAccepted_preserved (B := a.block) hAcc
         · subst p
-          exact tryOnBlock_entryAccepted_of_parentReady_relevant hS hFuture
+          exact onBlock_entryAccepted_of_parentReady_relevant hS hFuture
             hSeen a hHead hRelP
       exact replayEntriesFrom_accepts_relevant_aux rest (seen ++ [a]) S1
         hS1 hTail hSeen' e (by simpa [List.append_assoc] using he) hRel
@@ -644,7 +644,7 @@ theorem parentFirstReplay_accepts_relevant_input
   have hSeen :
       ∀ p : StoreEntry n, p ∈ [StoreEntry.genesis n] →
         RelevantToFinal
-          (input.foldl (fun S e => S.tryOnBlock e.block) (Store.genesis n)).F
+          (input.foldl (fun S e => S.onBlock e.block) (Store.genesis n)).F
           p.block →
         EntryAcceptedIn (Store.genesis n) p := by
     intro p hp _hRelP
@@ -653,7 +653,7 @@ theorem parentFirstReplay_accepts_relevant_input
     exact reachable_entryAccepted_genesis Reachable.genesis
   have hRel' :
       RelevantToFinal
-        (input.foldl (fun S e => S.tryOnBlock e.block) (Store.genesis n)).F
+        (input.foldl (fun S e => S.onBlock e.block) (Store.genesis n)).F
         e.block := by
     simpa [Store.replayBlocks, replayEntriesFrom_eq_replayBlocksFrom_map] using hRel
   exact replayEntriesFrom_accepts_relevant_aux input [StoreEntry.genesis n]
@@ -686,13 +686,13 @@ lemma replayEntriesFrom_F_candidate_aux :
     ∀ (todo seen : List (StoreEntry n)) (S : Store n),
       FinalityCandidate seen S.F →
         FinalityCandidate (seen ++ todo)
-          ((todo.foldl (fun S e => S.tryOnBlock e.block) S).F)
+          ((todo.foldl (fun S e => S.onBlock e.block) S).F)
   | [], _seen, _S, hCand => by
       simpa using hCand
   | a :: rest, seen, S, hCand => by
-      let S1 := S.tryOnBlock a.block
+      let S1 := S.onBlock a.block
       have hCandS1 : FinalityCandidate (seen ++ [a]) S1.F := by
-        rcases tryOnBlock_F_old_or_entry S a with hOld | hNew
+        rcases onBlock_F_old_or_entry S a with hOld | hNew
         · rw [hOld]
           exact FinalityCandidate.mem_append_left (todo := [a]) hCand
         · rw [hNew]
@@ -703,7 +703,7 @@ lemma replayEntriesFrom_F_candidate_aux :
 
 theorem replayEntries_F_candidate (input : List (StoreEntry n)) :
     FinalityCandidate input
-      ((input.foldl (fun S e => S.tryOnBlock e.block) (Store.genesis n)).F) := by
+      ((input.foldl (fun S e => S.onBlock e.block) (Store.genesis n)).F) := by
   have h := replayEntriesFrom_F_candidate_aux input [] (Store.genesis n) (by
     left
     rfl : FinalityCandidate ([] : List (StoreEntry n)) (Store.genesis n).F)
@@ -720,16 +720,16 @@ theorem ReplayEntriesOf.F_le_finalityMax
 
 lemma replayBlocksFrom_entries_old_or_input :
     ∀ (blocks : List (Block n)) (S : Store n) {e : StoreEntry n},
-      e ∈ (blocks.foldl tryOnBlock S).entries →
+      e ∈ (blocks.foldl onBlock S).entries →
         e ∈ S.entries ∨ e.block ∈ blocks
   | [], S, e, he => Or.inl he
   | B :: blocks, S, e, he =>
       have hTail :=
-        replayBlocksFrom_entries_old_or_input blocks (S.tryOnBlock B) he
+        replayBlocksFrom_entries_old_or_input blocks (S.onBlock B) he
       match hTail with
       | Or.inr hmem => Or.inr (by simp [hmem])
       | Or.inl hhead =>
-          match tryOnBlock_entries_old_or_new hhead with
+          match onBlock_entries_old_or_new hhead with
           | Or.inl hold => Or.inl hold
           | Or.inr hnew => Or.inr (by simp [hnew])
 
@@ -869,10 +869,10 @@ lemma replay_prefix_F_le_finalityMax {input pre : List (StoreEntry n)}
     {Fmax : Block n}
     (hSub : ∀ a, a ∈ pre → a ∈ input)
     (hMax : FinalityMax input Fmax) :
-    ((pre.foldl (fun S e => S.tryOnBlock e.block) (Store.genesis n)).F) ≼ Fmax := by
+    ((pre.foldl (fun S e => S.onBlock e.block) (Store.genesis n)).F) ≼ Fmax := by
   have hCandPre := replayEntries_F_candidate (n := n) pre
   have hCandInput : FinalityCandidate input
-      ((pre.foldl (fun S e => S.tryOnBlock e.block) (Store.genesis n)).F) :=
+      ((pre.foldl (fun S e => S.onBlock e.block) (Store.genesis n)).F) :=
     FinalityCandidate.mono hSub hCandPre
   exact hMax.2 _ hCandInput
 
@@ -925,13 +925,13 @@ lemma idInjectiveAgainstStore_of_input
     {post : List (StoreEntry n)} {Spre Safter : Store n}
     (hInputEq : input = pre ++ e :: post)
     (hReplayPre : ReplayEntriesOf pre Spre)
-    (hstep : Spre.onBlock e.block = some Safter)
+    (hstep : Spre.acceptBlock? e.block = some Safter)
     (hInputId : InputIdInjective input) :
     IdInjectiveAgainstStore e.block Safter := by
   intro a ha
-  have haTry : a ∈ (Spre.tryOnBlock e.block).entries := by
-    simpa [tryOnBlock, hstep] using ha
-  have hOldOrNew := tryOnBlock_entries_old_or_new haTry
+  have haTry : a ∈ (Spre.onBlock e.block).entries := by
+    simpa [onBlock, hstep] using ha
+  have hOldOrNew := onBlock_entries_old_or_new haTry
   have heInput : HasInputEntry input e := by
     right
     refine ⟨e, ?_, rfl, rfl⟩
@@ -978,7 +978,7 @@ lemma parentFirstReplay_finalityMax_le_F_of_split {f : ℕ}
     (heF : e.state.F = Fmax) :
     Fmax ≼ S.F := by
   let Spre : Store n :=
-    pre.foldl (fun S e => S.tryOnBlock e.block) (Store.genesis n)
+    pre.foldl (fun S e => S.onBlock e.block) (Store.genesis n)
   have hReplayPre : ReplayEntriesOf pre Spre := by
     unfold ReplayEntriesOf ReplayOf Store.replayBlocks Spre
     rw [replayEntriesFrom_eq_replayBlocksFrom_map]
@@ -1026,15 +1026,15 @@ lemma parentFirstReplay_finalityMax_le_F_of_split {f : ℕ}
     onBlock_descends_or_accepts_state_finalization hn hNoSlash
       hReplayPre.reachable hFresh hstep hAcc hIdStore hComp
   have hFuturePost : Future Sstep
-      (post.foldl (fun S e => S.tryOnBlock e.block) Sstep) :=
+      (post.foldl (fun S e => S.onBlock e.block) Sstep) :=
     replayEntriesFrom_future post Sstep
   have hFinalEq :
-      S = post.foldl (fun S e => S.tryOnBlock e.block) Sstep := by
+      S = post.foldl (fun S e => S.onBlock e.block) Sstep := by
     rw [hReplay, hInputEq]
     unfold Store.replayBlocks
     rw [replayEntriesFrom_eq_replayBlocksFrom_map]
     simp
-    rw [show Spre.tryOnBlock e.block = Sstep by simp [tryOnBlock, hstep]]
+    rw [show Spre.onBlock e.block = Sstep by simp [onBlock, hstep]]
   rw [hFinalEq]
   have hDescFmax : Fmax ≼ Sstep.F := by
     simpa [heF] using hDesc
@@ -1221,7 +1221,7 @@ lemma onBlock_accepted_state_key_le {S S' : Store n} {B : Block n}
     {σB : State n}
     (hS : Reachable S)
     (hFresh : S.containsBlockBool B = false)
-    (hstep : S.onBlock B = some S')
+    (hstep : S.acceptBlock? B = some S')
     (hAcc : AcceptedBlockState S' B σB)
     (hBelow : S.F ≼ σB.J) :
     KeyLE σB.hj σB.J S'.hj S'.J := by
@@ -1373,7 +1373,7 @@ lemma parentFirstReplay_justificationMax_le_key_of_split
     (heHj : e.state.hj = hjmax) :
     KeyLE hjmax Jmax S.hj S.J := by
   let Spre : Store n :=
-    pre.foldl (fun S e => S.tryOnBlock e.block) (Store.genesis n)
+    pre.foldl (fun S e => S.onBlock e.block) (Store.genesis n)
   have hReplayPre : ReplayEntriesOf pre Spre := by
     unfold ReplayEntriesOf ReplayOf Store.replayBlocks Spre
     rw [replayEntriesFrom_eq_replayBlocksFrom_map]
@@ -1419,15 +1419,15 @@ lemma parentFirstReplay_justificationMax_le_key_of_split
   have hStepKey : KeyLE e.state.hj e.state.J Sstep.hj Sstep.J :=
     onBlock_accepted_state_key_le hReplayPre.reachable hFresh hstep hAcc hBelow
   have hFuturePost : Future Sstep
-      (post.foldl (fun S e => S.tryOnBlock e.block) Sstep) :=
+      (post.foldl (fun S e => S.onBlock e.block) Sstep) :=
     replayEntriesFrom_future post Sstep
   have hFinalEq :
-      S = post.foldl (fun S e => S.tryOnBlock e.block) Sstep := by
+      S = post.foldl (fun S e => S.onBlock e.block) Sstep := by
     rw [hReplay, hInputEq]
     unfold Store.replayBlocks
     rw [replayEntriesFrom_eq_replayBlocksFrom_map]
     simp
-    rw [show Spre.tryOnBlock e.block = Sstep by simp [tryOnBlock, hstep]]
+    rw [show Spre.onBlock e.block = Sstep by simp [onBlock, hstep]]
   rw [hFinalEq]
   have hStepKey' : KeyLE hjmax Jmax Sstep.hj Sstep.J := by
     simpa [heJ, heHj] using hStepKey

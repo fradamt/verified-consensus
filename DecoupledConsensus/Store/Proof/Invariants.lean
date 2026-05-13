@@ -52,9 +52,9 @@ structure FreshOnBlockStep (S S' : Store n) (B : Block n) where
     executable implementation. -/
 def freshOnBlockStep_of_onBlock {S S' : Store n} {B : Block n}
     (hFresh : S.containsBlockBool B = false)
-    (hstep : S.onBlock B = some S') :
+    (hstep : S.acceptBlock? B = some S') :
     FreshOnBlockStep S S' B := by
-  unfold onBlock at hstep
+  unfold acceptBlock? at hstep
   simp [hFresh] at hstep
   cases B with
   | genesis =>
@@ -386,9 +386,9 @@ lemma genesis_contains_J : Contains (Store.genesis n) (Store.genesis n).J := by
 
 /-- One successful `onBlock` step preserves the store invariant `F ≼ J`. -/
 lemma onBlock_F_ancestor_J {S S' : Store n} {B : Block n}
-    (h : S.F ≼ S.J) (hstep : S.onBlock B = some S') :
+    (h : S.F ≼ S.J) (hstep : S.acceptBlock? B = some S') :
     S'.F ≼ S'.J := by
-  unfold onBlock at hstep
+  unfold acceptBlock? at hstep
   by_cases hContains : S.containsBlockBool B
   · simp [hContains] at hstep
     cases hstep
@@ -424,9 +424,9 @@ lemma onBlock_F_ancestor_J {S S' : Store n} {B : Block n}
 /-- One successful `onBlock` step preserves executable viability of the
     store-finalized root. -/
 lemma onBlock_F_viableBool {S S' : Store n} {B : Block n}
-    (hF : S.isViableBool S.F = true) (hstep : S.onBlock B = some S') :
+    (hF : S.isViableBool S.F = true) (hstep : S.acceptBlock? B = some S') :
     S'.isViableBool S'.F = true := by
-  unfold onBlock at hstep
+  unfold acceptBlock? at hstep
   by_cases hContains : S.containsBlockBool B
   · simp [hContains] at hstep
     cases hstep
@@ -483,9 +483,9 @@ lemma onBlock_F_viableBool {S S' : Store n} {B : Block n}
 /-- One successful `onBlock` step preserves membership of the store justified
     root in the accepted tree. -/
 lemma onBlock_contains_J {S S' : Store n} {B : Block n}
-    (hJ : Contains S S.J) (hstep : S.onBlock B = some S') :
+    (hJ : Contains S S.J) (hstep : S.acceptBlock? B = some S') :
     Contains S' S'.J := by
-  unfold onBlock at hstep
+  unfold acceptBlock? at hstep
   by_cases hContains : S.containsBlockBool B
   · simp [hContains] at hstep
     cases hstep
@@ -524,9 +524,9 @@ lemma onBlock_contains_J {S S' : Store n} {B : Block n}
 
 /-- One successful `onBlock` step preserves accepted-tree ancestor closure. -/
 lemma onBlock_ancestorClosed {S S' : Store n} {B : Block n}
-    (hClosed : AncestorClosed S) (hstep : S.onBlock B = some S') :
+    (hClosed : AncestorClosed S) (hstep : S.acceptBlock? B = some S') :
     AncestorClosed S' := by
-  unfold onBlock at hstep
+  unfold acceptBlock? at hstep
   by_cases hContains : S.containsBlockBool B
   · simp [hContains] at hstep
     cases hstep
@@ -632,8 +632,8 @@ lemma updateFinalized_hj_succ_le_hmax {S : Store n} {F' : Block n}
 /-- One successful `onBlock` step cannot move store finality away from the old
     finalized subtree. -/
 lemma onBlock_F_monotone {S S' : Store n} {B : Block n}
-    (hstep : S.onBlock B = some S') : S.F ≼ S'.F := by
-  unfold onBlock at hstep
+    (hstep : S.acceptBlock? B = some S') : S.F ≼ S'.F := by
+  unfold acceptBlock? at hstep
   by_cases hContains : S.containsBlockBool B
   · simp [hContains] at hstep
     cases hstep
@@ -712,8 +712,8 @@ theorem reachable_getConfirmed_nonempty_of_not_boundary {S : Store n}
 
 /-- One successful `onBlock` step cannot decrease `hj`. -/
 lemma onBlock_hj_mono {S S' : Store n} {B : Block n}
-    (hstep : S.onBlock B = some S') : S.hj ≤ S'.hj := by
-  unfold onBlock at hstep
+    (hstep : S.acceptBlock? B = some S') : S.hj ≤ S'.hj := by
+  unfold acceptBlock? at hstep
   by_cases hContains : S.containsBlockBool B
   · simp [hContains] at hstep
     cases hstep
@@ -748,8 +748,8 @@ lemma onBlock_hj_mono {S S' : Store n} {B : Block n}
 /-- One successful `onBlock` step cannot decrease the lexicographic
     justification key `(hj, J.id)`. -/
 lemma onBlock_key_mono {S S' : Store n} {B : Block n}
-    (hstep : S.onBlock B = some S') : KeyLE S.hj S.J S'.hj S'.J := by
-  unfold onBlock at hstep
+    (hstep : S.acceptBlock? B = some S') : KeyLE S.hj S.J S'.hj S'.J := by
+  unfold acceptBlock? at hstep
   by_cases hContains : S.containsBlockBool B
   · simp [hContains] at hstep
     cases hstep
@@ -791,8 +791,8 @@ lemma onBlock_key_mono {S S' : Store n} {B : Block n}
 
 /-- One successful `onBlock` step cannot decrease `hmax`. -/
 lemma onBlock_hmax_mono {S S' : Store n} {B : Block n}
-    (hstep : S.onBlock B = some S') : S.hmax ≤ S'.hmax := by
-  unfold onBlock at hstep
+    (hstep : S.acceptBlock? B = some S') : S.hmax ≤ S'.hmax := by
+  unfold acceptBlock? at hstep
   by_cases hContains : S.containsBlockBool B
   · simp [hContains] at hstep
     cases hstep
@@ -856,9 +856,9 @@ theorem future_hmax_mono {S T : Store n}
     height: every observed justified height came from a post-state whose height
     is at least one larger. -/
 lemma onBlock_hj_succ_le_hmax {S S' : Store n} {B : Block n}
-    (hGap : S.hj + 1 ≤ S.hmax) (hstep : S.onBlock B = some S') :
+    (hGap : S.hj + 1 ≤ S.hmax) (hstep : S.acceptBlock? B = some S') :
     S'.hj + 1 ≤ S'.hmax := by
-  unfold onBlock at hstep
+  unfold acceptBlock? at hstep
   by_cases hContains : S.containsBlockBool B
   · simp [hContains] at hstep
     cases hstep
@@ -905,10 +905,10 @@ lemma onBlock_J_viableBool_of_boundary {S S' : Store n} {B : Block n}
     (hClosed : AncestorClosed S)
     (hGap : S.hj + 1 ≤ S.hmax)
     (hJ : S.hmax = S.hj + 1 → S.isViableBool S.J = true)
-    (hstep : S.onBlock B = some S')
+    (hstep : S.acceptBlock? B = some S')
     (hBoundary : S'.hmax = S'.hj + 1) :
     S'.isViableBool S'.J = true := by
-  unfold onBlock at hstep
+  unfold acceptBlock? at hstep
   by_cases hContains : S.containsBlockBool B
   · simp [hContains] at hstep
     cases hstep

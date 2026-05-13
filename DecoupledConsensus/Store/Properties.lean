@@ -438,8 +438,8 @@ def LiveEquivalentGetConfirmedStatement (n : ℕ) : Prop :=
       LiveEquivalent S T → (B ∈ S.getConfirmed ↔ B ∈ T.getConfirmed)
 
 /-- Shared live completeness over a common input implies equal `getConfirmed`
-    membership. The remaining replay-order work is to prove `LiveComplete` for
-    every parent-first replay of a fixed available block set. -/
+    membership. Parent-first replay completeness below discharges this
+    component invariant for executable replays. -/
 def LiveCompleteGetConfirmedStatement (n : ℕ) : Prop :=
   ∀ {input : List (StoreEntry n)} {summary : LiveSummary n}
       {S T : Store n} {B : Block n},
@@ -467,8 +467,7 @@ def ParentFirstReplayLiveCompleteStatement (n f : ℕ) : Prop :=
 def ParentFirstReplayGetConfirmedStatement (n f : ℕ) : Prop :=
   n = 3 * f + 1 →
     ¬ @AtLeastFThirdSlashable n f →
-      ∀ {input₁ input₂ : List (StoreEntry n)} {summary : LiveSummary n}
-          {S T : Store n} {B : Block n},
+      ∀ {input₁ input₂ : List (StoreEntry n)} {S T : Store n} {B : Block n},
         ReplayEntriesOf input₁ S →
           ReplayEntriesOf input₂ T →
           ParentFirstEntries input₁ →
@@ -478,9 +477,7 @@ def ParentFirstReplayGetConfirmedStatement (n f : ℕ) : Prop :=
           Block.genesis ∉ input₁.map StoreEntry.block →
           Block.genesis ∉ input₂.map StoreEntry.block →
           InputIdInjective input₁ →
-          InputIdInjective input₂ →
           InputEquivalent input₁ input₂ →
-          LiveSummaryMatches input₁ summary →
           (B ∈ S.getConfirmed ↔ B ∈ T.getConfirmed)
 
 end Store

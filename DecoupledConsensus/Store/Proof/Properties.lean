@@ -150,12 +150,11 @@ theorem parentFirstReplay_liveComplete_property {f : ℕ} :
 
 theorem parentFirstReplay_getConfirmed_property {f : ℕ} :
     ParentFirstReplayGetConfirmedStatement n f := by
-  intro hn hNoSlash input₁ input₂ summary S T B hReplayS hReplayT hPFS
-    hPFT hNoDupS hNoDupT hNoGenesisS hNoGenesisT hInputIdS hInputIdT
-    hInputEq hSummary
+  intro hn hNoSlash input₁ input₂ S T B hReplayS hReplayT hPFS
+    hPFT hNoDupS hNoDupT hNoGenesisS hNoGenesisT hInputIdS hInputEq
   exact parentFirstReplay_getConfirmed_order_independent hn hNoSlash
     hReplayS hReplayT hPFS hPFT hNoDupS hNoDupT hNoGenesisS hNoGenesisT
-    hInputIdS hInputIdT hInputEq hSummary
+    hInputIdS hInputEq
 
 end Store
 

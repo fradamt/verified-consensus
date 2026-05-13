@@ -1484,6 +1484,309 @@ lemma JustificationCandidate.support
     rw [← hJ]
     simpa [StoreEntry.state] using chain_J_le_L e.chain
 
+/-! ## Canonical Summary Existence -/
+
+private lemma blockList_max_exists :
+    ∀ (blocks : List (Block n)), blocks ≠ [] →
+      (∀ A, A ∈ blocks → ∀ B, B ∈ blocks → A ≼ B ∨ B ≼ A) →
+        ∃ F ∈ blocks, ∀ C, C ∈ blocks → C ≼ F
+  | [], hne, _ => False.elim (hne rfl)
+  | F :: rest, _hne, hTotal => by
+      by_cases hRest : rest = []
+      · refine ⟨F, by simp, ?_⟩
+        intro C hC
+        simp [hRest] at hC
+        rw [hC]
+        exact .refl F
+      · have hTotalRest :
+            ∀ A, A ∈ rest → ∀ B, B ∈ rest → A ≼ B ∨ B ≼ A := by
+          intro A hA B hB
+          exact hTotal A (by simp [hA]) B (by simp [hB])
+        obtain ⟨M, hM, hMax⟩ :=
+          blockList_max_exists rest hRest hTotalRest
+        rcases hTotal F (by simp) M (by simp [hM]) with hFM | hMF
+        · refine ⟨M, by simp [hM], ?_⟩
+          intro C hC
+          rcases (by simpa using hC : C = F ∨ C ∈ rest) with hCF | hCRest
+          · rw [hCF]
+            exact hFM
+          · exact hMax C hCRest
+        · refine ⟨F, by simp, ?_⟩
+          intro C hC
+          rcases (by simpa using hC : C = F ∨ C ∈ rest) with hCF | hCRest
+          · rw [hCF]
+            exact .refl F
+          · exact (hMax C hCRest).trans hMF
+
+private lemma natList_max_exists :
+    ∀ (heights : List ℕ), heights ≠ [] →
+      ∃ h ∈ heights, ∀ k, k ∈ heights → k ≤ h
+  | [], hne => False.elim (hne rfl)
+  | h :: rest, _hne => by
+      by_cases hRest : rest = []
+      · refine ⟨h, by simp, ?_⟩
+        intro k hk
+        simp [hRest] at hk
+        omega
+      · obtain ⟨m, hm, hMax⟩ := natList_max_exists rest hRest
+        rcases Nat.le_total h m with hle | hle
+        · refine ⟨m, by simp [hm], ?_⟩
+          intro k hk
+          rcases (by simpa using hk : k = h ∨ k ∈ rest) with hkEq | hkRest
+          · omega
+          · exact hMax k hkRest
+        · refine ⟨h, by simp, ?_⟩
+          intro k hk
+          rcases (by simpa using hk : k = h ∨ k ∈ rest) with hkEq | hkRest
+          · omega
+          · exact (hMax k hkRest).trans hle
+
+lemma KeyLE.total (h₁ : ℕ) (J₁ : Block n) (h₂ : ℕ) (J₂ : Block n) :
+    KeyLE h₁ J₁ h₂ J₂ ∨ KeyLE h₂ J₂ h₁ J₁ := by
+  rcases Nat.lt_trichotomy h₁ h₂ with hlt | heq | hgt
+  · exact Or.inl (Or.inl hlt)
+  · subst h₂
+    rcases Nat.le_total J₁.id J₂.id with hle | hle
+    · exact Or.inl (Or.inr ⟨rfl, hle⟩)
+    · exact Or.inr (Or.inr ⟨rfl, hle⟩)
+  · exact Or.inr (Or.inl hgt)
+
+private lemma keyList_max_exists :
+    ∀ (keys : List (Block n × ℕ)), keys ≠ [] →
+      ∃ K ∈ keys, ∀ L, L ∈ keys → KeyLE L.2 L.1 K.2 K.1
+  | [], hne => False.elim (hne rfl)
+  | K :: rest, _hne => by
+      by_cases hRest : rest = []
+      · refine ⟨K, by simp, ?_⟩
+        intro L hL
+        simp [hRest] at hL
+        rw [hL]
+        exact KeyLE.refl K.2 K.1
+      · obtain ⟨M, hM, hMax⟩ := keyList_max_exists rest hRest
+        rcases KeyLE.total K.2 K.1 M.2 M.1 with hKM | hMK
+        · refine ⟨M, by simp [hM], ?_⟩
+          intro L hL
+          rcases (by simpa using hL : L = K ∨ L ∈ rest) with hLK | hLRest
+          · rw [hLK]
+            exact hKM
+          · exact hMax L hLRest
+        · refine ⟨K, by simp, ?_⟩
+          intro L hL
+          rcases (by simpa using hL : L = K ∨ L ∈ rest) with hLK | hLRest
+          · rw [hLK]
+            exact KeyLE.refl K.2 K.1
+          · exact (hMax L hLRest).trans hMK
+
+private def finalityCandidateList (input : List (StoreEntry n)) :
+    List (Block n) :=
+  Block.genesis :: input.map fun e => e.state.F
+
+private lemma finalityCandidate_mem_list
+    {input : List (StoreEntry n)} {F : Block n} :
+    FinalityCandidate input F ↔ F ∈ finalityCandidateList input := by
+  constructor
+  · intro hCand
+    rcases hCand with hGenesis | hEntry
+    · simp [finalityCandidateList, hGenesis]
+    · rcases hEntry with ⟨e, he, hF⟩
+      simp [finalityCandidateList]
+      exact Or.inr ⟨e, he, hF⟩
+  · intro hMem
+    simp [finalityCandidateList] at hMem
+    rcases hMem with hGenesis | hEntry
+    · exact Or.inl hGenesis
+    · rcases hEntry with ⟨e, he, hF⟩
+      exact Or.inr ⟨e, he, hF⟩
+
+private lemma idInjectiveOnAncestors_sym {B₁ B₂ : Block n}
+    (hId : Block.IdInjectiveOnAncestors B₁ B₂) :
+    Block.IdInjectiveOnAncestors B₂ B₁ := by
+  intro A B hA hB hEq
+  exact hId (hA.symm) (hB.symm) hEq
+
+lemma FinalityCandidate.comparable {f : ℕ}
+    (hn : n = 3 * f + 1)
+    (hNoSlash : ¬ @AtLeastFThirdSlashable n f)
+    {input : List (StoreEntry n)}
+    (hInputId : InputIdInjective input)
+    {F G : Block n}
+    (hF : FinalityCandidate input F)
+    (hG : FinalityCandidate input G) :
+    F ≼ G ∨ G ≼ F := by
+  rcases hF with hFGenesis | hFEntry
+  · rw [hFGenesis]
+    exact Or.inl (Block.genesis_ancestor G)
+  rcases hG with hGGenesis | hGEntry
+  · rw [hGGenesis]
+    exact Or.inr (Block.genesis_ancestor F)
+  rcases hFEntry with ⟨eF, heF, hFstate⟩
+  rcases hGEntry with ⟨eG, heG, hGstate⟩
+  have hFchain : (stateOf eF.chain).F = F := by
+    simpa [StoreEntry.state] using hFstate
+  have hGchain : (stateOf eG.chain).F = G := by
+    simpa [StoreEntry.state] using hGstate
+  subst F
+  subst G
+  obtain ⟨h_f, hFanc, hFCert⟩ :=
+    FinalityEvidence.chain_finalizedCertificate eF.chain
+  obtain ⟨h_g, hGanc, hGCert⟩ :=
+    FinalityEvidence.chain_finalizedCertificate eG.chain
+  have hId : Block.IdInjectiveOnAncestors eF.block eG.block := by
+    exact hInputId eF eG
+      (Or.inr ⟨eF, heF, rfl, rfl⟩)
+      (Or.inr ⟨eG, heG, rfl, rfl⟩)
+  by_cases hle : h_f ≤ h_g
+  · rcases finalized_chain hn hId eF.chain rfl hFCert
+        eG.chain rfl hGCert hle with hSlash | hAnc
+    · exact False.elim (hNoSlash hSlash)
+    · exact Or.inl hAnc
+  · have hge : h_g ≤ h_f := Nat.le_of_lt (Nat.lt_of_not_le hle)
+    rcases finalized_chain hn (idInjectiveOnAncestors_sym hId)
+        eG.chain rfl hGCert
+        eF.chain rfl hFCert hge with hSlash | hAnc
+    · exact False.elim (hNoSlash hSlash)
+    · exact Or.inr hAnc
+
+theorem finalityMax_exists {f : ℕ}
+    (hn : n = 3 * f + 1)
+    (hNoSlash : ¬ @AtLeastFThirdSlashable n f)
+    {input : List (StoreEntry n)}
+    (hInputId : InputIdInjective input) :
+    ∃ Fmax : Block n, FinalityMax input Fmax := by
+  have hNonempty : finalityCandidateList (n := n) input ≠ [] := by
+    intro h
+    cases h
+  obtain ⟨Fmax, hMem, hMax⟩ :=
+    blockList_max_exists (finalityCandidateList (n := n) input) hNonempty
+      (by
+        intro A hA B hB
+        exact FinalityCandidate.comparable hn hNoSlash hInputId
+          (finalityCandidate_mem_list.mpr hA)
+          (finalityCandidate_mem_list.mpr hB))
+  refine ⟨Fmax, ?_⟩
+  constructor
+  · exact finalityCandidate_mem_list.mpr hMem
+  · intro F hCand
+    exact hMax F (finalityCandidate_mem_list.mp hCand)
+
+private def heightCandidateList (input : List (StoreEntry n)) : List ℕ :=
+  1 :: input.map StoreEntry.height
+
+private lemma heightCandidate_mem_list
+    {input : List (StoreEntry n)} {h : ℕ} :
+    HeightCandidate input h ↔ h ∈ heightCandidateList input := by
+  constructor
+  · intro hCand
+    rcases hCand with hOne | hEntry
+    · simp [heightCandidateList, hOne]
+    · rcases hEntry with ⟨e, he, hh⟩
+      simp [heightCandidateList]
+      exact Or.inr ⟨e, he, hh⟩
+  · intro hMem
+    simp [heightCandidateList] at hMem
+    rcases hMem with hOne | hEntry
+    · exact Or.inl hOne
+    · rcases hEntry with ⟨e, he, hh⟩
+      exact Or.inr ⟨e, he, hh⟩
+
+theorem heightMax_exists (input : List (StoreEntry n)) :
+    ∃ hmax : ℕ, HeightMax input hmax := by
+  have hNonempty : heightCandidateList (n := n) input ≠ [] := by
+    intro h
+    cases h
+  obtain ⟨hmax, hMem, hMax⟩ :=
+    natList_max_exists (heightCandidateList (n := n) input) hNonempty
+  refine ⟨hmax, ?_⟩
+  constructor
+  · exact heightCandidate_mem_list.mpr hMem
+  · intro h hCand
+    exact hMax h (heightCandidate_mem_list.mp hCand)
+
+private def justificationCandidateList
+    (input : List (StoreEntry n)) (F : Block n) : List (Block n × ℕ) :=
+  (if Block.isAncestorOf F (Block.genesis : Block n) then
+      [(Block.genesis, 0)]
+    else
+      []) ++
+    input.filterMap fun e =>
+      if Block.isAncestorOf F e.state.J then some (e.state.J, e.state.hj) else none
+
+private lemma justificationCandidate_mem_list
+    {input : List (StoreEntry n)} {F J : Block n} {h : ℕ} :
+    JustificationCandidate input F J h ↔
+      (J, h) ∈ justificationCandidateList input F := by
+  constructor
+  · intro hCand
+    rcases hCand with ⟨hFJ, hBody⟩
+    rcases hBody with hGenesis | hEntry
+    · rcases hGenesis with ⟨hJ, hh⟩
+      subst J
+      subst h
+      have hBool : Block.isAncestorOf F (Block.genesis : Block n) = true :=
+        (Block.isAncestorOf_eq_true_iff _ _).mpr hFJ
+      simp [justificationCandidateList, hBool]
+    · rcases hEntry with ⟨e, he, hJ, hh⟩
+      have hBool : Block.isAncestorOf F e.state.J = true :=
+        (Block.isAncestorOf_eq_true_iff _ _).mpr (by simpa [hJ] using hFJ)
+      simp [justificationCandidateList]
+      exact Or.inr ⟨e, he, hBool, hJ, hh⟩
+  · intro hMem
+    simp [justificationCandidateList] at hMem
+    rcases hMem with hGenesis | hEntry
+    · rcases hGenesis with ⟨hBool, hJ, hh⟩
+      have hFJ : F ≼ J := by
+        have hAnc := (Block.isAncestorOf_eq_true_iff F (Block.genesis : Block n)).mp hBool
+        simpa [hJ] using hAnc
+      exact ⟨hFJ, Or.inl ⟨hJ, hh⟩⟩
+    · rcases hEntry with ⟨e, he, hBool, hJ, hh⟩
+      have hFJ : F ≼ J := by
+        have hAnc := (Block.isAncestorOf_eq_true_iff F e.state.J).mp hBool
+        simpa [hJ] using hAnc
+      exact ⟨hFJ, Or.inr ⟨e, he, hJ, hh⟩⟩
+
+theorem justificationMax_exists
+    {input : List (StoreEntry n)} {F : Block n}
+    (hExists : ∃ J h, JustificationCandidate input F J h) :
+    ∃ Jmax hjmax, JustificationMax input F Jmax hjmax := by
+  rcases hExists with ⟨J, h, hCand⟩
+  have hMem : (J, h) ∈ justificationCandidateList input F :=
+    justificationCandidate_mem_list.mp hCand
+  have hNonempty : justificationCandidateList input F ≠ [] := by
+    intro hNil
+    rw [hNil] at hMem
+    cases hMem
+  obtain ⟨K, hKMem, hKMax⟩ :=
+    keyList_max_exists (justificationCandidateList input F) hNonempty
+  refine ⟨K.1, K.2, ?_⟩
+  constructor
+  · exact justificationCandidate_mem_list.mpr hKMem
+  · intro J h hCand
+    exact hKMax (J, h) (justificationCandidate_mem_list.mp hCand)
+
+theorem liveSummaryMatches_exists {f : ℕ}
+    (hn : n = 3 * f + 1)
+    (hNoSlash : ¬ @AtLeastFThirdSlashable n f)
+    {input : List (StoreEntry n)}
+    (hInputId : InputIdInjective input) :
+    ∃ summary : LiveSummary n, LiveSummaryMatches input summary := by
+  obtain ⟨Fmax, hFMax⟩ := finalityMax_exists hn hNoSlash hInputId
+  have hJExists :
+      ∃ J h, JustificationCandidate input Fmax J h := by
+    rcases hFMax.1 with hGenesis | hEntry
+    · refine ⟨Block.genesis, 0, ?_⟩
+      rw [hGenesis]
+      exact ⟨Block.Ancestor.refl Block.genesis, Or.inl ⟨rfl, rfl⟩⟩
+    · rcases hEntry with ⟨e, he, heF⟩
+      refine ⟨e.state.J, e.state.hj, ?_⟩
+      refine ⟨?_, Or.inr ⟨e, he, rfl, rfl⟩⟩
+      rw [← heF]
+      simpa [StoreEntry.state] using chain_F_le_J e.chain
+  obtain ⟨Jmax, hjmax, hJMax⟩ := justificationMax_exists hJExists
+  obtain ⟨hmax, hHMax⟩ := heightMax_exists input
+  exact
+    ⟨{ F := Fmax, J := Jmax, hj := hjmax, hmax := hmax },
+      hFMax, hJMax, hHMax⟩
+
 /-! ## Input-Equivalent Summary Transfer -/
 
 lemma InputEquivalent.symm {input₁ input₂ : List (StoreEntry n)}
@@ -1619,6 +1922,14 @@ lemma InputEquivalent.liveSummaryMatches
     LiveSummaryMatches input₂ summary := by
   refine ⟨hEq.finalityMax hSummary.1, ?_⟩
   exact ⟨hEq.justificationMax hSummary.2.1, hEq.heightMax hSummary.2.2⟩
+
+lemma InputEquivalent.inputIdInjective
+    {input₁ input₂ : List (StoreEntry n)}
+    (hEq : InputEquivalent input₁ input₂)
+    (hInputId : InputIdInjective input₁) :
+    InputIdInjective input₂ := by
+  intro e a he ha
+  exact hInputId e a ((hEq e).2 he) ((hEq a).2 ha)
 
 theorem parentFirstReplay_justification_eq_justificationMax
     {input : List (StoreEntry n)} {S : Store n}
@@ -1794,7 +2105,7 @@ theorem parentFirstReplay_liveComplete {f : ℕ}
     exact parentFirstReplay_accepts_relevant_input hReplay hPF e he hRel
   exact liveComplete_of_replay_components hReplay hF hJHj.1 hJHj.2 hHmax hAccepted
 
-theorem parentFirstReplay_getConfirmed_order_independent {f : ℕ}
+theorem parentFirstReplay_getConfirmed_order_independent_of_summary {f : ℕ}
     (hn : n = 3 * f + 1)
     (hNoSlash : ¬ @AtLeastFThirdSlashable n f)
     {input₁ input₂ : List (StoreEntry n)} {summary : LiveSummary n}
@@ -1808,7 +2119,6 @@ theorem parentFirstReplay_getConfirmed_order_independent {f : ℕ}
     (hNoGenesisS : Block.genesis ∉ input₁.map StoreEntry.block)
     (hNoGenesisT : Block.genesis ∉ input₂.map StoreEntry.block)
     (hInputIdS : InputIdInjective input₁)
-    (hInputIdT : InputIdInjective input₂)
     (hInputEq : InputEquivalent input₁ input₂)
     (hSummaryS : LiveSummaryMatches input₁ summary) :
     B ∈ S.getConfirmed ↔ B ∈ T.getConfirmed := by
@@ -1817,10 +2127,34 @@ theorem parentFirstReplay_getConfirmed_order_independent {f : ℕ}
       hNoGenesisS hInputIdS hSummaryS
   have hSummaryT : LiveSummaryMatches input₂ summary :=
     hInputEq.liveSummaryMatches hSummaryS
+  have hInputIdT : InputIdInjective input₂ :=
+    hInputEq.inputIdInjective hInputIdS
   have hLiveT : LiveComplete input₂ summary T :=
     parentFirstReplay_liveComplete hn hNoSlash hReplayT hPFT hNoDupT
       hNoGenesisT hInputIdT hSummaryT
   exact liveComplete_getConfirmed_inputEquivalent hInputEq hLiveS hLiveT
+
+theorem parentFirstReplay_getConfirmed_order_independent {f : ℕ}
+    (hn : n = 3 * f + 1)
+    (hNoSlash : ¬ @AtLeastFThirdSlashable n f)
+    {input₁ input₂ : List (StoreEntry n)}
+    {S T : Store n} {B : Block n}
+    (hReplayS : ReplayEntriesOf input₁ S)
+    (hReplayT : ReplayEntriesOf input₂ T)
+    (hPFS : ParentFirstEntries input₁)
+    (hPFT : ParentFirstEntries input₂)
+    (hNoDupS : (input₁.map StoreEntry.block).Nodup)
+    (hNoDupT : (input₂.map StoreEntry.block).Nodup)
+    (hNoGenesisS : Block.genesis ∉ input₁.map StoreEntry.block)
+    (hNoGenesisT : Block.genesis ∉ input₂.map StoreEntry.block)
+    (hInputIdS : InputIdInjective input₁)
+    (hInputEq : InputEquivalent input₁ input₂) :
+    B ∈ S.getConfirmed ↔ B ∈ T.getConfirmed := by
+  obtain ⟨summary, hSummary⟩ :=
+    liveSummaryMatches_exists hn hNoSlash hInputIdS
+  exact parentFirstReplay_getConfirmed_order_independent_of_summary hn hNoSlash
+    hReplayS hReplayT hPFS hPFT hNoDupS hNoDupT hNoGenesisS hNoGenesisT
+    hInputIdS hInputEq hSummary
 
 end Store
 

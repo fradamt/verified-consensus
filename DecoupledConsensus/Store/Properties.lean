@@ -164,6 +164,13 @@ def HasInputEntry (input : List (StoreEntry n)) (e : StoreEntry n) : Prop :=
 def InputEquivalent (input₁ input₂ : List (StoreEntry n)) : Prop :=
   ∀ e : StoreEntry n, HasInputEntry input₁ e ↔ HasInputEntry input₂ e
 
+/-- Two replay inputs carry the same available block set. This is the public
+    order-independence equivalence; entry-level state heights are recovered
+    from the deterministic block state transition in proofs. -/
+def InputBlockEquivalent (input₁ input₂ : List (StoreEntry n)) : Prop :=
+  ∀ B : Block n, B ∈ input₁.map StoreEntry.block ↔
+    B ∈ input₂.map StoreEntry.block
+
 /-- Scoped hash/id injectivity for every pair of histories considered by an
     order-independence input. Genesis is implicit, matching `HasInputEntry`. -/
 def InputIdInjective (input : List (StoreEntry n)) : Prop :=
@@ -477,7 +484,7 @@ def ParentFirstReplayGetConfirmedStatement (n f : ℕ) : Prop :=
           Block.genesis ∉ input₁.map StoreEntry.block →
           Block.genesis ∉ input₂.map StoreEntry.block →
           InputIdInjective input₁ →
-          InputEquivalent input₁ input₂ →
+          InputBlockEquivalent input₁ input₂ →
           (B ∈ S.getConfirmed ↔ B ∈ T.getConfirmed)
 
 end Store

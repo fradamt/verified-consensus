@@ -1789,6 +1789,37 @@ theorem liveSummaryMatches_exists {f : ℕ}
 
 /-! ## Input-Equivalent Summary Transfer -/
 
+lemma InputBlockEquivalent.inputEquivalent
+    {input₁ input₂ : List (StoreEntry n)}
+    (hEq : InputBlockEquivalent input₁ input₂) :
+    InputEquivalent input₁ input₂ := by
+  intro e
+  constructor
+  · intro hInput
+    rcases hInput with hGenesis | hEntry
+    · exact Or.inl hGenesis
+    · rcases hEntry with ⟨a, ha, hBlock, _hHeight⟩
+      have hMemBlock₁ : e.block ∈ input₁.map StoreEntry.block :=
+        List.mem_map.mpr ⟨a, ha, hBlock⟩
+      have hMemBlock₂ : e.block ∈ input₂.map StoreEntry.block :=
+        (hEq e.block).1 hMemBlock₁
+      rcases List.mem_map.mp hMemBlock₂ with ⟨b, hb, hbBlock⟩
+      have hHeight : b.height = e.height :=
+        StoreEntry.height_eq_of_block_eq (e := b) (a := e) hbBlock
+      exact Or.inr ⟨b, hb, hbBlock, hHeight⟩
+  · intro hInput
+    rcases hInput with hGenesis | hEntry
+    · exact Or.inl hGenesis
+    · rcases hEntry with ⟨a, ha, hBlock, _hHeight⟩
+      have hMemBlock₂ : e.block ∈ input₂.map StoreEntry.block :=
+        List.mem_map.mpr ⟨a, ha, hBlock⟩
+      have hMemBlock₁ : e.block ∈ input₁.map StoreEntry.block :=
+        (hEq e.block).2 hMemBlock₂
+      rcases List.mem_map.mp hMemBlock₁ with ⟨b, hb, hbBlock⟩
+      have hHeight : b.height = e.height :=
+        StoreEntry.height_eq_of_block_eq (e := b) (a := e) hbBlock
+      exact Or.inr ⟨b, hb, hbBlock, hHeight⟩
+
 lemma InputEquivalent.symm {input₁ input₂ : List (StoreEntry n)}
     (hEq : InputEquivalent input₁ input₂) :
     InputEquivalent input₂ input₁ := by
@@ -2148,8 +2179,10 @@ theorem parentFirstReplay_getConfirmed_order_independent {f : ℕ}
     (hNoGenesisS : Block.genesis ∉ input₁.map StoreEntry.block)
     (hNoGenesisT : Block.genesis ∉ input₂.map StoreEntry.block)
     (hInputIdS : InputIdInjective input₁)
-    (hInputEq : InputEquivalent input₁ input₂) :
+    (hInputBlockEq : InputBlockEquivalent input₁ input₂) :
     B ∈ S.getConfirmed ↔ B ∈ T.getConfirmed := by
+  have hInputEq : InputEquivalent input₁ input₂ :=
+    hInputBlockEq.inputEquivalent
   obtain ⟨summary, hSummary⟩ :=
     liveSummaryMatches_exists hn hNoSlash hInputIdS
   exact parentFirstReplay_getConfirmed_order_independent_of_summary hn hNoSlash

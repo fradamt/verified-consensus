@@ -518,23 +518,84 @@ private lemma genesis_noHigh : NoHighJustifications (Store.genesis n) := by
   simp [StoreEntry.state, StoreEntry.genesis, stateOf, State.genesis] at hhj
   omega
 
-private lemma not_keyGreater_height_le {S : Store n} {J' : Block n} {h' : ℕ}
-    (hKey : keyGreater h' J' S.hj S.J = false) : h' ≤ S.hj := by
-  unfold keyGreater at hKey
-  by_cases hlt : S.hj < h'
-  · simp [hlt] at hKey
-  · exact Nat.le_of_not_gt hlt
+private lemma updateFinalized_noHigh {S : Store n} {F' : Block n}
+    (hNoHigh : NoHighJustifications S) :
+    NoHighJustifications (S.updateFinalized F') := by
+  intro C h hProc
+  have hProcS : ProcessedJustification S C h := by
+    simpa [ProcessedJustification, ProcessedCheckpoint,
+      updateFinalized_entries_eq] using hProc
+  have hle : h ≤ S.hj := hNoHigh hProcS
+  simpa [updateFinalized_hj_eq] using hle
+
+private lemma updateJustified_addEntry_noHigh
+    {S : Store n} {entry : StoreEntry n}
+    (hNoHigh : NoHighJustifications S)
+    (hEntryHj :
+      entry.state.hj ≤
+        ((S.addEntry entry).updateJustified entry.state.J entry.state.hj).hj) :
+    NoHighJustifications
+      ((S.addEntry entry).updateJustified entry.state.J entry.state.hj) := by
+  let S1 := S.addEntry entry
+  let S2 := S1.updateJustified entry.state.J entry.state.hj
+  intro C h hProc
+  have hProcS1 : ProcessedJustification S1 C h := by
+    simpa [S1, S2, ProcessedJustification, ProcessedCheckpoint,
+      updateJustified_entries_eq] using hProc
+  rcases hProcS1 with ⟨e, he, hJ, hhj⟩
+  have heOldOrNew : e ∈ S.entries ∨ e = entry := by
+    simpa [S1, addEntry] using he
+  rcases heOldOrNew with heOld | heNew
+  · have hProcOld : ProcessedJustification S C h := ⟨e, heOld, hJ, hhj⟩
+    have hS1LeS2 : S1.hj ≤ S2.hj := updateJustified_hj_mono
+    have hSLeS2 : S.hj ≤ S2.hj := by
+      simpa [S1, addEntry] using hS1LeS2
+    exact (hNoHigh hProcOld).trans hSLeS2
+  · subst e
+    rw [← hhj]
+    simpa [S1, S2] using hEntryHj
+
+private lemma added_entry_hj_le_after_updateJustified
+    {S : Store n} (hS : Reachable S) (entry : StoreEntry n)
+    (hFEntry : S.F ≼ entry.block)
+    (hJContains :
+      (S.addEntry entry).containsBlockBool entry.state.J = true) :
+    entry.state.hj ≤
+      ((S.addEntry entry).updateJustified entry.state.J entry.state.hj).hj := by
+  let S1 := S.addEntry entry
+  cases hFJBool : Block.isAncestorOf S1.F entry.state.J
+  · have hNotFJ : ¬ S.F ≼ entry.state.J := by
+      intro hFJ
+      have hBool : Block.isAncestorOf S1.F entry.state.J = true := by
+        have hS1F : S1.F = S.F := by
+          simp [S1, addEntry]
+        rw [hS1F]
+        exact (Block.isAncestorOf_eq_true_iff _ _).mpr hFJ
+      rw [hFJBool] at hBool
+      cases hBool
+    have hle : entry.state.hj ≤ S.hj :=
+      entry_justification_height_le_hj_of_below_F hS entry hFEntry hNotFJ
+    have hguard :
+        S1.shouldUpdateJustified entry.state.J entry.state.hj = false := by
+      simp [shouldUpdateJustified, hFJBool]
+    have hUpdate :
+        (S1.updateJustified entry.state.J entry.state.hj).hj = S1.hj := by
+      simp [updateJustified, hguard]
+    calc
+      entry.state.hj ≤ S.hj := hle
+      _ = S1.hj := by simp [S1, addEntry]
+      _ = (S1.updateJustified entry.state.J entry.state.hj).hj := hUpdate.symm
+  · exact updateJustified_candidate_height_le hJContains hFJBool
 
 private lemma onBlock_noHigh {S S' : Store n} {B : Block n}
     (hS : Reachable S) (hNoHigh : NoHighJustifications S)
     (hstep : S.acceptBlock? B = some S') :
     NoHighJustifications S' := by
-  intro C h hProc
   unfold acceptBlock? at hstep
   by_cases hContains : S.containsBlockBool B
   · simp [hContains] at hstep
     cases hstep
-    exact hNoHigh hProc
+    exact hNoHigh
   · simp [hContains] at hstep
     cases B with
     | genesis =>
@@ -575,118 +636,28 @@ private lemma onBlock_noHigh {S S' : Store n} {B : Block n}
                 have hJBool : S1.containsBlockBool σ'.J = true :=
                   containsBlockBool_of_contains hJContains
                 cases hstep
-                have hProcS2 : ProcessedJustification S2 C h := by
-                  simpa [ProcessedJustification, ProcessedCheckpoint,
-                    updateFinalized_entries_eq] using hProc
-                cases hguard : S1.shouldUpdateJustified σ'.J σ'.hj
-                · have hProcS1 : ProcessedJustification S1 C h := by
-                    simpa [S2, updateJustified, hguard] using hProcS2
-                  rcases hProcS1 with ⟨e, he, hJ, hhj⟩
-                  have heOldOrNew : e ∈ S.entries ∨ e = entry := by
-                    simpa [S1, addEntry] using he
-                  rcases heOldOrNew with heOld | heNew
-                  · have hProcOld : ProcessedJustification S C h :=
-                      ⟨e, heOld, hJ, hhj⟩
-                    have hle : h ≤ S.hj := hNoHigh hProcOld
-                    have hFinalHj : (S2.updateFinalized σ'.F).hj = S.hj := by
-                      calc
-                        (S2.updateFinalized σ'.F).hj = S2.hj :=
-                          updateFinalized_hj_eq
-                        _ = S1.hj := by simp [S2, updateJustified, hguard]
-                        _ = S.hj := by simp [S1, addEntry]
-                    change h ≤ (S2.updateFinalized σ'.F).hj
-                    rw [hFinalHj]
-                    exact hle
-                  · subst e
-                    have h_hj : h = σ'.hj := by
-                      simpa [σ'] using hhj.symm
-                    have hBound : σ'.hj ≤ S.hj := by
-                      cases hFJBool : Block.isAncestorOf S.F σ'.J
-                      · have hNotFJ : ¬ S.F ≼ entry.state.J := by
-                          intro hFJ
-                          have hBool :
-                              Block.isAncestorOf S.F σ'.J = true := by
-                            have hFJ' : S.F ≼ σ'.J := by
-                              simpa [σ', StoreEntry.state] using hFJ
-                            exact (Block.isAncestorOf_eq_true_iff _ _).mpr hFJ'
-                          rw [hFJBool] at hBool
-                          cases hBool
-                        have hle :=
-                          entry_justification_height_le_hj_of_below_F
-                            hS entry hFEntry hNotFJ
-                        simpa [σ', StoreEntry.state] using hle
-                      · have hKeyFalse :
-                            keyGreater σ'.hj σ'.J S.hj S.J = false := by
-                          by_contra hKeyNotFalse
-                          have hKeyTrue :
-                              keyGreater σ'.hj σ'.J S.hj S.J = true := by
-                            cases hKey : keyGreater σ'.hj σ'.J S.hj S.J
-                            · exact False.elim (hKeyNotFalse hKey)
-                            · rfl
-                          have hGuardTrue :
-                              S1.shouldUpdateJustified σ'.J σ'.hj = true := by
-                            have hFJBoolS1 :
-                                Block.isAncestorOf S1.F σ'.J = true := by
-                              simpa [S1, addEntry] using hFJBool
-                            have hKeyTrueS1 :
-                                keyGreater σ'.hj σ'.J S1.hj S1.J = true := by
-                              simpa [S1, addEntry] using hKeyTrue
-                            simp [shouldUpdateJustified, hJBool, hFJBoolS1,
-                              hKeyTrueS1]
-                          rw [hguard] at hGuardTrue
-                          cases hGuardTrue
-                        have hKeyFalseS1 :
-                            keyGreater σ'.hj σ'.J S1.hj S1.J = false := by
-                          simpa [S1, addEntry] using hKeyFalse
-                        have hleS1 : σ'.hj ≤ S1.hj :=
-                          not_keyGreater_height_le hKeyFalseS1
-                        simpa [S1, addEntry] using hleS1
-                    rw [h_hj]
-                    have hFinalHj : (S2.updateFinalized σ'.F).hj = S.hj := by
-                      calc
-                        (S2.updateFinalized σ'.F).hj = S2.hj :=
-                          updateFinalized_hj_eq
-                        _ = S1.hj := by simp [S2, updateJustified, hguard]
-                        _ = S.hj := by simp [S1, addEntry]
-                    change σ'.hj ≤ (S2.updateFinalized σ'.F).hj
-                    rw [hFinalHj]
-                    exact hBound
-                · have hProcS1 : ProcessedJustification S1 C h := by
-                    simpa [S2, ProcessedJustification, ProcessedCheckpoint,
-                      updateJustified_entries_eq]
-                      using hProcS2
-                  rcases hProcS1 with ⟨e, he, hJ, hhj⟩
-                  have heOldOrNew : e ∈ S.entries ∨ e = entry := by
-                    simpa [S1, addEntry] using he
-                  have hParts := shouldUpdateJustified_parts hguard
-                  have hS1Le : S1.hj ≤ σ'.hj :=
-                    keyGreater_height_ge hParts.2.2
-                  rcases heOldOrNew with heOld | heNew
-                  · have hProcOld : ProcessedJustification S C h :=
-                      ⟨e, heOld, hJ, hhj⟩
-                    have hle : h ≤ S.hj := hNoHigh hProcOld
-                    have hSLe : S.hj ≤ σ'.hj := by
-                      simpa [S1, addEntry] using hS1Le
-                    have hle' : h ≤ σ'.hj := hle.trans hSLe
-                    have hFinalHj : (S2.updateFinalized σ'.F).hj = σ'.hj := by
-                      calc
-                        (S2.updateFinalized σ'.F).hj = S2.hj :=
-                          updateFinalized_hj_eq
-                        _ = σ'.hj := by simp [S2, updateJustified, hguard]
-                    change h ≤ (S2.updateFinalized σ'.F).hj
-                    rw [hFinalHj]
-                    exact hle'
-                  · subst e
-                    have hEq : h = σ'.hj := by
-                      simpa [σ'] using hhj.symm
-                    rw [hEq]
-                    have hFinalHj : (S2.updateFinalized σ'.F).hj = σ'.hj := by
-                      calc
-                        (S2.updateFinalized σ'.F).hj = S2.hj :=
-                          updateFinalized_hj_eq
-                        _ = σ'.hj := by simp [S2, updateJustified, hguard]
-                    change σ'.hj ≤ (S2.updateFinalized σ'.F).hj
-                    rw [hFinalHj]
+                have hEntryHj :
+                    entry.state.hj ≤
+                      ((S.addEntry entry).updateJustified entry.state.J
+                        entry.state.hj).hj := by
+                  simpa [S1] using
+                    added_entry_hj_le_after_updateJustified hS entry hFEntry
+                    (by simpa [S1, σ', StoreEntry.state] using hJBool)
+                have hNoHighRaw :
+                    NoHighJustifications
+                      ((S.addEntry entry).updateJustified entry.state.J
+                        entry.state.hj) :=
+                  updateJustified_addEntry_noHigh hNoHigh hEntryHj
+                have hNoHighS2 : NoHighJustifications S2 := by
+                  intro C h hProc
+                  have hProcRaw :
+                      ProcessedJustification
+                        ((S.addEntry entry).updateJustified entry.state.J
+                          entry.state.hj) C h := by
+                    simpa [S1, S2, σ', StoreEntry.state] using hProc
+                  have hle := hNoHighRaw hProcRaw
+                  simpa [S1, S2, σ', StoreEntry.state] using hle
+                exact updateFinalized_noHigh hNoHighS2
               · simp [child, hAnc] at hstep
             · simp [hFind, hSlot] at hstep
 

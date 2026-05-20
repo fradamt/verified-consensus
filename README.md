@@ -73,7 +73,7 @@ theorem statements are:
 | `Store.GetConfirmedTotalStatement` | `getConfirmed` is nonempty on reachable stores, and every output is valid. |
 | `Store.ForkChoiceConsistencyStatement` | Future confirmed outputs descend from earlier finalized roots. |
 | `Store.LocalFinalityUpdateStatement` | Accepted finality updates move store finality far enough. |
-| `Store.LockInStatement` | Processed finalized checkpoints remain locked into future confirmed outputs. |
+| `Store.LockInStatement` | If a finalized block has appeared as a processed checkpoint, future confirmed outputs descend from it. |
 | `Store.ParentFirstReplayLiveEquivalentStatement` | Parent-first replays of the same block set agree on the live store view. |
 | `Store.ParentFirstReplayGetConfirmedStatement` | Such replays have the same `getConfirmed` membership. |
 

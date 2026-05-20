@@ -1,200 +1,129 @@
 # Decoupled Consensus
 
-Lean formalizations for the accountable-safety and store arguments from
-`height_filter_and_timeouts.tex`. The development builds with no `sorry`s and
-uses only Lean/mathlib standard axioms.
+A Lean 4 / mathlib formalization of the accountable-safety and store
+arguments for a height-filtered shared-finality protocol.
 
-Build with:
+The project contains executable protocol models, proof-free public theorem
+statements, and proved theorem facades. It currently builds with no `sorry`s
+and uses no project-specific axioms.
+
+## Status
+
+| Item | Status |
+| --- | --- |
+| Lean toolchain | `v4.30.0-rc2` |
+| Main build target | `DecoupledConsensus` |
+| Protocol layers modeled | State machine and store |
+| Public theorem surfaces | `State.TheoremStatements`, `Store.TheoremStatements` |
+| Proof facades | `State.ProvenTheorems`, `Store.ProvenTheorems` |
+| `sorry` / `admit` | none |
+| Project axioms | none |
+
+## Quick Start
+
+```sh
+lake exe cache get
+lake build DecoupledConsensus
+```
+
+The root module imports the public state and store developments:
+
+```lean
+import DecoupledConsensus
+```
+
+## Entry Points
+
+- `DecoupledConsensus.lean` imports the full development.
+- `DecoupledConsensus/State/Model.lean` imports the executable state-machine
+  model.
+- `DecoupledConsensus/Store/Model.lean` imports the executable store model.
+- `DecoupledConsensus/State/TheoremStatements.lean` contains the public
+  Section 2 statement surface.
+- `DecoupledConsensus/Store/TheoremStatements.lean` contains the public
+  Section 3 statement surface.
+- `DecoupledConsensus/State/ProvenTheorems.lean` and
+  `DecoupledConsensus/Store/ProvenTheorems.lean` expose the proved theorem
+  facades.
+- `docs/project-design.md` records modeling decisions and technical rationale.
+
+## What Is Proved
+
+### State Layer
+
+The state layer formalizes the accountable-safety argument over chain-local
+state transitions. Its public theorem statements are:
+
+| Public statement | Informal content |
+| --- | --- |
+| `State.MainSafetyStatement` | A chain past a finalized height contains the finalized block, unless enough validators are slashable. |
+| `State.FinalizedBlocksFormChainStatement` | Finalized blocks at ordered heights form a chain, unless enough validators are slashable. |
+| `State.AccountableSafetyStatement` | Two finalized blocks are compatible, unless enough validators are slashable. |
+
+### Store Layer
+
+The store layer formalizes the node-local accepted tree, height filter,
+confirmed-output set, and replay/order-independence properties. Its public
+theorem statements are:
+
+| Public statement | Informal content |
+| --- | --- |
+| `Store.FinalityIrreversibilityStatement` | Store finality only moves forward. |
+| `Store.FAncestorJStatement` | Reachable stores maintain `F <= J`. |
+| `Store.GetConfirmedTotalStatement` | `getConfirmed` is nonempty on reachable stores, and every output is valid. |
+| `Store.ForkChoiceConsistencyStatement` | Future confirmed outputs descend from earlier finalized roots. |
+| `Store.LocalFinalityUpdateStatement` | Accepted finality updates move store finality far enough. |
+| `Store.LockInStatement` | Processed finalized checkpoints remain locked into future confirmed outputs. |
+| `Store.ParentFirstReplayLiveEquivalentStatement` | Parent-first replays of the same block set agree on the live store view. |
+| `Store.ParentFirstReplayGetConfirmedStatement` | Such replays have the same `getConfirmed` membership. |
+
+## Repository Layout
+
+```text
+DecoupledConsensus/
+  State/
+    Model/                 executable Section 2 definitions
+    Proof/                 Section 2 proof internals
+    TheoremStatements.lean public Section 2 theorem surface
+    ProvenTheorems.lean    proved Section 2 facade
+  Store/
+    Model/                 executable Section 3 definitions
+    Proof/                 Section 3 proof internals
+    TheoremStatements.lean public Section 3 theorem surface
+    ProvenTheorems.lean    proved Section 3 facade
+docs/
+  project-design.md        modeling decisions and rationale
+```
+
+The `TheoremStatements` files are the intended review surface for external
+readers. Proof-internal lemmas, decomposition predicates, and engineering
+machinery live under `Proof`.
+
+## Reading Order
+
+1. Read this README for scope and entry points.
+2. Read `State/TheoremStatements.lean` and `Store/TheoremStatements.lean` for
+   the public claim surface.
+3. Read `docs/project-design.md` for why the model is structured the way it is.
+4. Open `State/Model` or `Store/Model` for executable definitions.
+5. Inspect `State/ProvenTheorems.lean` and `Store/ProvenTheorems.lean` to
+   connect public statements to proof artifacts.
+
+## Verification
+
+The primary verification command is:
 
 ```sh
 lake build DecoupledConsensus
 ```
 
-## File Layout
+For a lightweight local audit, useful checks are:
 
-The project is split first by protocol layer, then by model/theorem-statements/proofs:
-
-- `DecoupledConsensus/State/Model`: executable Section 2 state-machine model.
-- `DecoupledConsensus/State/TheoremStatements.lean`: proof-free public
-  Section 2 theorem statements.
-- `DecoupledConsensus/State/Proof`: Section 2 proof internals.
-- `DecoupledConsensus/State/ProvenTheorems.lean`: proved Section 2 facade.
-- `DecoupledConsensus/Store/Model`: executable Section 3 store model.
-- `DecoupledConsensus/Store/TheoremStatements.lean`: proof-free public
-  Section 3 theorem statements and specification vocabulary.
-- `DecoupledConsensus/Store/Proof`: Section 3 proof internals.
-- `DecoupledConsensus/Store/ProvenTheorems.lean`: proved Section 3 facade.
-
-Use `DecoupledConsensus.State.Model` or `DecoupledConsensus.Store.Model` when
-only executable definitions are needed. Use the `TheoremStatements.lean` files
-to review the specification surface without proof scripts. These files are
-reserved for public-facing theorem/corollary statements that someone would care
-to verify externally; proof-internal lemmas and decomposition predicates stay
-under `Proof`. `ProvenTheorems.lean` facades import proofs because they expose
-actual theorem constants.
-
-`DecoupledConsensus.lean` exports both State and Store facades.
-
-## Blocks, Votes, And Chains
-
-Validators are `Fin n`. Blocks carry explicit ids and embedded vote payloads:
-
-```lean
-abbrev BlockId := Nat
-
-structure Vote (n : Nat) where
-  validator : Validator n
-  height : Nat
-  target : Option BlockId
-  finalize : Option (Nat × BlockId)
-
-inductive Block (n : Nat) where
-  | genesis
-  | mk (id : BlockId) (parent : Block n) (slot : Nat) (votes : List (Vote n))
+```sh
+rg -n '\b(sorry|admit|axiom)\b' DecoupledConsensus --glob '*.lean'
+lake build DecoupledConsensus
 ```
 
-Votes refer to block ids rather than recursively containing blocks.
-`Block.findById` resolves an id against the current chain head. Collision
-freedom is not assumed globally for all raw block syntax; the public safety
-statements assume `Block.IdInjectiveOnAncestors B₁ B₂` only for the compared
-histories.
-
-`Chain n B` is an indexed validity witness for a chain ending at `B`. Its
-`extend` constructor enforces strict slot growth. `stateOf chain` is the
-formal `sigma[B]`; it is computed from the chain, not stored in a separate map.
-
-## State Machine
-
-`State` mirrors the paper tuple:
-
-```lean
-(L, s, h, sh, targets, timeouts, J, hj, F, P)
-```
-
-There is no finalized-height field in protocol state. Finalization height is
-certificate/proof data, not state data.
-
-The per-block transition is executable:
-
-```lean
-stateTransition sigma B =
-  processHeight (processBlock (iterateProcessSlot sigma (B.slot - sigma.s)) B)
-```
-
-`processSlot` closes empty slots when the current slot has no block on the
-chain, then increments `s`. `stateTransition` closes the block slot after
-`processBlock`, so a block whose votes justify the current height can be a
-target for the next height without forcing an extra block delay.
-
-`processVoteCore` updates `targets`/`timeouts` only when the target id resolves
-on the current chain, has `T.slot >= sigma.sh`, and is a strict ancestor of the
-current block (`T.slot < sigma.L.slot`). The finalize `P` gate is intentionally
-separate: a vote with a stale or unresolved target side can still count toward
-`P` if `v.finalize = some (sigma'.hj, sigma'.J.id)`.
-
-Justification selection is deterministic and executable: `firstJustifiedTarget`
-scans validators in index order and returns the first currently justified
-target.
-
-## Section 2 Theorem Statements
-
-The public finalization predicate is chain-scoped:
-
-```lean
-def State.IsFinalizedOn {B : Block n} (chain : Chain n B)
-    (C : Block n) (h_f : Nat) : Prop
-```
-
-There is intentionally no tip-only existential `IsFinalized` wrapper. The
-public accountable-safety statements keep the two witnessing histories in the
-premises because the accountability conclusion is scoped to those histories.
-
-The three public State statements are:
-
-- `State.MainSafetyStatement`
-- `State.FinalizedBlocksFormChainStatement`
-- `State.AccountableSafetyStatement`
-
-Their accountability conclusion is:
-
-```lean
-AtLeastFThirdSlashableBetween chain₁ chain₂ f
-```
-
-This means the two offending histories themselves contain the slashable vote
-pairs. The older unscoped `AtLeastFThirdSlashable` remains as a legacy/global
-predicate for store-side assumptions.
-
-`FinalizedCertificate` is proof/certificate vocabulary. For non-genesis
-finality it records a finalize quorum for `(C, h_f)`, a justify quorum for
-`C.id` at `h_f`, the height-closed fact
-`(stateOf (chain.subchain hC)).h = h_f`, and that the witnessing chain has
-advanced past `h_f`.
-
-## Store Model
-
-`Store` is the executable Section 3 tuple:
-
-```lean
-(entries, F, J, hj, hmax)
-```
-
-`entries` is the accepted tree plus a `Chain` witness for each accepted block.
-The derived TeX state map `sigma[B]` is represented by `AcceptedBlockState`
-and `Store.findChain?`.
-
-The exposed store mutator is total:
-
-```lean
-Store.onBlock : Store n -> Block n -> Store n
-```
-
-Rejected blocks are no-ops for the modeled store. The internal helper
-`acceptBlock? : Store n -> Block n -> Option (Store n)` records accepted
-transitions for proofs and reachability. `Store.replayBlocks` folds total
-`onBlock` directly; there is no `tryOnBlock`.
-
-`getConfirmed` is modeled as a finite list of all possible confirmed outputs,
-rather than choosing one output with an oracle. The statements prove properties
-about every member of that output set.
-
-## Section 3 Theorem Statements
-
-The public Store theorem-statement layer includes:
-
-- `FinalityIrreversibilityStatement`
-- `FAncestorJStatement`
-- `GetConfirmedTotalStatement`
-- `ForkChoiceConsistencyStatement`
-- `LocalFinalityUpdateStatement`
-- `LockInStatement`
-- `ParentFirstReplayLiveEquivalentStatement`
-- `ParentFirstReplayGetConfirmedStatement`
-
-TeX lemma-level invariants and replay-decomposition predicates remain proved
-under `Store.Proof`, but are intentionally not part of the public statement
-facade.
-
-Raw full-store equality under different replay orders is not the right
-statement: a block accepted before finality moves can remain in one store while
-another replay rejects it after finality moves. The proved replay surface uses
-the live view rooted at finality:
-
-- `LiveEquivalent` equates `F`, `J`, `hj`, `hmax`, and accepted entries in the
-  finality subtree.
-- `ParentFirstReplayLiveEquivalentStatement` proves this live equivalence for
-  parent-first replays of equivalent inputs.
-- `ParentFirstReplayGetConfirmedStatement` proves equality of `getConfirmed`
-  membership for those replays.
-
-## Current Caveats
-
-- Public quorum/safety statements still use the exact committee convention
-  `n = 3 * f + 1`. Generalizing to `n >= 3 * f + 1` requires refactoring the
-  quorum/advance arithmetic lemmas.
-- Store-side accountable assumptions still use the legacy global
-  `AtLeastFThirdSlashable` predicate. State accountable-safety conclusions are
-  already scoped to the two compared histories.
-- `FinalizedCertificate` packages height facts as certificate/proof evidence.
-  This is not protocol state, but it is still part of the external finality
-  predicate surface.
+The first command should not find proof placeholders or project axioms in Lean
+source files. The second command elaborates the executable model, theorem
+statements, and all proof facades.

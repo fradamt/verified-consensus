@@ -96,16 +96,19 @@ private lemma processVoteCore_targets_eq_cases_strict
       v.target = some T.id ∧ v.height = σ.h ∧
         T ≼ σ.L ∧ T.slot ≥ σ.sh ∧ T.slot < σ.L.slot ∧
           (processVoteCore σ v).targets i = some T) := by
+  cases hKnown : voteReferencesKnown σ v
+  · left
+    simp [processVoteCore, hKnown]
   match h_target : v.target with
   | none =>
       left
-      simp [processVoteCore, h_target]
+      simp [processVoteCore, hKnown, h_target]
       split_ifs <;> rfl
   | some bid =>
       match h_find : σ.L.findById bid with
       | none =>
           left
-          simp [processVoteCore, h_target, h_find]
+          simp [processVoteCore, hKnown, h_target, h_find]
       | some T_v =>
           by_cases h_fresh :
               v.height = σ.h ∧ T_v.slot ≥ σ.sh ∧ T_v.slot < σ.L.slot
@@ -115,11 +118,11 @@ private lemma processVoteCore_targets_eq_cases_strict
                 h_fresh.2.1, h_fresh.2.2, ?_⟩
               · rw [← Block.findById_id h_find]
               · subst hi
-                simp [processVoteCore, h_target, h_find, h_fresh]
+                simp [processVoteCore, hKnown, h_target, h_find, h_fresh]
             · left
-              simp [processVoteCore, h_target, h_find, h_fresh, Function.update, hi]
+              simp [processVoteCore, hKnown, h_target, h_find, h_fresh, Function.update, hi]
           · left
-            simp [processVoteCore, h_target, h_find, h_fresh]
+            simp [processVoteCore, hKnown, h_target, h_find, h_fresh]
 
 lemma genesis_prefixHeight : PrefixHeightInv (Chain.genesis : Chain n Block.genesis)
     (State.genesis n) := by

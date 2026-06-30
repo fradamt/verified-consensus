@@ -40,9 +40,9 @@ theorem proof_forkChoice_consistency_theorem :
 
 theorem proof_local_finality_update_theorem {f : ℕ} :
     LocalFinalityUpdateStatement n f := by
-  intro hn hNoSlash S S' B σB hS hFresh hstep hAcc hId hAlreadyOrStrict
-  exact onBlock_descends_or_accepts_state_finalization
-    hn hNoSlash hS hFresh hstep hAcc hId hAlreadyOrStrict
+  intro hn hNoSlash S S' B σB hS hFresh hstep hAcc hId
+  exact onBlock_descends_state_finalization
+    hn hNoSlash hS hFresh hstep hAcc hId
 
 theorem proof_lockIn_theorem {f : ℕ} :
     LockInStatement n f := by

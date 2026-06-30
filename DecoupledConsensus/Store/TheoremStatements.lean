@@ -199,9 +199,8 @@ def ForkChoiceConsistencyStatement (n : ℕ) : Prop :=
     Reachable S → Future S T → B ∈ T.getConfirmed → S.F ≼ B
 
 /-- **Local acceptance of finality updates** (paper Theorem `thm:finlive`), stated at
-    the accepted `onBlock` transition surface. For a fresh processed block, if its
-    block-state finalized root is comparable with the previous store-finalized root,
-    the resulting store finality is at or beyond that block-state root. -/
+    the accepted `onBlock` transition surface. For a fresh processed block, the
+    resulting store finality is at or beyond that block-state root. -/
 def LocalFinalityUpdateStatement (n f : ℕ) : Prop :=
   n = 3 * f + 1 →
     ¬ @AtLeastFThirdSlashable n f →
@@ -211,7 +210,6 @@ def LocalFinalityUpdateStatement (n f : ℕ) : Prop :=
           S.acceptBlock? B = some S' →
           AcceptedBlockState S' B σB →
           IdInjectiveAgainstStore B S' →
-          (σB.F ≼ S.F ∨ (S.F ≼ σB.F ∧ S.F ≠ σB.F)) →
           σB.F ≼ S'.F
 
 /-- **Lock-in** (paper Theorem `thm:lockin`) for any executable `getConfirmed` output:

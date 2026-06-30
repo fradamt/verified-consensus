@@ -900,6 +900,56 @@ theorem onBlock_descends_or_accepts_state_finalization {f : ℕ}
     rw [hSet]
     exact .refl _
 
+/-- For a fresh accepted block, the old store-finalized root and the block
+    state's finalized root both lie on the accepted block's chain. This recovers
+    the comparability case split used by the TeX proof of `finlive`. -/
+private theorem onBlock_state_finalization_comparable
+    {S S' : Store n} {B : Block n} {σB : State n}
+    (hFresh : S.containsBlockBool B = false)
+    (hstep : S.acceptBlock? B = some S')
+    (hAcc : AcceptedBlockState S' B σB) :
+    σB.F ≼ S.F ∨ (S.F ≼ σB.F ∧ S.F ≠ σB.F) := by
+  rcases hAcc with ⟨chainB, _hLookup, hStateEq⟩
+  obtain
+    ⟨_bid, _parent, _newSlot, _votes, hBlockEq, _parentChain, _hFind,
+      _hSlot, hAcceptedUnderF, _hResult⟩ :=
+        freshOnBlockStep_of_onBlock hFresh hstep
+  have hStoreF_B : S.F ≼ B := by
+    rw [hBlockEq]
+    exact hAcceptedUnderF
+  have hStateF_B : σB.F ≼ B := by
+    have hFJ : (stateOf chainB).F ≼ (stateOf chainB).J := by
+      simpa [StoreEntry.state] using chain_F_le_J chainB
+    have hJB : (stateOf chainB).J ≼ B := by
+      simpa [StoreEntry.state] using chain_J_le_L chainB
+    have hChainF : (stateOf chainB).F ≼ B :=
+      Block.Ancestor.trans hFJ hJB
+    simpa [hStateEq] using hChainF
+  rcases Block.Ancestor.linear hStoreF_B hStateF_B with hOldBelowNew | hNewBelowOld
+  · by_cases hEq : S.F = σB.F
+    · left
+      rw [← hEq]
+      exact Block.Ancestor.refl S.F
+    · right
+      exact ⟨hOldBelowNew, hEq⟩
+  · exact Or.inl hNewBelowOld
+
+/-- TeX-shaped fresh-`onBlock` finality update acceptance. The comparability
+    needed by the executable guard proof is derived internally from the two
+    finalized roots' common accepted-chain ancestry. -/
+theorem onBlock_descends_state_finalization {f : ℕ}
+    (hn : n = 3 * f + 1)
+    (hNoSlash : ¬ @AtLeastFThirdSlashable n f)
+    {S S' : Store n} {B : Block n} {σB : State n}
+    (hS : Reachable S)
+    (hFresh : S.containsBlockBool B = false)
+    (hstep : S.acceptBlock? B = some S')
+    (hAcc : AcceptedBlockState S' B σB)
+    (hId : IdInjectiveAgainstStore B S') :
+    σB.F ≼ S'.F := by
+  exact onBlock_descends_or_accepts_state_finalization hn hNoSlash hS hFresh
+    hstep hAcc hId (onBlock_state_finalization_comparable hFresh hstep hAcc)
+
 /-- Upgrade with a clean processed-descriptor surface. The proof-side
     `JustificationRecord` for the future store's root is extracted internally
     from executable reachability. -/

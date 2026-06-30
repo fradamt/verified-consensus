@@ -56,7 +56,7 @@ def timedOutSet (σ : State n) : Finset (Validator n) :=
   Finset.univ.filter (fun i => σ.timeouts i = true)
 
 /-- Justification: target `T` has a quorum of per-validator targets.
-    Internal state-machine predicate; uses the strict 2/3 form for parsimony. -/
+    Internal state-machine predicate; uses the f-free 2/3 form for parsimony. -/
 def Justified (σ : State n) (T : Block n) : Prop :=
   IsQuorumStrict n (targetedSet σ T)
 
@@ -92,34 +92,65 @@ def firstJustifiedTarget (σ : State n) : Option (Block n) :=
 
 /-! ## State machine transitions -/
 
+/-- A non-`⊥` vote reference is valid only if it resolves to a block that
+    already existed before the current head, i.e. to a strict ancestor of `σ.L`.
+    The slot comparison is the executable strict-ancestry check used throughout
+    vote processing after resolving an id on the current chain. -/
+def blockReferenceKnown (σ : State n) (bid : BlockId) : Bool :=
+  match σ.L.findById bid with
+  | none => false
+  | some T => decide (T.slot < σ.L.slot)
+
+/-- Chain-relative vote-reference check. Every non-`⊥` block id carried by the
+    vote must resolve to an already-existing strict ancestor of the current
+    chain head, matching the paper's well-formed included-vote condition. -/
+def voteReferencesKnown (σ : State n) (v : Vote n) : Bool :=
+  let targetKnown :=
+    match v.target with
+    | none => true
+    | some bid => blockReferenceKnown σ bid
+  let finalizeKnown :=
+    match v.finalize with
+    | none => true
+    | some (_, bid) => blockReferenceKnown σ bid
+  targetKnown && finalizeKnown
+
 /-- The targets/timeouts core of vote processing — no `P` update. Splits
     out the inner state-machine update (Figure 1, the part above the
     `P`-gate) into its own definition so that case analysis about
     `targets` and `timeouts` is straightforward. -/
 def processVoteCore (σ : State n) (v : Vote n) : State n :=
-  match v.target with
-  | none =>
-      if v.height = σ.h then
-        { σ with timeouts := Function.update σ.timeouts v.validator true }
-      else σ
-  | some bid =>
-      match σ.L.findById bid with
-      | none => σ
-      | some T =>
-          if v.height = σ.h ∧ T.slot ≥ σ.sh ∧ T.slot < σ.L.slot then
-            { σ with targets  := Function.update σ.targets v.validator (some T)
-                     timeouts := Function.update σ.timeouts v.validator true }
-          else σ
+  if voteReferencesKnown σ v then
+    match v.target with
+    | none =>
+        if v.height = σ.h then
+          { σ with timeouts := Function.update σ.timeouts v.validator true }
+        else σ
+    | some bid =>
+        match σ.L.findById bid with
+        | none => σ
+        | some T =>
+            if v.height = σ.h ∧ T.slot ≥ σ.sh ∧ T.slot < σ.L.slot then
+              { σ with targets  := Function.update σ.targets v.validator (some T)
+                       timeouts := Function.update σ.timeouts v.validator true }
+            else σ
+  else σ
+
+/-- Finality-participation gate for a vote. This remains independent of target
+    freshness, but requires all non-`⊥` vote references to resolve to already
+    existing strict ancestors. -/
+def finalizeGate (σ : State n) (v : Vote n) : Bool :=
+  voteReferencesKnown σ v && decide (v.finalize = some (σ.hj, σ.J.id))
 
 /-- Process a single vote against the current state.
     Implements `processVote` from Figure 1 (state machine):
     first apply `processVoteCore` (targets/timeouts update), then the
     finalize-commitment `P`-gate. The `P`-gate is intentionally independent
-    of target freshness: a stale or unresolved target side may fail to update
+    of target freshness: a stale but resolvable target side may fail to update
     `targets`/`timeouts`, while a matching finalize commitment still counts. -/
 def processVote (σ : State n) (v : Vote n) : State n :=
   let σ' := processVoteCore σ v
-  if v.finalize = some (σ'.hj, σ'.J.id) then
+  if finalizeGate σ' v then
     { σ' with P := insert v.validator σ'.P }
   else σ'
 

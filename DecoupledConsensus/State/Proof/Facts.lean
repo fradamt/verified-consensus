@@ -16,14 +16,17 @@ attribute [local instance] Classical.propDecidable
 
 lemma isQuorumStrictBool_eq_true_iff (Q : Finset (Validator n)) :
     isQuorumStrictBool n Q = true ↔ IsQuorumStrict n Q := by
-  unfold isQuorumStrictBool IsQuorumStrict
-  rw [Nat.ble_eq]
+  simp [isQuorumStrictBool, IsQuorumStrict, Nat.ble_eq]
 
 /-- The two forms agree under the BFT convention `n = 3 * f + 1`. -/
 lemma isQuorum_iff_strict {f : ℕ} (hn : n = 3 * f + 1)
     (Q : Finset (Validator n)) : IsQuorum f Q ↔ IsQuorumStrict n Q := by
   unfold IsQuorum IsQuorumStrict
-  omega
+  constructor
+  · intro hQ
+    constructor <;> omega
+  · intro hQ
+    omega
 
 /-- Inclusion-exclusion for finsets of validators. -/
 lemma quorum_inclusion_exclusion (Q Q' : Finset (Validator n)) :
@@ -35,14 +38,14 @@ lemma quorum_inclusion_exclusion (Q Q' : Finset (Validator n)) :
     simpa using h
   omega
 
-/-- **Quorum intersection** in the strict 2/3 convention: any two quorums
-    share at least `(n + 2)/3` validators. Stated in `IsQuorumStrict` form
+/-- **Quorum intersection** in the f-free 2/3 convention: any two quorums
+    share at least `n/3` validators. Stated in `IsQuorumStrict` form
     for use by the state-machine lemmas; the BFT-form analogue (sharing
     at least `f + 1` validators when `n = 3 * f + 1`) is `quorum_intersection_f`
     below. -/
 lemma quorum_intersection (Q Q' : Finset (Validator n))
     (hQ : IsQuorumStrict n Q) (hQ' : IsQuorumStrict n Q') :
-    3 * (Q ∩ Q').card ≥ n + 2 := by
+    3 * (Q ∩ Q').card ≥ n := by
   have h := quorum_inclusion_exclusion Q Q'
   unfold IsQuorumStrict at hQ hQ'
   omega
@@ -391,81 +394,105 @@ Every other field is preserved. -/
 @[simp] lemma processVoteCore_h (σ : State n) (v : Vote n) :
     (processVoteCore σ v).h = σ.h := by
   unfold processVoteCore
-  split
-  · split_ifs <;> rfl
-  · split
-    · rfl
+  cases hKnown : voteReferencesKnown σ v
+  · simp
+  · simp
+    split
     · split_ifs <;> rfl
+    · split
+      · rfl
+      · split_ifs <;> rfl
 
 @[simp] lemma processVoteCore_hj (σ : State n) (v : Vote n) :
     (processVoteCore σ v).hj = σ.hj := by
   unfold processVoteCore
-  split
-  · split_ifs <;> rfl
-  · split
-    · rfl
+  cases hKnown : voteReferencesKnown σ v
+  · simp
+  · simp
+    split
     · split_ifs <;> rfl
+    · split
+      · rfl
+      · split_ifs <;> rfl
 
 @[simp] lemma processVoteCore_sh (σ : State n) (v : Vote n) :
     (processVoteCore σ v).sh = σ.sh := by
   unfold processVoteCore
-  split
-  · split_ifs <;> rfl
-  · split
-    · rfl
+  cases hKnown : voteReferencesKnown σ v
+  · simp
+  · simp
+    split
     · split_ifs <;> rfl
+    · split
+      · rfl
+      · split_ifs <;> rfl
 
 @[simp] lemma processVoteCore_J (σ : State n) (v : Vote n) :
     (processVoteCore σ v).J = σ.J := by
   unfold processVoteCore
-  split
-  · split_ifs <;> rfl
-  · split
-    · rfl
+  cases hKnown : voteReferencesKnown σ v
+  · simp
+  · simp
+    split
     · split_ifs <;> rfl
+    · split
+      · rfl
+      · split_ifs <;> rfl
 
 @[simp] lemma processVoteCore_F (σ : State n) (v : Vote n) :
     (processVoteCore σ v).F = σ.F := by
   unfold processVoteCore
-  split
-  · split_ifs <;> rfl
-  · split
-    · rfl
+  cases hKnown : voteReferencesKnown σ v
+  · simp
+  · simp
+    split
     · split_ifs <;> rfl
+    · split
+      · rfl
+      · split_ifs <;> rfl
 
 @[simp] lemma processVoteCore_L (σ : State n) (v : Vote n) :
     (processVoteCore σ v).L = σ.L := by
   unfold processVoteCore
-  split
-  · split_ifs <;> rfl
-  · split
-    · rfl
+  cases hKnown : voteReferencesKnown σ v
+  · simp
+  · simp
+    split
     · split_ifs <;> rfl
+    · split
+      · rfl
+      · split_ifs <;> rfl
 
 @[simp] lemma processVoteCore_s (σ : State n) (v : Vote n) :
     (processVoteCore σ v).s = σ.s := by
   unfold processVoteCore
-  split
-  · split_ifs <;> rfl
-  · split
-    · rfl
+  cases hKnown : voteReferencesKnown σ v
+  · simp
+  · simp
+    split
     · split_ifs <;> rfl
+    · split
+      · rfl
+      · split_ifs <;> rfl
 
 @[simp] lemma processVoteCore_P (σ : State n) (v : Vote n) :
     (processVoteCore σ v).P = σ.P := by
   unfold processVoteCore
-  split
-  · split_ifs <;> rfl
-  · split
-    · rfl
+  cases hKnown : voteReferencesKnown σ v
+  · simp
+  · simp
+    split
     · split_ifs <;> rfl
+    · split
+      · rfl
+      · split_ifs <;> rfl
 
 /-! Field-preservation lemmas for `processVote` (composition with the P-update). -/
 
 /-- Helper: write `processVote` in inlined if-then-else form (no `let`). -/
 lemma processVote_eq_ite (σ : State n) (v : Vote n) :
     processVote σ v =
-      (if v.finalize = some ((processVoteCore σ v).hj, (processVoteCore σ v).J.id) then
+      (if finalizeGate (processVoteCore σ v) v then
         { (processVoteCore σ v) with P := insert v.validator (processVoteCore σ v).P }
        else processVoteCore σ v) := rfl
 
@@ -516,11 +543,14 @@ lemma processVoteCore_targets_eq_cases (σ : State n) (v : Vote n) (i : Validato
     (processVoteCore σ v).targets i = σ.targets i ∨
     (i = v.validator ∧ ∃ T, v.target = some T.id ∧ v.height = σ.h ∧
         T ≼ σ.L ∧ T.slot ≥ σ.sh ∧ (processVoteCore σ v).targets i = some T) := by
+  cases hKnown : voteReferencesKnown σ v
+  · left
+    simp [processVoteCore, hKnown]
   match h_target : v.target with
   | none =>
     -- v.target = none: only the timeouts may update; targets untouched.
     left
-    simp [processVoteCore, h_target]
+    simp [processVoteCore, hKnown, h_target]
     split_ifs <;> rfl
   | some bid =>
     -- v.target names a block id. It updates targets only if the id resolves
@@ -528,7 +558,7 @@ lemma processVoteCore_targets_eq_cases (σ : State n) (v : Vote n) (i : Validato
     match h_find : σ.L.findById bid with
     | none =>
       left
-      simp [processVoteCore, h_target, h_find]
+      simp [processVoteCore, hKnown, h_target, h_find]
     | some T_v =>
       by_cases h_fresh : v.height = σ.h ∧ T_v.slot ≥ σ.sh ∧ T_v.slot < σ.L.slot
       · by_cases hi : i = v.validator
@@ -538,13 +568,13 @@ lemma processVoteCore_targets_eq_cases (σ : State n) (v : Vote n) (i : Validato
             h_fresh.2.1, ?_⟩
           · rw [← Block.findById_id h_find]
           · subst hi
-            simp [processVoteCore, h_target, h_find, h_fresh]
+            simp [processVoteCore, hKnown, h_target, h_find, h_fresh]
         · -- i ≠ v.validator: targets unchanged at i.
           left
-          simp [processVoteCore, h_target, h_find, h_fresh, Function.update, hi]
+          simp [processVoteCore, hKnown, h_target, h_find, h_fresh, Function.update, hi]
       · -- Not fresh: σ'.targets unchanged.
         left
-        simp [processVoteCore, h_target, h_find, h_fresh]
+        simp [processVoteCore, hKnown, h_target, h_find, h_fresh]
 
 /-! ### Field-preservation lemmas for `processBlock`
 

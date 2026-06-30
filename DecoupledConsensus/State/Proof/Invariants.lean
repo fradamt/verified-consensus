@@ -921,6 +921,9 @@ lemma processVoteCore_timeouts_eq_cases (σ : State n) (v : Vote n) (i : Validat
     (i = v.validator ∧ v.height = σ.h ∧
         (v.target = none ∨ ∃ T, v.target = some T.id ∧ T ≼ σ.L ∧ T.slot ≥ σ.sh) ∧
         (processVoteCore σ v).timeouts i = true) := by
+  cases hKnown : voteReferencesKnown σ v
+  · left
+    simp [processVoteCore, hKnown]
   match h_target : v.target with
   | none =>
     by_cases h_height : v.height = σ.h
@@ -929,17 +932,17 @@ lemma processVoteCore_timeouts_eq_cases (σ : State n) (v : Vote n) (i : Validat
       · right
         refine ⟨hi, h_height, Or.inl rfl, ?_⟩
         subst hi
-        simp [processVoteCore, h_target, h_height]
+        simp [processVoteCore, hKnown, h_target, h_height]
       · left
-        simp [processVoteCore, h_target, h_height, Function.update, hi]
+        simp [processVoteCore, hKnown, h_target, h_height, hi]
     · -- not updated.
       left
-      simp [processVoteCore, h_target, h_height]
+      simp [processVoteCore, hKnown, h_target, h_height]
   | some bid =>
     match h_find : σ.L.findById bid with
     | none =>
       left
-      simp [processVoteCore, h_target, h_find]
+      simp [processVoteCore, hKnown, h_target, h_find]
     | some T_v =>
       by_cases h_fresh : v.height = σ.h ∧ T_v.slot ≥ σ.sh ∧ T_v.slot < σ.L.slot
       · -- updated at v.validator.
@@ -949,12 +952,12 @@ lemma processVoteCore_timeouts_eq_cases (σ : State n) (v : Vote n) (i : Validat
                   Or.inr ⟨T_v, ?_, Block.findById_ancestor h_find, h_fresh.2.1⟩, ?_⟩
           · rw [← Block.findById_id h_find]
           · subst hi
-            simp [processVoteCore, h_target, h_find, h_fresh]
+            simp [processVoteCore, hKnown, h_target, h_find, h_fresh]
         · left
-          simp [processVoteCore, h_target, h_find, h_fresh, Function.update, hi]
+          simp [processVoteCore, hKnown, h_target, h_find, h_fresh, hi]
       · -- not updated.
         left
-        simp [processVoteCore, h_target, h_find, h_fresh]
+        simp [processVoteCore, hKnown, h_target, h_find, h_fresh]
 
 /-- `processVoteCore` preserves the invariant when extending `votes` with `v`.
     Either targets/timeouts at `i` is unchanged (use IH) or `v` itself is the
@@ -1213,16 +1216,23 @@ lemma processVote_PWitness_pres (votes : List (Vote n)) (σ : State n) (v : Vote
   rw [processVote_eq_ite] at hi
   rw [processVote_hj, processVote_J]
   -- Two cases: P-gate fires or not.
-  by_cases h_gate :
-      v.finalize = some ((processVoteCore σ v).hj, (processVoteCore σ v).J.id)
+  by_cases h_gate : finalizeGate (processVoteCore σ v) v
   · -- P-gate fires; (processVote σ v).P = insert v.validator (processVoteCore σ v).P.
     rw [if_pos h_gate] at hi
+    have h_finalize :
+        v.finalize = some ((processVoteCore σ v).hj, (processVoteCore σ v).J.id) := by
+      have hparts :
+          voteReferencesKnown (processVoteCore σ v) v = true ∧
+            decide (v.finalize =
+              some ((processVoteCore σ v).hj, (processVoteCore σ v).J.id)) = true := by
+        simpa [finalizeGate, Bool.and_eq_true] using h_gate
+      exact of_decide_eq_true hparts.2
     -- hi : i ∈ insert v.validator (processVoteCore σ v).P
     rw [Finset.mem_insert] at hi
     rcases hi with hi_v | hi_old
     · -- i = v.validator: v itself is the witness.
       refine ⟨v, by simp, hi_v.symm, ?_⟩
-      simpa using h_gate
+      simpa using h_finalize
     · -- i in old P; use IH.
       have hi_old_orig : i ∈ σ.P := by
         have := hi_old

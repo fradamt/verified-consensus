@@ -18,17 +18,19 @@ abbrev Validator (n : ℕ) := Fin n
 abbrev IsQuorum (f : ℕ) (Q : Finset (Validator n)) : Prop :=
   Q.card ≥ 2 * f + 1
 
-/-- The **strict 2/3 quorum threshold**: `3 * card ≥ 2 * n + 1`. Used by
+/-- The **2/3 quorum threshold** for a nonempty committee:
+    `0 < n ∧ 3 * card ≥ 2 * n`, i.e. an integer quorum has size at least
+    `ceil (2n/3)`. Used by
     the state machine (`Justified`, `TimeoutFires`, `applyFinality`) to
     avoid threading `f` through every transition. Equivalent to `IsQuorum`
     under `n = 3 * f + 1`. -/
 abbrev IsQuorumStrict (n : ℕ) (Q : Finset (Validator n)) : Prop :=
-  3 * Q.card ≥ 2 * n + 1
+  0 < n ∧ 3 * Q.card ≥ 2 * n
 
-/-- Executable strict-quorum test used by the state transition. The Prop-level
+/-- Executable quorum test used by the state transition. The Prop-level
     predicate above is kept for theorem statements and arithmetic proofs. -/
 def isQuorumStrictBool (n : ℕ) (Q : Finset (Validator n)) : Bool :=
-  Nat.ble (2 * n + 1) (3 * Q.card)
+  decide (0 < n) && Nat.ble (2 * n) (3 * Q.card)
 
 /-- Opaque block identifiers. In protocol terms these model block hashes. -/
 abbrev BlockId := ℕ

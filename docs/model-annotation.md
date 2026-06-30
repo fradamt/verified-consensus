@@ -133,7 +133,7 @@ inductive Chain (n : ℕ) : Block n → Type where
 
 <b>Definition (Vote).</b> A <i>vote</i> is a signed tuple (<code>validator</code>, <code>height</code>, <code>target</code>, <code>finalizeHeight</code>, <code>finalizeTarget</code>), where <code>validator</code> is the signer, <code>height</code> is a height, and <code>target</code> ∈ {⊥} ∪ Blocks. A vote with <code>target</code> = ⊥ is a <i>timeout vote</i>; a vote with <code>target</code> ≠ ⊥ is a <i>justification vote</i>. The pair (<code>finalizeHeight</code>, <code>finalizeTarget</code>) is either both ⊥ or a commitment to finalize a block at a height. A vote included on a chain must reference a target (and finalize target, when present) that already exists on that chain when non-⊥; in particular, a block cannot include a vote that names the block itself, since naming it requires its hash.
 
-**Lean** — `Vote` · `DecoupledConsensus/State/Model/Primitives.lean:38-43`
+**Lean** — `Vote` · `DecoupledConsensus/State/Model/Primitives.lean:40-45`
 
 ```lean
 structure Vote (n : ℕ) where
@@ -144,7 +144,7 @@ structure Vote (n : ℕ) where
   deriving DecidableEq
 ```
 
-> **Faithfulness:** Paper's 5-tuple is packed into 4 Lean fields: (finalizeHeight, finalizeTarget) become one `finalize : Option (ℕ × BlockId)` (the "both ⊥ or both present" constraint is enforced by Option). `target`/`finalize` name block **ids** (hashes), not Block values — matching "naming requires its hash"; the "target already on chain" constraint is realized at processing time via `σ.L.findById bid` in processVoteCore.
+> **Faithfulness:** Paper's 5-tuple is packed into 4 Lean fields: (finalizeHeight, finalizeTarget) become one `finalize : Option (ℕ × BlockId)` (the "both ⊥ or both present" constraint is enforced by Option). `target`/`finalize` name block **ids** (hashes), not Block values — matching "naming requires its hash"; the "target/finalize target already on chain" constraint is realized at processing time via `findById` plus a strict-ancestor slot check in processVoteCore and the P-gate's `voteReferencesKnown` guard.
 
 ---
 
@@ -213,26 +213,28 @@ def stateOf {n : ℕ} {B : Block n} (chain : Chain n B) :
 
 <b>Height freshness.</b> A justification vote v (i.e., v.<code>target</code> = T ≠ ⊥) is <i>fresh</i> on a chain with head state σ[L] iff<br>σ[L].h = v.<code>height</code> ∧ T ≺ L ∧ T.<code>slot</code> ≥ σ[L].s<sub>h</sub>:<br>the chain is at v's height, T is a strict ancestor on this chain, and T's slot is no earlier than where the chain's current height began. A timeout vote (v.<code>target</code> = ⊥) is fresh on the chain iff σ[L].h = v.<code>height</code>. Intuitively, a fresh justification vote attests that its signer saw T as a chain of height v.<code>height</code>.
 
-**Lean** — `processVoteCore (inline freshness condition)` · `DecoupledConsensus/State/Model/StateMachine.lean:99-112`
+**Lean** — `processVoteCore (inline freshness condition)` · `DecoupledConsensus/State/Model/StateMachine.lean:122-137`
 
 ```lean
 def processVoteCore (σ : State n) (v : Vote n) : State n :=
-  match v.target with
-  | none =>
-      if v.height = σ.h then
-        { σ with timeouts := Function.update σ.timeouts v.validator true }
-      else σ
-  | some bid =>
-      match σ.L.findById bid with
-      | none => σ
-      | some T =>
-          if v.height = σ.h ∧ T.slot ≥ σ.sh ∧ T.slot < σ.L.slot then
-            { σ with targets  := Function.update σ.targets v.validator (some T)
-                     timeouts := Function.update σ.timeouts v.validator true }
-          else σ
+  if voteReferencesKnown σ v then
+    match v.target with
+    | none =>
+        if v.height = σ.h then
+          { σ with timeouts := Function.update σ.timeouts v.validator true }
+        else σ
+    | some bid =>
+        match σ.L.findById bid with
+        | none => σ
+        | some T =>
+            if v.height = σ.h ∧ T.slot ≥ σ.sh ∧ T.slot < σ.L.slot then
+              { σ with targets  := Function.update σ.targets v.validator (some T)
+                       timeouts := Function.update σ.timeouts v.validator true }
+            else σ
+  else σ
 ```
 
-> **Faithfulness:** Freshness is not a named predicate; it is the inline `if` guard in processVoteCore. Paper's `T ≺ L` becomes `T.slot &lt; σ.L.slot` after resolving bid via `findById` on σ.L (so T is on the chain by construction and strictly before the head). Timeout-vote freshness is `v.height = σ.h`. Order of conjuncts differs but is equivalent.
+> **Faithfulness:** Freshness is not a named predicate; it is the inner `if` guard in processVoteCore after the vote-reference well-formedness check. Paper's `T ≺ L` becomes `T.slot &lt; σ.L.slot` after resolving bid via `findById` on σ.L (so T is on the chain by construction and strictly before the head). Timeout-vote freshness is `v.height = σ.h`. Order of conjuncts differs but is equivalent.
 
 ---
 
@@ -249,7 +251,7 @@ def Justified (σ : State n) (T : Block n) : Prop :=
   IsQuorumStrict n (targetedSet σ T)
 ```
 
-> **Faithfulness:** 2n/3 quorum is `IsQuorumStrict n` (`3 * card ≥ 2n + 1`). Executable mirror `justifiedBool`. "target exactly T" matches `targetedSet`'s `= some T` filter.
+> **Faithfulness:** 2n/3 quorum is `IsQuorumStrict n` (`0 < n ∧ 3 * card ≥ 2n`, the integer `ceil(2n/3)` threshold for a nonempty committee). Executable mirror `justifiedBool`. "target exactly T" matches `targetedSet`'s `= some T` filter.
 
 ---
 
@@ -293,7 +295,7 @@ def CurrentlyFinal (σ : State n) : Prop :=
 
 <b>Definition (Slashing, rule E1).</b> A validator is <i>slashable</i> if it signed two votes a, b (possibly a = b) with<br>b.<code>finalizeTarget</code> ≠ ⊥ ∧ a.<code>height</code> = b.<code>finalizeHeight</code> ∧ a.<code>target</code> ≠ b.<code>finalizeTarget</code>.<br>That is, a validator committing (<code>finalizeHeight</code>, <code>finalizeTarget</code>) = (h<sub>f</sub>, T<sub>f</sub>) must not sign any vote at height h<sub>f</sub> with target ≠ T<sub>f</sub>. Note that timeout votes (a.<code>target</code> = ⊥) are themselves in conflict with any commitment b.<code>finalizeTarget</code> ≠ ⊥ at the same height, since ⊥ ≠ b.<code>finalizeTarget</code>.
 
-**Lean** — `Vote.slashConflict / Vote.Slashable` · `DecoupledConsensus/State/Model/Primitives.lean:50-58`
+**Lean** — `Vote.slashConflict / Vote.Slashable` · `DecoupledConsensus/State/Model/Primitives.lean:52-60`
 
 ```lean
 def slashConflict (a b : Vote n) : Prop :=
@@ -320,7 +322,7 @@ def Slashable (a b : Vote n) : Prop :=
   σ ← processHeight(σ)                 // Close events enabled by B's votes
   return σ</pre>
 
-**Lean** — `stateTransition` · `DecoupledConsensus/State/Model/StateMachine.lean:198-199`
+**Lean** — `stateTransition` · `DecoupledConsensus/State/Model/StateMachine.lean:229-230`
 
 ```lean
 def stateTransition (σ : State n) (B : Block n) : State n :=
@@ -341,7 +343,7 @@ def stateTransition (σ : State n) (B : Block n) : State n :=
   σ.s ← σ.s + 1
   return σ</pre>
 
-**Lean** — `processSlot` · `DecoupledConsensus/State/Model/StateMachine.lean:164-168`
+**Lean** — `processSlot` · `DecoupledConsensus/State/Model/StateMachine.lean:195-199`
 
 ```lean
 def processSlot (σ : State n) : State n :=
@@ -366,7 +368,7 @@ def processSlot (σ : State n) : State n :=
     σ ← processVote(σ, v)
   return σ</pre>
 
-**Lean** — `processBlock` · `DecoupledConsensus/State/Model/StateMachine.lean:173-174`
+**Lean** — `processBlock` · `DecoupledConsensus/State/Model/StateMachine.lean:204-205`
 
 ```lean
 def processBlock (σ : State n) (B : Block n) : State n :=
@@ -395,32 +397,53 @@ def processBlock (σ : State n) (B : Block n) : State n :=
     σ.P ← σ.P ∪ {i}
   return σ</pre>
 
-**Lean** — `processVote (with processVoteCore)` · `DecoupledConsensus/State/Model/StateMachine.lean:99-124`
+**Lean** — `processVote (with processVoteCore)` · `DecoupledConsensus/State/Model/StateMachine.lean:99-155`
 
 ```lean
-def processVote (σ : State n) (v : Vote n) : State n :=
-  let σ' := processVoteCore σ v
-  if v.finalize = some (σ'.hj, σ'.J.id) then
-    { σ' with P := insert v.validator σ'.P }
-  else σ'
+def blockReferenceKnown (σ : State n) (bid : BlockId) : Bool :=
+  match σ.L.findById bid with
+  | none => false
+  | some T => decide (T.slot < σ.L.slot)
+
+def voteReferencesKnown (σ : State n) (v : Vote n) : Bool :=
+  let targetKnown :=
+    match v.target with
+    | none => true
+    | some bid => blockReferenceKnown σ bid
+  let finalizeKnown :=
+    match v.finalize with
+    | none => true
+    | some (_, bid) => blockReferenceKnown σ bid
+  targetKnown && finalizeKnown
 
 def processVoteCore (σ : State n) (v : Vote n) : State n :=
-  match v.target with
-  | none =>
-      if v.height = σ.h then
-        { σ with timeouts := Function.update σ.timeouts v.validator true }
-      else σ
-  | some bid =>
-      match σ.L.findById bid with
-      | none => σ
-      | some T =>
-          if v.height = σ.h ∧ T.slot ≥ σ.sh ∧ T.slot < σ.L.slot then
-            { σ with targets  := Function.update σ.targets v.validator (some T)
-                     timeouts := Function.update σ.timeouts v.validator true }
-          else σ
+  if voteReferencesKnown σ v then
+    match v.target with
+    | none =>
+        if v.height = σ.h then
+          { σ with timeouts := Function.update σ.timeouts v.validator true }
+        else σ
+    | some bid =>
+        match σ.L.findById bid with
+        | none => σ
+        | some T =>
+            if v.height = σ.h ∧ T.slot ≥ σ.sh ∧ T.slot < σ.L.slot then
+              { σ with targets  := Function.update σ.targets v.validator (some T)
+                       timeouts := Function.update σ.timeouts v.validator true }
+            else σ
+  else σ
+
+def finalizeGate (σ : State n) (v : Vote n) : Bool :=
+  voteReferencesKnown σ v && decide (v.finalize = some (σ.hj, σ.J.id))
+
+def processVote (σ : State n) (v : Vote n) : State n :=
+  let σ' := processVoteCore σ v
+  if finalizeGate σ' v then
+    { σ' with P := insert v.validator σ'.P }
+  else σ'
 ```
 
-> **Faithfulness:** Split into processVoteCore (targets/timeouts) + the P-gate. P-gate compares against `(σ'.hj, σ'.J.id)` — i.e. id-level, matching paper's (h_j, J). `v.target ≺ L` is resolved by `findById bid` then `T.slot &lt; σ.L.slot`. P-gate independence of freshness matches the paper note.
+> **Faithfulness:** Split into processVoteCore (targets/timeouts) + the P-gate. P-gate compares against `(σ'.hj, σ'.J.id)` — i.e. id-level, matching paper's (h_j, J) — after `voteReferencesKnown` checks that every non-⊥ target/finalize id resolves to an already-existing strict ancestor of the current head. `v.target ≺ L` is resolved by `findById bid` then `T.slot &lt; σ.L.slot`, which also prevents a block from counting votes that name the block itself. P-gate independence of freshness matches the paper note; unresolved or self-referential vote references do not count.
 
 ---
 
@@ -432,7 +455,7 @@ def processVoteCore (σ : State n) (v : Vote n) : State n :=
   σ ← processHeightEvents(σ)
   return σ</pre>
 
-**Lean** — `processHeight` · `DecoupledConsensus/State/Model/StateMachine.lean:157-158`
+**Lean** — `processHeight` · `DecoupledConsensus/State/Model/StateMachine.lean:188-189`
 
 ```lean
 def processHeight (σ : State n) : State n :=
@@ -462,7 +485,7 @@ def processHeight (σ : State n) : State n :=
     reset targets, timeouts
   return σ</pre>
 
-**Lean** — `applyFinality / processHeightEvents` · `DecoupledConsensus/State/Model/StateMachine.lean:128-152`
+**Lean** — `applyFinality / processHeightEvents` · `DecoupledConsensus/State/Model/StateMachine.lean:159-183`
 
 ```lean
 def applyFinality (σ : State n) : State n :=
@@ -499,7 +522,7 @@ def processHeightEvents (σ : State n) : State n :=
 <pre>finalizeConflict(v₁, v₂):   // Does v₁ conflict with v₂'s finalize commitment?
   return v₂.finalizeTarget ≠ ⊥ ∧ v₁.height = v₂.finalizeHeight ∧ v₁.target ≠ v₂.finalizeTarget</pre>
 
-**Lean** — `Vote.slashConflict` · `DecoupledConsensus/State/Model/Primitives.lean:50-53`
+**Lean** — `Vote.slashConflict` · `DecoupledConsensus/State/Model/Primitives.lean:52-55`
 
 ```lean
 def slashConflict (a b : Vote n) : Prop :=
@@ -520,7 +543,7 @@ def slashConflict (a b : Vote n) : Prop :=
   return v₁.validator = v₂.validator
          ∧ (finalizeConflict(v₁, v₂) ∨ finalizeConflict(v₂, v₁))</pre>
 
-**Lean** — `Vote.Slashable` · `DecoupledConsensus/State/Model/Primitives.lean:57-58`
+**Lean** — `Vote.Slashable` · `DecoupledConsensus/State/Model/Primitives.lean:59-60`
 
 ```lean
 def Slashable (a b : Vote n) : Prop :=
@@ -537,20 +560,20 @@ def Slashable (a b : Vote n) : Prop :=
 
 We consider a system of n validators of which at most f are adversarial, where n ≥ 3f + 1. A <i>quorum</i> is any set of at least 2n/3 validators. Any two quorums overlap in at least n/3 + 1 &gt; f validators, so their intersection contains at least one honest validator.
 
-**Lean** — `IsQuorum / IsQuorumStrict / IsQuorumStrictBool` · `DecoupledConsensus/State/Model/Primitives.lean:18-31`
+**Lean** — `IsQuorum / IsQuorumStrict / IsQuorumStrictBool` · `DecoupledConsensus/State/Model/Primitives.lean:18-33`
 
 ```lean
 abbrev IsQuorum (f : ℕ) (Q : Finset (Validator n)) : Prop :=
   Q.card ≥ 2 * f + 1
 
 abbrev IsQuorumStrict (n : ℕ) (Q : Finset (Validator n)) : Prop :=
-  3 * Q.card ≥ 2 * n + 1
+  0 < n ∧ 3 * Q.card ≥ 2 * n
 
 def isQuorumStrictBool (n : ℕ) (Q : Finset (Validator n)) : Bool :=
-  Nat.ble (2 * n + 1) (3 * Q.card)
+  decide (0 < n) && Nat.ble (2 * n) (3 * Q.card)
 ```
 
-> **Faithfulness:** DEVIATION on the bound: the public-statement layer fixes n = 3f+1 EXACT (so IsQuorum `2f+1` ≡ IsQuorumStrict `3card≥2n+1`), whereas the paper allows n ≥ 3f+1. The state machine uses the f-free strict form IsQuorumStrict to avoid threading f. Validators are `Fin n` (`Validator n`). The `n/3+1 = f+1` overlap bound is the `f+1` in AtLeastFThirdSlashable (the `FThird` name).
+> **Faithfulness:** The executable state-machine threshold matches the paper's integer interpretation of "at least 2n/3" as `ceil(2n/3)` for nonempty committees. Documented theorem-surface specialization: the public statement layer still fixes n = 3f+1 EXACT (so IsQuorum `2f+1` ≡ IsQuorumStrict), whereas the paper allows n ≥ 3f+1. The state machine uses the f-free form IsQuorumStrict to avoid threading f. Validators are `Fin n` (`Validator n`). The `n/3+1 = f+1` overlap bound is the `f+1` in AtLeastFThirdSlashable (the `FThird` name).
 
 ---
 
@@ -1078,7 +1101,7 @@ theorem certchain_compatible {f : ℕ} (hn : n = 3 * f + 1)
 
 <b>Lemma (Upgrade property).</b> Unless ≥ n/3 validators are slashable: if F is finalized at height h<sub>f</sub> and some block B with σ[B].J = F and σ[B].h<sub>j</sub> = h<sub>f</sub> has been processed by the node, then Σ.J ≽ F at all future times.
 
-**Lean** — `upgrade_of_processed` · `DecoupledConsensus/Store/Proof/Conditional.lean:906-921`
+**Lean** — `upgrade_of_processed` · `DecoupledConsensus/Store/Proof/Conditional.lean:956-971`
 
 ```lean
 theorem upgrade_of_processed {f : ℕ}
@@ -1130,7 +1153,7 @@ theorem future_finalized_viableBool_of_processedJustification {f : ℕ}
 
 <b>Theorem (Local acceptance of finality updates).</b> Unless ≥ n/3 validators are slashable: if a block B is processed by <code>onBlock</code> and σ[B].F = F', then after processing Σ.F ≽ F'.
 
-**Lean** — `local_finality_update_theorem (LocalFinalityUpdateStatement)` · `DecoupledConsensus/Store/TheoremStatements.lean:205-215 ; DecoupledConsensus/Store/ProvenTheorems.lean:34-36`
+**Lean** — `local_finality_update_theorem (LocalFinalityUpdateStatement)` · `DecoupledConsensus/Store/TheoremStatements.lean:204-213 ; DecoupledConsensus/Store/ProvenTheorems.lean:34-36`
 
 ```lean
 def LocalFinalityUpdateStatement (n f : ℕ) : Prop :=
@@ -1142,7 +1165,6 @@ def LocalFinalityUpdateStatement (n f : ℕ) : Prop :=
           S.acceptBlock? B = some S' →
           AcceptedBlockState S' B σB →
           IdInjectiveAgainstStore B S' →
-          (σB.F ≼ S.F ∨ (S.F ≼ σB.F ∧ S.F ≠ σB.F)) →
           σB.F ≼ S'.F
 
 theorem local_finality_update_theorem {f : ℕ} :
@@ -1150,7 +1172,7 @@ theorem local_finality_update_theorem {f : ℕ} :
   proof_local_finality_update_theorem
 ```
 
-> **Faithfulness:** Faithful, public. n=3f+1 exact + ¬AtLeastFThirdSlashable as explicit hypotheses. Stated at the onBlock/acceptBlock? transition with a fresh block (containsBlockBool B = false) and σB = σ[B] (AcceptedBlockState). Adds an explicit comparability disjunct (σB.F ≼ S.F ∨ S.F strictly ≺ σB.F) which the paper's proof derives from lem:finchain via the genesis-or-finalized invariant; here it is taken as a hypothesis. Scoped IdInjectiveAgainstStore.
+> **Faithfulness:** Faithful, public. n=3f+1 exact + ¬AtLeastFThirdSlashable as explicit hypotheses. Stated at the onBlock/acceptBlock? transition with a fresh block (containsBlockBool B = false) and σB = σ[B] (AcceptedBlockState). Scoped IdInjectiveAgainstStore; the comparability between the prior store finality and σB.F is derived internally, as in the paper proof.
 
 ---
 
@@ -1160,7 +1182,7 @@ theorem local_finality_update_theorem {f : ℕ} :
 
 <b>Theorem (Lock-in).</b> Unless ≥ n/3 validators are slashable: if block F is finalized at height h<sub>f</sub> on any chain, and some block B with σ[B].J = F and σ[B].h<sub>j</sub> = h<sub>f</sub> has been processed by the node, then Σ.J ≽ F at all future times, F ∈ <code>viableTree</code>(Σ) at all future times, and <code>getConfirmed</code>(Σ, Ω) always returns a descendant of F, for every Ω.
 
-**Lean** — `lockIn_theorem (LockInStatement)` · `DecoupledConsensus/Store/TheoremStatements.lean:221-230 ; DecoupledConsensus/Store/ProvenTheorems.lean:38-40`
+**Lean** — `lockIn_theorem (LockInStatement)` · `DecoupledConsensus/Store/TheoremStatements.lean:219-228 ; DecoupledConsensus/Store/ProvenTheorems.lean:38-40`
 
 ```lean
 def LockInStatement (n f : ℕ) : Prop :=
@@ -1189,7 +1211,7 @@ theorem lockIn_theorem {f : ℕ} :
 
 <b>Theorem (Order independence).</b> Unless ≥ n/3 validators are slashable: the observable store view after folding the same available set of blocks through <code>onBlock</code> in any parent-first order depends only on that set, not on the order. In particular, two nodes with the same available blocks agree on (F, J, h<sub>j</sub>, h<sub>max</sub>), on the accepted subtree rooted at F, and hence on the possible outputs of <code>getConfirmed</code>. They need not agree on blocks outside the subtree of F: a block conflicting with the final F may have been accepted before finality moved at one node, while another node that first moved F would reject it.
 
-**Lean** — `parentFirstReplay_liveEquivalent_theorem + parentFirstReplay_getConfirmed_theorem (ParentFirstReplayLiveEquivalentStatement, ParentFirstReplayGetConfirmedStatement)` · `DecoupledConsensus/Store/TheoremStatements.lean:236-270 ; DecoupledConsensus/Store/ProvenTheorems.lean:42-48`
+**Lean** — `parentFirstReplay_liveEquivalent_theorem + parentFirstReplay_getConfirmed_theorem (ParentFirstReplayLiveEquivalentStatement, ParentFirstReplayGetConfirmedStatement)` · `DecoupledConsensus/Store/TheoremStatements.lean:234-268 ; DecoupledConsensus/Store/ProvenTheorems.lean:42-48`
 
 ```lean
 def ParentFirstReplayLiveEquivalentStatement (n f : ℕ) : Prop :=
@@ -1243,7 +1265,7 @@ theorem parentFirstReplay_getConfirmed_theorem {f : ℕ} :
 
 <b>Lemma (Justifications stay at or below Σ.h<sub>j</sub>).</b> Unless ≥ n/3 validators are slashable, every justification (C, h) that has fired on any chain processed by the node satisfies h ≤ Σ.h<sub>j</sub> at all subsequent times.
 
-**Lean** — `no_high_justifications / reachable_noHighJustifications` · `DecoupledConsensus/Store/Proof/Conditional.lean:678-689 (def NoHighJustifications: TheoremStatements.lean:99-100)`
+**Lean** — `no_high_justifications / reachable_noHighJustifications` · `DecoupledConsensus/Store/Proof/Conditional.lean:665-687 (def NoHighJustifications: TheoremStatements.lean:99-100)`
 
 ```lean
 def NoHighJustifications (S : Store n) : Prop :=
@@ -1257,4 +1279,3 @@ theorem reachable_noHighJustifications {S : Store n}
 > **Faithfulness:** Faithful, proof-internal (NoHighJustifications def lives in TheoremStatements but is documented as a proof-internal helper consumed by the LockIn chain, not a public theorem). Conditional on n=3f+1 + ¬AtLeastFThirdSlashable inside the proof. 'At all subsequent times' is covered by future_no_high_justification over the Future relation. ProcessedCheckpoint is the 'justification (C,h) fired on a processed chain' premise.
 
 ---
-

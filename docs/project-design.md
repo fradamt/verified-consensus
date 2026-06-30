@@ -84,19 +84,24 @@ or empty slot that triggered the transition.
 
 ## Vote Processing
 
-`processVoteCore` updates `targets` and `timeouts` only when the target side of
-the vote is valid for the current chain:
+`processVoteCore` updates `targets` and `timeouts` only when every non-`⊥`
+block reference in the vote is already available on the current chain and the
+target side of the vote is fresh:
 
-- the target id resolves on the current chain;
+- the target and finalize ids, when present, resolve to strict ancestors of the
+  current chain head, so the vote cannot name the block that includes it;
 - the vote height matches the state height;
 - the target slot is at or after `sh`;
 - the target is a strict ancestor of the block being processed.
 
-The finality-participation update is intentionally independent of the target
-side. A vote can fail to update `targets` while still counting toward `P` if
-its finalize commitment matches the current `(hj, J.id)` after the core vote
-update. This matches the intended protocol behavior: stale target information
-does not necessarily invalidate an otherwise relevant finality commitment.
+The finality-participation update is intentionally independent of target
+freshness, but not independent of vote-reference validity. A vote can fail to
+update `targets` while still counting toward `P` if its non-`⊥` references
+resolve to strict ancestors of the current head and its finalize commitment
+matches the current `(hj, J.id)` after the core vote update. This matches the
+intended protocol behavior: stale target information does not necessarily
+invalidate an otherwise relevant finality commitment, while votes that name
+unknown blocks or the including block itself are ignored by the `P` gate.
 
 Justification selection is deterministic and executable. The current model
 scans validators in index order and returns the first target that is justified

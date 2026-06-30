@@ -4,12 +4,22 @@ namespace DecoupledConsensus
 
 /-! # State Theorem Statements
 
-Proof-free statement layer for the Section 2 accountable-safety results.
+Proof-free statement layer for the chain-local state machine (paper §"Model and
+definitions", `sec:model`) and its accountable-safety results (paper §"Accountable
+safety", `sec:safety`).
+
+Reference paper: `height_filter_and_timeouts.tex`. A definition/theorem-level
+paper↔Lean correspondence is in `docs/model-annotation.md`.
 
 The executable definitions and certificate predicates live under
 `State.Model`. This file contains only the public `Prop`-valued statements
 that should be checked against the paper surface. Concrete proofs live under
 `State.Proof`; `State.ProvenTheorems` gives the proved facade.
+
+The three results below are the **headline accountable-safety theorems**, in
+increasing strength: `MainSafetyStatement` (`lem:mainsafety`) →
+`FinalizedBlocksFormChainStatement` (`lem:finchain`) →
+`AccountableSafetyStatement` (`thm:safety`).
 -/
 
 open scoped Block
@@ -29,7 +39,8 @@ def IsFinalizedOn {B : Block n} (chain : Chain n B)
 
 /-! ## Accountable-Safety Theorem Statements -/
 
-/-- **Main safety**. If `C` is finalized at height `h_f`,
+/-- **Main safety** (paper Lemma `lem:mainsafety`, "Any chain past a finalized
+    height contains the finalized block"). If `C` is finalized at height `h_f`,
     then every chain whose tip-state has advanced above `h_f` contains `C` as
     an ancestor of the tip, unless at least `f + 1` validators are slashable.
 
@@ -45,7 +56,7 @@ def MainSafetyStatement (n f : ℕ) : Prop :=
             (stateOf chain₂).h > h_f →
               AtLeastFThirdSlashableBetween chain₁ chain₂ f ∨ C ≼ B₂
 
-/-- **Finalized blocks form a chain**. Any two finalized
+/-- **Finalized blocks form a chain** (paper Lemma `lem:finchain`). Any two finalized
     checkpoints `(C, h_f)` and `(C', h_f')` with `h_f ≤ h_f'` are ordered as
     `C ≼ C'`, unless at least `f + 1` validators are slashable.
 
@@ -62,7 +73,7 @@ def FinalizedBlocksFormChainStatement (n f : ℕ) : Prop :=
             h_f ≤ h_f' →
               AtLeastFThirdSlashableBetween chain₁ chain₂ f ∨ C ≼ C'
 
-/-- **Accountable safety**. No two conflicting blocks
+/-- **Accountable safety** (paper Theorem `thm:safety`). No two conflicting blocks
     can both be finalized unless at least `f + 1` validators are slashable.
 
     The hash/id injectivity assumption is scoped to ancestors of the two chain

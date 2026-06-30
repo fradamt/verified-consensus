@@ -5,13 +5,24 @@ namespace DecoupledConsensus
 
 /-! # Store Theorem Statements
 
-Proof-free statement layer for the Section 3 store results.
+Proof-free statement layer for the fork-choice store (paper §"Fork-choice store",
+`sec:store`).
+
+Reference paper: `height_filter_and_timeouts.tex`. A definition/theorem-level
+paper↔Lean correspondence is in `docs/model-annotation.md`.
 
 The executable definitions live under `Store.Model`. This file contains the
 specification vocabulary and public-facing `Prop`-valued theorem/corollary
 statements that are useful to read without opening proof scripts. Proof-internal
 lemma statements and proof-decomposition predicates live under `Store.Proof`;
 `Store.ProvenTheorems` gives the proved public facade.
+
+The eight public statements under "Public Store Theorem Statements" map onto the
+paper's store theorems: `FinalityIrreversibilityStatement` (`thm:finperm`),
+`FAncestorJStatement` (`thm:fleqr`), `GetConfirmedTotalStatement`
+(`cor:getConfirmed-total`), `ForkChoiceConsistencyStatement` (`thm:fcconsistency`),
+`LocalFinalityUpdateStatement` (`thm:finlive`), `LockInStatement` (`thm:lockin`),
+and the two replay statements (`thm:orderindep`).
 
 Section 3's full-store order-independence claim is too strong for the
 executable store: a block accepted before finality moves may remain in
@@ -45,7 +56,8 @@ inductive Future : Store n → Store n → Prop
       Future S S''
 
 /-- Lexicographic non-strict ordering on store justification keys
-    `(height, block-id)`. -/
+    `(height, block-id)`. *(Proof-internal helper, used only under `Store.Proof`; not
+    part of the public theorem surface.)* -/
 def KeyLE (h : ℕ) (J : Block n) (h' : ℕ) (J' : Block n) : Prop :=
   h < h' ∨ (h = h' ∧ J.id ≤ J'.id)
 
@@ -60,7 +72,8 @@ def AcceptedBlockState (S : Store n) (B : Block n) (σ : State n) : Prop :=
 def ProcessedCheckpoint (S : Store n) (C : Block n) (h : ℕ) : Prop :=
   ∃ e ∈ S.entries, e.state.J = C ∧ e.state.hj = h
 
-/-- Backwards-compatible proof-side name for `ProcessedCheckpoint`. -/
+/-- Backwards-compatible proof-side alias for `ProcessedCheckpoint`. *(Proof-internal
+    helper, used only under `Store.Proof`; not part of the public theorem surface.)* -/
 abbrev ProcessedJustification (S : Store n) (C : Block n) (h : ℕ) : Prop :=
   ProcessedCheckpoint S C h
 
@@ -79,9 +92,10 @@ def FinalizedWithStoreIds (F : Block n) (h_f : ℕ) (S : Store n) : Prop :=
       FinalizedCertificate chain F h_f hF ∧
       IdInjectiveAgainstStore tip S
 
-/-- Exact Section-3 no-high-justification invariant: every justification event
-    represented in the accepted store history is at or below the current store
-    root height. -/
+/-- No-high-justification invariant (paper Lemma `lem:no-high-just`): every
+    justification event represented in the accepted store history is at or below the
+    current store root height. *(Proof-internal helper consumed by the `LockIn` proof
+    chain under `Store.Proof`; not exported as a public theorem statement.)* -/
 def NoHighJustifications (S : Store n) : Prop :=
   ∀ {C : Block n} {h : ℕ}, ProcessedCheckpoint S C h → h ≤ S.hj
 
@@ -161,31 +175,33 @@ structure LiveEquivalent (S T : Store n) : Prop where
 
 /-! ## Public Store Theorem Statements -/
 
-/-- Once store finality reaches `S.F`, every future finalized root descends
-    from it. -/
+/-- **Local irreversibility of finality** (paper Theorem `thm:finperm`). Once store
+    finality reaches `S.F`, every future finalized root descends from it. -/
 def FinalityIrreversibilityStatement (n : ℕ) : Prop :=
   ∀ {S T : Store n}, Future S T → S.F ≼ T.F
 
-/-- Reachable stores maintain `F ≼ J`. -/
+/-- **`F ≼ J`** (paper Theorem `thm:fleqr`). Reachable stores maintain `F ≼ J`. -/
 def FAncestorJStatement (n : ℕ) : Prop :=
   ∀ {S : Store n}, Reachable S → S.F ≼ S.J
 
-/-- The set-valued executable `getConfirmed` is nonempty on reachable stores
-    and every output satisfies the candidate predicate. -/
+/-- **`getConfirmed` is total** (paper Corollary `cor:getConfirmed-total`). The
+    set-valued executable `getConfirmed` is nonempty on reachable stores and every
+    output satisfies the candidate predicate (viable, at σ-height ≥ hmax − 1). -/
 def GetConfirmedTotalStatement (n : ℕ) : Prop :=
   ∀ {S : Store n}, Reachable S →
     (∃ B : Block n, B ∈ S.getConfirmed) ∧
       ∀ {B : Block n}, B ∈ S.getConfirmed → ConfirmedCandidate S B
 
-/-- Future confirmed outputs always descend from the earlier finalized root. -/
+/-- **Fork-choice consistency** (paper Theorem `thm:fcconsistency`). Future confirmed
+    outputs always descend from the earlier finalized root. -/
 def ForkChoiceConsistencyStatement (n : ℕ) : Prop :=
   ∀ {S T : Store n} {B : Block n},
     Reachable S → Future S T → B ∈ T.getConfirmed → S.F ≼ B
 
-/-- Local acceptance of finality updates, stated at the accepted `onBlock`
-    transition surface. For a fresh processed block, if its block-state
-    finalized root is comparable with the previous store-finalized root, the
-    resulting store finality is at or beyond that block-state root. -/
+/-- **Local acceptance of finality updates** (paper Theorem `thm:finlive`), stated at
+    the accepted `onBlock` transition surface. For a fresh processed block, if its
+    block-state finalized root is comparable with the previous store-finalized root,
+    the resulting store finality is at or beyond that block-state root. -/
 def LocalFinalityUpdateStatement (n f : ℕ) : Prop :=
   n = 3 * f + 1 →
     ¬ @AtLeastFThirdSlashable n f →
@@ -198,7 +214,10 @@ def LocalFinalityUpdateStatement (n f : ℕ) : Prop :=
           (σB.F ≼ S.F ∨ (S.F ≼ σB.F ∧ S.F ≠ σB.F)) →
           σB.F ≼ S'.F
 
-/-- Lock-in for any executable `getConfirmed` output. -/
+/-- **Lock-in** (paper Theorem `thm:lockin`) for any executable `getConfirmed` output:
+    once `F` is finalized and a block carrying `(J, hj) = (F, h_f)` has been processed,
+    then forever after `F ≼ J`, `F` is viable, and every `getConfirmed` output descends
+    from `F`. -/
 def LockInStatement (n f : ℕ) : Prop :=
   n = 3 * f + 1 →
     ¬ @AtLeastFThirdSlashable n f →
@@ -210,10 +229,10 @@ def LockInStatement (n f : ℕ) : Prop :=
             B ∈ T.getConfirmed →
             F ≼ T.J ∧ T.isViableBool F = true ∧ F ≼ B
 
-/-- Observable order independence for the live store view: two parent-first
-    replays of the same block set agree on `F`, `J`, `hj`, `hmax`, and on the
-    accepted subtree rooted at finality. They may still differ outside that
-    subtree. -/
+/-- **Order independence** (paper Theorem `thm:orderindep`), observable-store form:
+    two parent-first replays of the same block set agree on `F`, `J`, `hj`, `hmax`,
+    and on the accepted subtree rooted at finality. They may still differ outside that
+    subtree (the paper's `LiveEquivalent` scoping; see the file header). -/
 def ParentFirstReplayLiveEquivalentStatement (n f : ℕ) : Prop :=
   n = 3 * f + 1 →
     ¬ @AtLeastFThirdSlashable n f →
@@ -230,9 +249,10 @@ def ParentFirstReplayLiveEquivalentStatement (n f : ℕ) : Prop :=
           InputBlockEquivalent input₁ input₂ →
           LiveEquivalent S T
 
-/-- Observable order independence for two parent-first replays of equivalent
-    input sets. The raw stores may differ outside the finalized subtree; the
-    executable `getConfirmed` set does not. -/
+/-- **Order independence** (paper Theorem `thm:orderindep`), `getConfirmed` form: two
+    parent-first replays of equivalent input sets agree on the executable
+    `getConfirmed` set, even though the raw stores may differ outside the finalized
+    subtree. -/
 def ParentFirstReplayGetConfirmedStatement (n f : ℕ) : Prop :=
   n = 3 * f + 1 →
     ¬ @AtLeastFThirdSlashable n f →

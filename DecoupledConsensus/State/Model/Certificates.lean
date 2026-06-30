@@ -68,23 +68,29 @@ def IsSlashableBetween {B₁ B₂ : Block n}
   ∃ a ∈ votesIncluded chain₁, ∃ b ∈ votesIncluded chain₂,
     a.validator = i ∧ b.validator = i ∧ Vote.Slashable a b
 
-/-- "At least `f + 1` validators are slashable between these two histories." -/
+/-- "At least `f + 1` validators are slashable between these two histories." The
+    `FThird` name reflects the paper's `n/3 + 1` quorum-overlap bound (`sec:model`),
+    which equals `f + 1` under `n = 3f + 1`. Used as the accountability *conclusion* of
+    the public State safety statements. -/
 def AtLeastFThirdSlashableBetween {B₁ B₂ : Block n}
     (chain₁ : Chain n B₁) (chain₂ : Chain n B₂) (f : ℕ) : Prop :=
   ∃ S : Finset (Validator n), S.card ≥ f + 1 ∧
     ∀ i ∈ S, IsSlashableBetween chain₁ chain₂ i
 
-/-- Legacy unscoped slashability: useful for older Store statements, but weaker
-    as an accountability conclusion because it does not identify the histories
-    exposing the evidence. Prefer `IsSlashableBetween` for public safety
-    statements. -/
+/-- Unscoped slashability: there exist two histories in which validator `i` cast one
+    side of a conflicting vote pair. This is the no-slashing *hypothesis*
+    (`¬ AtLeastFThirdSlashable`) of the public Store statements (LocalFinalityUpdate,
+    LockIn, both order-independence statements), where the offending histories are
+    existentially closed over. The history-scoped `IsSlashableBetween` is preferred
+    only as an accountability *conclusion* (it names the histories exposing the
+    evidence), not as a drop-in replacement for this hypothesis. -/
 def IsSlashable (i : Validator n) : Prop :=
   ∃ B₁ : Block n, ∃ chain₁ : Chain n B₁,
   ∃ B₂ : Block n, ∃ chain₂ : Chain n B₂,
     IsSlashableBetween chain₁ chain₂ i
 
-/-- Legacy unscoped aggregate slashability. Prefer
-    `AtLeastFThirdSlashableBetween` when the offending histories are known. -/
+/-- Unscoped aggregate slashability: `≥ f + 1` validators are each unscoped-slashable.
+    This is the slashability *hypothesis* of the public Store theorem statements. -/
 def AtLeastFThirdSlashable (f : ℕ) : Prop :=
   ∃ S : Finset (Validator n), S.card ≥ f + 1 ∧ ∀ i ∈ S, IsSlashable i
 

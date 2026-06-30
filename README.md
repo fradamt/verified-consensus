@@ -7,6 +7,12 @@ The project contains executable protocol models, proof-free public theorem
 statements, and proved theorem facades. It currently builds with no `sorry`s
 and uses no project-specific axioms.
 
+**Reference paper:** `height_filter_and_timeouts.tex` (the "height filter and
+timeouts" shared-finality protocol) — §"Model and definitions" (`sec:model`) and
+§"Accountable safety" (`sec:safety`) for the State layer, §"Fork-choice store"
+(`sec:store`) for the Store layer. A definition/theorem-level side-by-side
+correspondence is in [`docs/model-annotation.md`](docs/model-annotation.md).
+
 ## Status
 
 | Item | Status |
@@ -39,13 +45,15 @@ import DecoupledConsensus
   model.
 - `DecoupledConsensus/Store/Model.lean` imports the executable store model.
 - `DecoupledConsensus/State/TheoremStatements.lean` contains the public
-  Section 2 statement surface.
+  accountable-safety statement surface (paper `sec:model` + `sec:safety`).
 - `DecoupledConsensus/Store/TheoremStatements.lean` contains the public
-  Section 3 statement surface.
+  fork-choice-store statement surface (paper `sec:store`).
 - `DecoupledConsensus/State/ProvenTheorems.lean` and
   `DecoupledConsensus/Store/ProvenTheorems.lean` expose the proved theorem
   facades.
 - `docs/project-design.md` records modeling decisions and technical rationale.
+- `docs/model-annotation.md` is the paper↔Lean correspondence (definitions and
+  theorems side-by-side).
 
 ## What Is Proved
 
@@ -54,11 +62,11 @@ import DecoupledConsensus
 The state layer formalizes the accountable-safety argument over chain-local
 state transitions. Its public theorem statements are:
 
-| Public statement | Informal content |
-| --- | --- |
-| `State.MainSafetyStatement` | A chain past a finalized height contains the finalized block, unless enough validators are slashable. |
-| `State.FinalizedBlocksFormChainStatement` | Finalized blocks at ordered heights form a chain, unless enough validators are slashable. |
-| `State.AccountableSafetyStatement` | Two finalized blocks are compatible, unless enough validators are slashable. |
+| Public statement | Paper | Informal content |
+| --- | --- | --- |
+| `State.MainSafetyStatement` | `lem:mainsafety` | A chain past a finalized height contains the finalized block, unless enough validators are slashable. |
+| `State.FinalizedBlocksFormChainStatement` | `lem:finchain` | Finalized blocks at ordered heights form a chain, unless enough validators are slashable. |
+| `State.AccountableSafetyStatement` | `thm:safety` | Two finalized blocks are compatible, unless enough validators are slashable. |
 
 ### Store Layer
 
@@ -66,33 +74,34 @@ The store layer formalizes the node-local accepted tree, height filter,
 confirmed-output set, and replay/order-independence properties. Its public
 theorem statements are:
 
-| Public statement | Informal content |
-| --- | --- |
-| `Store.FinalityIrreversibilityStatement` | Store finality only moves forward. |
-| `Store.FAncestorJStatement` | Reachable stores maintain `F <= J`. |
-| `Store.GetConfirmedTotalStatement` | `getConfirmed` is nonempty on reachable stores, and every output is valid. |
-| `Store.ForkChoiceConsistencyStatement` | Future confirmed outputs descend from earlier finalized roots. |
-| `Store.LocalFinalityUpdateStatement` | Accepted finality updates move store finality far enough. |
-| `Store.LockInStatement` | If the justification for a finalized block has been processed, future confirmed outputs descend from that block. |
-| `Store.ParentFirstReplayLiveEquivalentStatement` | Parent-first replays of the same block set agree on the live store view. |
-| `Store.ParentFirstReplayGetConfirmedStatement` | Such replays have the same `getConfirmed` membership. |
+| Public statement | Paper | Informal content |
+| --- | --- | --- |
+| `Store.FinalityIrreversibilityStatement` | `thm:finperm` | Store finality only moves forward. |
+| `Store.FAncestorJStatement` | `thm:fleqr` | Reachable stores maintain `F <= J`. |
+| `Store.GetConfirmedTotalStatement` | `cor:getConfirmed-total` | `getConfirmed` is nonempty on reachable stores, and every output is valid. |
+| `Store.ForkChoiceConsistencyStatement` | `thm:fcconsistency` | Future confirmed outputs descend from earlier finalized roots. |
+| `Store.LocalFinalityUpdateStatement` | `thm:finlive` | Accepted finality updates move store finality far enough. |
+| `Store.LockInStatement` | `thm:lockin` | If the justification for a finalized block has been processed, future confirmed outputs descend from that block. |
+| `Store.ParentFirstReplayLiveEquivalentStatement` | `thm:orderindep` | Parent-first replays of the same block set agree on the live store view. |
+| `Store.ParentFirstReplayGetConfirmedStatement` | `thm:orderindep` | Such replays have the same `getConfirmed` membership. |
 
 ## Repository Layout
 
 ```text
 DecoupledConsensus/
-  State/
-    Model/                 executable Section 2 definitions
-    Proof/                 Section 2 proof internals
-    TheoremStatements.lean public Section 2 theorem surface
-    ProvenTheorems.lean    proved Section 2 facade
-  Store/
-    Model/                 executable Section 3 definitions
-    Proof/                 Section 3 proof internals
-    TheoremStatements.lean public Section 3 theorem surface
-    ProvenTheorems.lean    proved Section 3 facade
+  State/                   paper sec:model + sec:safety (accountable safety)
+    Model/                 executable state-machine definitions
+    Proof/                 proof internals
+    TheoremStatements.lean public theorem surface
+    ProvenTheorems.lean    proved facade
+  Store/                   paper sec:store (fork-choice store)
+    Model/                 executable store definitions
+    Proof/                 proof internals
+    TheoremStatements.lean public theorem surface
+    ProvenTheorems.lean    proved facade
 docs/
   project-design.md        modeling decisions and rationale
+  model-annotation.md      paper <-> Lean correspondence (defs + theorems)
 ```
 
 The `TheoremStatements` files are the intended review surface for external
@@ -103,8 +112,10 @@ machinery live under `Proof`.
 
 1. Read this README for scope and entry points.
 2. Read `State/TheoremStatements.lean` and `Store/TheoremStatements.lean` for
-   the public claim surface.
-3. Read `docs/project-design.md` for why the model is structured the way it is.
+   the public claim surface (each statement cites its paper label).
+3. Read `docs/model-annotation.md` to check the definitions and theorems against
+   the reference paper side-by-side.
+4. Read `docs/project-design.md` for why the model is structured the way it is.
 4. Open `State/Model` or `Store/Model` for executable definitions.
 5. Inspect `State/ProvenTheorems.lean` and `Store/ProvenTheorems.lean` to
    connect public statements to proof artifacts.
@@ -126,4 +137,6 @@ lake build DecoupledConsensus
 
 The first command should not find proof placeholders or project axioms in Lean
 source files. The second command elaborates the executable model, theorem
-statements, and all proof facades.
+statements, and all proof facades, and is **warning-clean**: the mathlib
+standard-set linter is on via `lakefile.toml` with only the opt-in
+`linter.flexible` disabled, so any new warning indicates a regression.

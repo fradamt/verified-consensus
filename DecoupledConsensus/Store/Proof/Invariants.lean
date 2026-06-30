@@ -242,7 +242,7 @@ lemma updateFinalized_hj_eq {S : Store n} {F' : Block n} :
 
 lemma addEntry_hmax_mono {S : Store n} {e : StoreEntry n} :
     S.hmax ≤ (S.addEntry e).hmax := by
-  simpa [addEntry] using Nat.le_max_left S.hmax e.height
+  simp [addEntry]
 
 lemma updateJustified_hmax_eq {S : Store n} {J' : Block n} {h' : ℕ} :
     (S.updateJustified J' h').hmax = S.hmax := by
@@ -819,8 +819,8 @@ lemma onBlock_hmax_mono {S S' : Store n} {B : Block n}
                 let S2 := S1.updateJustified σ'.J σ'.hj
                 have hS1 : S.hmax ≤ S1.hmax := addEntry_hmax_mono
                 cases hstep
-                simpa [S2, S1, addEntry, updateJustified_hmax_eq,
-                  updateFinalized_hmax_eq] using hS1
+                simp [addEntry, updateJustified_hmax_eq,
+                  updateFinalized_hmax_eq]
               · simp [child, hAnc] at hstep
             · simp [hFind, hSlot] at hstep
 
@@ -890,7 +890,7 @@ lemma onBlock_hj_succ_le_hmax {S S' : Store n} {B : Block n}
                     simpa [σ', StoreEntry.state, StoreEntry.height] using
                       chain_hj_lt_h entry.chain
                   have hle : entry.height ≤ S1.hmax := by
-                    simpa [S1, addEntry] using Nat.le_max_right S.hmax entry.height
+                    simp [S1, addEntry]
                   omega
                 have hS2 : S2.hj + 1 ≤ S2.hmax :=
                   updateJustified_hj_succ_le_hmax hS1 hEntry

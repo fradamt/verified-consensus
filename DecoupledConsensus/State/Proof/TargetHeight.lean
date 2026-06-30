@@ -353,7 +353,7 @@ lemma iterateProcessSlot_height_pres {B : Block n} (chain : Chain n B)
   | zero =>
       simp [iterateProcessSlot, hPrefix, hTargets, hJ]
   | succ k ih =>
-      show PrefixHeightInv chain (iterateProcessSlot (processSlot σ) k) ∧
+      change PrefixHeightInv chain (iterateProcessSlot (processSlot σ) k) ∧
         TargetsHeightInv chain (iterateProcessSlot (processSlot σ) k) ∧
           JTargetHeightInv chain (iterateProcessSlot (processSlot σ) k)
       apply ih
@@ -545,7 +545,7 @@ theorem chain_height_target_invs {B : Block n} (chain : Chain n B) :
       have hJFinal : JTargetHeightInv chain' (processHeight σBlock) :=
         processHeight_JTargetHeight_pres chain' σBlock hJBlock hTargetsBlock
           hTargetsAncBlock hLBlock
-      show PrefixHeightInv chain' (stateOf chain') ∧
+      change PrefixHeightInv chain' (stateOf chain') ∧
         TargetsHeightInv chain' (stateOf chain') ∧
           JTargetHeightInv chain' (stateOf chain')
       rw [hState]

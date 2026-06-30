@@ -7,6 +7,11 @@ defaultTargets = ["DecoupledConsensus"]
 pp.unicode.fun = true
 relaxedAutoImplicit = false
 weak.linter.mathlibStandardSet = true
+# `linter.flexible` (a mathlib opt-in linter, default off) asks for `simp only [...]`
+# in place of `simp [...]`; in this proof-heavy downstream development the non-`only`
+# form is idiomatic and the proofs verify under the pinned toolchain, so it is disabled
+# project-wide while the rest of the standard set stays on. Any other warning is a regression.
+weak.linter.flexible = false
 maxSynthPendingDepth = 3
 
 [[require]]

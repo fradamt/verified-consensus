@@ -145,7 +145,7 @@ private lemma advance_witness_from_slot_crossing {f : ℕ}
   have h_inv_pre : VoteWitnessInv (votesIncluded c) σ_pre := by
     exact iterateProcessSlot_voteWitness_pres _ _ _ (chain_voteWitness c)
   have hσ_pre_L : σ_pre.L = parent := by
-    show (iterateProcessSlot (stateOf c) k₀).L = parent
+    change (iterateProcessSlot (stateOf c) k₀).L = parent
     rw [iterateProcessSlot_L, chain_state_L_eq_tip]
   have hσ_pre_L_anc : σ_pre.L ≼ parent := by
     rw [hσ_pre_L]
@@ -183,7 +183,7 @@ private lemma advance_witness_from_block_crossing {f : ℕ}
     have h_state :
         (stateOf (Chain.extend c bid newSlot votes hSlot)).h =
           (processHeight σ_blk).h := by
-      show (stateTransition (stateOf c) B).h = (processHeight σ_blk).h
+      change (stateTransition (stateOf c) B).h = (processHeight σ_blk).h
       unfold stateTransition
       rw [show B.slot - (stateOf c).s = k by rfl]
     rwa [h_state] at h_height

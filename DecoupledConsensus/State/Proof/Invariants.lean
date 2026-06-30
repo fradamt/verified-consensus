@@ -49,7 +49,7 @@ lemma iterateProcessSlot_hj_le_h (σ : State n) (k : ℕ) (h_inv : σ.hj ≤ σ.
   induction k generalizing σ with
   | zero => simpa [iterateProcessSlot]
   | succ k ih =>
-    show (iterateProcessSlot (processSlot σ) k).hj
+    change (iterateProcessSlot (processSlot σ) k).hj
         ≤ (iterateProcessSlot (processSlot σ) k).h
     exact ih _ (processSlot_hj_le_h σ h_inv)
 
@@ -59,7 +59,7 @@ lemma chain_hj_le_h {B : Block n} (chain : Chain n B) :
   induction chain with
   | genesis => simp [stateOf, State.genesis]
   | extend c bid newSlot votes hSlot ih =>
-    show (stateTransition (stateOf c) (Block.mk bid _ newSlot votes)).hj
+    change (stateTransition (stateOf c) (Block.mk bid _ newSlot votes)).hj
         ≤ (stateTransition (stateOf c) (Block.mk bid _ newSlot votes)).h
     unfold stateTransition
     apply processHeight_hj_le_h
@@ -89,7 +89,7 @@ lemma iterateProcessSlot_hj_lt_h (σ : State n) (k : ℕ) (h_inv : σ.hj < σ.h)
   induction k generalizing σ with
   | zero => simpa [iterateProcessSlot]
   | succ k ih =>
-    show (iterateProcessSlot (processSlot σ) k).hj
+    change (iterateProcessSlot (processSlot σ) k).hj
         < (iterateProcessSlot (processSlot σ) k).h
     exact ih _ (processSlot_hj_lt_h σ h_inv)
 
@@ -98,7 +98,7 @@ lemma chain_hj_lt_h {B : Block n} (chain : Chain n B) :
   induction chain with
   | genesis => simp [stateOf, State.genesis]
   | extend c bid newSlot votes hSlot ih =>
-    show (stateTransition (stateOf c) (Block.mk bid _ newSlot votes)).hj
+    change (stateTransition (stateOf c) (Block.mk bid _ newSlot votes)).hj
         < (stateTransition (stateOf c) (Block.mk bid _ newSlot votes)).h
     unfold stateTransition
     apply processHeight_hj_lt_h
@@ -134,7 +134,7 @@ lemma iterateProcessSlot_sh_le_s (σ : State n) (k : ℕ) (h_inv : σ.sh ≤ σ.
   induction k generalizing σ with
   | zero => simpa [iterateProcessSlot]
   | succ k ih =>
-    show (iterateProcessSlot (processSlot σ) k).sh
+    change (iterateProcessSlot (processSlot σ) k).sh
         ≤ (iterateProcessSlot (processSlot σ) k).s
     exact ih _ (processSlot_sh_le_s σ h_inv)
 
@@ -148,7 +148,7 @@ lemma chain_sh_le_tip_slot {B : Block n} (chain : Chain n B) :
     --   = (processBlock _ B).sh
     --   = (iterateProcessSlot σ k).sh    [processBlock_sh]
     -- iterate preserves sh ≤ s, and the iteration ends with s = B.slot.
-    show (stateTransition (stateOf c) (Block.mk bid parent newSlot votes)).sh
+    change (stateTransition (stateOf c) (Block.mk bid parent newSlot votes)).sh
         ≤ (Block.mk bid parent newSlot votes).slot
     unfold stateTransition
     set k := (Block.mk bid parent newSlot votes).slot - (stateOf c).s with hk
@@ -255,7 +255,7 @@ lemma iterateProcessSlot_targets_anc_pres (σ : State n) (k : ℕ)
   induction k generalizing σ with
   | zero => simpa [iterateProcessSlot]
   | succ k ih =>
-    show TargetsAncInv (iterateProcessSlot (processSlot σ) k)
+    change TargetsAncInv (iterateProcessSlot (processSlot σ) k)
     exact ih _ (processSlot_targets_anc_pres σ h)
 
 /-- `processBlock σ B` preserves the invariant under chain extension
@@ -296,7 +296,7 @@ lemma chain_targets_anc {B : Block n} (chain : Chain n B) :
   induction chain with
   | genesis => exact genesis_targets_anc
   | @extend parent c bid newSlot votes hSlot ih =>
-    show TargetsAncInv (stateTransition (stateOf c) (Block.mk bid parent newSlot votes))
+    change TargetsAncInv (stateTransition (stateOf c) (Block.mk bid parent newSlot votes))
     apply stateTransition_targets_anc_pres _ _ ih
     rw [chain_state_L_eq_tip]
     exact .step (.refl _)
@@ -358,7 +358,7 @@ lemma iterateProcessSlot_targets_slot_pres (σ : State n) (k : ℕ)
   induction k generalizing σ with
   | zero => simpa [iterateProcessSlot]
   | succ k ih =>
-    show TargetsSlotInv (iterateProcessSlot (processSlot σ) k)
+    change TargetsSlotInv (iterateProcessSlot (processSlot σ) k)
     exact ih _ (processSlot_targets_slot_pres σ h)
 
 lemma processBlock_targets_slot_pres (σ : State n) (B : Block n)
@@ -390,7 +390,7 @@ lemma chain_targets_slot {B : Block n} (chain : Chain n B) :
   induction chain with
   | genesis => exact genesis_targets_slot
   | @extend parent c bid newSlot votes hSlot ih =>
-    show TargetsSlotInv (stateTransition (stateOf c) (Block.mk bid parent newSlot votes))
+    change TargetsSlotInv (stateTransition (stateOf c) (Block.mk bid parent newSlot votes))
     exact stateTransition_targets_slot_pres _ _ ih
 
 /-! ### Invariant 3: `J ≼ L` -/
@@ -446,7 +446,7 @@ lemma iterateProcessSlot_J_le_L_pres (σ : State n) (k : ℕ)
   induction k generalizing σ with
   | zero => simpa [iterateProcessSlot]
   | succ k ih =>
-    show J_le_L_Inv (iterateProcessSlot (processSlot σ) k)
+    change J_le_L_Inv (iterateProcessSlot (processSlot σ) k)
     apply ih
     · exact processSlot_J_le_L_pres σ h_J h_t
     · exact processSlot_targets_anc_pres σ h_t
@@ -482,7 +482,7 @@ lemma chain_J_le_L {B : Block n} (chain : Chain n B) :
   induction chain with
   | genesis => exact genesis_J_le_L
   | @extend parent c bid newSlot votes _ ih =>
-    show J_le_L_Inv (stateTransition (stateOf c) (Block.mk bid parent newSlot votes))
+    change J_le_L_Inv (stateTransition (stateOf c) (Block.mk bid parent newSlot votes))
     apply stateTransition_J_le_L_pres _ _ ih (chain_targets_anc c) _
     rw [chain_state_L_eq_tip]
     exact .step (.refl _)
@@ -563,7 +563,7 @@ lemma iterateProcessSlot_J_slot_le_sh_pres (σ : State n) (k : ℕ)
   induction k generalizing σ with
   | zero => simpa [iterateProcessSlot]
   | succ k ih =>
-    show J_slot_le_sh_Inv (iterateProcessSlot (processSlot σ) k)
+    change J_slot_le_sh_Inv (iterateProcessSlot (processSlot σ) k)
     apply ih
     · exact processSlot_J_slot_le_sh_pres σ h h_J_L h_targets hWF h_L_slot_s
     · exact processSlot_J_le_L_pres σ h_J_L h_targets
@@ -606,7 +606,7 @@ lemma chain_J_slot_le_sh {B : Block n} (chain : Chain n B) :
   induction chain with
   | genesis => exact genesis_J_slot_le_sh
   | @extend parent c bid newSlot votes hSlot ih =>
-    show J_slot_le_sh_Inv (stateTransition (stateOf c) (Block.mk bid parent newSlot votes))
+    change J_slot_le_sh_Inv (stateTransition (stateOf c) (Block.mk bid parent newSlot votes))
     have hWF_par : Block.WellFormed parent := chain_tip_wellformed c
     have hWF_L : Block.WellFormed (stateOf c).L := by
       rw [chain_state_L_eq_tip]; exact hWF_par
@@ -675,7 +675,7 @@ lemma iterateProcessSlot_J_monotone (σ : State n) (k : ℕ)
   induction k generalizing σ with
   | zero => simp [iterateProcessSlot]; exact .refl _
   | succ k ih =>
-    show σ.J ≼ (iterateProcessSlot (processSlot σ) k).J
+    change σ.J ≼ (iterateProcessSlot (processSlot σ) k).J
     -- σ.J ≼ (processSlot σ).J ≼ (iterateProcessSlot ...).J
     have h1 : σ.J ≼ (processSlot σ).J :=
       processSlot_J_monotone σ h_targets h_targets_slot h_J_L h_J_slot hWF
@@ -729,7 +729,7 @@ lemma chain_J_monotone_step {parent : Block n} (c : Chain n parent)
     (bid : BlockId) (newSlot : ℕ) (votes : List (Vote n))
     (hSlot : newSlot > parent.slot) :
     (stateOf c).J ≼ (stateOf (Chain.extend c bid newSlot votes hSlot)).J := by
-  show (stateOf c).J ≼
+  change (stateOf c).J ≼
       (stateTransition (stateOf c) (Block.mk bid parent newSlot votes)).J
   have hWF_L : Block.WellFormed (stateOf c).L := by
     rw [chain_state_L_eq_tip]; exact chain_tip_wellformed c
@@ -757,7 +757,7 @@ lemma applyFinality_F_le_J (σ : State n) (h : F_le_J_Inv σ) :
   unfold applyFinality
   split_ifs
   · -- finality fires: F ← σ.J. New F = σ.J = new J.
-    show σ.J ≼ σ.J; exact .refl _
+    change σ.J ≼ σ.J; exact .refl _
   · -- no finality: F unchanged. F ≼ J = h.
     exact h
 
@@ -811,7 +811,7 @@ lemma iterateProcessSlot_F_le_J_pres (σ : State n) (k : ℕ)
   induction k generalizing σ with
   | zero => simpa [iterateProcessSlot]
   | succ k ih =>
-    show F_le_J_Inv (iterateProcessSlot (processSlot σ) k)
+    change F_le_J_Inv (iterateProcessSlot (processSlot σ) k)
     apply ih
     · exact processSlot_F_le_J_pres σ h h_targets h_targets_slot h_J_L h_J_slot hWF
     · exact processSlot_targets_anc_pres σ h_targets
@@ -859,7 +859,7 @@ lemma chain_F_le_J {B : Block n} (chain : Chain n B) :
   induction chain with
   | genesis => exact genesis_F_le_J
   | @extend parent c bid newSlot votes hSlot ih =>
-    show F_le_J_Inv (stateTransition (stateOf c) (Block.mk bid parent newSlot votes))
+    change F_le_J_Inv (stateTransition (stateOf c) (Block.mk bid parent newSlot votes))
     have hWF_L : Block.WellFormed (stateOf c).L := by
       rw [chain_state_L_eq_tip]; exact chain_tip_wellformed c
     have h_J_L_c : J_le_L_Inv (stateOf c) := by
@@ -1088,7 +1088,7 @@ lemma iterateProcessSlot_voteWitness_pres (votes : List (Vote n)) (σ : State n)
   induction k generalizing σ with
   | zero => simpa [iterateProcessSlot]
   | succ k ih =>
-    show VoteWitnessInv votes (iterateProcessSlot (processSlot σ) k)
+    change VoteWitnessInv votes (iterateProcessSlot (processSlot σ) k)
     exact ih _ (processSlot_voteWitness_pres votes σ h)
 
 /-- `processBlock σ B` preserves the invariant when extending the prefix with
@@ -1167,7 +1167,7 @@ lemma chain_voteWitness {B : Block n} (chain : Chain n B) :
   | @extend parent c bid newSlot votes hSlot ih =>
     -- The new tip carries its own vote payload.
     set B' := Block.mk bid parent newSlot votes with hB'
-    show VoteWitnessInv (votesIncluded c ++ B'.votes)
+    change VoteWitnessInv (votesIncluded c ++ B'.votes)
         (stateTransition (stateOf c) B')
     apply stateTransition_voteWitness_pres
     · exact ih
@@ -1294,7 +1294,7 @@ lemma iterateProcessSlot_PWitness_pres (votes : List (Vote n)) (σ : State n) (k
   induction k generalizing σ with
   | zero => simpa [iterateProcessSlot]
   | succ k ih =>
-    show PWitnessInv votes (iterateProcessSlot (processSlot σ) k)
+    change PWitnessInv votes (iterateProcessSlot (processSlot σ) k)
     exact ih _ (processSlot_PWitness_pres votes σ h)
 
 /-- `processBlock σ B` preserves the invariant when extending the prefix
@@ -1343,7 +1343,7 @@ lemma chain_PWitness {B : Block n} (chain : Chain n B) :
     exact genesis_PWitness
   | @extend parent c bid newSlot votes hSlot ih =>
     set B' := Block.mk bid parent newSlot votes with hB'
-    show PWitnessInv (votesIncluded c ++ B'.votes)
+    change PWitnessInv (votesIncluded c ++ B'.votes)
         (stateTransition (stateOf c) B')
     apply stateTransition_PWitness_pres
     exact ih
@@ -1498,7 +1498,7 @@ lemma iterateProcessSlot_JWitness_pres (votes : List (Vote n)) (σ : State n) (k
   induction k generalizing σ with
   | zero => simpa [iterateProcessSlot]
   | succ k ih =>
-    show JWitnessInv votes (iterateProcessSlot (processSlot σ) k)
+    change JWitnessInv votes (iterateProcessSlot (processSlot σ) k)
     apply ih
     · exact processSlot_JWitness_pres votes σ h_J h_VW
     · exact processSlot_voteWitness_pres votes σ h_VW
@@ -1574,7 +1574,7 @@ lemma chain_JWitness {B : Block n} (chain : Chain n B) :
     exact genesis_JWitness
   | @extend parent c bid newSlot votes hSlot ih =>
     set B' := Block.mk bid parent newSlot votes with hB'
-    show JWitnessInv (votesIncluded c ++ B'.votes)
+    change JWitnessInv (votesIncluded c ++ B'.votes)
         (stateTransition (stateOf c) B')
     apply stateTransition_JWitness_pres
     · exact ih
@@ -1656,7 +1656,7 @@ lemma iterateProcessSlot_HjZeroJGenesis_pres (σ : State n) (k : ℕ)
   induction k generalizing σ with
   | zero => simpa [iterateProcessSlot]
   | succ k ih =>
-    show HjZeroJGenesisInv (iterateProcessSlot (processSlot σ) k)
+    change HjZeroJGenesisInv (iterateProcessSlot (processSlot σ) k)
     apply ih
     · exact processSlot_HjZeroJGenesis_pres σ h h_h_pos
     · exact processSlot_h_pos_pres σ h_h_pos
@@ -1687,7 +1687,7 @@ lemma chain_h_pos {B : Block n} (chain : Chain n B) : (stateOf chain).h ≥ 1 :=
   induction chain with
   | genesis => simp [stateOf, State.genesis]
   | @extend parent c bid newSlot votes hSlot ih =>
-    show (stateTransition (stateOf c) (Block.mk bid parent newSlot votes)).h ≥ 1
+    change (stateTransition (stateOf c) (Block.mk bid parent newSlot votes)).h ≥ 1
     have h_le : (stateOf c).h ≤ (stateTransition (stateOf c)
         (Block.mk bid parent newSlot votes)).h :=
       stateTransition_h_le _ _
@@ -1699,7 +1699,7 @@ lemma chain_HjZeroJGenesis {B : Block n} (chain : Chain n B) :
   induction chain with
   | genesis => exact genesis_HjZeroJGenesis
   | @extend parent c bid newSlot votes hSlot ih =>
-    show HjZeroJGenesisInv (stateTransition (stateOf c) (Block.mk bid parent newSlot votes))
+    change HjZeroJGenesisInv (stateTransition (stateOf c) (Block.mk bid parent newSlot votes))
     apply stateTransition_HjZeroJGenesis_pres _ _ ih
     exact chain_h_pos c
 

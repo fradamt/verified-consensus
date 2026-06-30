@@ -87,10 +87,6 @@ def containsBlockBool (S : Store n) (B : Block n) : Bool :=
 def stateOf? (S : Store n) (B : Block n) : Option (State n) :=
   (S.findChain? B).map stateOf
 
-/-- Derived partial height map `σ[B].h`. -/
-def heightOf? (S : Store n) (B : Block n) : Option ℕ :=
-  (S.stateOf? B).map State.h
-
 /-! ## Justification key and store updates -/
 
 /-- Lexicographic key comparison on `(height, block-id)`. -/

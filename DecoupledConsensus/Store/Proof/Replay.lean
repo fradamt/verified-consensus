@@ -494,7 +494,7 @@ lemma onBlock_entryAccepted_of_ready {S : Store n}
   · have hFresh : S.containsBlockBool e.block = false := by
       cases h : S.containsBlockBool e.block
       · rfl
-      · exact False.elim (by simpa [h] using hContainsBool)
+      · exact False.elim (by simp [h] at hContainsBool)
     cases hBlock : e.block with
     | genesis =>
         have hGenesis : S.containsBlockBool (Block.genesis : Block n) = true :=
@@ -2120,7 +2120,7 @@ private lemma liveComplete_matching_forward_of_input
     · simpa [StoreEntry.genesis, hGenesis] using hBlockT
     · have hHeightE : e.height = (StoreEntry.genesis n).height := by
         exact StoreEntry.height_eq_of_block_eq (by
-          simpa [StoreEntry.genesis, hGenesis])
+          simp [StoreEntry.genesis, hGenesis])
       rw [hHeightT, hHeightE]
   · rcases hEntry with ⟨a, ha, hBlockA, hHeightA⟩
     have hLiveA : summary.F ≼ a.block := by

@@ -189,7 +189,7 @@ lemma Ancestor.slot_le {X Y : Block n} (h : X ≼ Y) (hWF : WellFormed Y) : X.sl
     have hWFC : WellFormed C := hWF.2
     have hslot : C.slot < s := hWF.1
     have ihX : X.slot ≤ C.slot := ih hWFC
-    show X.slot ≤ s; omega
+    change X.slot ≤ s; omega
 
 /-- For ancestors of a common well-formed tip, slot order determines ancestor
     order. The common `hWF` premise rules out malformed equal/decreasing-slot
@@ -719,7 +719,7 @@ lemma stateTransition_s_le (σ : State n) (B : Block n) :
   induction k generalizing σ with
   | zero => simp [iterateProcessSlot]
   | succ k ih =>
-    show σ.s ≤ (iterateProcessSlot (processSlot σ) k).s
+    change σ.s ≤ (iterateProcessSlot (processSlot σ) k).s
     have h1 : σ.s ≤ (processSlot σ).s := by rw [processSlot_s_eq]; omega
     exact h1.trans (ih _)
 
@@ -733,7 +733,7 @@ lemma stateTransition_h_le (σ : State n) (B : Block n) :
   induction k generalizing σ with
   | zero => simp [iterateProcessSlot]
   | succ k ih =>
-    show σ.h ≤ (iterateProcessSlot (processSlot σ) k).h
+    change σ.h ≤ (iterateProcessSlot (processSlot σ) k).h
     exact (processSlot_h_le σ).trans (ih _)
 
 /-! ### Additional field-preservation lemmas for `processHeight`, `processSlot`, `processBlock` -/
@@ -769,7 +769,7 @@ lemma stateTransition_h_le (σ : State n) (B : Block n) :
   induction k generalizing σ with
   | zero => simp [iterateProcessSlot]
   | succ k ih =>
-    show (iterateProcessSlot (processSlot σ) k).L = σ.L
+    change (iterateProcessSlot (processSlot σ) k).L = σ.L
     rw [ih]; simp
 
 lemma iterateProcessSlot_s_eq (σ : State n) (k : ℕ) :
@@ -777,7 +777,7 @@ lemma iterateProcessSlot_s_eq (σ : State n) (k : ℕ) :
   induction k generalizing σ with
   | zero => simp [iterateProcessSlot]
   | succ k ih =>
-    show (iterateProcessSlot (processSlot σ) k).s = σ.s + (k + 1)
+    change (iterateProcessSlot (processSlot σ) k).s = σ.s + (k + 1)
     rw [ih, processSlot_s_eq]; omega
 
 /-! ### Chain tip-shape lemmas -/
@@ -788,7 +788,7 @@ lemma iterateProcessSlot_s_eq (σ : State n) (k : ℕ) :
   induction chain with
   | genesis => simp [stateOf, State.genesis]
   | extend c bid newSlot votes hSlot ih =>
-    show (stateTransition (stateOf c) (Block.mk bid _ newSlot votes)).L = _
+    change (stateTransition (stateOf c) (Block.mk bid _ newSlot votes)).L = _
     simp [stateTransition]
 
 /-- The `s` field of a chain's tip-state equals the tip block's slot. -/
@@ -799,7 +799,7 @@ lemma chain_state_s_eq_tip_slot {B : Block n} (chain : Chain n B) :
   | @extend parent c bid newSlot votes hSlot ih =>
     -- Goal: (stateOf (extend ...)).s = (Block.mk bid parent newSlot votes).slot
     -- Unfold stateOf to stateTransition, then unfold to processBlock + iterate.
-    show (stateTransition (stateOf c) (Block.mk bid parent newSlot votes)).s
+    change (stateTransition (stateOf c) (Block.mk bid parent newSlot votes)).s
         = (Block.mk bid parent newSlot votes).slot
     unfold stateTransition
     rw [processHeight_s, processBlock_s, iterateProcessSlot_s_eq, ih]
@@ -836,10 +836,12 @@ lemma iterateProcessSlot_succ_apply (σ : State n) (k : ℕ) :
   induction k generalizing σ with
   | zero => rfl
   | succ k ih =>
-    show iterateProcessSlot (processSlot σ) (k + 1) = processSlot (iterateProcessSlot σ (k + 1))
+    change iterateProcessSlot (processSlot σ) (k + 1) = processSlot (iterateProcessSlot σ (k + 1))
     rw [ih (processSlot σ)]
-    -- Goal: processSlot (iterateProcessSlot (processSlot σ) k) = processSlot (iterateProcessSlot σ (k+1))
-    -- Both sides are processSlot of iterateProcessSlot (processSlot σ) k, but the RHS unfolds to that.
+    -- Goal: processSlot (iterateProcessSlot (processSlot σ) k)
+    --     = processSlot (iterateProcessSlot σ (k+1))
+    -- Both sides are processSlot of iterateProcessSlot (processSlot σ) k,
+    -- but the RHS unfolds to that.
     rfl
 
 /-- Companion: `(iterateProcessSlot σ (k+1)).h ≤ (iterateProcessSlot σ k).h + 1`. -/
@@ -927,7 +929,7 @@ lemma chain_unique {B : Block n} (chain1 chain2 : Chain n B) :
       -- stateOf chain1 = stateTransition (stateOf c1) (mk bid parent newSlot votes)
       -- stateOf chain2 = stateTransition (stateOf c2) (mk bid parent newSlot votes)
       -- By IH, stateOf c1 = stateOf c2.
-      show stateTransition (stateOf c1) _ = stateTransition (stateOf c2) _
+      change stateTransition (stateOf c1) _ = stateTransition (stateOf c2) _
       rw [ih c2]
 
 /-! ### Subchain extraction
@@ -963,7 +965,7 @@ monotonicity part of the paper monotonicity statement. -/
     rfl
   | extend c bid newSlot votes hSlot =>
     -- subchain (.extend c _ _) (.refl _) takes the `if` true branch.
-    show (if hEq : (Block.mk bid _ newSlot votes) = Block.mk bid _ newSlot votes then
+    change (if hEq : (Block.mk bid _ newSlot votes) = Block.mk bid _ newSlot votes then
             hEq ▸ Chain.extend c bid newSlot votes hSlot
           else _) = _
     simp
@@ -978,7 +980,7 @@ lemma stateOf_subchain_h_le {B : Block n} (chain : Chain n B) :
     have hB' : B' = Block.genesis := ancestor_genesis_eq h_anc
     subst hB'
     -- Now subchain (.genesis) h_anc = .genesis (regardless of h_anc structure).
-    show (stateOf ((Chain.genesis : Chain n _).subchain h_anc)).h ≤
+    change (stateOf ((Chain.genesis : Chain n _).subchain h_anc)).h ≤
           (stateOf (Chain.genesis : Chain n _)).h
     -- Force h_anc to refl form via cases:
     cases h_anc
@@ -995,7 +997,7 @@ lemma stateOf_subchain_h_le {B : Block n} (chain : Chain n B) :
       -- The if reduces to the true branch:
       have h_eq_refl : (Chain.extend c bid newSlot votes hSlot).subchain h_anc =
                        Chain.extend c bid newSlot votes hSlot := by
-        show (if hEq2 : Block.mk bid parent newSlot votes = Block.mk bid parent newSlot votes then
+        change (if hEq2 : Block.mk bid parent newSlot votes = Block.mk bid parent newSlot votes then
                 hEq2 ▸ Chain.extend c bid newSlot votes hSlot
               else _) = _
         simp
@@ -1008,7 +1010,7 @@ lemma stateOf_subchain_h_le {B : Block n} (chain : Chain n B) :
       -- subchain reduces to subchain c h_step:
       have h_eq_rec : (Chain.extend c bid newSlot votes hSlot).subchain h_anc =
                       c.subchain h_step := by
-        show (if hEq2 : B' = Block.mk bid parent newSlot votes then
+        change (if hEq2 : B' = Block.mk bid parent newSlot votes then
                 hEq2 ▸ Chain.extend c bid newSlot votes hSlot
               else c.subchain _) = _
         rw [dif_neg hEq]
@@ -1016,7 +1018,7 @@ lemma stateOf_subchain_h_le {B : Block n} (chain : Chain n B) :
       -- Goal: (stateOf (c.subchain h_step)).h ≤ (stateOf (extend c _ _)).h
       have h1 : (stateOf (c.subchain h_step)).h ≤ (stateOf c).h := ih h_step
       have h2 : (stateOf c).h ≤ (stateOf (Chain.extend c bid newSlot votes hSlot)).h := by
-        show (stateOf c).h ≤
+        change (stateOf c).h ≤
             (stateTransition (stateOf c) (Block.mk bid parent newSlot votes)).h
         exact stateTransition_h_le _ _
       exact h1.trans h2
@@ -1028,7 +1030,7 @@ lemma iterateProcessSlot_h_le (σ : State n) (k : ℕ) :
   induction k generalizing σ with
   | zero => simp [iterateProcessSlot]
   | succ k ih =>
-    show σ.h ≤ (iterateProcessSlot (processSlot σ) k).h
+    change σ.h ≤ (iterateProcessSlot (processSlot σ) k).h
     exact (processSlot_h_le σ).trans (ih (processSlot σ))
 
 end DecoupledConsensus

@@ -14,8 +14,11 @@ and `Store/TheoremStatements.lean`; their proved facades in the matching `Proven
 **Faithfulness legend** (the *Faithfulness* note under each pair):
 - *faithful* — models the paper object as-is.
 - *documented deviation* — a deliberate, disclosed modeling choice. The recurring ones:
-  **`n = 3f + 1` exact** (the paper allows `n ≥ 3f + 1`); the slashable count `f + 1` realizes the
-  paper's `n/3 + 1 > f` quorum overlap; **scoped id-injectivity** (`Block.IdInjectiveOnAncestors`)
+  **`n = 3f + 1` exact**: the paper allows `n ≥ 3f + 1`, but this formalization's public
+  theorem surface intentionally proves the exact-committee instance only; the slashable count
+  `f + 1` realizes the paper's `n/3 + 1 > f` quorum overlap in that exact case.
+  This is a stated scope choice, not an implicit claim of the slack-validator generalization.
+  **Scoped id-injectivity** (`Block.IdInjectiveOnAncestors`)
   in place of a global hash-collision-freedom assumption; finality **height carried as certificate
   data**, not protocol state; **`LiveEquivalent`** (live view rooted at finality) for replay
   order-independence rather than full-store equality; `getConfirmed` as the **finite list of all
@@ -144,7 +147,7 @@ structure Vote (n : ℕ) where
   deriving DecidableEq
 ```
 
-> **Faithfulness:** Paper's 5-tuple is packed into 4 Lean fields: (finalizeHeight, finalizeTarget) become one `finalize : Option (ℕ × BlockId)` (the "both ⊥ or both present" constraint is enforced by Option). `target`/`finalize` name block **ids** (hashes), not Block values — matching "naming requires its hash"; the "target/finalize target already on chain" constraint is realized at processing time via `findById` plus a strict-ancestor slot check in processVoteCore and the P-gate's `voteReferencesKnown` guard.
+> **Faithfulness:** Paper's 5-tuple is packed into 4 Lean fields: (finalizeHeight, finalizeTarget) become one `finalize : Option (ℕ × BlockId)` (the "both ⊥ or both present" constraint is enforced by Option). `target`/`finalize` name block **ids** (hashes), not Block values — matching "naming requires its hash". The "target/finalize target already on chain" condition is modeled as the executable predicate `voteReferencesKnown`, which resolves ids via `findById` and requires the resolved block to be a strict ancestor. The raw `Vote`/`Block` syntax can carry malformed references; such votes are locally verifiable as invalid and deterministically ignored by `processVoteCore` and the P-gate rather than contributing to protocol state.
 
 ---
 
@@ -234,7 +237,7 @@ def processVoteCore (σ : State n) (v : Vote n) : State n :=
   else σ
 ```
 
-> **Faithfulness:** Freshness is not a named predicate; it is the inner `if` guard in processVoteCore after the vote-reference well-formedness check. Paper's `T ≺ L` becomes `T.slot &lt; σ.L.slot` after resolving bid via `findById` on σ.L (so T is on the chain by construction and strictly before the head). Timeout-vote freshness is `v.height = σ.h`. Order of conjuncts differs but is equivalent.
+> **Faithfulness:** Freshness is not a named predicate; it is the inner `if` guard in processVoteCore after the verifiable vote-reference check. Paper's `T ≺ L` becomes `T.slot &lt; σ.L.slot` after resolving bid via `findById` on σ.L (so T is on the chain by construction and strictly before the head). Timeout-vote freshness is `v.height = σ.h`. Order of conjuncts differs but is equivalent. If a non-`⊥` vote reference is malformed, the vote is consistently ignored before freshness is considered.
 
 ---
 
@@ -443,7 +446,7 @@ def processVote (σ : State n) (v : Vote n) : State n :=
   else σ'
 ```
 
-> **Faithfulness:** Split into processVoteCore (targets/timeouts) + the P-gate. P-gate compares against `(σ'.hj, σ'.J.id)` — i.e. id-level, matching paper's (h_j, J) — after `voteReferencesKnown` checks that every non-⊥ target/finalize id resolves to an already-existing strict ancestor of the current head. `v.target ≺ L` is resolved by `findById bid` then `T.slot &lt; σ.L.slot`, which also prevents a block from counting votes that name the block itself. P-gate independence of freshness matches the paper note; unresolved or self-referential vote references do not count.
+> **Faithfulness:** Split into processVoteCore (targets/timeouts) + the P-gate. P-gate compares against `(σ'.hj, σ'.J.id)` — i.e. id-level, matching paper's (h_j, J) — after `voteReferencesKnown` checks that every non-⊥ target/finalize id resolves to an already-existing strict ancestor of the current head. `v.target ≺ L` is resolved by `findById bid` then `T.slot &lt; σ.L.slot`, which also prevents a block from counting votes that name the block itself. P-gate independence of freshness matches the paper note; invalid, unresolved, or self-referential vote references do not count. This is the model's explicit treatment of the paper's included-vote validity condition: invalid votes are verifiably filtered out with no state effect.
 
 ---
 
@@ -573,7 +576,7 @@ def isQuorumStrictBool (n : ℕ) (Q : Finset (Validator n)) : Bool :=
   decide (0 < n) && Nat.ble (2 * n) (3 * Q.card)
 ```
 
-> **Faithfulness:** The executable state-machine threshold matches the paper's integer interpretation of "at least 2n/3" as `ceil(2n/3)` for nonempty committees. Documented theorem-surface specialization: the public statement layer still fixes n = 3f+1 EXACT (so IsQuorum `2f+1` ≡ IsQuorumStrict), whereas the paper allows n ≥ 3f+1. The state machine uses the f-free form IsQuorumStrict to avoid threading f. Validators are `Fin n` (`Validator n`). The `n/3+1 = f+1` overlap bound is the `f+1` in AtLeastFThirdSlashable (the `FThird` name).
+> **Faithfulness:** The executable state-machine threshold matches the paper's integer interpretation of "at least 2n/3" as `ceil(2n/3)` for nonempty committees. Documented theorem-surface specialization: the public statement layer intentionally fixes `n = 3f+1` EXACT (so IsQuorum `2f+1` ≡ IsQuorumStrict), whereas the paper allows `n ≥ 3f+1`. The current proved theorem surface is therefore the exact-committee instance of the protocol, not a proof of the slack-validator generalization. The state machine uses the f-free form IsQuorumStrict to avoid threading f. Validators are `Fin n` (`Validator n`). The `n/3+1 = f+1` overlap bound is the `f+1` in AtLeastFThirdSlashable (the `FThird` name).
 
 ---
 

@@ -25,6 +25,13 @@ correspondence is in [`docs/model-annotation.md`](docs/model-annotation.md).
 | `sorry` / `admit` | none |
 | Project axioms | none |
 
+Two scope choices are intentional and documented in more detail in
+[`docs/project-design.md`](docs/project-design.md): public safety/store theorem
+statements prove the exact-committee instance `n = 3 * f + 1`, and malformed
+vote references are handled by a deterministic, verifiable per-vote validity
+check that makes invalid votes contribute nothing rather than by rejecting the
+raw block object.
+
 ## Quick Start
 
 ```sh

@@ -54,6 +54,23 @@ well-formedness condition on all possible raw blocks.
 computed by `stateOf chain`; the model does not store an independent state map
 that could disagree with the chain.
 
+Vote-reference validity is intentionally not baked into raw `Block` syntax or
+the `Chain.extend` constructor. A raw block may contain a malformed vote, but the
+state transition treats vote validity as an executable, verifiable per-vote
+condition:
+
+```lean
+voteReferencesKnown sigma v
+```
+
+Every non-`⊥` target or finalize id must resolve to an already-existing strict
+ancestor of the current chain head. If this check fails, `processVoteCore` leaves
+`targets` and `timeouts` unchanged, and `finalizeGate` prevents the vote from
+entering `P`. Thus all nodes deterministically ignore the same invalid vote. A
+networking or block-validation layer may reject such blocks outright; this model
+only relies on the weaker and locally checkable property that invalid votes have
+no state effect.
+
 ## State Transition
 
 `State` mirrors the protocol state tuple:
@@ -197,15 +214,21 @@ the same available block set.
 
 ## Current Modeling Boundaries
 
-The public quorum and safety statements currently use the exact committee
-convention:
+The public quorum and safety/store theorem statements deliberately prove the
+exact-committee instance:
 
 ```lean
 n = 3 * f + 1
 ```
 
-Generalizing the public surface to `n >= 3 * f + 1` would require refactoring
-the quorum arithmetic lemmas.
+The reference text states the broader assumption `n >= 3 * f + 1`. This Lean
+development intentionally restricts the public theorem surface to the exact case
+where the protocol quorum threshold and accountable slashable bound line up as
+`2f + 1` and `f + 1`. The executable state machine still defines quorums by the
+f-free `ceil(2n/3)` predicate, but the proved public safety/store statements are
+not claiming the slack-validator generalization. Generalizing the theorem
+surface to `n >= 3 * f + 1` would be a separate arithmetic refactor, not an
+implicit current claim.
 
 `TheoremStatements.lean` should remain focused on public theorem surfaces. If a
 new result is only needed to make a proof go through, it should live under

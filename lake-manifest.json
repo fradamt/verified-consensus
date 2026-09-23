@@ -91,6 +91,6 @@
    "inputRev": "v4.30.0-rc2",
    "inherited": true,
    "configFile": "lakefile.toml"}],
- "name": "DecoupledConsensus",
+ "name": "«decoupled-consensus-model»",
  "lakeDir": ".lake",
  "fixedToolchain": false}

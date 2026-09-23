@@ -1,6 +1,5 @@
-/.lake
-/.DS_Store
-
-# Internal agent/session notes; not part of the public repository surface.
-/log.md
-/claude_files/
+/.lake/
+.DS_Store
+logs/
+*.log
+.audit-scratch/

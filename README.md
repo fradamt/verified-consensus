@@ -1,149 +1,171 @@
-# Decoupled Consensus
+# verified-decoupled-consensus
 
-A Lean 4 / mathlib formalization of the accountable-safety and store
-arguments for a height-filtered shared-finality protocol.
+A Lean 4 model of the decoupled consensus protocol (Section 7 of the paper) and
+a machine-checked proof of its consensus guarantees.
 
-The project contains executable protocol models, proof-free public theorem
-statements, and proved theorem facades. It currently builds with no `sorry`s
-and uses no project-specific axioms.
+The model is an executable state machine: a cumulative store, the fork-choice
+and grade functions, the validator duties, the finality gadget and the tick
+handler. A generic execution model turns it into runs: sorted lists of tick and
+delivery events at honest nodes, folded into per-node states. The claims speak
+only about what an honest node reads from its own state: the confirmed, stable
+and finalized chains. One theorem proves all of them. The proof has no `sorry`
+and no project-specific axiom.
 
-**Reference paper:** `height_filter_and_timeouts.tex` (the "height filter and
-timeouts" shared-finality protocol) — §"Model and definitions" (`sec:model`) and
-§"Accountable safety" (`sec:safety`) for the State layer, §"Fork-choice store"
-(`sec:store`) for the Store layer. A definition/theorem-level side-by-side
-correspondence is in [`docs/model-annotation.md`](docs/model-annotation.md).
+The results assume well-formed executions with unforgeable honest signatures
+and collision-free roots, bounded delivery after GST, and honest committee
+majorities. Liveness also needs participation and proposer recurrence. The
+[premise ledger](#premise-ledger) gives the exact premises of each claim.
 
-## Status
+## The review theorem
 
-| Item | Status |
-| --- | --- |
-| Lean toolchain | `v4.30.0-rc2` |
-| Main build target | `DecoupledConsensus` |
-| Protocol layers modeled | State machine and store |
-| Public theorem surfaces | `State.TheoremStatements`, `Store.TheoremStatements` |
-| Proof facades | `State.ProvenTheorems`, `Store.ProvenTheorems` |
-| `sorry` / `admit` | none |
-| Project axioms | none |
-
-Two scope choices are intentional and documented in more detail in
-[`docs/project-design.md`](docs/project-design.md): public safety/store theorem
-statements prove the exact-committee instance `n = 3 * f + 1`, and malformed
-vote references are handled by a deterministic, verifiable per-vote validity
-check that makes invalid votes contribute nothing rather than by rejecting the
-raw block object.
-
-## Quick Start
-
-```sh
-lake exe cache get
-lake build DecoupledConsensus
-```
-
-The root module imports the public state and store developments:
+`DecoupledConsensusModel.Proofs.concreteConsensus`, in
+`DecoupledConsensusProofs/ReviewTheorem.lean`:
 
 ```lean
-import DecoupledConsensus
+theorem concreteConsensus (S : Setup V) : Statements.Instantiation.Consensus S
 ```
 
-## Entry Points
+`Consensus` (`DecoupledConsensusStatements/Instantiation.lean`) is the generic
+bundle `Generic.Consensus` (`DecoupledConsensusStatements/Generic/Claims.lean`)
+applied to this protocol. It has twelve fields:
 
-- `DecoupledConsensus.lean` imports the full development.
-- `DecoupledConsensus/State/Model.lean` imports the executable state-machine
-  model.
-- `DecoupledConsensus/Store/Model.lean` imports the executable store model.
-- `DecoupledConsensus/State/TheoremStatements.lean` contains the public
-  accountable-safety statement surface (paper `sec:model` + `sec:safety`).
-- `DecoupledConsensus/Store/TheoremStatements.lean` contains the public
-  fork-choice-store statement surface (paper `sec:store`).
-- `DecoupledConsensus/State/ProvenTheorems.lean` and
-  `DecoupledConsensus/Store/ProvenTheorems.lean` expose the proved theorem
-  facades.
-- `docs/project-design.md` records modeling decisions and technical rationale.
-- `docs/model-annotation.md` is the paper↔Lean correspondence (definitions and
-  theorems side-by-side).
+- `constants` — the timing and bound parameters satisfy `Constants.Valid`.
+- `nested` — at every read, finalized is below stable and stable is below
+  confirmed.
+- `certificatesAccountable` — two finality certificates finalize compatible
+  targets, or they hold slashable evidence against at least a third of the
+  weight.
+- `finalizedAccountable` — two honest finalized reads are compatible, or the
+  two read states hold slashable evidence.
+- `honestNeverSlashed` — no honest validator is slashable from any two reads.
+- `finalizedMonotone` — each honest node's finalized reads only extend.
+- `finalizedSafe` — honest finalized reads agree.
+- `available` — confirmed and stable reads are safe, and an honest proposal is
+  in every confirmed read within `6Δ` of its proposal.
+- `confirmedLive` — the confirmed chain keeps growing.
+- `stableLive` — an honest proposal reaches every stable read by its deadline,
+  and the stable chain keeps growing.
+- `finalized` — after a startup lag, an honest proposal is finalized everywhere
+  by its deadline, and the finalized chain keeps growing.
+- `stableAsynchronyResilient` — a block in an honest stable read at `T` stays
+  in every honest stable read from `b₀` to the horizon, across the outage.
 
-## What Is Proved
+## Premise ledger
 
-### State Layer
-
-The state layer formalizes the accountable-safety argument over chain-local
-state transitions. Its public theorem statements are:
-
-| Public statement | Paper | Informal content |
-| --- | --- | --- |
-| `State.MainSafetyStatement` | `lem:mainsafety` | A chain past a finalized height contains the finalized block, unless enough validators are slashable. |
-| `State.FinalizedBlocksFormChainStatement` | `lem:finchain` | Finalized blocks at ordered heights form a chain, unless enough validators are slashable. |
-| `State.AccountableSafetyStatement` | `thm:safety` | Two finalized blocks are compatible, unless enough validators are slashable. |
-
-### Store Layer
-
-The store layer formalizes the node-local accepted tree, height filter,
-confirmed-output set, and replay/order-independence properties. Its public
-theorem statements are:
-
-| Public statement | Paper | Informal content |
-| --- | --- | --- |
-| `Store.FinalityIrreversibilityStatement` | `thm:finperm` | Store finality only moves forward. |
-| `Store.FAncestorJStatement` | `thm:fleqr` | Reachable stores maintain `F <= J`. |
-| `Store.GetConfirmedTotalStatement` | `cor:getConfirmed-total` | `getConfirmed` is nonempty on reachable stores, and every output is valid. |
-| `Store.ForkChoiceConsistencyStatement` | `thm:fcconsistency` | Future confirmed outputs descend from earlier finalized roots. |
-| `Store.LocalFinalityUpdateStatement` | `thm:finlive` | Accepted finality updates move store finality far enough. |
-| `Store.LockInStatement` | `thm:lockin` | If the justification for a finalized block has been processed, future confirmed outputs descend from that block. |
-| `Store.ParentFirstReplayLiveEquivalentStatement` | `thm:orderindep` | Parent-first replays of the same block set agree on the live store view. |
-| `Store.ParentFirstReplayGetConfirmedStatement` | `thm:orderindep` | Such replays have the same `getConfirmed` membership. |
-
-## Repository Layout
+All conditions are in `DecoupledConsensusStatements/Generic/Conditions.lean`,
+and all regimes are in `DecoupledConsensusStatements/Generic/Regimes.lean`.
+`base` is `ExecutionValid`, `PartialSynchrony`, `t_GST ≤ t₀` and
+`HonestCommittees`. `ExecutionValid` is `ScheduleWellFormed` (sorted, finite,
+honest-only events on the public time grid), `DeliveryWellFormed` (wire,
+dependency and freshness checks), `UnforgeableSignatures` and root collision
+freedom. Tier 1 of proposer recurrence counts the windows from `t₀`, and tiers
+2 and 3 count those from GST; all count only windows that end inside the run.
 
 ```text
-DecoupledConsensus/
-  State/                   paper sec:model + sec:safety (accountable safety)
-    Model/                 executable state-machine definitions
-    Proof/                 proof internals
-    TheoremStatements.lean public theorem surface
-    ProvenTheorems.lean    proved facade
-  Store/                   paper sec:store (fork-choice store)
-    Model/                 executable store definitions
-    Proof/                 proof internals
-    TheoremStatements.lean public theorem surface
-    ProvenTheorems.lean    proved facade
-docs/
-  project-design.md        modeling decisions and rationale
-  model-annotation.md      paper <-> Lean correspondence (defs + theorems)
+┌───────────────────────────┬────────────────────────┬────────────────────────────────────────────────────┐
+│ Claim                     │ Regime                 │ Conditions                                         │
+├───────────────────────────┼────────────────────────┼────────────────────────────────────────────────────┤
+│ constants                 │ none                   │ Constants.Valid                                    │
+│ nested                    │ none                   │ —                                                  │
+│ certificatesAccountable   │ none                   │ collision-free roots on the two ancestor chains    │
+│ finalizedAccountable      │ RunWellFormed          │ horizon ≥ 0; sorted events; collision-free roots   │
+│ finalizedMonotone         │ RunWellFormed          │ horizon ≥ 0; sorted events; collision-free roots   │
+│ honestNeverSlashed        │ UnforgeableRun         │ UnforgeableSignatures; sorted; honest-only;        │
+│                           │                        │ horizon ≥ 0                                        │
+│ finalizedSafe             │ AccountableRegime      │ RunWellFormed; SlashableBound                      │
+│ available                 │ SleepyRegime           │ base; WindowMajority; RecoveredBy                  │
+│ confirmedLive             │ LiveSleepyRegime       │ SleepyRegime; SingleProposerRecurrence (tier 1)    │
+│ stableLive                │ StrongLiveSleepyRegime │ LiveSleepyRegime;                                  │
+│                           │                        │ StrongMultiProposerRecurrence (tier 3)             │
+│ finalized                 │ FinalityRegime         │ base; BelowOneThird; FullParticipation from GST;   │
+│                           │                        │ StrongMultiProposerRecurrence; gap + 2 ≤ K;        │
+│                           │                        │ run long enough                                    │
+│ stableAsynchronyResilient │ OutageRegime           │ base with t_GST ≤ b₁; HealthyPrefixDelivery before │
+│                           │                        │ b₀; FreshMajority; SlashableBound; outage bounds   │
+└───────────────────────────┴────────────────────────┴────────────────────────────────────────────────────┘
 ```
 
-The `TheoremStatements` files are the intended review surface for external
-readers. Proof-internal lemmas, decomposition predicates, and engineering
-machinery live under `Proof`.
+`RecoveredBy` is either genesis or a bounded recovery prefix under
+`RecoveryRegime`, which uses `MultiProposerRecurrence` (tier 2).
 
-## Reading Order
+## Where to read
 
-1. Read this README for scope and entry points.
-2. Read `State/TheoremStatements.lean` and `Store/TheoremStatements.lean` for
-   the public claim surface (each statement cites its paper label).
-3. Read `docs/model-annotation.md` to check the definitions and theorems against
-   the reference paper side-by-side.
-4. Read `docs/project-design.md` for why the model is structured the way it is.
-4. Open `State/Model` or `Store/Model` for executable definitions.
-5. Inspect `State/ProvenTheorems.lean` and `Store/ProvenTheorems.lean` to
-   connect public statements to proof artifacts.
+- **What is proved.** `DecoupledConsensusModel/Generic/Run.lean` and
+  `Generic/Env.lean`, then the statement files in
+  `DecoupledConsensusStatements/Generic/` in this order: `Interface`,
+  `Constants`, `Properties`, `Conditions`, `Regimes`, `Claims`. Then
+  `Instantiation.lean`, which binds each interface field and constant to a
+  protocol definition.
+- **The protocol.** `DecoupledConsensusModel/Objects/`, then `Protocol/`
+  (store, fork choice, grades, duties, validator client, chain state, handlers,
+  tick). [`docs/MODEL_MAP.md`](docs/MODEL_MAP.md) maps each Section 7 item to
+  its Lean declaration.
 
-## Verification
+Only two libraries must be trusted, and both hold definitions only:
+`DecoupledConsensusModel` (29 files, about 5,700 lines) and
+`DecoupledConsensusStatements` (12 files, about 1,150 lines). The kernel checks
+the rest: `DecoupledConsensusProofs` (the proof), `DecoupledConsensusInternal`
+(proof vocabulary) and `DecoupledConsensusWitnesses` (concrete runs that
+satisfy each regime).
 
-The primary verification command is:
+## How to verify
+
+Prerequisites: the Lean toolchain (through `elan`) and Ruby 3.x.
 
 ```sh
-lake build DecoupledConsensus
+curl https://elan.lean-lang.org/elan-init.sh -sSf | sh   # install elan
+lake exe cache get                                       # fetch mathlib binaries
+scripts/verify.sh                                        # build and check
 ```
 
-For a lightweight local audit, useful checks are:
+A full build takes about one hour on a recent laptop. `scripts/verify.sh`
+builds the five libraries, then checks that:
 
-```sh
-rg -n '\b(sorry|admit|axiom)\b' DecoupledConsensus --glob '*.lean'
-lake build DecoupledConsensus
-```
+- no internal module is in the closure of the statements
+  (`check-review-boundary.rb`);
+- every statement declaration is reachable from the bundle
+  (`StatementReachability.lean`);
+- the bundle has exactly the twelve fields (`ReviewSurfaceShape.lean`);
+- `concreteConsensus` depends only on `propext`, `Classical.choice` and
+  `Quot.sound` (`ReviewAxioms.lean`).
 
-The first command should not find proof placeholders or project axioms in Lean
-source files. The second command elaborates the executable model, theorem
-statements, and all proof facades, and is **warning-clean**: the mathlib
-standard-set linter is on via `lakefile.toml` with only the opt-in
-`linter.flexible` disabled, so any new warning indicates a regression.
+The outage witness decides five finite checks with `native_decide`, so it also
+depends on `Lean.ofReduceBool`. The review theorem does not.
+
+## Scope and limitations
+
+[`docs/MODELING_CHOICES.md`](docs/MODELING_CHOICES.md) gives each item in full.
+
+- **Generic statements.** The bundle is stated over an abstract interface.
+  Only `Instantiation.lean` ties it to this protocol, so read that file with
+  care: a wrong binding leaves the theorem true and empty.
+- **Stronger participation premises.** The premises hold at every time, not
+  only at round samples. Thus finality needs `K ≥ 5`, not the paper's `K ≥ 4`
+  (§7).
+- **One outage.** The outage claim covers one asynchronous period, with
+  bounded delivery before it and after GST. A run with more than one outage is
+  not modelled (§5.1).
+- **Witnesses show satisfiability.** The witness runs have one honest node and
+  one silent Byzantine validator. They do not exercise equivocation or
+  adversarial traffic.
+- **Outside the bundle.** Leak fairness, validator-client vote safety and
+  height progress are proved in `ReviewTheorem.lean`, but they are not fields
+  of `Consensus` (§10).
+
+## Documentation
+
+- [Review guide](docs/REVIEW_GUIDE.md) — reading order, full premise ledger,
+  mechanical checks.
+- [Modeling choices](docs/MODELING_CHOICES.md) — each difference in form from the
+  paper and each idealization.
+- [Model map](docs/MODEL_MAP.md) — Section 7, item by item.
+- [Protocol](docs/PROTOCOL.md) — the reference pseudocode.
+- [Architecture](docs/ARCHITECTURE.md) — libraries, directories, naming.
+- [Conventions](docs/CONVENTIONS.md) — modeling conventions.
+- [AI audit brief](docs/AI_AUDIT.md) — instructions for an AI reviewer.
+
+## Paper and license
+
+Paper: `consensus.tex` at commit `9f5ed717ffac` (not yet public). The reference
+pseudocode (Section 7, verbatim) is in [`docs/PROTOCOL.md`](docs/PROTOCOL.md).
+License: CC0-1.0.

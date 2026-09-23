@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use this formalization, please cite it as below."
+title: "verified-decoupled-consensus: a Lean 4 formalization of the decoupled consensus protocol"
+authors:
+  - family-names: D'Amato
+    given-names: Francesco
+repository-code: "https://github.com/fradamt/verified-decoupled-consensus"
+license: CC0-1.0
+date-released: "2026-09-23"

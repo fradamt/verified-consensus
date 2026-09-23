@@ -1302,6 +1302,39 @@ theorem available_stableIncluded (S : Setup V) :
   simpa [stableInclusionDelay, legacyConstants, ourConstants, add_assoc] using
     Block.preceq_trans hBB' hB'InAt
 
+/-- The weak genesis package behind the public sleepy regime. -/
+theorem weakGenesis_of_sleepy (S : Setup V) {rho : Run V}
+    (h : SleepyRegime S (legacyInterface S) (legacyConstants S) rho 0) :
+    WeakGenesis S rho :=
+  sleepy_genesis_to_weakGenesis S h
+
+/-- The continuation package behind the public recovered sleepy regime. -/
+theorem weakContinuation_of_sleepy_recovered (S : Setup V)
+    {source rho : Run V} {t₀ : Time} {gap extra : Nat}
+    {rGST n : Round}
+    (hrec : RecoveryRegime S (legacyInterface S) (legacyConstants S) source t₀ gap extra)
+    (hstrong : StrongRecoveryPrefix S source rGST gap extra n)
+    (hsum : n + gap = recoveryRound S t₀ gap extra)
+    (hcont : Continues source rho ((legacyConstants S).prefixEnd t₀ gap extra)
+      ((legacyConstants S).recoveryEnd t₀ gap extra))
+    (hsleep : SleepyRegime S (legacyInterface S) (legacyConstants S) rho
+      ((legacyConstants S).recoveryEnd t₀ gap extra))
+    (hslash : Statements.SlashableBound (legacyInterface S) rho) :
+    WeakContinuation S source rho (n + gap) :=
+  sleepy_continuation_to_weakContinuation S hrec hstrong hsum hcont hsleep hslash
+
+/-- The slot-general read safety already available in both public branches. -/
+theorem honestProposalReadSafety_available
+    (S : Setup V) {rho : Run V} {t₀ : Time}
+    (hsleep : SleepyRegime S (legacyInterface S) (legacyConstants S) rho t₀)
+    (hrecovered : RecoveredBy S (legacyInterface S) (legacyConstants S) rho t₀)
+    {s : Slot} (hs : 0 < s)
+    (hafter : t₀ < Protocol.proposal_time S.E s)
+    (hconf : Protocol.confirmation_time S.E s ≤ rho.horizon)
+    (hprop : S.E.proposer s ∈ rho.honest) :
+    HonestProposalReadSafety S rho s :=
+  honestProposalReadSafety_of_available S hsleep hrecovered hs hafter hconf hprop
+
 end Proofs
 end DecoupledConsensusModel
 

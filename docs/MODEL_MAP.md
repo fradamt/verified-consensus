@@ -88,8 +88,8 @@ full `(h,T)` pair, and `NamedNodeState.record` carries it.
 │ get_head                         │ Protocol.get_head_with                                                 │ different shape │
 │ voter_processed_block_tree       │ Protocol.voter_processed_block_tree                                    │ none            │
 │ voter_filtered_block_tree        │ Protocol.voter_filtered_block_tree                                   │ none            │
-│ propose_block                    │ NamedDuties.propose_block_with; NamedActions.proposal_with            │ protocol change │
-│ proposal_attestations            │ NamedProposalRows.proposalRows                                        │ protocol change │
+│ propose_block                    │ NamedDuties.propose_block_with; NamedActions.proposal_with            │ different shape │
+│ proposal_attestations            │ NamedProposalRows.proposalRows                                        │ different shape │
 │ goldfish_vote                    │ NamedDuties.goldfish_vote_with; Protocol.goldfish_vote_with           │ different shape │
 │ attest                           │ NamedDuties.attest_with; NamedActions.round_action_with               │ different shape │
 │ get_sg_vote                      │ Protocol.get_sg_vote_with                                             │ renamed         │
@@ -315,11 +315,10 @@ module boundary and expose contract-free `get_head_in_tree` and `get_head`.
 full-parent lookup, row-source selection, `proposalRows`, construction,
 local processing, and emitted output. The selected source is the paper source.
 `proposalRows` excludes rows already on the parent chain and keeps at most two
-distinct full rows per (validator, round). The paper copies every eligible row.
-Line-by-line alignment would require the paper's all-eligible-row rule in place
-of this bounded selector.
+distinct full rows per (validator, round), as the paper does; Lean keeps the
+first two in list order, where the paper leaves the choice open.
 
-**Duplicate proposal rows.** Paper lines 2044–2049 use set union. Lean appends
+**Duplicate proposal rows.** Paper lines 2044–2050 use set union. Lean appends
 pool and carried lists before `proposalRows` removes repeated full rows and
 limits each (validator, round) to two rows. This bounds the payload while
 retaining two distinct rows that can show equivocation.

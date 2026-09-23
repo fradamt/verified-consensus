@@ -5,21 +5,21 @@
 Measured SHA-256 of the source file (`shasum -a 256`):
 
 ```text
-a150695428ca93c7f746d6d36be0144a87970e5309a2388548ed0bf433fe3313
+dc471b47a46896fe0a3df300c188fef1512f475615ce0fc0df18dbea6d2e5517
 ```
 
 ```text
 ┌──────────────────┬───────────────────────────────────────────────────────────────────┐
 │ Source file      │ consensus.tex                                                     │
-│ File length      │ 2 456 lines                                                       │
-│ Section 7 range  │ lines 1459–2280 (§7 "Complete protocol")                          │
-│ Assumptions      │ lines 2393–2456 (§9 "Participation and accountability")           │
+│ File length      │ 2 457 lines                                                       │
+│ Section 7 range  │ lines 1459–2281 (§7 "Complete protocol")                          │
+│ Assumptions      │ lines 2394–2457 (§9 "Participation and accountability")           │
 │ Appendix sources │ §1 (85–114), §2 (115–333), §3 (484–608), §4 (685–848),            │
 │                  │ §5 (850–1042), §6 (1158–1345, 1452–1458)                          │
 └──────────────────┴───────────────────────────────────────────────────────────────────┘
 ```
 
-Source: `consensus.tex` at commit `f0ffa095d6ea` (not yet public).
+Source: `consensus.tex` at commit `9f5ed717ffac` (not yet public).
 This file is a faithful extraction. The pseudocode is reproduced verbatim in
 structure: the paper's function names, argument names, statement order and
 comments are kept, and no line of an algorithm is omitted. LaTeX macros are
@@ -849,7 +849,8 @@ function proposal_attestations(Σ, H)
     for all B′ ∈ Σ.𝒯 with round(B′.slot) ∈ I do
         A ← A ∪ { a ∈ B′.attestations : a.round ∈ I }
                                                  ▷ included attestations are included again
-    return A minus every attestation on H's chain
+    A ← A minus every attestation on H's chain
+    return A with at most two attestations of each validator for each round
 ```
 
 <a id="goldfish_vote"></a>
@@ -858,7 +859,7 @@ function proposal_attestations(Σ, H)
 Algorithm block: `alg:duties`.
 
 The source carries the layer comment twice on this function (consensus.tex
-lines 2053–2054); both lines are reproduced.
+lines 2054–2055); both lines are reproduced.
 
 ```text
 function goldfish_vote(Σ)                        ▷ §2 (sec:goldfish), unchanged

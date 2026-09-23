@@ -11,8 +11,7 @@ data or of a definition differs while the behavior stays the same;
 `inlined`, and names the edit that removes each one. Those edits need the proofs
 to be redone, and are not made. **idealization** means that a premise replaces a
 physical property; each one is a declaration of
-`DecoupledConsensusStatements/Generic/Conditions.lean`. **protocol divergence**
-means that the selected behavior differs from the paper. Section 8 lists the
+`DecoupledConsensusStatements/Generic/Conditions.lean`. Section 8 lists the
 structural conditions.
 
 Each entry has four bullets: **Paper** cites `docs/PROTOCOL.md`, **Lean** gives
@@ -95,16 +94,18 @@ to confirm. A path with no library prefix is under `DecoupledConsensusModel/`.
 - **Check** — `PROTOCOL.md#record_attestation` and the named creator update both
   halves together.
 
-### 1.6 Bounded proposal rows — protocol divergence
+### 1.6 At most two proposal rows per validator and round — representation
 
-- **Paper** — `PROTOCOL.md#proposal_attestations` copies every eligible row.
+- **Paper** — `PROTOCOL.md#proposal_attestations` returns at most two
+  attestations of each validator for each round, and does not say which two.
 - **Lean** — `Protocol.NamedProposalRows.proposalRows`
   (`Protocol/Duties/Proposals.lean`) drops rows already on the parent chain,
   then keeps at most two distinct full rows per validator and round. The
   selected round window gives a bound of
   `2 · Fintype.card V · (η_SG + 1)` rows per proposal.
 - **Why** — carried side blocks can contain arbitrarily many distinct rows
-  with one validator and round. The cap bounds the proposal payload.
+  with one validator and round, and the rule bounds the proposal. Lean fixes
+  the choice left open by the paper: the first two rows in list order.
 - **Check** — `capPerSigner` keeps the first two distinct rows for each key;
   `capPerSigner_length_le_keys` proves the bound of twice the number of distinct
   (validator, round) keys, and `mem_proposalRows_of_unique` keeps every selected
@@ -221,9 +222,10 @@ to confirm. A path with no library prefix is under `DecoupledConsensusModel/`.
   excludes (`ProtocolSpec.excludes`): a block that conflicts with the receiver's
   finalized block. The receiver would reject that block for good, and its
   children could never meet the parent condition of a delivery.
-- **Why** — the model has one asynchronous period, `[b₀, b₁)`, at the start of
-  the run. The paper's outage is the case `b₁ = t_GST`. A later temporary outage
-  is not modelled.
+- **Why** — the model has one asynchronous period. The outage claim places it
+  at `[b₀, b₁)`: delivery is bounded before `b₀`, and again from
+  `t_GST ≤ b₁`. The other claims assume nothing before GST. A run with more
+  than one outage is not modelled.
 - **Check** — the outage claim states delivery as healthy before `b₀` and again
   from `t_GST`, and `Δ` is strict: the premises conclude
   `t' < max t t_GST + Δ`: an object sent before GST arrives before

@@ -137,15 +137,12 @@ depends on `Lean.ofReduceBool`. The review theorem does not.
 - **Generic statements.** The bundle is stated over an abstract interface.
   Only `Instantiation.lean` ties it to this protocol, so read that file with
   care: a wrong binding leaves the theorem true and empty.
-- **One protocol change.** A proposal keeps at most two attestation rows per
-  validator and round (§1.6).
-- **Delivery exemption.** The delivery premises do not apply to a block that
-  conflicts with the finalized block of the receiver (§5.1).
 - **Stronger participation premises.** The premises hold at every time, not
   only at round samples. Thus finality needs `K ≥ 5`, not the paper's `K ≥ 4`
   (§7).
-- **One asynchronous period.** The model has one GST. A later outage is not
-  modelled (§5.1).
+- **One outage.** The outage claim covers one asynchronous period, with
+  bounded delivery before it and after GST. A run with more than one outage is
+  not modelled (§5.1).
 - **Witnesses show satisfiability.** The witness runs have one honest node and
   one silent Byzantine validator. They do not exercise equivocation or
   adversarial traffic.
@@ -157,8 +154,8 @@ depends on `Lean.ofReduceBool`. The review theorem does not.
 
 - [Review guide](docs/REVIEW_GUIDE.md) — reading order, full premise ledger,
   mechanical checks.
-- [Modeling choices](docs/MODELING_CHOICES.md) — each divergence from the paper
-  and each idealization.
+- [Modeling choices](docs/MODELING_CHOICES.md) — each difference in form from the
+  paper and each idealization.
 - [Model map](docs/MODEL_MAP.md) — Section 7, item by item.
 - [Protocol](docs/PROTOCOL.md) — the reference pseudocode.
 - [Architecture](docs/ARCHITECTURE.md) — libraries, directories, naming.
@@ -167,6 +164,6 @@ depends on `Lean.ofReduceBool`. The review theorem does not.
 
 ## Paper and license
 
-Paper: `consensus.tex` at commit `f0ffa095d6ea` (not yet public). The reference
+Paper: `consensus.tex` at commit `9f5ed717ffac` (not yet public). The reference
 pseudocode (Section 7, verbatim) is in [`docs/PROTOCOL.md`](docs/PROTOCOL.md).
 License: CC0-1.0.

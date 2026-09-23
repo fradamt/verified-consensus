@@ -92,7 +92,7 @@ def select (source : ProposalRowSource) (hc : Protocol.HealConfig) (st : NamedSt
     List (NamedAttestation V) :=
   poolRows hc st ++ carriedRows hc st
 
--- Divergence from the paper: the proposal keeps at most two distinct rows per (validator, round) (bounded block size); the paper copies every eligible row.
+-- As `PROTOCOL.md#proposal_attestations`: at most two distinct rows per (validator, round); `capPerSigner` keeps the first two in list order.
 
 /-- Full named rows on the head's recursive ancestor chain. -/
 def chainRows : NamedBlock V → List (NamedAttestation V)

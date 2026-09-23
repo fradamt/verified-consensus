@@ -152,7 +152,10 @@ to confirm. A path with no library prefix is under `DecoupledConsensusModel/`.
   outnumber the adversarial members, and the recurrence premises count honest
   proposers that actually propose. A returning validator is modelled as one
   that has synced every message on time; a client gets this by waiting for a
-  sync before it resumes its duties.
+  sync before it resumes its duties. A possible refinement makes the encoding
+  part of the model: an asleep validator also skips its Goldfish vote and its
+  proposal, `HonestCommittees` counts the awake honest members, and the
+  recurrence premises ask for awake honest proposers. It is not done.
 - **Check** — search the model for `awake` and confirm the one read.
 
 ## 3 Computability and decidability
@@ -262,9 +265,22 @@ to confirm. A path with no library prefix is under `DecoupledConsensusModel/`.
   membership only (`Objects/Weights.lean`). Nothing routes a committee through
   `Electorate.weightOf`.
 - **Why** — the two counting regimes must not be conflated. `Committees` states
-  no size, no honesty and no overlap law; those are premises.
+  no size, no honesty and no overlap law; those are premises. In a deployment
+  the committee election is stake-weighted, so an honest majority of the
+  committee follows from an honest majority of the stake. The election is not
+  modelled: `HonestCommittees` is a premise on the committee.
 - **Check** — `Protocol.raw_goldfish_score` counts cardinality, while
   `Protocol.gradeBool` and `Electorate.finalityThreshold` count weight.
+
+### 5.4 The validator set is fixed — scope
+
+- **Paper** — the validator set and the weights are fixed for the execution.
+- **Lean** — one `Electorate` for each `Setup`. The finality threshold is
+  computed from it.
+- **Why** — a scope choice. Activations, exits and balance changes are not
+  modelled, and no claim relates certificates of different validator sets.
+- **Check** — `Env.electorate` (`Objects/Parameters.lean`) is a field of the
+  setup, with no time argument.
 
 ## 6 Idealizations that are premises
 

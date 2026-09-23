@@ -161,6 +161,7 @@ the middle column.
 │ SleepyRegime           │ `AvailableAt`        │ confirmed and stable safety, confirmed and     │
 │                        │                      │ stable inclusion                               │
 │ LiveSleepyRegime       │ `LiveFrom`           │ confirmed liveness; stable liveness            │
+│ FreshSleepyRegime      │ `IncludedFrom`       │ stable inclusion within two rounds             │
 │ FinalityRegime         │ `FinalizedAt`        │ finalized inclusion and finalized liveness     │
 │ OutageRegime           │ none                 │ stable persistence                             │
 └────────────────────────┴──────────────────────┴────────────────────────────────────────────────┘
@@ -170,6 +171,9 @@ the middle column.
 `SleepyRegime` requires `ExecutionValid`, `PartialSynchrony`, GST by `t₀`,
 `HonestCommittees`, `WindowMajority`, and a sound `RecoveredBy` start.
 `LiveSleepyRegime` adds `SingleProposerRecurrence` from `t₀` (tier 1).
+`FreshSleepyRegime` adds `FreshMajority` at every time from `t₀`: the honest
+weight awake in the current round outweighs the faulty weight plus the stale
+honest weight, so one round of fresh votes grades a proposal.
 Tier 1 counts the windows from `t₀`, and tiers 2 and 3 count those from GST;
 all count only windows that end inside the run.
 `FinalityRegime` extends `BFTRegime`: execution validity, partial synchrony,
@@ -233,6 +237,7 @@ The concrete regime-to-fixture non-vacuity map is:
 │                      │ non-genesis constructor; WeakGenesis supplies genesis.         │
 │ SleepyRegime         │ DecoupledConsensusModel.Witnesses.generic_sleepy_regime at `t₀ = 0`.                  │
 │ LiveSleepyRegime     │ `DecoupledConsensusModel.Witnesses.generic_live_sleepy_regime` at `gap = 3`.  │
+│ FreshSleepyRegime    │ `DecoupledConsensusModel.Witnesses.generic_fresh_sleepy_regime` at `t₀ = 0`.  │
 │ FinalityRegime       │ DecoupledConsensusModel.Witnesses.generic_finality_regime at `gap = 3`, `K = 5`.│
 │ OutageRegime         │ DecoupledConsensusModel.Witnesses.generic_outage_regime.                                  │
 └──────────────────────┴──────────────────────────────────────────────────────────────┘
@@ -279,6 +284,7 @@ Let `L = S.a 1 − S.a 0 = 4ΔR` and
 │ growthDelay             │ gap·L + 6Δ = gap·period + confirmationDelay                   │ Time       │ Inclusion-to-liveness corollary delay.        │
 │ stableGrowthDelay       │ gap·L + stableInclusionDelay                                 │ Time       │ Stable-output growth deadline.                │
 │ stableInclusionDelay    │ 6Δ + ((1 + η_SG)L + 2Δ)                                      │ Time       │ Stable-output inclusion deadline.            │
+│ fastStableInclusionDelay│ 6Δ + (2L + 2Δ)                                               │ Time       │ The same under a fresh majority.             │
 │ finalityStartup         │ healingBoundaryTime(finalityStartup(gap,e) + 1) − a₀          │ Time       │ Finality startup lag.                         │
 │ finalityDeadline        │ healingBoundaryTime(finalityDeadline(gap,e) + 1) − a₀ + 3Δ    │ Time       │ Finality inclusion deadline.                 │
 │ outageStart(T)          │ nextAction(T) + L + Δ                                         │ Time       │ Earliest permitted outage start.             │
@@ -316,7 +322,7 @@ instance of the same corollary through `DecoupledConsensusModel.Proofs.finalized
 ## Generic result bundle
 
 `Generic.Consensus` has the `constants : Constants.Valid` premise followed by
-eleven result fields, in premise-first order:
+twelve result fields, in premise-first order:
 
 1. `nested` and `certificatesAccountable` have no run-regime premise.
 2. `finalizedAccountable` and `finalizedMonotone` name `RunWellFormed`.
@@ -325,8 +331,9 @@ eleven result fields, in premise-first order:
 5. `available` names `SleepyRegime` and returns `AvailableAt`.
 6. `confirmedLive` names `LiveSleepyRegime` and returns `LiveFrom`.
 7. `stableLive` names `LiveSleepyRegime` and returns `LiveFrom`.
-8. `finalized` names `FinalityRegime` and returns `FinalizedAt`.
-9. `stableAsynchronyResilient` names `OutageRegime` and returns `PersistsFrom`.
+8. `stableIncludedFast` names `FreshSleepyRegime` and returns `IncludedFrom`.
+9. `finalized` names `FinalityRegime` and returns `FinalizedAt`.
+10. `stableAsynchronyResilient` names `OutageRegime` and returns `PersistsFrom`.
 
 This makes each claim readable as `run and parameters → named premise → named
 conclusion`, except for the two fields with no run-regime premise at the top. Confirmed

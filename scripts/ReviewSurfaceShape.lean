@@ -13,7 +13,7 @@ run_cmd do
   checkFields `DecoupledConsensusModel.Statements.Generic.Consensus
     ["constants", "nested", "certificatesAccountable", "finalizedAccountable",
       "finalizedMonotone", "honestNeverSlashed", "finalizedSafe", "available", "confirmedLive",
-      "stableLive", "finalized", "stableAsynchronyResilient"]
+      "stableLive", "stableIncludedFast", "finalized", "stableAsynchronyResilient"]
   checkFields `DecoupledConsensusModel.Statements.Generic.OutputOrder
     ["finalizedBelowStable", "stableBelowConfirmed"]
   checkFields `DecoupledConsensusModel.Statements.Generic.AvailableAt
@@ -30,6 +30,7 @@ run_cmd do
       `DecoupledConsensusModel.Statements.Generic.Consensus.available,
       `DecoupledConsensusModel.Statements.Generic.Consensus.confirmedLive,
       `DecoupledConsensusModel.Statements.Generic.Consensus.stableLive,
+      `DecoupledConsensusModel.Statements.Generic.Consensus.stableIncludedFast,
       `DecoupledConsensusModel.Statements.Generic.Consensus.finalized,
       `DecoupledConsensusModel.Statements.Generic.Consensus.stableAsynchronyResilient,
       `DecoupledConsensusModel.Statements.Generic.OutputOrder.finalizedBelowStable,
@@ -101,6 +102,10 @@ example (P : Generic.ProtocolSpec V) (E : Generic.Env V)
     (I : Interface P) (C : Constants) (h : Consensus P E I C) :
       ∀ rho t₀ gap, LiveSleepyRegime P E I C rho t₀ gap →
         LiveFrom P I rho I.stable t₀ (C.stableGrowthDelay gap) := h.stableLive
+example (P : Generic.ProtocolSpec V) (E : Generic.Env V)
+    (I : Interface P) (C : Constants) (h : Consensus P E I C) :
+      ∀ rho t₀, FreshSleepyRegime P E I C rho t₀ →
+        IncludedFrom P I rho I.stable t₀ C.fastStableInclusionDelay := h.stableIncludedFast
 example (P : Generic.ProtocolSpec V) (E : Generic.Env V) (I : Interface P) (C : Constants)
     (h : Consensus P E I C) :
       ∀ rho t₀ gap, FinalityRegime P E I C rho t₀ gap →

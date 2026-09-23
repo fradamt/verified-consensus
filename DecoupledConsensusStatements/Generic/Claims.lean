@@ -69,6 +69,9 @@ structure Consensus
     LiveFrom P I rho I.confirmed t₀ (C.growthDelay gap)
   stableLive : ∀ rho t₀ gap, LiveSleepyRegime P E I C rho t₀ gap →
     LiveFrom P I rho I.stable t₀ (C.stableGrowthDelay gap)
+  /-- Fresh sleepy regime: stable inclusion without the window lag. -/
+  stableIncludedFast : ∀ rho t₀, FreshSleepyRegime P E I C rho t₀ →
+    IncludedFrom P I rho I.stable t₀ C.fastStableInclusionDelay
   /-- Finality regime. -/
   finalized : ∀ rho t₀ gap, FinalityRegime P E I C rho t₀ gap →
     FinalizedAt P I C rho (t₀ + C.finalityStartup gap) gap

@@ -16,6 +16,7 @@ public import DecoupledConsensusProofs.Execution.W4StableRecordGrowthClosed
 public import DecoupledConsensusProofs.Generic.W4FinalityClosed
 public import DecoupledConsensusProofs.Bridge.StandardVocabulary
 public import DecoupledConsensusProofs.Bridge.StableIncludedAnySlot
+public import DecoupledConsensusProofs.Bridge.StableIncludedFresh
 public import DecoupledConsensusProofs.Bridge.GenericVocabulary
 public import DecoupledConsensusProofs.Bridge.GenericRegimes
 public import DecoupledConsensusProofs.Bridge.FinalizedLive
@@ -299,6 +300,7 @@ theorem concreteConsensus (S : Setup V) : Statements.Instantiation.Consensus S :
     available := ?_
     confirmedLive := ?_
     stableLive := ?_
+    stableIncludedFast := stableIncludedFast_concrete S
     finalized := ?_
     stableAsynchronyResilient := ?_ }
   · intro rho

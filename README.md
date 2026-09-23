@@ -27,7 +27,7 @@ theorem concreteConsensus (S : Setup V) : Statements.Instantiation.Consensus S
 
 `Consensus` (`DecoupledConsensusStatements/Instantiation.lean`) is the generic
 bundle `Generic.Consensus` (`DecoupledConsensusStatements/Generic/Claims.lean`)
-applied to this protocol. It has twelve fields:
+applied to this protocol. It has thirteen fields:
 
 - `constants` — the timing and bound parameters satisfy `Constants.Valid`.
 - `nested` — at every read, finalized is below stable and stable is below
@@ -45,6 +45,8 @@ applied to this protocol. It has twelve fields:
   within `η_SG + 1` rounds plus `8Δ`.
 - `confirmedLive` — the confirmed chain keeps growing.
 - `stableLive` — the stable chain keeps growing.
+- `stableIncludedFast` — under a fresh majority, an honest proposal is in every
+  stable read within 2 rounds plus `8Δ`.
 - `finalized` — after a startup lag, an honest proposal is finalized everywhere
   by its deadline, and the finalized chain keeps growing.
 - `stableAsynchronyResilient` — a block in an honest stable read at `T` stays
@@ -76,6 +78,7 @@ freedom. Tier 1 of proposer recurrence counts the windows from `t₀`, and tiers
 │ available                 │ SleepyRegime           │ base; WindowMajority; RecoveredBy                  │
 │ confirmedLive             │ LiveSleepyRegime       │ SleepyRegime; SingleProposerRecurrence (tier 1)    │
 │ stableLive                │ LiveSleepyRegime       │ SleepyRegime; SingleProposerRecurrence (tier 1)    │
+│ stableIncludedFast        │ FreshSleepyRegime      │ SleepyRegime; FreshMajority                        │
 │ finalized                 │ FinalityRegime         │ base; BelowOneThird; FullParticipation from GST;   │
 │                           │                        │ StrongMultiProposerRecurrence; gap + 2 ≤ K;        │
 │                           │                        │ run long enough                                    │
@@ -124,7 +127,7 @@ builds the five libraries, then checks that:
   (`check-review-boundary.rb`);
 - every statement declaration is reachable from the bundle
   (`StatementReachability.lean`);
-- the bundle has exactly the twelve fields (`ReviewSurfaceShape.lean`);
+- the bundle has exactly the thirteen fields (`ReviewSurfaceShape.lean`);
 - `concreteConsensus` depends only on `propext`, `Classical.choice` and
   `Quot.sound` (`ReviewAxioms.lean`).
 

@@ -1149,6 +1149,45 @@ theorem generic_sleepy_regime :
     rw [byzantine_weight_eq, ← honest_eq, honest_weight_eq]
     norm_num
 
+theorem generic_fresh_sleepy_regime :
+    Statements.Generic.FreshSleepyRegime
+      (DecoupledConsensusModel.Execution.spec S)
+      (Statements.Instantiation.env S)
+      (Statements.Instantiation.interface S)
+      (Statements.Instantiation.constants S) rho 0 := by
+  refine { toSleepyRegime := generic_sleepy_regime, fresh := ?_ }
+  intro t _ht _hlag _hhor
+  classical
+  unfold Statements.Generic.FreshMajority
+  have hat :
+      Statements.Generic.awakeAt (Statements.Instantiation.env S) rho.honest
+          (t - (Statements.Instantiation.constants S).participationLag) =
+        ({0} : Finset (Fin 2)) := by
+    rw [honest_eq]
+    change ({0} : Finset (Fin 2)).filter (fun v =>
+      (Statements.Instantiation.env S).awake v
+        (t - (Statements.Instantiation.constants S).participationLag) = true) = {0}
+    ext v
+    by_cases hv : v = 0 <;> simp [hv, Statements.Instantiation.env, S, node]
+  have hstale :
+      Statements.Generic.awakeIn (Statements.Instantiation.env S) rho.honest
+          (t - (Statements.Instantiation.constants S).participationWindow)
+          (t - (Statements.Instantiation.constants S).participationLag) \
+        Statements.Generic.awakeAt (Statements.Instantiation.env S) rho.honest
+          (t - (Statements.Instantiation.constants S).participationLag) = ∅ := by
+    rw [hat]
+    apply Finset.eq_empty_of_forall_notMem
+    intro v hv
+    rcases Finset.mem_sdiff.mp hv with ⟨hin, hnot⟩
+    have hvH : v ∈ rho.honest := (Finset.mem_filter.mp hin).1
+    rw [honest_eq] at hvH
+    exact hnot hvH
+  rw [hstale, Finset.union_empty, hat]
+  change S.E.electorate.weightOf (Finset.univ \ rho.honest) <
+    S.E.electorate.weightOf ({0} : Finset (Fin 2))
+  rw [byzantine_weight_eq, ← honest_eq, honest_weight_eq]
+  norm_num
+
 theorem genesis_growth_guard_active :
     ∃ t : Time, t + (Statements.Instantiation.constants S).growthDelay 2 ≤
       rho.horizon := by

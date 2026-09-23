@@ -1,0 +1,44 @@
+name = "decoupled-consensus-model"
+version = "0.1.0"
+keywords = ["lean", "consensus", "model"]
+defaultTargets = [
+  "DecoupledConsensusModel",
+  "DecoupledConsensusStatements",
+  "DecoupledConsensusInternal",
+  "DecoupledConsensusProofs",
+  "DecoupledConsensusWitnesses",
+]
+
+[leanOptions]
+pp.unicode.fun = true
+relaxedAutoImplicit = false
+weak.linter.mathlibStandardSet = true
+# Matches decoupled-consensus-full: only this opt-in style linter is off. All
+# other warnings count as regressions for this project.
+weak.linter.flexible = false
+maxSynthPendingDepth = 3
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.30.0-rc2"
+
+[[lean_lib]]
+name = "DecoupledConsensusModel"
+
+# Final review statements and their necessary definitions. No proof imports.
+[[lean_lib]]
+name = "DecoupledConsensusStatements"
+
+# Internal vocabulary, regimes and pinned targets. Not the manual review surface.
+[[lean_lib]]
+name = "DecoupledConsensusInternal"
+
+# Kernel-checked proof implementation, including the final-result facade.
+[[lean_lib]]
+name = "DecoupledConsensusProofs"
+
+# Kernel-checked non-vacuity witnesses: one concrete run per public statement
+# (at least one Byzantine validator, every premise proved). Review entry point.
+[[lean_lib]]
+name = "DecoupledConsensusWitnesses"

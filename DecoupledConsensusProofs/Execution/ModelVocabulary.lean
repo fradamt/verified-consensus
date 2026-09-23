@@ -1,0 +1,40 @@
+module
+public import DecoupledConsensusProofs.ModelVocabulary.Execution.Admissible
+public import DecoupledConsensusProofs.ModelVocabulary.Execution.Event
+public import DecoupledConsensusProofs.ModelVocabulary.Execution.FrameOperations
+public import DecoupledConsensusProofs.ModelVocabulary.Execution.GradeRuntime.Selectors
+public import DecoupledConsensusProofs.ModelVocabulary.Execution.GradeRuntime.Transport
+public import DecoupledConsensusProofs.ModelVocabulary.Execution.Instance
+public import DecoupledConsensusProofs.ModelVocabulary.Execution.NamedActionReads
+public import DecoupledConsensusProofs.ModelVocabulary.Execution.NamedAdmissible
+public import DecoupledConsensusProofs.ModelVocabulary.Execution.NamedEvent
+public import DecoupledConsensusProofs.ModelVocabulary.Execution.NamedReceiptCalls
+public import DecoupledConsensusProofs.ModelVocabulary.Execution.NamedRun
+public import DecoupledConsensusProofs.ModelVocabulary.Execution.Node
+public import DecoupledConsensusProofs.ModelVocabulary.Execution.Objects
+public import DecoupledConsensusProofs.ModelVocabulary.Execution.Run
+public import DecoupledConsensusProofs.ModelVocabulary.Execution.Setup
+public import DecoupledConsensusProofs.ModelVocabulary.FGForkChoice.Finality
+public import DecoupledConsensusProofs.ModelVocabulary.FinalityGadget.ChainState
+public import DecoupledConsensusProofs.ModelVocabulary.FinalityGadget.Transition
+public import DecoupledConsensusProofs.ModelVocabulary.Goldfish.ForkChoice
+public import DecoupledConsensusProofs.ModelVocabulary.Goldfish.Objects
+public import DecoupledConsensusProofs.ModelVocabulary.Goldfish.Store
+public import DecoupledConsensusProofs.ModelVocabulary.Healing.Action
+public import DecoupledConsensusProofs.ModelVocabulary.Healing.Schedule
+public import DecoupledConsensusProofs.ModelVocabulary.MajoritySG.ForkChoice
+public import DecoupledConsensusProofs.ModelVocabulary.MajoritySG.Objects
+public import DecoupledConsensusProofs.ModelVocabulary.Protocol.CommitteePools
+public import DecoupledConsensusProofs.ModelVocabulary.Protocol.Confirmed
+public import DecoupledConsensusProofs.ModelVocabulary.Protocol.Handlers
+public import DecoupledConsensusProofs.ModelVocabulary.Protocol.NamedStoreReads
+public import DecoupledConsensusProofs.ModelVocabulary.Protocol.Store
+public import DecoupledConsensusProofs.ModelVocabulary.Substrate.Blocks
+public import DecoupledConsensusProofs.ModelVocabulary.Substrate.Env
+public import DecoupledConsensusProofs.ModelVocabulary.Substrate.NamedAttestations
+public import DecoupledConsensusProofs.ModelVocabulary.Substrate.NamedBlocks
+public import DecoupledConsensusProofs.ModelVocabulary.Substrate.Pairs
+public import DecoupledConsensusProofs.ModelVocabulary.Substrate.Time
+public import DecoupledConsensusProofs.ModelVocabulary.Substrate.Weights
+
+/-! Proof-only definitions extracted from the model closure. -/

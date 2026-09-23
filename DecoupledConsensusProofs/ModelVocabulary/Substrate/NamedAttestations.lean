@@ -1,0 +1,2 @@
+module
+public import DecoupledConsensusInternal.ModelVocabulary.Substrate.NamedAttestations

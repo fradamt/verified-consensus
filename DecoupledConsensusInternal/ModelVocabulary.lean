@@ -1,0 +1,31 @@
+module
+public import DecoupledConsensusInternal.ModelVocabulary.Execution.Admissible
+public import DecoupledConsensusInternal.ModelVocabulary.Execution.Event
+public import DecoupledConsensusInternal.ModelVocabulary.Execution.FrameOperations
+public import DecoupledConsensusInternal.ModelVocabulary.Execution.NamedActionReads
+public import DecoupledConsensusInternal.ModelVocabulary.Execution.NamedAdmissible
+public import DecoupledConsensusInternal.ModelVocabulary.Execution.NamedEvent
+public import DecoupledConsensusInternal.ModelVocabulary.Execution.NamedReceiptCalls
+public import DecoupledConsensusInternal.ModelVocabulary.Execution.NamedRun
+public import DecoupledConsensusInternal.ModelVocabulary.Execution.Node
+public import DecoupledConsensusInternal.ModelVocabulary.Execution.Objects
+public import DecoupledConsensusInternal.ModelVocabulary.Execution.Run
+public import DecoupledConsensusInternal.ModelVocabulary.Execution.Setup
+public import DecoupledConsensusInternal.ModelVocabulary.FGForkChoice.Finality
+public import DecoupledConsensusInternal.ModelVocabulary.FinalityGadget.Attestations
+public import DecoupledConsensusInternal.ModelVocabulary.FinalityGadget.Crossing
+public import DecoupledConsensusInternal.ModelVocabulary.Goldfish.Store
+public import DecoupledConsensusInternal.ModelVocabulary.Healing.Action
+public import DecoupledConsensusInternal.ModelVocabulary.MajoritySG.ForkChoice
+public import DecoupledConsensusInternal.ModelVocabulary.MajoritySG.Objects
+public import DecoupledConsensusInternal.ModelVocabulary.Protocol.Handlers
+public import DecoupledConsensusInternal.ModelVocabulary.Protocol.NamedStoreReads
+public import DecoupledConsensusInternal.ModelVocabulary.Protocol.Store
+public import DecoupledConsensusInternal.ModelVocabulary.Substrate.NamedBlocks
+public import DecoupledConsensusInternal.ModelVocabulary.Substrate.Blocks
+public import DecoupledConsensusInternal.ModelVocabulary.Substrate.NamedAttestations
+public import DecoupledConsensusInternal.ModelVocabulary.Substrate.Pairs
+public import DecoupledConsensusInternal.ModelVocabulary.Substrate.Weights
+
+/-! Compatibility vocabulary required by proof-free Props modules after the
+selected protocol Model was pruned. -/

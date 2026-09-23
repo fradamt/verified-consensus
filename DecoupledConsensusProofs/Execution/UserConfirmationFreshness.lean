@@ -1,0 +1,18 @@
+module
+public import DecoupledConsensusProofs.Execution.ModelVocabulary
+public import DecoupledConsensusProofs.Generic.SlotFreshness
+
+@[expose] public section
+
+namespace DecoupledConsensusModel
+namespace Proofs
+namespace UserConfirmationFreshness
+
+export NamedSlotFreshness (block_slot_lt_of_mem_beforeTime_of_le_proposal
+  advance_eq_candidate_of_held_slot)
+
+end UserConfirmationFreshness
+end Proofs
+end DecoupledConsensusModel
+
+end

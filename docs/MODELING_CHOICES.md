@@ -141,9 +141,19 @@ to confirm. A path with no library prefix is under `DecoupledConsensusModel/`.
   (`Protocol/Handlers.lean`).
 - **Why** — an asleep validator still ticks, still receives, and still processes
   every delivered object, so its store stays current.
-- **Check** — search the model for `awake` and confirm the one read. Do not read
-  the participation claims as availability in a model where an asleep node
-  misses messages.
+- **Offline validators** — the committees and the proposer schedule are free
+  `Setup` data (`Env.committees`, `Env.proposer`). To encode a real run in which
+  an honest validator is offline, keep it honest, set `awake` to false for the
+  rounds where it is offline, remove it from the committee of each slot whose
+  Goldfish vote falls while it is offline, and give each slot that it would
+  propose while offline to a silent faulty validator. The model node then emits
+  nothing that the real validator did not emit. Under this encoding,
+  `HonestCommittees` states that in each slot committee the awake honest members
+  outnumber the adversarial members, and the recurrence premises count honest
+  proposers that actually propose. A returning validator is modelled as one
+  that has synced every message on time; a client gets this by waiting for a
+  sync before it resumes its duties.
+- **Check** — search the model for `awake` and confirm the one read.
 
 ## 3 Computability and decidability
 

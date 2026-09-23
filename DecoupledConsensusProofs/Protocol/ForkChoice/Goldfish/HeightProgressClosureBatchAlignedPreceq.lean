@@ -70,13 +70,11 @@ theorem honestRawInput_confirmed_eq_actionCarrier_root
   refine ⟨hwindow, ?_⟩
   have hactionHor : S.a a.round ≤ rho.horizon :=
     le_of_lt (lt_of_lt_of_le hlt hhor)
-  have hexact := honest_emits_exact_actionAttestationAt S adm hw a.round
-    hactionHor
-  have hshape := actionAttestationAt_shape S rho w a.round
   have haEq : a = actionAttestationAt S rho w a.round :=
-    Proofs.Optimistic.emits_attest_unique S
-      adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hemit hexact
-      hshape.2.1.symm
+    ((NamedActionSources.action_run_emission S rho
+      adm.toNamedAdmissibleCore.toNamedScheduleWellFormed
+      w a.round a).mp hemit).2.2
+  have hshape := actionAttestationAt_shape S rho w a.round
   have hconfA : a.confirmed = some (actionSGBlockAt S rho w a.round).root := by
     nth_rewrite 1 [haEq]
     exact hshape.2.2

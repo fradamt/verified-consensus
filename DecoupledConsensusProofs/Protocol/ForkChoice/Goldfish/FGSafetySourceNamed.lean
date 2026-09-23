@@ -406,9 +406,13 @@ theorem honestFGSource_preceq_of_actionSGBlock (adm : Admissible S rho)
   have hTeq : T.erase =
       (Protocol.derive_named S.E S.cfg K).T_h :=
     Option.some.inj ((hreg.witness_eq adm hcom hbelow hb hemit hrow).symm.trans hW)
+  have hpostC : S.E.t_GST ≤ S.a c :=
+    hreg.postPrev.trans (Assembly.a_mono S
+      ((Nat.sub_le a.round 1).trans
+        ((hreg.minimal b tb hb hemit hrow).trans hbc)))
   have hSG := hreg.sgHistory_source adm hcom hbelow
     ((hreg.minimal b tb hb hemit hrow).trans hbc) hchor
-      v hv (honest_emits_exact_actionAttestationAt S adm hv c hchor)
+      v hv (honest_emits_exact_actionAttestationAt S adm hv c hchor hpostC)
   have hCT : Block.Preceq C.erase T.erase := by
     rcases (show Block.Preceq C.erase T.erase ∨
         Block.Preceq T.erase C.erase by
@@ -962,9 +966,13 @@ theorem honestFGSource_preceq_of_actionSGBlock_ancestor
       (Protocol.derive_named S.E S.cfg K).T_h :=
     Option.some.inj
       ((hreg.witness_eq adm hcom hbelow hb hemit hrow).symm.trans hW)
+  have hpostC : S.E.t_GST ≤ S.a c :=
+    hreg.postPrev.trans (Assembly.a_mono S
+      ((Nat.sub_le a.round 1).trans
+        ((hreg.minimal b tb hb hemit hrow).trans hbc)))
   have hSG := hreg.sgHistory_source adm hcom hbelow
     ((hreg.minimal b tb hb hemit hrow).trans hbc) hchor
-      v hv (honest_emits_exact_actionAttestationAt S adm hv c hchor)
+      v hv (honest_emits_exact_actionAttestationAt S adm hv c hchor hpostC)
   have hCTor : Block.Preceq C.erase T.erase ∨
       Block.Preceq T.erase C.erase := by
     rcases (show Block.Preceq (actionSGBlockAt S rho v c) T.erase ∨

@@ -346,7 +346,7 @@ theorem PrefixFGSelectorConeAt.sgEmissionsCompatible_sourceRound_of_gateOffPrede
   have hmajority : Internal.NamedOutageEntry.GradeFormingMajority
       S rho a.round :=
     gradeFormingMajority_of_admissible_belowOneThird S adm hbelow hroundPos
-      ((FrameForward.domain_le_a S a.round .g2).trans hhorAction)
+      ((FrameForward.domain_le_a S a.round .g2).trans hhorAction) (by assumption)
   exact hseed.sgEmissionsCompatible_sourceRound_of_relativeGateOffPredecessor_named
     adm hcom hbelow hfirst hcap hrec ready hpred hpost hhor hframe
       hwindowG2 hwindowG1 hmajority
@@ -970,6 +970,8 @@ theorem PrefixFGSelectorConeAt.checkpointProtection_and_SGHistory_beforeFirst_of
       (Nat.zero_lt_of_lt hpred)
       ((FrameForward.domain_le_a S a.round .g2).trans
         ((Assembly.a_mono S (hc.trans (Nat.le_add_right c 2))).trans hhor))
+      (hpost.trans (Assembly.a_mono S
+        (Nat.sub_le_sub_left (by decide : 1 ≤ 2) a.round)))
   have hsourceVotes : ∀ d,
       S.hc.opening_slot a.round ≤ d →
       d < S.hc.opening_slot (a.round + 1) →
@@ -1071,6 +1073,9 @@ theorem PrefixFGSelectorConeAt.checkpointProtection_and_SGHistory_beforeFirst_of
           (Nat.succ_pos r)
           ((FrameForward.domain_le_a S (r + 1) .g2).trans
             ((Assembly.a_mono S hnextEnd).trans hhor))
+          (by simpa only [Nat.add_sub_cancel] using
+            hpost.trans (Assembly.a_mono S
+              ((Nat.sub_le a.round 2).trans hr)))
       have hnextRaw : ∀ w ∈ rho.honest,
           PhaseGrades.nodeRawG2 S (actionReadAt S rho w (r + 1)) (r + 1) := by
         intro w hw
@@ -1422,6 +1427,7 @@ theorem PrefixFGSelectorConeAt.confirmationWitness_beforeFirst_of_G2_cover_named
           S rho b.round :=
         gradeFormingMajority_of_admissible_belowOneThird S adm hbelow
           hrPos ((FrameForward.domain_le_a S b.round .g2).trans hactionHor)
+          hprevPost
       have hgrade : DecoupledConsensusModel.Protocol.gradeBool S.E
           (NamedRun.stateBeforeTime S rho
             (domain S.E S.hc (b.round - 1 + 1) .g2)

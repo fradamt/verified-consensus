@@ -38,7 +38,8 @@ variable {V : Type} [DecidableEq V] [Fintype V]
 theorem gradeFormingMajority_of_admissible_belowOneThird
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)
     (hfb : BelowOneThird S rho.honest) {r : Round} (hr : 0 < r)
-    (hhor : domain S.E S.hc r .g2 ≤ rho.horizon) :
+    (hhor : domain S.E S.hc r .g2 ≤ rho.horizon)
+    (hpost : S.E.t_GST ≤ S.a (r - 1)) :
     GradeFormingMajority S rho r := by
   have hq : HonestWeightMajority S rho.honest :=
     AlignedRoundLemmas.honestWeightMajority_of_belowOneThird hfb
@@ -51,7 +52,7 @@ theorem gradeFormingMajority_of_admissible_belowOneThird
       exact ((Proofs.NamedOutageInputs.honestRoundVoters_iff S rho v (r - 1)).mp hv).1
     · intro v hv
       apply (Proofs.NamedOutageInputs.honestRoundVoters_iff S rho v (r - 1)).mpr
-      have hemit := honest_emits_exact_actionAttestationAt S adm hv (r - 1) hprev
+      have hemit := honest_emits_exact_actionAttestationAt S adm hv (r - 1) hprev hpost
       have hshape := actionAttestationAt_shape S rho v (r - 1)
       exact ⟨hv, actionAttestationAt S rho v (r - 1), hshape.1,
         hshape.2.1, hemit⟩
@@ -121,7 +122,7 @@ theorem relativeCarrierWindowAt_of_gateOff
     simpa only [a] using actionAttestationAt_shape S rho u (r - 1)
   have hemit : NamedRun.emits S rho u (Object.attest a) (S.a (r - 1)) := by
     simpa only [a] using
-      honest_emits_exact_actionAttestationAt S adm huHon (r - 1) hsourceHor
+      honest_emits_exact_actionAttestationAt S adm huHon (r - 1) hsourceHor (by assumption)
   obtain ⟨i, hi, _, hhead⟩ := Proofs.NamedOutageInputs.emitted_attestation_head S rho hemit
   dsimp at hhead
   obtain ⟨H, hH, hconfirmed⟩ := hhead

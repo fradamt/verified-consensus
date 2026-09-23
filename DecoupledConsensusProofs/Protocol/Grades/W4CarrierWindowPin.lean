@@ -68,6 +68,13 @@ theorem w4uSelectedG2_preceq_honestPreviousCarrier_at
     (relativeCarrierWindowAt_after_recovery_deadline S adm hcom hbelow hrec
       hdelay hpost hk hhor)
     hhor
+    (hpost.trans (Assembly.a_mono S (by
+      have hGSTdead : rGST ≤
+          fgSafetyProgressDeadline S rho rGST gap delayExtra := by
+        unfold fgSafetyProgressDeadline
+        exact (Nat.le_add_right rGST 1).trans
+          (Nat.le_add_right (rGST + 1) _)
+      exact hGSTdead.trans hk)))
 
 #print axioms w4uSelectedG2_preceq_honestPreviousCarrier_at
 

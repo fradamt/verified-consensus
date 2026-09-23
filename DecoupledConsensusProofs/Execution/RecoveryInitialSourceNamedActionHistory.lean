@@ -165,7 +165,7 @@ theorem voterAnchorAt_compatible_of_previousSGHistory_named
         intro u hu
         let b := actionAttestationAt S rho u q
         have hemit : NamedRun.emits S rho u (Object.attest b) (S.a q) :=
-          honest_emits_exact_actionAttestationAt S adm hu q hqHor
+          honest_emits_exact_actionAttestationAt S adm hu q hqHor (by assumption)
         obtain ⟨j, hj, _, Hb, hHb, hconfirmed⟩ :=
           Proofs.NamedOutageInputs.emitted_attestation_head S rho hemit
         have hcarrierMem : actionSGBlockAt S rho u q ∈
@@ -415,7 +415,7 @@ theorem phaseGrade_compatible_of_previousSGHistory_named
     intro u hu
     let b := actionAttestationAt S rho u q
     have hemit : NamedRun.emits S rho u (Object.attest b) (S.a q) :=
-      honest_emits_exact_actionAttestationAt S adm hu q hqHor
+      honest_emits_exact_actionAttestationAt S adm hu q hqHor (by assumption)
     obtain ⟨j, hj, _, Hb, hHb, hconfirmed⟩ :=
       Proofs.NamedOutageInputs.emitted_attestation_head S rho hemit
     have hcarrierMem : actionSGBlockAt S rho u q ∈

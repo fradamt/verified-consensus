@@ -58,7 +58,7 @@ def ofParts {S : Setup V} {rho : Run V}
 /-- Assemble the full-participation input used by existing strong-run proofs. -/
 def admissibleOfParts {S : Setup V} {rho : Run V}
     (execution : ExecutionValid S rho) (synchrony : PartialSynchrony S rho)
-    (allAwake : ∀ v ∈ rho.honest, ∀ r : Round, S.a r ≤ rho.horizon →
+    (allAwake : ∀ v ∈ rho.honest, ∀ r : Round, S.E.t_GST ≤ S.a r → S.a r ≤ rho.horizon →
       (S.node v).awake r = true) : Admissible S rho where
   toExecutionValid := execution
   toNamedSynchrony := synchrony

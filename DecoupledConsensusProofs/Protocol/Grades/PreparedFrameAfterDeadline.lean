@@ -152,7 +152,7 @@ theorem relativeCarrierWindowAt_after_recovery_deadline
     simpa only [a] using actionAttestationAt_shape S rho u c
   have hemit : NamedRun.emits S rho u (Object.attest a) (S.a c) := by
     simpa only [a] using
-      honest_emits_exact_actionAttestationAt S adm huHon c hsourceHor
+      honest_emits_exact_actionAttestationAt S adm huHon c hsourceHor (by assumption)
   obtain ⟨i, hi, _, hhead⟩ :=
     Proofs.NamedOutageInputs.emitted_attestation_head S rho hemit
   dsimp at hhead
@@ -270,6 +270,7 @@ set_option maxHeartbeats 400000 in
 private theorem p6_storeGrade_g2_of_relativeCarrierWindow_and_cover
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)
     {q : Round} (hq : 0 < q)
+    (hpost : S.E.t_GST ≤ S.a (q - 1))
     (hhor : domain S.E S.hc q .g2 ≤ rho.horizon)
     (hforming : Internal.NamedOutageEntry.GradeFormingMajority S rho q)
     (hwindow : RelativeCarrierWindowAt S rho (q - 1) .g2)
@@ -380,7 +381,7 @@ private theorem p6_storeGrade_g2_of_relativeCarrierWindow_and_cover
         exact ⟨huHon, actionAttestationAt S rho u (q - 1),
           (actionAttestationAt_shape S rho u (q - 1)).1,
           (actionAttestationAt_shape S rho u (q - 1)).2.1,
-          honest_emits_exact_actionAttestationAt S adm huHon (q - 1) hprevHor⟩
+          honest_emits_exact_actionAttestationAt S adm huHon (q - 1) hprevHor hpost⟩
       have hopp := (Finset.mem_filter.mp hu).2
       simp only [DecoupledConsensusModel.Protocol.opposing, decide_eq_true_eq] at hopp
       rcases hopp with ⟨x, hx, hdom, hnotcover⟩ |
@@ -462,6 +463,9 @@ theorem nodeRawG2_at_action_after_recovery_deadline
   obtain ⟨i, a, ta, Cfg, T, hreg, haround⟩ :=
     hbase.exists_regime_before_deadline adm hbelow hgst hfirst
   have hac : a.round ≤ c := haround.trans hc
+  have hpostc : S.E.t_GST ≤ S.a c :=
+    hreg.postPrev.trans (Assembly.a_mono S
+      ((Nat.sub_le a.round 1).trans hac))
   have hchor : S.a c ≤ rho.horizon :=
     ((action_strictMono S).monotone (Nat.le_succ c)).trans hhor
   have hhistory : HonestSGEmissionsCompatibleAtRound S rho c T.erase := by
@@ -475,7 +479,7 @@ theorem nodeRawG2_at_action_after_recovery_deadline
       Block.compatible (actionSGBlockAt S rho v c) T.erase = true := by
     intro v hv
     exact hhistory v hv
-      (honest_emits_exact_actionAttestationAt S adm hv c hchor)
+      (honest_emits_exact_actionAttestationAt S adm hv c hchor (by assumption))
   obtain ⟨P0, hvotes, -⟩ :=
     exists_common_floor_of_compatible_with S rho c T.erase hcompat
   have hdomainHor : domain S.E S.hc (c + 1) .g2 ≤ rho.horizon :=
@@ -485,10 +489,12 @@ theorem nodeRawG2_at_action_after_recovery_deadline
       S adm hcom hbelow hrec hdelay hpost hc hdomainHor
   have hforming : Internal.NamedOutageEntry.GradeFormingMajority S rho (c + 1) :=
     gradeFormingMajority_of_admissible_belowOneThird
-      S adm hbelow (Nat.succ_pos c) hdomainHor
+      S adm hbelow (Nat.succ_pos c) hdomainHor (by assumption)
   intro v hv
   have hgrade := p6_storeGrade_g2_of_relativeCarrierWindow_and_cover
-    S adm (Nat.succ_pos c) hdomainHor hforming
+    S adm (Nat.succ_pos c)
+      (by simpa only [Nat.add_sub_cancel] using hpostc)
+      hdomainHor hforming
       (by simpa only [Nat.add_sub_cancel] using hwindow)
       (by simpa only [Nat.add_sub_cancel] using hvotes) hv
   obtain ⟨u, hu⟩ := Protocol.honest_nonempty_of_honestCommittees hcom
@@ -497,7 +503,7 @@ theorem nodeRawG2_at_action_after_recovery_deadline
     exact ⟨hu, actionAttestationAt S rho u c,
       (actionAttestationAt_shape S rho u c).1,
       (actionAttestationAt_shape S rho u c).2.1,
-      honest_emits_exact_actionAttestationAt S adm hu c hchor⟩
+      honest_emits_exact_actionAttestationAt S adm hu c hchor (by assumption)⟩
   obtain ⟨y, hy, hyround, hyconfirmed, hyfind⟩ := hwindow v hv u huVoter
   have hcarrierMem : actionSGBlockAt S rho u c ∈
       (NamedRun.stateBeforeTime S rho

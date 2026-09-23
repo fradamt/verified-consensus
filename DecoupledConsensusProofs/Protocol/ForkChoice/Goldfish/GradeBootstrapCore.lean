@@ -141,13 +141,13 @@ participation; the core schedule alone does not imply an emission. -/
 theorem honest_emits_actionAttestationAt
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)
     {v : V} (hv : v ∈ rho.honest) (r : Round)
-    (hhor : S.a r ≤ rho.horizon) :
+    (hhor : S.a r ≤ rho.horizon) (hpost : S.E.t_GST ≤ S.a r) :
     ∃ a : NamedAttestation V,
       rho.emits S v (Object.attest a) (S.a r) ∧
         Protocol.sgVote a.erase = actionSGVoteAt S rho v r :=
   honest_emits_actionAttestationAt_of_awake S
     adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hv r hhor
-    (adm.all_awake v hv r hhor)
+    (adm.all_awake v hv r hpost hhor)
 
 
 
@@ -220,7 +220,7 @@ theorem actionAttestationAt_rows_before_delta
     le_trans (le_add_of_nonneg_right (le_of_lt S.E.Δ_pos)) hhor
   obtain ⟨hval, haround, -⟩ := actionAttestationAt_shape S rho v r
   have hemit : rho.emits S v (Object.attest (actionAttestationAt S rho v r)) (S.a r) :=
-    honest_emits_exact_actionAttestationAt S adm hv r haHor
+    honest_emits_exact_actionAttestationAt S adm hv r haHor (by assumption)
   have hvalHon : (actionAttestationAt S rho v r).val_index ∈ rho.honest := by
     rw [hval]; exact hv
   have hemit' : NamedRun.emits S rho (actionAttestationAt S rho v r).val_index

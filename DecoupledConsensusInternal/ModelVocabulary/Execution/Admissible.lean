@@ -103,10 +103,10 @@ abbrev Synchrony (S : Setup V) (rho : Run V) : Prop := NamedSynchrony S rho
 /-- Backward-compatible public name for non-network execution validity. -/
 abbrev AdmissibleCore (S : Setup V) (rho : Run V) : Prop := ExecutionValid S rho
 
-/-- Full participation over an explicitly split execution and network contract. -/
+/-- Full participation from GST over an explicitly split execution and network contract. -/
 structure Admissible (S : Setup V) (rho : Run V) : Prop extends
     ExecutionValid S rho, PartialSynchrony S rho where
-  all_awake : ∀ v ∈ rho.honest, ∀ r : Round, S.a r ≤ rho.horizon →
+  all_awake : ∀ v ∈ rho.honest, ∀ r : Round, S.E.t_GST ≤ S.a r → S.a r ≤ rho.horizon →
     (S.node v).awake r = true
 
 end DecoupledConsensusModel.Execution

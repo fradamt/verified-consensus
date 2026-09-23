@@ -409,7 +409,8 @@ private theorem w4cat_actionCarriersAt
     {r : Round}
     (hlow : s0 ≤ S.hc.opening_slot (r + 1))
     (hhigh : S.hc.opening_slot (r + 1) ≤ s)
-    (ht1 : t1 ≤ S.a r) (hhor : S.a r ≤ rho.horizon) :
+    (ht1 : t1 ≤ S.a r) (hhor : S.a r ≤ rho.horizon)
+    (hpost : S.E.t_GST ≤ S.a r) :
     ∀ u ∈ rho.honest,
       Block.Preceq (actionSGBlockAt S rho u r)
         (F (S.hc.opening_slot (r + 1))) := by
@@ -417,7 +418,7 @@ private theorem w4cat_actionCarriersAt
     (S.hc.opening_slot (r + 1)) hlow hhigh
   have hbefore := w4cat_action_lt_openingProposal S (Nat.lt_succ_self r)
   rw [← hval]
-  exact hstate.previousActionCarriersPreceqAtRead S adm ht1 hhor
+  exact hstate.previousActionCarriersPreceqAtRead S adm ht1 hhor hpost
     hbefore
     (Nat.le_refl _)
 
@@ -860,7 +861,7 @@ private theorem w4cat_carrierBelowAt
         (hcov.mem_range hboundary hhorOpen).1)
       (by simpa only [Nat.sub_add_cancel hrpos] using
         (hcov.mem_range hboundary hhorOpen).2.le)
-      hstartPrev hhorPrev
+      hstartPrev hhorPrev hpostPrev
     simpa only [Nat.sub_add_cancel hrpos] using hcarrierFold
   · have hle : r - 1 ≤ q := Nat.le_of_not_gt hqPrev'
     have hqle : q ≤ r - 1 :=

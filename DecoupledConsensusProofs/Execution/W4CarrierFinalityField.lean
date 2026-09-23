@@ -162,6 +162,7 @@ theorem w4_firstHalfField_of_arms
     intro P0' hP0'
     exact CanonicalRegimeRoundAt.successorTargetLockAlignment_of_aboveBoundary
       S adm hbelow hround hP0' (habove' P0' hP0')
+        (hpostPrev.trans (Assembly.a_mono S (Nat.sub_le r 1)))
   have hrows : ∀ P0' : NamedBlock V,
       proposedBlockAt S rho (S.hc.opening_slot r) = some P0' →
       ∀ v ∈ rho.honest,

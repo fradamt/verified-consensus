@@ -930,7 +930,8 @@ theorem fixedHeightJustificationRoot_boundedProposalLifecycle_closed
         have hg0 : ∀ v ∈ rho.honest,
             nodeClear S (actionReadAt S rho v q) q P.erase = true :=
           g0ClearAtAction_of_relativeCarrierWindow_of_openingParentRun S adm
-            hfb hqPos hactionQHor (hdomainAction.trans hactionQHor) hwindow
+            hfb hqPos hactionQHor (hdomainAction.trans hactionQHor)
+            hpostPreviousAction hwindow
               hparents hP
         have hcover : ActionCarriersCover S rho q P.erase := by
           intro v hv

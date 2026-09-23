@@ -72,7 +72,7 @@ private theorem namedG1_preceq_commonActionCeiling
           (early S.E S.hc q .g1) v := by
     intro v hv
     have hemit := honest_emits_exact_actionAttestationAt S adm hv (q - 1)
-      hactionHor
+      hactionHor (by assumption)
     let a := actionAttestationAt S rho v (q - 1)
     have hshape := actionAttestationAt_shape S rho v (q - 1)
     obtain ⟨i, hi, -, H, hH, hconfirmed⟩ :=
@@ -137,7 +137,7 @@ private theorem namedG1_preceq_commonActionCeiling
     exists_honest_max_positive_supporter_of_relativeGrade
       S.E S.hc hwindow hgrade
   have hemit := honest_emits_exact_actionAttestationAt S adm hv (q - 1)
-    hactionHor
+    hactionHor (by assumption)
   let a := actionAttestationAt S rho v (q - 1)
   have hshape := actionAttestationAt_shape S rho v (q - 1)
   have hactionInput : Protocol.sgVote a.erase ∈

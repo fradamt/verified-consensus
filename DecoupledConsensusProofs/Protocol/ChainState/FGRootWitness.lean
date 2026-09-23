@@ -91,7 +91,7 @@ private theorem action_named_checkpoint_core
     namedAncestorBodyMem hcoh.2.2.1 hD hKD
   exact ⟨K, hK, hKentry, hKh, hKD, actionBody_runBlock_core S adm hv hK⟩
 
-private theorem emittedAttestation_eq_actionAttestationAt_core
+theorem emittedAttestation_eq_actionAttestationAt_core
     (S : Setup V) {rho : Run V} (adm : AdmissibleCore S rho)
     {a : NamedAttestation V} {ta : Time}
     (hemit : NamedRun.emits S rho a.val_index (Object.attest a) ta) :

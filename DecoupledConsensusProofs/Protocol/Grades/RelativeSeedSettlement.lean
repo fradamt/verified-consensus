@@ -84,7 +84,7 @@ theorem namedLiveG1SettledAt_of_gateOff
       hgateOff ((FrameForward.domain_le_a S r .g1).trans hhor)
   have hmajority : Internal.NamedOutageEntry.GradeFormingMajority S rho r :=
     gradeFormingMajority_of_admissible_belowOneThird S adm hfb hr
-      ((FrameForward.domain_le_a S r .g2).trans hhor)
+      ((FrameForward.domain_le_a S r .g2).trans hhor) (by assumption)
   exact namedLiveG1SettledAt_of_previousActionCarriersQuiet
     S adm hr hwindow hmajority hquiet
 

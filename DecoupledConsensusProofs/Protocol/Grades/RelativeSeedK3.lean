@@ -406,7 +406,7 @@ theorem preparedAnchor_compatible_carrier_of_gateOff_relative
       ((FrameForward.domain_le_a S c .g2).trans hhorC)
   have hmajority : Internal.NamedOutageEntry.GradeFormingMajority S rho c :=
     gradeFormingMajority_of_admissible_belowOneThird S adm hfb hcPos
-      ((FrameForward.domain_le_a S c .g2).trans hhorC)
+      ((FrameForward.domain_le_a S c .g2).trans hhorC) (by assumption)
   have hselected : SelectedG2SettledAt S rho c :=
     selectedG2SettledAt_of_gateOff S adm hfb hcPos hwindow hmajority hpost hprev
       hfrontier hgate hhorC

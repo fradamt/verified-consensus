@@ -268,7 +268,7 @@ private theorem w4src_predecessor_carriers_of_fold
       Block.Preceq (actionSGBlockAt S rho w (p - 1)) (EndAt k) := by
     intro w hw
     exact (hstate.previousActionCarriersPreceqAtRead S adm hstartAction
-      hprevHor hbefore (by rfl)) w hw
+      hprevHor hpostPrev hbefore (by rfl)) w hw
   intro w hw
   rw [hEnd] at hupper
   exact hupper w hw
@@ -934,7 +934,7 @@ private theorem w4src_domainGrade_of_roundFloor
         some (actionSGBlockAt S rho u (p - 1)) := by
     intro v hv u hu
     have hemit := honest_emits_exact_actionAttestationAt S adm hu
-      (p - 1) hactHor
+      (p - 1) hactHor (by assumption)
     obtain ⟨i, hi, -, hbody⟩ :=
       Proofs.NamedOutageInputs.emitted_attestation_head S rho hemit
     dsimp at hbody

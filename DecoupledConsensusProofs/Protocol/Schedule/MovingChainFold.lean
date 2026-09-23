@@ -1806,7 +1806,7 @@ theorem movingSlotWindowFacts_of_readInputs
     have hslot:= hopening q hq
     obtain ⟨j, hj, _hout⟩:=
       honest_emits_exact_actionAttestationAt
-        S adm hw q (hq ▸ hhor)
+        S adm hw q (hq ▸ hhor) (by assumption)
     exact (movingEventFacts_action_of_previousCarrierCeiling
       S adm hfb hq0 hpost hcut hw hj
       (by simpa only [hslot] using (hconfOut w hw).1)
@@ -1943,6 +1943,7 @@ theorem movingSlotWindowFacts_of_readInputs
     have hslot := hopening q hq
     obtain ⟨j, hj, _hout⟩ :=
       honest_emits_exact_actionAttestationAt S adm hw q (hq ▸ hhor)
+        (hpost.trans (Assembly.a_mono S (Nat.sub_le q 1)))
     have htime : Protocol.confirmation_time S.E (s - 1) = S.a q := hq.symm
     have hD : GenuineConfirmationWith
         (NamedProfile.gradeContract
@@ -1962,6 +1963,7 @@ theorem movingSlotWindowFacts_of_readInputs
       rw [← hq] at hev
       obtain ⟨_, hj, _hout⟩ := honest_emits_exact_actionAttestationAt
         S adm hw q (hq ▸ hhor)
+          (hpost.trans (Assembly.a_mono S (Nat.sub_le q 1)))
       have htime : Protocol.confirmation_time S.E (s - 1) = S.a q := hq.symm
       have hD : GenuineConfirmationWith
           (NamedProfile.gradeContract

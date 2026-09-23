@@ -74,7 +74,8 @@ from `t_GST`, and the paper's outage with synchrony resuming at `b₁` is the
 case `b₁ = t_GST`. A later temporary outage is not modelled.
 
 Third, each regime states its own time-indexed premises. The strong regimes
-use full participation and less than one third faulty weight. The sleepy and
+require every honest validator awake from GST and less than one third faulty
+weight. The sleepy and
 outage regimes use the awake profile in their stated window or lag form. The
 recovery constructor ends the source at `C.prefixEnd` and requires a
 continuation through `C.recoveryEnd`.
@@ -172,7 +173,8 @@ the middle column.
 `StrongLiveSleepyRegime` inherits those premises and adds
 `StrongMultiProposerRecurrence` (tier 3), with the two-opening lookback.
 `FinalityRegime` extends `BFTRegime`: execution validity, partial synchrony,
-GST by `t₀`, honest committees, `BelowOneThird`, and `FullParticipation`.
+GST by `t₀`, honest committees, `BelowOneThird`, and `FullParticipation`
+(every honest validator awake from GST).
 It adds strong recurrence, `gap + 2 ≤ maxGap`, and `longEnough`.
 `OutageRegime` requires execution validity, partial synchrony, GST by `b₁`,
 honest committees, `HealthyPrefixDelivery`, a public outage boundary,
@@ -189,7 +191,7 @@ the profile is constant: `DecoupledConsensusModel.Witnesses.generic_sleepy_regim
 `DecoupledConsensusModel.Witnesses.generic_recovery_regime`, and `DecoupledConsensusModel.Witnesses.generic_outage_regime`.
 
 The participation predicates are stated on the environment's awake profile:
-`WindowMajority` for sleepy recovery, `FullParticipation` for the BFT
+`WindowMajority` for sleepy recovery, `FullParticipation` from GST for the BFT
 profile, and `FreshMajority` for the outage profile. Recurrence uses honest
 openings and multi-proposer windows. `maxGap`, `proposerSlots`, and `PublicTime` are explicit
 generic fields or premises. Timeout rules stay protocol-specific.

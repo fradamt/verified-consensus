@@ -246,7 +246,7 @@ theorem MovingSlotPreEntry.confOutcome_atPrev
   have hactionHor: S.a r ≤ rho.horizon:=
     (le_of_lt (Int.lt_add_of_pos_right (S.a r) S.E.Δ_pos)).trans
       ((action_add_delta_le_next_Γ_neg1 S r).trans hcut)
-  have hupper:= hpre.previousActionCarriersPreceqAtRead S adm ht1 hactionHor
+  have hupper:= hpre.previousActionCarriersPreceqAtRead S adm ht1 hactionHor hpostAction
     (action_time_lt_proposal_of_lt_confirmation' S hbeforeConf)
     (Nat.le_refl k)
   have hanchorRaw:= readAnchor_preceq_of_previousActionCeiling

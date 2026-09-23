@@ -30,13 +30,14 @@ structure WeakGenesis (S : Setup V) (rho : Run V) : Prop where
     AwakeWindowMajority S.E (fun v => (S.node v).awake) rho.honest S.hc.η_SG r
 
 /-- The finite strong prefix ends at the specified, bounded recovery-search
-endpoint. Execution validity, partial synchrony, and full participation are
+endpoint. Execution validity, partial synchrony, and full participation from
+GST are
 separate visible premises. This record does not assume that recovery succeeds. -/
 structure StrongRecoveryPrefix (S : Setup V) (rho : Run V)
     (rGST gap : Round) (extra : Nat) (n : Round) : Prop where
   execution : ExecutionValid S rho
   synchrony : PartialSynchrony S rho
-  allAwake : ∀ v ∈ rho.honest, ∀ r : Round, S.a r ≤ rho.horizon →
+  allAwake : ∀ v ∈ rho.honest, ∀ r : Round, S.E.t_GST ≤ S.a r → S.a r ≤ rho.horizon →
     (S.node v).awake r = true
   committees : HonestCommittees S rho.honest
   belowThird : BelowOneThird S rho.honest
@@ -63,13 +64,13 @@ structure WeakContinuation (S : Setup V) (source rho : Run V)
     AwakeWindowMajority S.E (fun v => (S.node v).awake) rho.honest S.hc.η_SG r
 
 /-- The current finality-liveness regime. Execution validity, partial
-synchrony, and full participation are separate visible premises. Full
-participation is retained for the run, including at GST zero. The timeout
+synchrony, and full participation from GST are separate visible premises. The
+timeout
 condition is stated separately. -/
 structure StrongFinalityRun (S : Setup V) (rho : Run V) (gap : Round) : Prop where
   execution : ExecutionValid S rho
   synchrony : PartialSynchrony S rho
-  allAwake : ∀ v ∈ rho.honest, ∀ r : Round, S.a r ≤ rho.horizon →
+  allAwake : ∀ v ∈ rho.honest, ∀ r : Round, S.E.t_GST ≤ S.a r → S.a r ≤ rho.horizon →
     (S.node v).awake r = true
   committees : HonestCommittees S rho.honest
   belowThird : BelowOneThird S rho.honest
@@ -111,14 +112,14 @@ structure SleepyRegime (S : Setup V) (I : Interface V) (C : Constants) (rho : Ru
   windows : ∀ r : Round, 0 < r → t₀ ≤ S.a r → S.a (r - 1) ≤ rho.horizon →
     AwakeWindowMajority S.E (fun v => (S.node v).awake) rho.honest C.windowRounds r
 
-/-- Full BFT participation from `t₀`. -/
+/-- Full BFT participation from GST, with `t₀` at or after GST. -/
 structure BFTRegime (S : Setup V) (I : Interface V) (rho : Run V) (t₀ : Time) : Prop where
   execution : ExecutionValid S rho
   synchrony : PartialSynchrony S rho
   gst : S.E.t_GST ≤ t₀
   committees : HonestCommittees I rho.honest
   belowThird : BelowOneThird S rho.honest
-  allAwake : ∀ v ∈ rho.honest, ∀ r : Round, S.a r ≤ rho.horizon →
+  allAwake : ∀ v ∈ rho.honest, ∀ r : Round, S.E.t_GST ≤ S.a r → S.a r ≤ rho.horizon →
     (S.node v).awake r = true
 
 /-- A finite strong recovery prefix. -/

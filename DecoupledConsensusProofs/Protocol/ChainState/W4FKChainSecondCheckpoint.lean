@@ -129,6 +129,7 @@ theorem carrierFinalitySecondCheckpointAt_of_regime_of_suffix
     {q0 source first second : Round}
     (hsuffix : CanonicalSuffixFrom S rho (healingBoundaryTime S q0))
     (hroundSecond : CanonicalRegimeRoundAt S rho q0 second)
+    (hpostSecond : S.E.t_GST ≤ S.a second)
     (hheadPin : W4SecondCarrierActionHeadPin S rho second)
     (hconfPin : W4CommonFinalityAtConfirmationPin S rho q0)
     {Pfirst Q1 : NamedBlock V}
@@ -197,7 +198,7 @@ theorem carrierFinalitySecondCheckpointAt_of_regime_of_suffix
         (actionAttestationAt S rho v second).finality_pair hJ J.root := by
     rcases namedPreceq_or_preceq_of_common hJnQ1 hP0Q1 with hJnP0 | hP0Jn
     · have hraw := CanonicalRegimeRoundAt.successorTargetLockAlignment_of_canonicalHeight
-        S adm hbot hroundSecond hP0 hJnP0 hJnHeight habove'
+        S adm hbot hroundSecond hP0 hJnP0 hJnHeight habove' hpostSecond
       simpa only [hJnTarget] using hraw
     · have hP0height : (derive_named S.E S.cfg P0).h = hJ :=
         Nat.le_antisymm ((Proofs.NamedEntryHeight.derive_height_mono S.E S.cfg
@@ -206,7 +207,7 @@ theorem carrierFinalitySecondCheckpointAt_of_regime_of_suffix
         rw [Proofs.NamedEntryHeight.entry_eq_on_plateau S.E S.cfg hP0Jn
           (hP0height.trans hJnHeight.symm), hJnSelf, hJnErase]
       have hraw := CanonicalRegimeRoundAt.successorTargetLockAlignment_of_canonicalHeight
-        S adm hbot hroundSecond hP0 (Proofs.NamedAncestry.named_self P0) hP0height habove'
+        S adm hbot hroundSecond hP0 (Proofs.NamedAncestry.named_self P0) hP0height habove' hpostSecond
       simpa only [hP0target] using hraw
   by_cases hfinal : hJ ≤ (derive_named S.E S.cfg Q1).h_F
   · -- the chain has already finalized its live justification

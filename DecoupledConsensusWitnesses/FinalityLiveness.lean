@@ -1248,7 +1248,7 @@ theorem admissible : Admissible S rho := by
     { toExecutionValid := admissible_core
       toNamedSynchrony := synchrony
       all_awake := by
-        intro v hv r hhor
+        intro v hv r hpost hhor
         have hv0 : v = 0 := by
           change v ∈ ({0} : Finset (Fin 2)) at hv
           simpa using hv

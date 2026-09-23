@@ -320,7 +320,7 @@ private theorem seedSourceCap_compatible_nextOpeningProposalAnchor
           gradeFormingMajority_of_admissible_belowOneThird S adm hfb (Nat.succ_pos c)
             ((NamedOutageClosure.q10_domain_g2_lt_domain_g1 S (c + 1)).le.trans (by
               rw [hopen]
-              exact hproposalHor))
+              exact hproposalHor)) (by assumption)
         obtain ⟨u, huRound, hAK⟩ := relativeGrade_has_roundCarrier S
           adm.toNamedAdmissibleCore hwindow hmajority hprop hAGrade
         have hu : u ∈ rho.honest :=

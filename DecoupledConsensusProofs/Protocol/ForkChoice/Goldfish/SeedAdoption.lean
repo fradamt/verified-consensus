@@ -500,7 +500,8 @@ theorem gateOff_openingLifecycle_of_roundCeiling
         P.erase = true :=
     g0ClearAtAction_of_relativeCarrierWindow S adm hfb hwindow.roundPositive
       hactionHor ((seedAdoption_domain_le_action S q .g2).trans hactionHor)
-      hrelWindow hwindow.proposal haligned.previousCarriersBelowParent
+      hwindow.postPreviousAction hrelWindow hwindow.proposal
+      haligned.previousCarriersBelowParent
   have hcover : ActionCarriersCover S rho q P.erase := by
     intro v hv
     have heq : actionSGBlockAt S rho v q = P.erase := by

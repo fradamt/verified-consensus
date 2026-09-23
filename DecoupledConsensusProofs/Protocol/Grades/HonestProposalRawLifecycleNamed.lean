@@ -214,7 +214,7 @@ private theorem lifecyclePreviousActionCarrierInput_of_commonUpper
     simpa only [a] using actionAttestationAt_shape S rho u (q - 1)
   have hemit : NamedRun.emits S rho u (Object.attest a) (S.a (q - 1)) := by
     simpa only [a] using
-      honest_emits_exact_actionAttestationAt S adm hu (q - 1) hsourceHor
+      honest_emits_exact_actionAttestationAt S adm hu (q - 1) hsourceHor (by assumption)
   obtain ⟨i, hi, _, hhead⟩ := Proofs.NamedOutageInputs.emitted_attestation_head S rho hemit
   dsimp at hhead
   obtain ⟨H, hH, hconfirmed⟩ := hhead
@@ -382,6 +382,7 @@ private theorem lifecycleNodeClear_live_of_commonEndpoint
     {q : Round} (hq : 0 < q) {C : Block V}
     (hactionHor : S.a q ≤ rho.horizon)
     (hgradeHor : domain S.E S.hc q .g2 ≤ rho.horizon)
+    (hpost : S.E.t_GST ≤ S.a (q - 1))
     (hwindow : RelativeCarrierWindowAt S rho (q - 1) .g0)
     (hcarrier : ∀ u ∈ rho.honest,
       Block.Preceq (actionSGBlockAt S rho u (q - 1)) C)
@@ -392,7 +393,7 @@ private theorem lifecycleNodeClear_live_of_commonEndpoint
   have hforming : Internal.NamedOutageEntry.GradeFormingMajority S rho (q - 1 + 1) := by
     rw [hpred]
     exact gradeFormingMajority_of_admissible_belowOneThird
-      S adm hfb hq hgradeHor
+      S adm hfb hq hgradeHor hpost
   intro v hv
   have hframe := actionFrame_g0 S adm.toNamedAdmissibleCore hv
     hq hactionHor
@@ -603,7 +604,7 @@ theorem honestProposal_actionSelectors_after_SG_healing_named_of_openingProposer
   have hbatch := lifecycleActionBatchAlignedAt_of_commonEndpoint
     S adm hmPositive hpostPrev hprevHor hactionHor hupper hrootActionF
   have hclear := lifecycleNodeClear_live_of_commonEndpoint
-    S adm hbelow hmPositive hactionHor hdomainG2Hor hwindow hupper
+    S adm hbelow hmPositive hactionHor hdomainG2Hor hpostPrev hwindow hupper
       (Block.preceq_self P.erase)
   have hanchor : ∀ v ∈ rho.honest,
       Block.Preceq (nodeAnchor S (actionReadAt S rho v m) m) P.erase := by

@@ -91,7 +91,7 @@ theorem w4MovingSlotCeilingSupplyAt_of_ordinaryFoldStep
   have hupper : ∀ u ∈ rho.honest,
       Block.Preceq (actionSGBlockAt S rho u r) (F (c + 1)) := by
     have hcarriers := hhistory.previousActionCarriersPreceqAtRead S
-      adm ht1 hactionHor hbefore (by rfl)
+      adm ht1 hactionHor hpostAction hbefore (by rfl)
     simpa only [hEnd] using hcarriers
   have htimingC := w4nfs_actionCeiling_of_ordinaryTiming S htiming
     hround hupper

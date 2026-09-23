@@ -171,10 +171,10 @@ def WindowMajority (E : DecoupledConsensusModel.Generic.Env V) (H : Finset V)
   E.electorate.weightOf (Finset.univ \ H) <
     E.electorate.weightOf (awakeIn E H (t - w) t)
 
-/-- Every honest validator is awake throughout the run horizon. -/
+/-- Every honest validator is awake at every time from GST to the run horizon. -/
 def FullParticipation (E : DecoupledConsensusModel.Generic.Env V)
     (rho : DecoupledConsensusModel.Generic.Run V P.Object) : Prop :=
-  ∀ v ∈ rho.honest, ∀ t, 0 ≤ t → t ≤ rho.horizon → E.awake v t = true
+  ∀ v ∈ rho.honest, ∀ t, E.t_GST ≤ t → t ≤ rho.horizon → E.awake v t = true
 
 /-- Faulty validators hold less than one third of the total weight. -/
 def BelowOneThird (E : DecoupledConsensusModel.Generic.Env V) (H : Finset V) : Prop :=

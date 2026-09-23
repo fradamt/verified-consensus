@@ -56,6 +56,7 @@ set_option maxHeartbeats 400000 in
 private theorem postGain_storeGrade_g2_of_relativeCarrierWindow_and_cover
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)
     {q : Round} (hq : 0 < q)
+    (hpost : S.E.t_GST ≤ S.a (q - 1))
     (hhor : domain S.E S.hc q .g2 ≤ rho.horizon)
     (hforming : Internal.NamedOutageEntry.GradeFormingMajority S rho q)
     (hwindow : RelativeCarrierWindowAt S rho (q - 1) .g2)
@@ -166,7 +167,7 @@ private theorem postGain_storeGrade_g2_of_relativeCarrierWindow_and_cover
         exact ⟨huHon, actionAttestationAt S rho u (q - 1),
           (actionAttestationAt_shape S rho u (q - 1)).1,
           (actionAttestationAt_shape S rho u (q - 1)).2.1,
-          honest_emits_exact_actionAttestationAt S adm huHon (q - 1) hprevHor⟩
+          honest_emits_exact_actionAttestationAt S adm huHon (q - 1) hprevHor hpost⟩
       have hopp := (Finset.mem_filter.mp hu).2
       simp only [DecoupledConsensusModel.Protocol.opposing, decide_eq_true_eq] at hopp
       rcases hopp with ⟨x, hx, hdom, hnotcover⟩ |
@@ -465,6 +466,7 @@ private theorem postGain_localFrameRoot_above_proposal
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)
     (hcom : HonestCommittees S rho.honest)
     {q : Round} {P : NamedBlock V} {v : V} (hv : v ∈ rho.honest)
+    (hpost : S.E.t_GST ≤ S.a q)
     (hdomainHor : domain S.E S.hc (q + 1) .g2 ≤ rho.horizon)
     (hwindow : RelativeCarrierWindowAt S rho q .g2)
     (hforming : Internal.NamedOutageEntry.GradeFormingMajority S rho (q + 1))
@@ -495,7 +497,8 @@ private theorem postGain_localFrameRoot_above_proposal
   have hgrade : storeGrade S.E S.hc
       (readAt S rho (domain S.E S.hc r .g2) v).st r .g2 P.erase = true := by
     apply postGain_storeGrade_g2_of_relativeCarrierWindow_and_cover
-      S adm hrPos (by simpa only [r] using hdomainHor)
+      S adm hrPos (by simpa only [hprev] using hpost)
+      (by simpa only [r] using hdomainHor)
       (by simpa only [r] using hforming)
     · simpa only [hprev] using hwindow
     · intro u hu
@@ -510,7 +513,7 @@ private theorem postGain_localFrameRoot_above_proposal
     exact ⟨hu, actionAttestationAt S rho u q,
       (actionAttestationAt_shape S rho u q).1,
       (actionAttestationAt_shape S rho u q).2.1,
-      honest_emits_exact_actionAttestationAt S adm hu q hqActionHor⟩
+      honest_emits_exact_actionAttestationAt S adm hu q hqActionHor hpost⟩
   obtain ⟨y, hy, hyround, hyconfirmed, hyfind⟩ := hwindow v hv u huVoter
   have hcarrierMem : actionSGBlockAt S rho u q ∈
       (NamedRun.stateBeforeTime S rho (domain S.E S.hc r .g2) v).st.core.T := by
@@ -856,6 +859,14 @@ theorem postGainOpeningWrite_high_at_node
   have hdomainHor : domain S.E S.hc r .g2 ≤ rho.horizon :=
     (FrameForward.domain_le_a S r .g2).trans hrHor
   have hDq : D ≤ q := (Nat.le_add_right D 2).trans (by simpa only [D] using hq)
+  have hpostQ : S.E.t_GST ≤ S.a q :=
+    hpost.trans (Assembly.a_mono S (by
+      have hGSTdead : rGST ≤ D := by
+        dsimp only [D]
+        unfold fgSafetyProgressDeadline
+        exact (Nat.le_add_right rGST 1).trans
+          (Nat.le_add_right (rGST + 1) _)
+      exact hGSTdead.trans hDq))
   have hwindow : RelativeCarrierWindowAt S rho q .g2 :=
     relativeCarrierWindowAt_after_recovery_deadline
       S adm hcom hbelow hrec hdelay hpost (by simpa only [D] using hDq)
@@ -863,6 +874,7 @@ theorem postGainOpeningWrite_high_at_node
   have hforming : Internal.NamedOutageEntry.GradeFormingMajority S rho r :=
     gradeFormingMajority_of_admissible_belowOneThird
       S adm hbelow (by dsimp only [r]; exact Nat.succ_pos q) hdomainHor
+      (by simpa only [r, Nat.add_sub_cancel] using hpostQ)
   have hcover : ActionCarriersCover S rho q P.erase :=
     honestProposal_actionCover_after_SG_healing_named
       S adm hcom hbelow hrec hdelay hpost hq hcarrier hP
@@ -886,7 +898,7 @@ theorem postGainOpeningWrite_high_at_node
         simpa only [opening_confirmation_time_eq_action] using hqActionHor)) hP
   intro v hv
   obtain ⟨raw, R2, hfreeze, hg2, hR2eq, hPraw⟩ :=
-    postGain_localFrameRoot_above_proposal S adm hcom hv
+    postGain_localFrameRoot_above_proposal S adm hcom hv hpostQ
       (by simpa only [r] using hdomainHor) hwindow
       (by simpa only [r] using hforming) hcover
   obtain ⟨hPmem, hPviable, hPFCompat, hProotCompat⟩ :=

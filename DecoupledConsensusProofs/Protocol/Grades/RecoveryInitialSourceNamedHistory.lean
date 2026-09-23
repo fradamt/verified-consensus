@@ -1954,7 +1954,7 @@ theorem PrefixFGSelectorConeAt.sgEmissionsCompatible_laterRound_of_frame_named
   have hmajority : Internal.NamedOutageEntry.GradeFormingMajority S rho (r + 1) :=
     gradeFormingMajority_of_admissible_belowOneThird S adm hbelow
       (Nat.succ_pos r)
-      ((FrameForward.domain_le_a S (r + 1) .g2).trans hhor)
+      ((FrameForward.domain_le_a S (r + 1) .g2).trans hhor) (by assumption)
   have hKsourcePre : K ∈
       (NamedRun.stateBeforeTime S rho (S.a a.round) a.val_index).st.bodies := by
     simpa only [actionStoreAt, actionReadAt,
@@ -2568,6 +2568,7 @@ theorem PrefixFGSelectorConeAt.checkpointVoteStep_of_previousSGHistory_of_frame_
         DecoupledConsensusModel.Protocol.Phase.domainOffset]
       linarith [S.E.Δ_pos]
     exact hdomainG2G1.trans hdomainHor
+    simpa only [← hqSucc, Nat.add_sub_cancel] using hpostQ
   obtain ⟨K, _, hKT0, hKheight0, _, hKrun⟩ :=
     action_named_checkpoint S adm hseed.signerHonest hseed.sourceMem
   have hKT : K.erase = T := hKT0.trans hseed.checkpointDerived.symm
@@ -3459,6 +3460,9 @@ theorem PrefixFGSelectorConeAt.confirmationWitness_of_source_of_frame_named
         gradeFormingMajority_of_admissible_belowOneThird S adm hbelow
           (Nat.succ_pos r)
           ((FrameForward.domain_le_a S (r + 1) .g2).trans hhor)
+          (by simpa only [Nat.add_sub_cancel] using
+            hpostPrev.trans (Assembly.a_mono S
+              ((Nat.sub_le a.round 1).trans hr)))
       obtain ⟨u, hu, hQu⟩ := relativeGrade_has_roundCarrier
         S adm.toNamedAdmissibleCore hwindow hmajority hc
           (by simpa only [PhaseGrades.storeGrade,

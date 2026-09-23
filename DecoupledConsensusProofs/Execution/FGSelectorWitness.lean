@@ -60,12 +60,10 @@ theorem honestEmittedHeightRow_exactFGSelectorWitness
   have hactionHor : S.a a.round ≤ rho.horizon := by
     have hin := (adm.in_horizon (Event.tick a.val_index ta) hiMem).2
     simpa only [Event.time, htime] using hin
-  have hemitExact := honest_emits_exact_actionAttestationAt
-    S adm haHon a.round hactionHor
   have haEq : a = actionAttestationAt S rho a.val_index a.round := by
-    apply Proofs.Optimistic.emits_attest_unique S
-      adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hemit hemitExact
-    exact (actionAttestationAt_shape S rho a.val_index a.round).2.1.symm
+    exact ((NamedActionSources.action_run_emission S rho
+      adm.toNamedAdmissibleCore.toNamedScheduleWellFormed
+      a.val_index a.round a).mp (by simpa only [htime] using hemit)).2.2
   rw [haEq] at hh
   generalize hp : (actionAttestationAt S rho a.val_index a.round).height_pair = q at hh
   cases q with

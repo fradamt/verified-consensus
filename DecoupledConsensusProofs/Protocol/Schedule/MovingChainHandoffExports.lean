@@ -110,13 +110,10 @@ theorem canonicalTargetHistoryAt_of_heightHistory
     have hle := (adm.in_horizon _ htick).2
     rw [ht] at hle
     exact hle
-  have hexact := honest_emits_exact_actionAttestationAt
-    S adm hv a.round hhorRound
   have haEq : a = actionAttestationAt S rho v a.round := by
-    refine Proofs.Optimistic.emits_attest_unique S
+    exact ((NamedActionSources.action_run_emission S rho
       adm.toNamedAdmissibleCore.toNamedScheduleWellFormed
-      hemits hexact ?_
-    exact (actionAttestationAt_shape S rho v a.round).2.1.symm
+      v a.round a).mp (by simpa only [ht] using hemits)).2.2
   have hrowAction : (actionAttestationAt S rho v a.round).height_pair.erase =
       HeightPair.target hh X := by
     rw [← haEq]

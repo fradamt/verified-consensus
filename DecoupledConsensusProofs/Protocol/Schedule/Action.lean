@@ -170,11 +170,11 @@ specialization. The weak continuation uses the awake form above. -/
 theorem honest_emits_exact_actionAttestationAt
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)
     {v : V} (hv : v ∈ rho.honest) (r : Round)
-    (hhor : S.a r ≤ rho.horizon) :
+    (hhor : S.a r ≤ rho.horizon) (hpost : S.E.t_GST ≤ S.a r) :
     rho.emits S v (Object.attest (actionAttestationAt S rho v r)) (S.a r) :=
   honest_emits_exact_actionAttestationAt_of_awake S
     adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hv r
-    (adm.all_awake v hv r hhor) hhor
+    (adm.all_awake v hv r hpost hhor) hhor
 
 end HealingSurface
 end Proofs

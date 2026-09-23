@@ -112,7 +112,10 @@ theorem canonicalCarrier_commonFinalized_of_justifiedPrefix_of_suffix
     (Protocol.proposal_time_mono S.E (Nat.le_succ _)).trans hhorTwo
   -- the second-carrier checkpoint
   have hcheckpoint := carrierFinalitySecondCheckpointAt_of_regime_of_suffix
-    S adm hbot hsuffix hround (hheadPin r hround) hconfPin hPfirst hP1 hjust
+    S adm hbot hsuffix hround
+    (by simpa only [opening_confirmation_time_eq_action] using
+      hpost.trans (Protocol.proposal_time_le_confirmation_time S.E _))
+    (hheadPin r hround) hconfPin hPfirst hP1 hjust
     habove hone
     (hsourceOpening.trans (Protocol.proposal_time_mono S.E (Nat.le_succ _)))
     hconfOne hhor

@@ -19,8 +19,8 @@ open Internal Execution Protocol Proofs.Optimistic Statements
 
 variable {V : Type} [DecidableEq V] [Fintype V]
 
-/-- Prefix full participation and suffix awake windows give every positive
-continuation window. -/
+/-- Prefix participation from GST and suffix awake windows give each
+continuation window whose preceding action is from GST. -/
 private theorem preparedV4_awakeWindows_of_prefix
     (S : Setup V) {source rho : Run V} (adm : Admissible S source)
     {lastStrong : Round} (hprefix : source.horizon = S.a lastStrong)
@@ -29,14 +29,15 @@ private theorem preparedV4_awakeWindows_of_prefix
     (hawake : ∀ r, lastStrong < r → S.a (r - 1) ≤ rho.horizon →
       AwakeWindowMajority S.E (fun v => (S.node v).awake)
         rho.honest S.hc.η_SG r) :
-    ∀ r, 0 < r → S.a (r - 1) ≤ rho.horizon →
+    ∀ r, 0 < r → S.E.t_GST ≤ S.a (r - 1) →
+      S.a (r - 1) ≤ rho.horizon →
       AwakeWindowMajority S.E (fun v => (S.node v).awake)
         rho.honest S.hc.η_SG r := by
   have hmajority : HonestWeightMajority S rho.honest :=
     WeakSG.honestWeightMajority_of_awakeWindowMajority S
       (hawake (lastStrong + 1) (Nat.lt_succ_self _)
         (by simpa only [Nat.add_sub_cancel] using hcovered))
-  intro r hr hhor
+  intro r hr hpostPrev hhor
   by_cases hafter : lastStrong < r
   · exact hawake r hafter hhor
   have heq : honestAwakeWindow (fun v => (S.node v).awake)
@@ -47,7 +48,7 @@ private theorem preparedV4_awakeWindows_of_prefix
     refine WeakSG.mem_honestAwakeWindow_iff.mpr
       ⟨hv, r - 1,
         pred_mem_latest_window S.hc.η_SG r S.hc.η_SG_ge_one hr, ?_⟩
-    apply adm.all_awake v (hretain hv)
+    apply adm.all_awake v (hretain hv) (r - 1) hpostPrev
     change S.a (r - 1) ≤ source.horizon
     rw [hprefix]
     exact Assembly.a_mono S
@@ -136,7 +137,10 @@ theorem stableRecordSafety_afterGST_preparedV4_of_pins
       S.a (r - 1) ≤ rho.horizon →
       AwakeWindowMajority S.E (fun v => (S.node v).awake)
         rho.honest S.hc.η_SG r :=
-    fun r hr => hwindows r (hcutPos.trans_le hr)
+    fun r hr hhor => hwindows r (hcutPos.trans_le hr)
+      (hboot.basePost.trans (Assembly.a_mono S
+        (Nat.le_sub_of_add_le
+          ((Nat.add_le_add_left S.hc.η_SG_ge_one base).trans hr)))) hhor
   have hstartHor : Protocol.confirmation_time S.E
       (S.hc.opening_slot m) ≤ rho.horizon :=
     hseedCut.trans hcovered

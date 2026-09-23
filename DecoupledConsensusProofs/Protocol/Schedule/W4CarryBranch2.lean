@@ -86,7 +86,7 @@ theorem MovingSlotEntryStateN.honestParent_mixed_named
       simpa only [hround', Nat.add_sub_cancel] using hdelay
     exact (Int.lt_add_of_pos_right (S.a r') S.E.Δ_pos).trans_le hdelay'
   have hupperK := hstate.previousActionCarriersPreceqAtRead S adm ht1'
-    hactionHor hbefore hsnp
+    hactionHor hpostAction' hbefore hsnp
   have hparent := hstate.endpoint_preceq_proposedParent_of_ceiling_named
     S adm hcom hfb (Nat.succ_pos c) hround' hupperK hpostAction' hcut'
     hdata'.postVote hhorSC hhorProp hsnp hprop hcone'
@@ -136,7 +136,7 @@ theorem MovingSlotEntryStateN.enteredCeilingData_mixed
       simpa only [hround', Nat.add_sub_cancel] using hdelay
     exact (Int.lt_add_of_pos_right (S.a r') S.E.Δ_pos).trans_le hdelay'
   have hupperK := hstate.previousActionCarriersPreceqAtRead S adm ht1'
-    hactionHor hbefore hsnp
+    hactionHor hpostAction' hbefore hsnp
   exact
     { pos := Nat.succ_pos c
       round := ⟨r', hround', hpostAction', hcut', by
@@ -604,7 +604,7 @@ theorem MovingSlotFoldAtN.nextParent_hybrid
         have hdelay' : S.a r + S.E.Δ ≤ Protocol.proposal_time S.E (s + 1) := by
           simpa only [hround, Nat.add_sub_cancel] using hdelay
         exact (Int.lt_add_of_pos_right (S.a r) S.E.Δ_pos).trans_le hdelay'
-      exact hstate.previousActionCarriersPreceqAtRead S adm ht1 hactionHor
+      exact hstate.previousActionCarriersPreceqAtRead S adm ht1 hactionHor hpostAction
         hbefore hcursor'
     · rw [hEndAt]
       exact hupper

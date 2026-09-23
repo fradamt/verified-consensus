@@ -173,7 +173,9 @@ theorem fgRoot_compatible_actionSGBlock_at_read_after_deadline
             exact False.elim
               (Nat.not_succ_le_self blocked (hmono.trans hsmall))
       have hSG := hreg.sgHistory_run adm hcom hbelow hac hhor
-        v hv (honest_emits_exact_actionAttestationAt S adm hv c hhor)
+        v hv (honest_emits_exact_actionAttestationAt S adm hv c hhor
+          (hreg.postPrev.trans (Assembly.a_mono S
+            ((Nat.sub_le a.round 1).trans hac))))
       rcases (show Block.Preceq (actionSGBlockAt S rho v c) T.erase ∨
           Block.Preceq T.erase (actionSGBlockAt S rho v c) by
         simpa only [Block.compatible, Bool.or_eq_true] using hSG) with
@@ -205,7 +207,9 @@ theorem fgRoot_compatible_actionSGBlock_at_read_after_deadline
       have hac : a.round ≤ c :=
         (hreg.minimal b tb hb hemit hrow).trans hbc
       have hSG := hreg.sgHistory_run adm hcom hbelow hac hhor
-        v hv (honest_emits_exact_actionAttestationAt S adm hv c hhor)
+        v hv (honest_emits_exact_actionAttestationAt S adm hv c hhor
+          (hreg.postPrev.trans (Assembly.a_mono S
+            ((Nat.sub_le a.round 1).trans hac))))
       simpa only [hTR, Block.compatible, Bool.or_comm] using hSG
 
 /-- After the base deadline, each honest reader's action FG root is

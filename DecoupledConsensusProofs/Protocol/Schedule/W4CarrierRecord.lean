@@ -1680,13 +1680,10 @@ theorem w4cr_timeoutHistory_of_heightHistory
     have hle := (adm.in_horizon _ htick).2
     rw [ht] at hle
     exact hle
-  have hexact := honest_emits_exact_actionAttestationAt
-    S adm hv a.round hhorRound
   have haEq : a = actionAttestationAt S rho v a.round := by
-    refine Proofs.Optimistic.emits_attest_unique S
+    exact ((NamedActionSources.action_run_emission S rho
       adm.toNamedAdmissibleCore.toNamedScheduleWellFormed
-      hemits hexact ?_
-    exact (actionAttestationAt_shape S rho v a.round).2.1.symm
+      v a.round a).mp (by simpa only [ht] using hemits)).2.2
   have hstateEq : rho.stateBefore S j v = rho.stateBeforeTime S t v :=
     Proofs.Optimistic.stateBefore_tick_eq_stateBeforeTime S
       adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hjev

@@ -237,6 +237,14 @@ theorem stableRootAt_preceq_laterVoterHead_after_progressDeadline
                 simpa only [hrPred] using
                   gradeFormingMajority_of_admissible_belowOneThird
                     S adm hbelow hrPos hdomainHor
+                    (hpost.trans (Assembly.a_mono S (by
+                      have hGSTdead : rGST ≤ D := by
+                        rw [hDEq]
+                        unfold fgSafetyProgressDeadline
+                        exact (Nat.le_add_right rGST 1).trans
+                          (Nat.le_add_right (rGST + 1) _)
+                      exact hGSTdead.trans (Nat.le_sub_of_add_le
+                        ((Nat.add_le_add_left (Nat.le_succ 1) D).trans hrTwo)))))
               obtain ⟨u, hu, hsourceCarrier⟩ := relativeGrade_has_roundCarrier
                 S adm.toNamedAdmissibleCore hwindow hmajority hv
                   (by simpa only [hrPred] using hsourceGrade)

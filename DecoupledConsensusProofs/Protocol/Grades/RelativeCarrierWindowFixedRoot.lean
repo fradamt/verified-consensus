@@ -109,7 +109,7 @@ theorem relativeCarrierWindowAt_of_fixedRoot
     simpa only [a] using actionAttestationAt_shape S rho u (r - 1)
   have hemit : NamedRun.emits S rho u (Object.attest a) (S.a (r - 1)) := by
     simpa only [a] using
-      honest_emits_exact_actionAttestationAt S adm huHon (r - 1) hsourceHor
+      honest_emits_exact_actionAttestationAt S adm huHon (r - 1) hsourceHor (by assumption)
   obtain ⟨i, hi, _, hhead⟩ := Proofs.NamedOutageInputs.emitted_attestation_head S rho hemit
   dsimp at hhead
   obtain ⟨Hb, hHb, hconfirmed⟩ := hhead

@@ -98,7 +98,7 @@ theorem w4cx_movingSlotPreEntryN_voterAnchorAt_preceq_prev_of_voteHorizon
   have hactionHor : S.a r ≤ rho.horizon :=
     (le_of_lt (Int.lt_add_of_pos_right (S.a r) S.E.Δ_pos)).trans
       ((action_add_delta_le_next_Γ_neg1 S r).trans hcut)
-  have hupper := hpre.previousActionCarriersPreceqAtRead S adm ht1 hactionHor
+  have hupper := hpre.previousActionCarriersPreceqAtRead S adm ht1 hactionHor hpostAction
     (Protocol.action_time_lt_proposal_of_lt_vote S hbefore)
     (Nat.le_refl k)
   rw [← hprev]

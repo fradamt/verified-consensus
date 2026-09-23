@@ -145,7 +145,7 @@ private theorem w4fkPreviousActionCarrierInput
     simpa only [a] using actionAttestationAt_shape S rho u (q - 1)
   have hemit : NamedRun.emits S rho u (Object.attest a) (S.a (q - 1)) := by
     simpa only [a] using
-      honest_emits_exact_actionAttestationAt S adm hu (q - 1) hsourceHor
+      honest_emits_exact_actionAttestationAt S adm hu (q - 1) hsourceHor (by assumption)
   obtain ⟨i, hi, _, hhead⟩ := Proofs.NamedOutageInputs.emitted_attestation_head S rho hemit
   dsimp at hhead
   obtain ⟨H, hH, hconfirmed⟩ := hhead
@@ -283,6 +283,7 @@ private theorem w4fkNodeClearOfCommonEndpoint
     {q : Round} (hq : 0 < q) {C : Block V}
     (hactionHor : S.a q ≤ rho.horizon)
     (hgradeHor : domain S.E S.hc q .g2 ≤ rho.horizon)
+    (hpost : S.E.t_GST ≤ S.a (q - 1))
     (hwindow : RelativeCarrierWindowAt S rho (q - 1) .g0)
     (hcarrier : ∀ u ∈ rho.honest,
       Block.Preceq (actionSGBlockAt S rho u (q - 1)) C)
@@ -293,7 +294,7 @@ private theorem w4fkNodeClearOfCommonEndpoint
   have hforming : Internal.NamedOutageEntry.GradeFormingMajority S rho (q - 1 + 1) := by
     rw [hpred]
     exact gradeFormingMajority_of_admissible_belowOneThird
-      S adm hfb hq hgradeHor
+      S adm hfb hq hgradeHor hpost
   intro v hv
   have hframe := actionFrame_g0 S adm.toNamedAdmissibleCore hv hq hactionHor
   unfold nodeClear nodeRead
@@ -560,7 +561,7 @@ theorem movingChainPreparedFrameAt_of_fields
     hcarrier hrootAction
   intro v hv
   exact ⟨Block.preceq_trans (hanchor v hv) (hlive v hv),
-    w4fkNodeClearOfCommonEndpoint S adm hbot hrpos hactionHor hdomainG2 hwindow
+    w4fkNodeClearOfCommonEndpoint S adm hbot hrpos hactionHor hdomainG2 hpost hwindow
       hcarrier (hlive v hv) v hv⟩
 
 #print axioms movingChainPreparedFrameAt_of_fields

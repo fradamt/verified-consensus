@@ -95,6 +95,7 @@ theorem g0ClearAtAction_of_relativeCarrierWindow
     {q : Round} (hq : 0 < q)
     (hactionHor : S.a q ≤ rho.horizon)
     (hgradeHor : domain S.E S.hc q .g2 ≤ rho.horizon)
+    (hpost : S.E.t_GST ≤ S.a (q - 1))
     (hwindow : RelativeCarrierWindowAt S rho (q - 1) .g0)
     {P : NamedBlock V}
     (hP : proposedBlockAt S rho (S.hc.opening_slot q) = some P)
@@ -106,7 +107,7 @@ theorem g0ClearAtAction_of_relativeCarrierWindow
   have hqPred : q - 1 + 1 = q := Nat.sub_add_cancel hq
   have hforming : GradeFormingMajority S rho (q - 1 + 1) := by
     rw [hqPred]
-    exact gradeFormingMajority_of_admissible_belowOneThird S adm hfb hq hgradeHor
+    exact gradeFormingMajority_of_admissible_belowOneThird S adm hfb hq hgradeHor hpost
   have hwindow' : RelativeCarrierWindowAt S rho (q - 1) .g0 := hwindow
   have hparentP : Block.Preceq (proposedParent S rho (S.hc.opening_slot q)) P.erase :=
     proposedParent_preceq_proposedBlockAt S rho (S.hc.opening_slot q) hP
@@ -172,6 +173,7 @@ theorem g0ClearAtAction_of_relativeCarrierWindow_of_openingParentRun
     {q : Round} (hq : 0 < q)
     (hactionHor : S.a q ≤ rho.horizon)
     (hgradeHor : domain S.E S.hc q .g2 ≤ rho.horizon)
+    (hpost : S.E.t_GST ≤ S.a (q - 1))
     (hwindow : RelativeCarrierWindowAt S rho (q - 1) .g0)
     (hparents : FixedHeightRootOpeningParentRun S rho q)
     {P : NamedBlock V}
@@ -179,7 +181,7 @@ theorem g0ClearAtAction_of_relativeCarrierWindow_of_openingParentRun
     ∀ v ∈ rho.honest,
       nodeClear S (actionReadAt S rho v q) q P.erase = true :=
   g0ClearAtAction_of_relativeCarrierWindow S adm hfb hq hactionHor hgradeHor
-    hwindow hP hparents.actionTargetParent
+    hpost hwindow hP hparents.actionTargetParent
 
 end HealingSurface
 end Proofs

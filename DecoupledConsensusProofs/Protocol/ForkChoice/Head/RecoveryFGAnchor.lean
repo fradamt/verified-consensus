@@ -243,7 +243,7 @@ theorem PrefixFGSelectorConeAt.rawG1_at_laterRoundRead_of_frame
     hcpos hpost (hcutRead.trans hhor) hw _ hread
   intro v hv
   have hemit:= honest_emits_exact_actionAttestationAt S adm hv (c - 1)
-    (hpredCut.trans (hcutRead.trans hhor))
+    (hpredCut.trans (hcutRead.trans hhor)) (by assumption)
   have hcompat:= hsg v hv hemit
   rcases (show Block.Preceq (actionSGBlockAt S rho v (c - 1)) T ∨
       Block.Preceq T (actionSGBlockAt S rho v (c - 1)) by

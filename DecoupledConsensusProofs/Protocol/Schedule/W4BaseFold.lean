@@ -891,10 +891,12 @@ theorem w4CarrierCeilingAtQPin_of_prepared
     intro u hu
     have hD := (hboundaryOutput u hu).1
     have hDNext := (hboundaryOutput u hu).2
-    obtain ⟨i, hi, _ha⟩ :=
-      honest_emits_exact_actionAttestationAt S adm hu q haqHor
     have hpost : S.E.t_GST ≤ S.a (q - 1) := by
       simpa only [← hr0q, r0, R0] using hbaseTiming.2.1
+    have hpostAction : S.E.t_GST ≤ S.a q :=
+      hpost.trans (Assembly.a_mono S (Nat.sub_le q 1))
+    obtain ⟨i, hi, _ha⟩ :=
+      honest_emits_exact_actionAttestationAt S adm hu q haqHor hpostAction
     have hcut : S.hc.Γ_neg1 S.E.Δ q ≤ rho.horizon :=
       (w4d1_gammaNegOne_le_action S q).trans haqHor
     exact (movingEventFacts_action_of_previousCarrierCeiling_named S adm hfb

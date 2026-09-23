@@ -28,14 +28,15 @@ private theorem stableRecord_windowAwake_of_prefix
     (hawake : ∀ r, lastStrong < r → S.a (r - 1) ≤ rho.horizon →
       AwakeWindowMajority S.E (fun v => (S.node v).awake)
         rho.honest S.hc.η_SG r) :
-    ∀ r, 0 < r → S.a (r - 1) ≤ rho.horizon →
+    ∀ r, 0 < r → S.E.t_GST ≤ S.a (r - 1) →
+      S.a (r - 1) ≤ rho.horizon →
       AwakeWindowMajority S.E (fun v => (S.node v).awake)
         rho.honest S.hc.η_SG r := by
   have hmajority : HonestWeightMajority S rho.honest :=
     WeakSG.honestWeightMajority_of_awakeWindowMajority S
       (hawake (lastStrong + 1) (Nat.lt_succ_self _)
         (by simpa only [Nat.add_sub_cancel] using hcovered))
-  intro r hr hhor
+  intro r hr hpostPrev hhor
   by_cases hafter : lastStrong < r
   · exact hawake r hafter hhor
   have heq : honestAwakeWindow (fun v => (S.node v).awake)
@@ -46,7 +47,7 @@ private theorem stableRecord_windowAwake_of_prefix
     refine WeakSG.mem_honestAwakeWindow_iff.mpr
       ⟨hv, r - 1,
         pred_mem_latest_window S.hc.η_SG r S.hc.η_SG_ge_one hr, ?_⟩
-    apply adm.all_awake v (hretain hv)
+    apply adm.all_awake v (hretain hv) (r - 1) hpostPrev
     change S.a (r - 1) ≤ source.horizon
     rw [hprefix]
     exact Assembly.a_mono S
@@ -135,7 +136,23 @@ theorem stableRecordPreparedV4_phase_of_window
       S.a (r - 1) ≤ rho'.horizon →
       AwakeWindowMajority S.E (fun v => (S.node v).awake)
         rho'.honest S.hc.η_SG r :=
-    fun r hr => hwindows r (hcutPos.trans_le hr)
+    fun r hr hhor => hwindows r (hcutPos.trans_le hr)
+      (hprefix.postGST.trans (Assembly.a_mono S (by
+        have hGSTdead : rGST + 1 ≤
+            fgSafetyProgressDeadline S rho rGST gap extra := by
+          unfold fgSafetyProgressDeadline
+          exact Nat.le_add_right _ _
+        have hdeadR : fgSafetyProgressDeadline S rho rGST gap extra ≤ r := by
+          calc
+            fgSafetyProgressDeadline S rho rGST gap extra ≤
+                fgSafetyProgressDeadline S rho rGST gap extra +
+                  2 * progressLag' gap extra := Nat.le_add_right _ _
+            _ ≤ fgSafetyProgressDeadline S rho rGST gap extra +
+                  2 * progressLag' gap extra + 1 := Nat.le_add_right _ _
+            _ ≤ fgSafetyProgressDeadline S rho rGST gap extra +
+                  2 * progressLag' gap extra + 1 + S.hc.η_SG := Nat.le_add_right _ _
+            _ ≤ r := hr
+        exact Nat.le_sub_of_add_le (hGSTdead.trans hdeadR)))) hhor
   have hstartHor : Protocol.confirmation_time S.E
       (S.hc.opening_slot m) ≤ rho'.horizon :=
     hseedCut.trans hcovered

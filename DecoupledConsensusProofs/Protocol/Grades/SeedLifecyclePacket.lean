@@ -102,12 +102,14 @@ theorem seedLifecyclePacket_of_roundCeiling
       hprev hfrontier hgate ((FrameForward.domain_le_a S q .g0).trans hactionHor)
   have hmajority := gradeFormingMajority_of_admissible_belowOneThird S adm hfb hq
     ((FrameForward.domain_le_a S q .g2).trans hactionHor)
+    hwindow.postPreviousAction
   have haligned := openingAnchorsAligned_of_roundCeiling S adm hcom hcarrier hceiling
   have hadopt := gateOff_openingLifecycle_of_roundCeiling
     S adm hcom hfb hcarrier hceiling hwindow hprev hnext
   have hlifecycle := hadopt.lifecycle P hwindow.proposal
   have hclear := g0ClearAtAction_of_relativeCarrierWindow S adm hfb hq hactionHor
-    ((FrameForward.domain_le_a S q .g2).trans hactionHor) hrelG0
+    ((FrameForward.domain_le_a S q .g2).trans hactionHor)
+    hwindow.postPreviousAction hrelG0
     hwindow.proposal haligned.previousCarriersBelowParent
   have hheight : M - 1 ≤ (Protocol.derive_named S.E S.cfg P).h := by
     have hp : NamedBlock.Preceq P.parent P := by

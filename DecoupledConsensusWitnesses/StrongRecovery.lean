@@ -1359,7 +1359,9 @@ theorem admissibleCore : AdmissibleCore S run := {
 theorem admissible : Admissible S run := {
   toExecutionValid := admissibleCore
   toNamedSynchrony := synchrony
-  all_awake := awake_all }
+  all_awake := by
+    intro v hv r hpost hhor
+    exact awake_all v hv r hhor }
 
 theorem awake_window_honest_mem (r : Round) (hr : 0 < r) :
     (0 : Fin 2) ∈ honestAwakeWindow (fun v => (S.node v).awake)
@@ -1412,7 +1414,9 @@ theorem strongRecoveryPrefix : Statements.StrongRecoveryPrefix S sourceRun
   refine {
     execution := admissibleCore
     synchrony := synchrony
-    allAwake := awake_all
+    allAwake := by
+      intro v hv r hpost hhor
+      exact awake_all v hv r hhor
     committees := honestCommittees
     belowThird := belowOneThird
     recurrence := proposerRecurrence

@@ -1045,7 +1045,7 @@ theorem actionAttestationAt_coveredAtProposal
       (hdelay.trans hhor)
   have hemitV : rho.emits S v (Object.attest a) (S.a r) := by
     simpa only [a] using
-      honest_emits_exact_actionAttestationAt S adm hv r hactionHor
+      honest_emits_exact_actionAttestationAt S adm hv r hactionHor (by assumption)
   have haVal : a.val_index = v :=
     (Proofs.Optimistic.emits_attest_shape S hemitV).1
   have haRound : a.round = r :=
@@ -1151,6 +1151,7 @@ theorem actionAttestationAt_coveredAtProposal_of_chainRows
     (hCP : NamedBlock.Preceq C B.parent)
     (hPheight : (Protocol.derive_named S.E S.cfg B.parent).h = H)
     (hactionHor : S.a r ≤ rho.horizon)
+    (hpost : S.E.t_GST ≤ S.a r)
     {v : V} (hv : v ∈ rho.honest)
     (hCcore : C.erase ∈ (actionStoreAt S rho v r).st.core.T)
     (hchain : actionAttestationAt S rho v r ∈
@@ -1167,7 +1168,7 @@ theorem actionAttestationAt_coveredAtProposal_of_chainRows
   let a := actionAttestationAt S rho v r
   have hemitV : rho.emits S v (Object.attest a) (S.a r) := by
     simpa only [a] using
-      honest_emits_exact_actionAttestationAt S adm hv r hactionHor
+      honest_emits_exact_actionAttestationAt S adm hv r hactionHor hpost
   have haVal : a.val_index = v :=
     (Proofs.Optimistic.emits_attest_shape S hemitV).1
   have hinv : Proofs.NamedConfirmationMembership.Invariant S.E S.cfg
@@ -1244,7 +1245,7 @@ theorem actionAttestationAt_mem_processedAtProposal_after_gst
       (Int.le_add_of_nonneg_right (le_of_lt S.E.Δ_pos)) hdelay).trans hhor
   have hemit: rho.emits S v (Object.attest a) (S.a r):= by
     simpa only [a] using
-      honest_emits_exact_actionAttestationAt S adm hv r hactionHor
+      honest_emits_exact_actionAttestationAt S adm hv r hactionHor (by assumption)
   have hlt: S.a r < tp:= by
     exact lt_of_lt_of_le (Int.lt_add_of_pos_right _ S.E.Δ_pos)
       (by simpa only [tp] using hdelay)

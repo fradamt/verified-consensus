@@ -519,7 +519,7 @@ theorem voteDutyPreparedAnchor_bandDescendant_processed
         hdomainG1Hor
     have hmajorityC : Internal.NamedOutageEntry.GradeFormingMajority S rho c :=
       gradeFormingMajority_of_admissible_belowOneThird S adm hfb hcPos
-        hdomainG2Hor
+        hdomainG2Hor (by assumption)
     have hgradeC : DecoupledConsensusModel.Protocol.gradeBool S.E
         (NamedRun.stateBeforeTime S rho
           (DecoupledConsensusModel.Protocol.domain S.E S.hc c .g1) w).st.core.toHealing.gradeView

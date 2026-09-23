@@ -345,7 +345,7 @@ theorem relativeGrade_genesis_of_gateOffWindow
   have hdomHorP : domain S.E S.hc c p ≤ rho.horizon :=
     (NamedOutageClosure.q10_domain_lt_a S c p).le.trans hhor
   have hmaj : Internal.NamedOutageEntry.GradeFormingMajority S rho c :=
-    gradeFormingMajority_of_admissible_belowOneThird S adm hfb hc hdomHorG2
+    gradeFormingMajority_of_admissible_belowOneThird S adm hfb hc hdomHorG2 (by assumption)
   have hwindow : RelativeCarrierWindowAt S rho (c - 1) p :=
     relativeCarrierWindowAt_of_gateOff S adm hfb hc hpost hprev hfrontier
       hgateOff hdomHorP

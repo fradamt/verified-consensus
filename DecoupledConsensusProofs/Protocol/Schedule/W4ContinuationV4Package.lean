@@ -38,8 +38,8 @@ open Proofs.HealingSurface Proofs.HealingSurface.Handover
 
 variable {V : Type} [DecidableEq V] [Fintype V]
 
-/-- PIN: the continuation's awake-window majority at EVERY positive round, not
-only after the cut. Below the cut it comes from the prefix's full
+/-- PIN: the continuation's awake-window majority at every positive round
+whose preceding action is from GST. Below the cut it comes from the prefix's full
 participation, the honest-set inclusion and the agreement. The producer exists
 as the private `preparedV4_awakeWindows_of_prefix`
 (`PreparedV4BoundedSafetyRun.lean:61`); an additive public export of it
@@ -51,7 +51,8 @@ def PreparedV4AwakeWindows (S : Setup V) : Prop :=
     (∀ r, lastStrong < r → S.a (r - 1) ≤ rho.horizon →
       AwakeWindowMajority S.E (fun v => (S.node v).awake)
         rho.honest S.hc.η_SG r) →
-    ∀ r, 0 < r → S.a (r - 1) ≤ rho.horizon →
+    ∀ r, 0 < r → S.E.t_GST ≤ S.a (r - 1) →
+      S.a (r - 1) ≤ rho.horizon →
       AwakeWindowMajority S.E (fun v => (S.node v).awake)
         rho.honest S.hc.η_SG r
 
@@ -111,7 +112,10 @@ theorem continuationV4Package (S : Setup V)
       S.a (r - 1) ≤ rho.horizon →
       AwakeWindowMajority S.E (fun v => (S.node v).awake)
         rho.honest S.hc.η_SG r :=
-    fun r hr => hwindows r (hcutPos.trans_le hr)
+    fun r hr hhor => hwindows r (hcutPos.trans_le hr)
+      (hboot.basePost.trans (Assembly.a_mono S
+        (Nat.le_sub_of_add_le
+          ((Nat.add_le_add_left S.hc.η_SG_ge_one base).trans hr)))) hhor
   have hstartHor : Protocol.confirmation_time S.E
       (S.hc.opening_slot m) ≤ rho.horizon :=
     hseedCut.trans hcovered

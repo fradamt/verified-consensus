@@ -289,7 +289,7 @@ private theorem fixedRootSource_proposalAnchor_preceq_of_previousCarriers
               (q + 1) (DecoupledConsensusModel.Protocol.early S.E S.hc (q + 1) .g1) v).Nonempty := by
           intro v hv
           obtain ⟨a, hemit, hproj⟩ :=
-            honest_emits_actionAttestationAt S adm hv q hactionHor
+            honest_emits_actionAttestationAt S adm hv q hactionHor (by assumption)
           obtain ⟨i, hi, -, H, hH, hconfirmed⟩ :=
             Proofs.NamedOutageInputs.emitted_attestation_head S rho hemit
           have haval : a.val_index = v := by
@@ -337,7 +337,7 @@ private theorem fixedRootSource_proposalAnchor_preceq_of_previousCarriers
               S.hc.η_SG v (q + 1) = true := by
           intro v hv
           obtain ⟨a, hemit, hproj⟩ :=
-            honest_emits_actionAttestationAt S adm hv q hactionHor
+            honest_emits_actionAttestationAt S adm hv q hactionHor (by assumption)
           obtain ⟨i, hi, -, H, hH, hconfirmed⟩ :=
             Proofs.NamedOutageInputs.emitted_attestation_head S rho hemit
           have haval : a.val_index = v := by
@@ -396,7 +396,7 @@ private theorem fixedRootSource_proposalAnchor_preceq_of_previousCarriers
           exists_honest_max_positive_supporter_of_relativeGrade
             S.E S.hc hwindow hgrade
         obtain ⟨a, hemit, hproj⟩ :=
-          honest_emits_actionAttestationAt S adm hv q hactionHor
+          honest_emits_actionAttestationAt S adm hv q hactionHor (by assumption)
         obtain ⟨i, hi, -, H, hH, hconfirmed⟩ :=
           Proofs.NamedOutageInputs.emitted_attestation_head S rho hemit
         have haval : a.val_index = v := by
@@ -632,7 +632,7 @@ theorem namedLiveG1SettledAt_of_fixedRoot
     hpostRead hpost hprevDelay hprevHor hprevCap hactionDelay hactionHor
       hactionCap ((FrameForward.domain_le_a S c .g1).trans hactionHor)
   have hmajority := gradeFormingMajority_of_admissible_belowOneThird S adm hfb hc
-    ((FrameForward.domain_le_a S c .g2).trans hactionHor)
+    ((FrameForward.domain_le_a S c .g2).trans hactionHor) (by assumption)
   exact namedLiveG1SettledAt_of_previousActionCarriersQuiet S adm hc
     hwindow hmajority hquiet
 

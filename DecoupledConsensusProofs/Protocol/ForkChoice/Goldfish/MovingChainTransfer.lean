@@ -1074,7 +1074,7 @@ theorem MovingFrontierChainStateN.voteInputsAtVote_of_proposalEvent_named
       Block.Preceq (actionSGBlockAt S rho u r) (End i) := by
     intro u hu
     obtain ⟨j, hj, hout⟩ :=
-      honest_emits_exact_actionAttestationAt S adm hu r hactionHor
+      honest_emits_exact_actionAttestationAt S adm hu r hactionHor (by assumption)
     have hproposalCursor : strictEventIndex rho
         (Protocol.proposal_time S.E (s + 1)) ≤ i := by
       simpa only [strictEventIndex] using
@@ -1586,7 +1586,7 @@ theorem MovingFrontierChainStateN.proposalAnchor_preceq_endpointAtProposal_named
       Block.Preceq (actionSGBlockAt S rho u r) (End i) := by
     intro u hu
     obtain ⟨j, hj, hout⟩ :=
-      honest_emits_exact_actionAttestationAt S adm hu r hactionHor
+      honest_emits_exact_actionAttestationAt S adm hu r hactionHor (by assumption)
     have hji : j < i :=
       (emission_index_lt_beforeTime_prefix S
         adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hj hbefore).trans_le

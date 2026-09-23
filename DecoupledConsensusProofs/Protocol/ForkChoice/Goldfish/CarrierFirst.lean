@@ -58,7 +58,7 @@ theorem honestPlusTwoBlock_holdsRoundRows
         (S.hc.opening_slot q + 2)).processed_attestations S.hc := by
   have hemit := honest_emits_exact_actionAttestationAt S adm hv q
     (le_trans (Int.le_add_of_nonneg_right (le_of_lt S.E.Δ_pos))
-      (action_add_delta_le_plusTwo_proposal_time S q) |>.trans hhor)
+      (action_add_delta_le_plusTwo_proposal_time S q) |>.trans hhor) (by assumption)
   have haHon : (actionAttestationAt S rho v q).val_index ∈ rho.honest := by
     rw [(actionAttestationAt_shape S rho v q).1]
     exact hv

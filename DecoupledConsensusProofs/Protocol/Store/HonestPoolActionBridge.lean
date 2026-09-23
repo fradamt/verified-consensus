@@ -101,21 +101,19 @@ theorem honestSGVote_actionEmission_of_mem_storeBeforeTime
   have hactionHor : S.a k ≤ rho.horizon := by
     have h := (adm.in_horizon (Event.tick v t') hiMem).2
     simpa only [Event.time, htime] using h
-  obtain ⟨b, hbemit, hbproj⟩ :=
-    honest_emits_actionAttestationAt S adm hv k hactionHor
-  have hbround : b.round = k := by
-    have h := congrArg Protocol.SGVote.round hbproj
-    simpa only [Protocol.sgVote, actionSGVoteAt] using h
-  have hab : row = b :=
-    Proofs.Optimistic.emits_attest_unique S adm.toNamedScheduleWellFormed
-      hemitV hbemit (hrowRound.trans hbround.symm)
-  refine ⟨?_, honest_emits_exact_actionAttestationAt
-    S adm hv k hactionHor⟩
-  calc
-    u = Protocol.sgVote a := hau.symm
-    _ = Protocol.sgVote row.erase := by rw [hrowEq]
-    _ = Protocol.sgVote b.erase := by rw [hab]
-    _ = actionSGVoteAt S rho v k := hbproj
+  have hrowAction : row = actionAttestationAt S rho v k := by
+    have hcanonical := ((NamedActionSources.action_run_emission S rho
+      adm.toNamedScheduleWellFormed v k row).mp
+      (by simpa only [htime] using hemitV)).2.2
+    simpa only [hrowRound] using hcanonical
+  refine ⟨?_, ?_⟩
+  · calc
+      u = Protocol.sgVote a := hau.symm
+      _ = Protocol.sgVote row.erase := by rw [hrowEq]
+      _ = Protocol.sgVote (actionAttestationAt S rho v k).erase := by rw [hrowAction]
+      _ = actionSGVoteAt S rho v k := sgVote_actionAttestationAt S rho v k
+  · rw [← hrowAction, ← htime]
+    exact hemitV
 
 /-- Exact SG projection at an arbitrary strict read. -/
 theorem honestSGVote_eq_actionSGVoteAt_of_mem_storeBeforeTime

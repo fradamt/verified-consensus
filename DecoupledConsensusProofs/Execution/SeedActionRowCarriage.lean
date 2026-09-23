@@ -208,7 +208,7 @@ theorem actionAttestationAt_mem_selectedRows_at_plusTwo
       (Object.attest (actionAttestationAt S rho v q))
       (S.a (actionAttestationAt S rho v q).round) := by
     rw [haVal, haRound]
-    exact honest_emits_exact_actionAttestationAt S adm hv q hactionHor
+    exact honest_emits_exact_actionAttestationAt S adm hv q hactionHor (by assumption)
   have haHon : (actionAttestationAt S rho v q).val_index ∈ rho.honest := by
     rw [haVal]
     exact hv

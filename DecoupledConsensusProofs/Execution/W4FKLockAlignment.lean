@@ -63,7 +63,8 @@ theorem CanonicalRegimeRoundAt.successorTargetLockAlignment_of_canonicalHeight
     (hP0 : proposedBlockAt S rho (S.hc.opening_slot r) = some P0)
     (hW : NamedBlock.Preceq W P0)
     (hWheight : (Protocol.derive_named S.E S.cfg W).h = H)
-    (habove : honestHMaxAt S rho (S.a q0) < H) :
+    (habove : honestHMaxAt S rho (S.a q0) < H)
+    (hpost : S.E.t_GST ≤ S.a r) :
     ∀ v ∈ rho.honest,
       SuccessorTargetLockAlignmentAt
         (rho.stateBeforeTime S (S.a r) v).Λ
@@ -101,7 +102,7 @@ theorem CanonicalRegimeRoundAt.successorTargetLockAlignment_of_canonicalHeight
         simpa only [Setup.a, Protocol.a_eq_confirmation_time] using hmono
       exact ha.trans hround.inHorizon
     have haEmit := honest_emits_exact_actionAttestationAt
-      S adm hv r hactionHor
+      S adm hv r hactionHor hpost
     rcases p with ⟨height, target⟩
     change height = H at hpHeight
     subst height
@@ -128,7 +129,8 @@ theorem CanonicalRegimeRoundAt.successorTargetLockAlignment_of_aboveBoundary
     {P0 : NamedBlock V}
     (hP0 : proposedBlockAt S rho (S.hc.opening_slot r) = some P0)
     (habove : honestHMaxAt S rho (S.a q0) <
-      (Protocol.derive_named S.E S.cfg P0).h) :
+      (Protocol.derive_named S.E S.cfg P0).h)
+    (hpost : S.E.t_GST ≤ S.a r) :
     ∀ v ∈ rho.honest,
       SuccessorTargetLockAlignmentAt
         (rho.stateBeforeTime S (S.a r) v).Λ
@@ -136,7 +138,7 @@ theorem CanonicalRegimeRoundAt.successorTargetLockAlignment_of_aboveBoundary
         (Protocol.derive_named S.E S.cfg P0).h
         (Protocol.derive_named S.E S.cfg P0).T_h.root :=
   CanonicalRegimeRoundAt.successorTargetLockAlignment_of_canonicalHeight
-      S adm hfb hround hP0 (Proofs.NamedAncestry.named_self P0) rfl habove
+      S adm hfb hround hP0 (Proofs.NamedAncestry.named_self P0) rfl habove hpost
 
 #print axioms CanonicalRegimeRoundAt.successorTargetLockAlignment_of_canonicalHeight
 #print axioms CanonicalRegimeRoundAt.successorTargetLockAlignment_of_aboveBoundary

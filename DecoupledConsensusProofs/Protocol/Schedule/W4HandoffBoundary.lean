@@ -340,11 +340,10 @@ theorem w4Targets_of_heightSourceHistory
     have hle := (adm.in_horizon _ htick).2
     rw [ht] at hle
     exact hle
-  have hexact := honest_emits_exact_actionAttestationAt S adm ha a.round hhorRound
   have haEq : a = actionAttestationAt S rho a.val_index a.round := by
-    refine Proofs.Optimistic.emits_attest_unique S
-      adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hemits hexact ?_
-    exact (actionAttestationAt_shape S rho a.val_index a.round).2.1.symm
+    exact ((NamedActionSources.action_run_emission S rho
+      adm.toNamedAdmissibleCore.toNamedScheduleWellFormed
+      a.val_index a.round a).mp (by simpa only [ht] using hemits)).2.2
   have hpair : (actionAttestationAt S rho a.val_index a.round).height_pair =
       NamedHeightPair.vote hh target false := by
     rw [← haEq]; exact hrow
@@ -435,12 +434,10 @@ theorem w4RowsLe_of_heightSourceHistory
       have hle := (adm.in_horizon _ htick).2
       rw [ht] at hle
       exact hle
-    have hexact :=
-      honest_emits_exact_actionAttestationAt S adm ha a.round hhorRound
     have haEq : a = actionAttestationAt S rho a.val_index a.round := by
-      refine Proofs.Optimistic.emits_attest_unique S
-        adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hemits hexact ?_
-      exact (actionAttestationAt_shape S rho a.val_index a.round).2.1.symm
+      exact ((NamedActionSources.action_run_emission S rho
+        adm.toNamedAdmissibleCore.toNamedScheduleWellFormed
+        a.val_index a.round a).mp (by simpa only [ht] using hemits)).2.2
     have hheight :
         (actionAttestationAt S rho a.val_index a.round).height_pair.erase.height? =
           some hh := by

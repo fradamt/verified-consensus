@@ -249,13 +249,14 @@ theorem MovingFrontierChainStateN.previousActionCarriersPreceqAtRead
     {r : Round} {t : Time}
     (ht1 : t1 ≤ S.a r)
     (hhor : S.a r ≤ rho.horizon)
+    (hpost : S.E.t_GST ≤ S.a r)
     (hbefore : S.a r < t)
     (hcursor : strictEventIndex rho t ≤ i) :
     ∀ u ∈ rho.honest,
       Block.Preceq (actionSGBlockAt S rho u r) (End i) := by
   intro u hu
   obtain ⟨j, hj, hout⟩ :=
-    honest_emits_exact_actionAttestationAt S adm hu r hhor
+    honest_emits_exact_actionAttestationAt S adm hu r hhor hpost
   have hji : j < i :=
     (emission_index_lt_beforeTime_prefix S
       adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hj hbefore).trans_le hcursor
@@ -878,7 +879,7 @@ theorem movingSlotPreEntryN_confOutcome_atPrev_core
       Block.Preceq (actionSGBlockAt S rho u r) (EndAt k) := by
     intro u hu
     obtain ⟨j, hj, hout⟩ :=
-      honest_emits_exact_actionAttestationAt S adm hu r hactionHor
+      honest_emits_exact_actionAttestationAt S adm hu r hactionHor (by assumption)
     have hjcursor : j < k :=
       emission_index_lt_beforeTime_prefix S
         adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hj
@@ -996,7 +997,7 @@ theorem MovingSlotEntryStateN.windowFacts
       Block.Preceq (actionSGBlockAt S rho u r) (EndAt k) := by
     intro u hu
     obtain ⟨j, hj, hout⟩ :=
-      honest_emits_exact_actionAttestationAt S adm hu r hactionHor
+      honest_emits_exact_actionAttestationAt S adm hu r hactionHor (by assumption)
     have hjcursor : j < k :=
       emission_index_lt_beforeTime_prefix S
         adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hj
@@ -1193,7 +1194,7 @@ theorem MovingSlotEntryStateN.windowFacts
       exact ⟨hq0, hpost, hcutq, by
         intro u hu
         obtain ⟨j, hj, houtq⟩ :=
-          honest_emits_exact_actionAttestationAt S adm hu (q - 1) hhorq
+          honest_emits_exact_actionAttestationAt S adm hu (q - 1) hhorq (by assumption)
         have hjstrict : j <
             strictEventIndex rho (Protocol.proposal_time S.E (c + 1)) :=
           emission_index_lt_beforeTime_prefix S

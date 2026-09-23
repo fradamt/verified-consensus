@@ -344,10 +344,10 @@ theorem sleepy_windows_of_generic (S : Setup V) (rho : Run V) (t₀ : Time)
 
 theorem allAwake_of_generic (S : Setup V) (rho : Run V)
     (h : Generic.FullParticipation (P := DecoupledConsensusModel.Execution.spec S) (E S) rho) :
-    ∀ v ∈ rho.honest, ∀ r, S.a r ≤ rho.horizon →
+    ∀ v ∈ rho.honest, ∀ r, S.E.t_GST ≤ S.a r → S.a r ≤ rho.horizon →
       (S.node v).awake r = true := by
-  intro v hv r hhor
-  have h' := h v hv (S.a r) (Proofs.HealingLemmas.a_nonneg S r) hhor
+  intro v hv r hpost hhor
+  have h' := h v hv (S.a r) hpost hhor
   simpa [E, Instantiation.env, actionRound_a S r] using h'
 
 theorem awakeAt_action (S : Setup V) (rho : Run V) (r : Round) :

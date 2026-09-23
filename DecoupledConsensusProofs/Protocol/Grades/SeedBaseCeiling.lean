@@ -261,7 +261,7 @@ theorem seedRoundRegime_of_window
   have hrel := relativeCarrierWindowAt_of_gateOff S adm hfb hqpos hpostPred
     hprevFrontier hfrontier hgate hdomainHor
   have hmajority := gradeFormingMajority_of_admissible_belowOneThird S adm hfb
-    hqpos hdomainHor
+    hqpos hdomainHor (by assumption)
   have hsettled : SelectedG2SettledAt S rho q :=
     selectedG2SettledAt_of_gateOff S adm hfb hqpos hrel hmajority hpostPred
       hprevFrontier hfrontier hgate hactionHor

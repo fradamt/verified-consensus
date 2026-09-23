@@ -651,7 +651,7 @@ theorem secondSlotCone_of_grade2'
       ((domain_g1_le_g0 S c).trans hready.2)
   have hmajority : Internal.NamedOutageEntry.GradeFormingMajority S rho c :=
     gradeFormingMajority_of_admissible_belowOneThird S adm hfb hcPos
-      ((domain_g2_le_g0 S c).trans hready.2)
+      ((domain_g2_le_g0 S c).trans hready.2) (by assumption)
   have hcarrier := namedG1At_preceq_honestPreviousActionCarrier S
     adm.toNamedAdmissibleCore hc hwindow hmajority hv hG1v
   have hround1 : S.hc.round_of (S.hc.opening_slot c + 1) = c :=

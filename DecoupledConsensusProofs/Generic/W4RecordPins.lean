@@ -71,13 +71,15 @@ theorem selectedG2_preceq_honestPreviousCarrier_of_carrierWindow
     {k : Round}
     (hwindow : RelativeCarrierWindowAt S rho k DecoupledConsensusModel.Protocol.Phase.g2)
     (hhor : DecoupledConsensusModel.Protocol.domain S.E S.hc (k + 1) DecoupledConsensusModel.Protocol.Phase.g2 ≤
-      rho.horizon) :
+      rho.horizon)
+    (hpost : S.E.t_GST ≤ S.a k) :
     ∀ v ∈ rho.honest, ∀ A : Block V,
       PhaseGrades.nodeQ2 S (actionReadAt S rho v (k + 1)) (k + 1) = some A →
       ∃ u ∈ rho.honest, Block.Preceq A (actionSGBlockAt S rho u k) := by
   intro v hv A hA
   have hmaj : Internal.NamedOutageEntry.GradeFormingMajority S rho (k + 1) :=
     gradeFormingMajority_of_admissible_belowOneThird S adm hfb (Nat.succ_pos k) hhor
+      (by simpa only [Nat.add_sub_cancel] using hpost)
   obtain ⟨raw, hgrade, hAraw⟩ :=
     namedG2At_freezeRoot_of_nodeQ2 S adm.toNamedAdmissibleCore hA
   have hgrade' : DecoupledConsensusModel.Protocol.gradeBool S.E

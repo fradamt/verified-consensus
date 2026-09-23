@@ -156,7 +156,7 @@ theorem previousActionVote_mem_interpretedInputs_actionRead_of_fixedRoot
     simpa only [a] using actionAttestationAt_shape S rho u (q - 1)
   have hemit : NamedRun.emits S rho u (Object.attest a) (S.a (q - 1)) := by
     simpa only [a] using
-      honest_emits_exact_actionAttestationAt S adm huHon (q - 1) hprevHor
+      honest_emits_exact_actionAttestationAt S adm huHon (q - 1) hprevHor (by assumption)
   obtain ⟨i, hi, _, hhead⟩ := Proofs.NamedOutageInputs.emitted_attestation_head S rho hemit
   dsimp at hhead
   obtain ⟨Hb, hHb, hconfirmed⟩ := hhead
@@ -346,7 +346,7 @@ theorem previousActionVote_mem_interpretedInputs_actionRead_of_gateOff
     simpa only [a] using actionAttestationAt_shape S rho u (q - 1)
   have hemit : NamedRun.emits S rho u (Object.attest a) (S.a (q - 1)) := by
     simpa only [a] using
-      honest_emits_exact_actionAttestationAt S adm huHon (q - 1) hprevHor
+      honest_emits_exact_actionAttestationAt S adm huHon (q - 1) hprevHor (by assumption)
   obtain ⟨i, hi, _, hhead⟩ := Proofs.NamedOutageInputs.emitted_attestation_head S rho hemit
   dsimp at hhead
   obtain ⟨Hb, hHb, hconfirmed⟩ := hhead

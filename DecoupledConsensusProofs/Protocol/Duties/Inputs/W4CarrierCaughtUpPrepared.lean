@@ -266,6 +266,7 @@ theorem w4_caughtUp_lockAlignment_of_previousHistory
     (hhistPrev : CanonicalHeightSourceHistoryAt S rho q0 m Pprev)
     (hPrevHeight : (Protocol.derive_named S.E S.cfg Pprev).h = H)
     (habove : honestHMaxAt S rho (S.a q0) < H)
+    (hpost : S.E.t_GST ≤ S.a m)
     (hhor : S.a m ≤ rho.horizon) :
     ∀ v ∈ rho.honest,
       SuccessorTargetLockAlignmentAt
@@ -292,7 +293,7 @@ theorem w4_caughtUp_lockAlignment_of_previousHistory
       (by simpa only [(Proofs.Optimistic.emits_attest_shape S haEmit).1] using haEmit)
       (le_of_lt (hbefore i _ hi hevent)) hpair
   · intro p hfp hpHeight
-    have haEmit := honest_emits_exact_actionAttestationAt S adm hv m hhor
+    have haEmit := honest_emits_exact_actionAttestationAt S adm hv m hhor hpost
     rcases p with ⟨height, target⟩
     change height = H at hpHeight
     subst height
@@ -446,7 +447,7 @@ private theorem w4cu_predecessorRow_mem_selectedOpeningRows
       (hdelay.trans hhor)
   have hemitV : rho.emits S v (Object.attest a) (S.a (r - 1)) := by
     simpa only [a] using
-      honest_emits_exact_actionAttestationAt S adm hv (r - 1) hactionHor
+      honest_emits_exact_actionAttestationAt S adm hv (r - 1) hactionHor (by assumption)
   have haVal : a.val_index = v :=
     (actionAttestationAt_shape S rho v (r - 1)).1
   have haRound : a.round = r - 1 :=
@@ -496,6 +497,7 @@ theorem w4_caughtUp_targetRows_of_source
     (habove : honestHMaxAt S rho (S.a q0) <
       (Protocol.derive_named S.E S.cfg P0).h)
     (hprevHor : S.a (r - 1) ≤ rho.horizon)
+    (hpostPrev : S.E.t_GST ≤ S.a (r - 1))
     (hsource : ∀ v ∈ rho.honest,
       actionFGSource S (actionReadAt S rho v (r - 1)) = some Pprev.erase) :
     ∀ v ∈ rho.honest,
@@ -528,7 +530,7 @@ theorem w4_caughtUp_targetRows_of_source
   have hrecord := w4_caughtUp_successorRecord_of_previousHistory S adm
     hPrevParent hHigh hP0nj hhistPrev habove
   have haligned := w4_caughtUp_lockAlignment_of_previousHistory S adm hbelow
-    hhistPrev hPrevHeight habove hprevHor
+    hhistPrev hPrevHeight habove hpostPrev hprevHor
   intro v hv
   let ast := actionReadAt S rho v (r - 1)
   let Lambda := (rho.stateBeforeTime S (S.a (r - 1)) v).Λ
@@ -622,7 +624,7 @@ theorem w4_caughtUp_coverage_of_source
   have hPrevTarget := Proofs.NamedEntryHeight.entry_eq_on_plateau S.E S.cfg
     hPrevParent hPrevParentHeight
   have hrows := w4_caughtUp_targetRows_of_source S adm hbelow hP0 hPprev
-    hPprevRun hPrevParent hHigh hP0nj hhistPrev habove hprevHor hsource
+    hPprevRun hPrevParent hHigh hP0nj hhistPrev habove hprevHor hpostPrev hsource
   have hrpos : 0 < r := Nat.zero_lt_of_lt
     ((Nat.le_add_left 2 q0).trans_lt hqr)
   have hpredLt : r - 1 < r := Nat.sub_lt hrpos Nat.one_pos
@@ -656,7 +658,7 @@ theorem w4_caughtUp_coverage_of_source
       (H := (Protocol.derive_named S.E S.cfg P0.parent).h)
       (T := (Protocol.derive_named S.E S.cfg P0.parent).T_h.root)
       hPprevRun hPrevParentHeight (congrArg Block.root hPrevTarget)
-      hPrevParent rfl hprevHor hv hCcore hchain (Or.inl hrow)
+      hPrevParent rfl hprevHor hpostPrev hv hCcore hchain (Or.inl hrow)
     exact ⟨hcovered, Or.inl hrow⟩
   · have hown : actionAttestationAt S rho v (r - 1) ∈ P0.attestations := by
       rw [hpayload.2.2.2.2.2.2.1]
@@ -713,7 +715,7 @@ theorem w4_caughtUp_recentEntry_of_source
     hP0 hPprev hPprevRun hPrevParent hHigh hP0nj hhistPrev habove
     hprevHor hpostPrev hsource
   have hrows := w4_caughtUp_targetRows_of_source S adm hbelow hP0 hPprev
-    hPprevRun hPrevParent hHigh hP0nj hhistPrev habove hprevHor hsource
+    hPprevRun hPrevParent hHigh hP0nj hhistPrev habove hprevHor hpostPrev hsource
   have hcoverage' : NamedHonestActionProposalCoverageAt S rho (r - 1) P0
       (Protocol.derive_named S.E S.cfg P0.parent).h
       (Protocol.derive_named S.E S.cfg P0.parent).T_h.root := by

@@ -105,7 +105,7 @@ emission) and root collision freedom.
 │ confirmedLive        │ LiveSleepyRegime       │ SleepyRegime; SingleProposerRecurrence from `t₀` (tier 1)  │
 │ stableLive           │ StrongLiveSleepyRegime │ SleepyRegime; SingleProposerRecurrence from `t₀` (tier 1); │
 │                      │                        │ StrongMultiProposerRecurrence (tier 3)                     │
-│ finalized            │ FinalityRegime         │ base; BelowOneThird; FullParticipation;                    │
+│ finalized            │ FinalityRegime         │ base; BelowOneThird; FullParticipation from GST;           │
 │                      │                        │ StrongMultiProposerRecurrence; gap + 2 ≤ K; run long       │
 │                      │                        │ enough                                                     │
 │ stablePersists       │ OutageRegime           │ base, with t_GST ≤ b₁; HealthyPrefixDelivery before b₀;    │
@@ -157,8 +157,9 @@ Classical.choice, Quot.sound]`. The toolchain is pinned in `lean-toolchain` and
   than the paper's round-sampled form. One consequence: the smallest satisfiable
   strong recurrence gap is 3, so the finality claims are non-vacuous only for
   `K ≥ 5`, one more than the paper's `K ≥ 4`.
-- **Whole-run participation.** The participation premises range over the whole
-  run, including time before `t₀` and before GST. Tiers 2 and 3 still start at
+- **Participation from GST.** Full participation (finality and recovery) is
+  required only from GST; the window-majority premise of the sleepy regimes
+  starts at `t₀`. Tiers 2 and 3 still start at
   time 0 and range over the whole finite run; finite from-`t₀` forms are planned
   after publication.
 - **Witness scope.** The witnesses use one honest node and one silent Byzantine

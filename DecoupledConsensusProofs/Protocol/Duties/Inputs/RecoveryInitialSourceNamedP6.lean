@@ -614,6 +614,8 @@ theorem PrefixFGSelectorConeAt.checkpointProtection_nextOpening_of_frame_named
       S rho (a.round + 1) :=
     gradeFormingMajority_of_admissible_belowOneThird S adm hbelow
       (Nat.succ_pos a.round) (hdomainG2G1.trans hdomainG1Hor)
+      (by simpa only [Nat.add_sub_cancel] using
+        hpostPrev.trans (Assembly.a_mono S (Nat.sub_le a.round 1)))
   have hpostOpen : S.E.t_GST ≤
       Protocol.vote_time S.E (S.hc.opening_slot a.round) :=
     ready.1.trans ((early_g2_lt_Γ_0 S a.round).le.trans

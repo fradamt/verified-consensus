@@ -475,7 +475,7 @@ theorem voterAnchorAt_preceq_of_previousCarriers
           (q + 1) (DecoupledConsensusModel.Protocol.early S.E S.hc (q + 1) .g1) v).Nonempty := by
       intro v hv
       obtain ⟨a, hemit, hproj⟩ :=
-        honest_emits_actionAttestationAt S adm hv q hactionHor
+        honest_emits_actionAttestationAt S adm hv q hactionHor (by assumption)
       obtain ⟨i, hi, -, H, hH, hconfirmed⟩ :=
         Proofs.NamedOutageInputs.emitted_attestation_head S rho hemit
       have haval : a.val_index = v := by
@@ -522,7 +522,7 @@ theorem voterAnchorAt_preceq_of_previousCarriers
           S.hc.η_SG v (q + 1) = true := by
       intro v hv
       obtain ⟨a, hemit, hproj⟩ :=
-        honest_emits_actionAttestationAt S adm hv q hactionHor
+        honest_emits_actionAttestationAt S adm hv q hactionHor (by assumption)
       obtain ⟨i, hi, -, H, hH, hconfirmed⟩ :=
         Proofs.NamedOutageInputs.emitted_attestation_head S rho hemit
       have haval : a.val_index = v := by
@@ -580,7 +580,7 @@ theorem voterAnchorAt_preceq_of_previousCarriers
       exists_honest_max_positive_supporter_of_relativeGrade
         S.E S.hc hwindow hgrade
     obtain ⟨a, hemit, hproj⟩ :=
-      honest_emits_actionAttestationAt S adm hv q hactionHor
+      honest_emits_actionAttestationAt S adm hv q hactionHor (by assumption)
     obtain ⟨i, hi, -, H, hH, hconfirmed⟩ :=
       Proofs.NamedOutageInputs.emitted_attestation_head S rho hemit
     have haval : a.val_index = v := by
@@ -947,7 +947,7 @@ theorem confirmationAnchorAt_preceq_of_previousCarriers
           (q + 1) (DecoupledConsensusModel.Protocol.early S.E S.hc (q + 1) .g1) v).Nonempty := by
       intro v hv
       obtain ⟨a, hemit, hproj⟩ :=
-        honest_emits_actionAttestationAt S adm hv q hactionHor
+        honest_emits_actionAttestationAt S adm hv q hactionHor (by assumption)
       obtain ⟨i, hi, -, H, hH, hconfirmed⟩ :=
         Proofs.NamedOutageInputs.emitted_attestation_head S rho hemit
       have haval : a.val_index = v := by
@@ -994,7 +994,7 @@ theorem confirmationAnchorAt_preceq_of_previousCarriers
           S.hc.η_SG v (q + 1) = true := by
       intro v hv
       obtain ⟨a, hemit, hproj⟩ :=
-        honest_emits_actionAttestationAt S adm hv q hactionHor
+        honest_emits_actionAttestationAt S adm hv q hactionHor (by assumption)
       obtain ⟨i, hi, -, H, hH, hconfirmed⟩ :=
         Proofs.NamedOutageInputs.emitted_attestation_head S rho hemit
       have haval : a.val_index = v := by
@@ -1052,7 +1052,7 @@ theorem confirmationAnchorAt_preceq_of_previousCarriers
       exists_honest_max_positive_supporter_of_relativeGrade
         S.E S.hc hwindow hgrade
     obtain ⟨a, hemit, hproj⟩ :=
-      honest_emits_actionAttestationAt S adm hv q hactionHor
+      honest_emits_actionAttestationAt S adm hv q hactionHor (by assumption)
     obtain ⟨i, hi, -, H, hH, hconfirmed⟩ :=
       Proofs.NamedOutageInputs.emitted_attestation_head S rho hemit
     have haval : a.val_index = v := by
@@ -2422,7 +2422,7 @@ private theorem proposalAnchorAt_preceq_of_previousCarriers
               (q + 1) (DecoupledConsensusModel.Protocol.early S.E S.hc (q + 1) .g1) v).Nonempty := by
           intro v hv
           obtain ⟨a, hemit, hproj⟩ :=
-            honest_emits_actionAttestationAt S adm hv q hactionHor
+            honest_emits_actionAttestationAt S adm hv q hactionHor (by assumption)
           obtain ⟨i, hi, -, H, hH, hconfirmed⟩ :=
             Proofs.NamedOutageInputs.emitted_attestation_head S rho hemit
           have haval : a.val_index = v := by
@@ -2469,7 +2469,7 @@ private theorem proposalAnchorAt_preceq_of_previousCarriers
               S.hc.η_SG v (q + 1) = true := by
           intro v hv
           obtain ⟨a, hemit, hproj⟩ :=
-            honest_emits_actionAttestationAt S adm hv q hactionHor
+            honest_emits_actionAttestationAt S adm hv q hactionHor (by assumption)
           obtain ⟨i, hi, -, H, hH, hconfirmed⟩ :=
             Proofs.NamedOutageInputs.emitted_attestation_head S rho hemit
           have haval : a.val_index = v := by
@@ -2527,7 +2527,7 @@ private theorem proposalAnchorAt_preceq_of_previousCarriers
           exists_honest_max_positive_supporter_of_relativeGrade
             S.E S.hc hwindow hgrade
         obtain ⟨a, hemit, hproj⟩ :=
-          honest_emits_actionAttestationAt S adm hv q hactionHor
+          honest_emits_actionAttestationAt S adm hv q hactionHor (by assumption)
         obtain ⟨i, hi, -, H, hH, hconfirmed⟩ :=
           Proofs.NamedOutageInputs.emitted_attestation_head S rho hemit
         have haval : a.val_index = v := by
@@ -2843,7 +2843,7 @@ theorem proposalAnchorAt_preceq_of_previousCarriers_named
               (q + 1) (DecoupledConsensusModel.Protocol.early S.E S.hc (q + 1) .g1) v).Nonempty := by
           intro v hv
           obtain ⟨a, hemit, hproj⟩ :=
-            honest_emits_actionAttestationAt S adm hv q hactionHor
+            honest_emits_actionAttestationAt S adm hv q hactionHor (by assumption)
           obtain ⟨i, hi, -, H, hH, hconfirmed⟩ :=
             Proofs.NamedOutageInputs.emitted_attestation_head S rho hemit
           have haval : a.val_index = v := by
@@ -2890,7 +2890,7 @@ theorem proposalAnchorAt_preceq_of_previousCarriers_named
               S.hc.η_SG v (q + 1) = true := by
           intro v hv
           obtain ⟨a, hemit, hproj⟩ :=
-            honest_emits_actionAttestationAt S adm hv q hactionHor
+            honest_emits_actionAttestationAt S adm hv q hactionHor (by assumption)
           obtain ⟨i, hi, -, H, hH, hconfirmed⟩ :=
             Proofs.NamedOutageInputs.emitted_attestation_head S rho hemit
           have haval : a.val_index = v := by
@@ -2948,7 +2948,7 @@ theorem proposalAnchorAt_preceq_of_previousCarriers_named
           exists_honest_max_positive_supporter_of_relativeGrade
             S.E S.hc hwindow hgrade
         obtain ⟨a, hemit, hproj⟩ :=
-          honest_emits_actionAttestationAt S adm hv q hactionHor
+          honest_emits_actionAttestationAt S adm hv q hactionHor (by assumption)
         obtain ⟨i, hi, -, H, hH, hconfirmed⟩ :=
           Proofs.NamedOutageInputs.emitted_attestation_head S rho hemit
         have haval : a.val_index = v := by

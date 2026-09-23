@@ -27,7 +27,7 @@ theorem concreteConsensus (S : Setup V) : Statements.Instantiation.Consensus S
 
 `Consensus` (`DecoupledConsensusStatements/Instantiation.lean`) is the generic
 bundle `Generic.Consensus` (`DecoupledConsensusStatements/Generic/Claims.lean`)
-applied to this protocol. It has eleven fields:
+applied to this protocol. It has twelve fields:
 
 - `constants` — the timing and bound parameters satisfy `Constants.Valid`.
 - `nested` — at every read, finalized is below stable and stable is below
@@ -38,7 +38,8 @@ applied to this protocol. It has eleven fields:
 - `finalizedAccountable` — two honest finalized reads are compatible, or the
   two read states hold slashable evidence.
 - `honestNeverSlashed` — no honest validator is slashable from any two reads.
-- `finalizedSafe` — honest finalized reads agree and only extend.
+- `finalizedMonotone` — each honest node's finalized reads only extend.
+- `finalizedSafe` — honest finalized reads agree.
 - `available` — confirmed and stable reads are safe, and an honest proposal is
   in every confirmed read within `6Δ` of its proposal.
 - `confirmedLive` — the confirmed chain keeps growing.
@@ -68,6 +69,7 @@ freedom. Tier 1 of proposer recurrence counts the windows from `t₀`, and tiers
 │ nested                    │ none                   │ —                                                  │
 │ certificatesAccountable   │ none                   │ collision-free roots on the two ancestor chains    │
 │ finalizedAccountable      │ RunWellFormed          │ horizon ≥ 0; sorted events; collision-free roots   │
+│ finalizedMonotone         │ RunWellFormed          │ horizon ≥ 0; sorted events; collision-free roots   │
 │ honestNeverSlashed        │ UnforgeableRun         │ UnforgeableSignatures; sorted; honest-only;        │
 │                           │                        │ horizon ≥ 0                                        │
 │ finalizedSafe             │ AccountableRegime      │ RunWellFormed; SlashableBound                      │
@@ -123,7 +125,7 @@ builds the five libraries, then checks that:
   (`check-review-boundary.rb`);
 - every statement declaration is reachable from the bundle
   (`StatementReachability.lean`);
-- the bundle has exactly the eleven fields (`ReviewSurfaceShape.lean`);
+- the bundle has exactly the twelve fields (`ReviewSurfaceShape.lean`);
 - `concreteConsensus` depends only on `propext`, `Classical.choice` and
   `Quot.sound` (`ReviewAxioms.lean`).
 

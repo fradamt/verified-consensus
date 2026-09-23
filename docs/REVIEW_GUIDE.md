@@ -155,8 +155,9 @@ the middle column.
 │ `collisionFree` for    │ none                 │ compatible certificate targets or evidence     │
 │ two certificates       │                      │ (no run regime)                                │
 │ RunWellFormed          │ none                 │ finalized accountable safety                   │
+│ RunWellFormed          │ none                 │ finalized reads only extend                    │
 │ UnforgeableRun         │ none                 │ honest validators are never slashed            │
-│ AccountableRegime      │ none                 │ finalized safety                               │
+│ AccountableRegime      │ none                 │ finalized agreement                            │
 │ SleepyRegime           │ `AvailableAt`        │ confirmed safety, confirmed inclusion, stable  │
 │                        │                      │ safety                                         │
 │ LiveSleepyRegime       │ `LiveFrom`           │ confirmed liveness                             │
@@ -324,10 +325,10 @@ recurrence.
 ## Generic result bundle
 
 `Generic.Consensus` has the `constants : Constants.Valid` premise followed by
-ten result fields, in premise-first order:
+eleven result fields, in premise-first order:
 
 1. `nested` and `certificatesAccountable` have no run-regime premise.
-2. `finalizedAccountable` names `RunWellFormed`.
+2. `finalizedAccountable` and `finalizedMonotone` name `RunWellFormed`.
 3. `honestNeverSlashed` names `UnforgeableRun`.
 4. `finalizedSafe` names `AccountableRegime`.
 5. `available` names `SleepyRegime` and returns `AvailableAt`.

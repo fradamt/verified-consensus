@@ -292,6 +292,7 @@ theorem concreteConsensus (S : Setup V) : Statements.Instantiation.Consensus S :
     nested := ?_
     certificatesAccountable := ?_
     finalizedAccountable := ?_
+    finalizedMonotone := ?_
     honestNeverSlashed := ?_
     finalizedSafe := ?_
     available := ?_
@@ -313,6 +314,9 @@ theorem concreteConsensus (S : Setup V) : Statements.Instantiation.Consensus S :
       (finalityExecution_of_generic_runWellFormed S rho hwell)
     simpa [gF, Instantiation.interface, Statements.instance] using
       (accountablyConsistentFrom_iff S rho gF gF 0).mpr hstd
+  · intro rho hwell
+    simpa [Instantiation.interface, Statements.instance] using
+      accountable_finalizedMonotone S rho hwell
   · intro rho hexec v hv hslashes
     have hsch := voteSafetySchedule_of_generic_unforgeableRun S rho hexec
     have hauth := attestationAuthenticity_of_generic_unforgeableRun S rho hexec
@@ -322,14 +326,11 @@ theorem concreteConsensus (S : Setup V) : Statements.Instantiation.Consensus S :
     apply hsafe
     simpa [Instantiation.interface] using hs
   · intro rho hreg
-    refine ⟨?_, ?_⟩
-    · simpa [gF, Instantiation.interface, Statements.instance] using
-        (agreeFrom_iff S rho gF 0).mpr
-          (accountable_finalizedAgree S rho
-            (finalityExecution_of_generic_runWellFormed S rho hreg.toRunWellFormed)
-            (slashableBound_of_generic S rho hreg.slashableBound))
-    · simpa [Instantiation.interface, Statements.instance] using
-        accountable_finalizedMonotone S rho hreg.toRunWellFormed
+    simpa [gF, Instantiation.interface, Statements.instance] using
+      (agreeFrom_iff S rho gF 0).mpr
+        (accountable_finalizedAgree S rho
+          (finalityExecution_of_generic_runWellFormed S rho hreg.toRunWellFormed)
+          (slashableBound_of_generic S rho hreg.slashableBound))
   · intro rho t₀ hsleep
     have hs := sleepyRegime_of_generic S rho t₀ hsleep
     have hr := recoveredBy_of_generic S rho t₀ hsleep.start

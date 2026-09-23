@@ -12,7 +12,7 @@ run_cmd do
       throwError s!"Unexpected fields for {name}: {actual}"
   checkFields `DecoupledConsensusModel.Statements.Generic.Consensus
     ["constants", "nested", "certificatesAccountable", "finalizedAccountable",
-      "honestNeverSlashed", "finalizedSafe", "available", "confirmedLive",
+      "finalizedMonotone", "honestNeverSlashed", "finalizedSafe", "available", "confirmedLive",
       "stableLive", "finalized", "stableAsynchronyResilient"]
   checkFields `DecoupledConsensusModel.Statements.Generic.OutputOrder
     ["finalizedBelowStable", "stableBelowConfirmed"]
@@ -26,6 +26,7 @@ run_cmd do
       `DecoupledConsensusModel.Statements.Generic.Consensus.nested,
       `DecoupledConsensusModel.Statements.Generic.Consensus.certificatesAccountable,
       `DecoupledConsensusModel.Statements.Generic.Consensus.finalizedAccountable,
+      `DecoupledConsensusModel.Statements.Generic.Consensus.finalizedMonotone,
       `DecoupledConsensusModel.Statements.Generic.Consensus.honestNeverSlashed,
       `DecoupledConsensusModel.Statements.Generic.Consensus.finalizedSafe,
       `DecoupledConsensusModel.Statements.Generic.Consensus.available,
@@ -78,12 +79,17 @@ example (P : Generic.ProtocolSpec V) (E : Generic.Env V)
 example (P : Generic.ProtocolSpec V) (E : Generic.Env V)
     (I : Interface P) (C : Constants)
     (h : Consensus P E I C) :
+      ∀ rho, RunWellFormed E I rho → MonotoneFrom P rho I.finalized 0 :=
+  h.finalizedMonotone
+example (P : Generic.ProtocolSpec V) (E : Generic.Env V)
+    (I : Interface P) (C : Constants)
+    (h : Consensus P E I C) :
       ∀ rho, UnforgeableRun P E I rho → ∀ v ∈ rho.honest, ¬ I.slashes rho v :=
   h.honestNeverSlashed
 example (P : Generic.ProtocolSpec V) (E : Generic.Env V)
     (I : Interface P) (C : Constants)
     (h : Consensus P E I C) :
-      ∀ rho, AccountableRegime E I rho → SafeFrom P rho I.finalized 0 :=
+      ∀ rho, AccountableRegime E I rho → AgreeFrom P rho I.finalized 0 :=
   h.finalizedSafe
 example (P : Generic.ProtocolSpec V) (E : Generic.Env V)
     (I : Interface P) (C : Constants)

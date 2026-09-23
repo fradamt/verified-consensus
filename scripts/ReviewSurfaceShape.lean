@@ -13,7 +13,7 @@ run_cmd do
   checkFields `DecoupledConsensusModel.Statements.Generic.Consensus
     ["constants", "nested", "certificatesAccountable", "finalizedAccountable",
       "honestNeverSlashed", "finalizedSafe", "available", "confirmedLive",
-      "stableLive", "finalized", "stablePersists"]
+      "stableLive", "finalized", "stableAsynchronyResilient"]
   checkFields `DecoupledConsensusModel.Statements.Generic.OutputOrder
     ["finalizedBelowStable", "stableBelowConfirmed"]
   checkFields `DecoupledConsensusModel.Statements.Generic.AvailableAt
@@ -32,7 +32,7 @@ run_cmd do
       `DecoupledConsensusModel.Statements.Generic.Consensus.confirmedLive,
       `DecoupledConsensusModel.Statements.Generic.Consensus.stableLive,
       `DecoupledConsensusModel.Statements.Generic.Consensus.finalized,
-      `DecoupledConsensusModel.Statements.Generic.Consensus.stablePersists,
+      `DecoupledConsensusModel.Statements.Generic.Consensus.stableAsynchronyResilient,
       `DecoupledConsensusModel.Statements.Generic.OutputOrder.finalizedBelowStable,
       `DecoupledConsensusModel.Statements.Generic.OutputOrder.stableBelowConfirmed,
       `DecoupledConsensusModel.Statements.Generic.AvailableAt.confirmedSafe,
@@ -107,6 +107,6 @@ example (P : Generic.ProtocolSpec V) (E : Generic.Env V)
     (h : Consensus P E I C) :
       ∀ rho T b₀ b₁, OutageRegime P E I C rho T b₀ b₁ →
         PersistsFrom P rho I.stable T b₀ :=
-  h.stablePersists
+  h.stableAsynchronyResilient
 
 end DecoupledConsensusModel

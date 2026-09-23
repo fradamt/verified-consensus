@@ -334,7 +334,7 @@ ten result fields, in premise-first order:
 6. `confirmedLive` names `LiveSleepyRegime` and returns `LiveFrom`.
 7. `stableLive` names `StrongLiveSleepyRegime` and returns `StableLiveAt`.
 8. `finalized` names `FinalityRegime` and returns `FinalizedAt`.
-9. `stablePersists` names `OutageRegime` and returns `PersistsFrom`.
+9. `stableAsynchronyResilient` names `OutageRegime` and returns `PersistsFrom`.
 
 This makes each claim readable as `run and parameters → named premise → named
 conclusion`, except for the two fields with no run-regime premise at the top. Confirmed

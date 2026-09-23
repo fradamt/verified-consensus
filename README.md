@@ -46,8 +46,8 @@ applied to this protocol. It has eleven fields:
   and the stable chain keeps growing.
 - `finalized` — after a startup lag, an honest proposal is finalized everywhere
   by its deadline, and the finalized chain keeps growing.
-- `stablePersists` — a block in an honest stable read at `T` stays in every
-  honest stable read from `b₀` to the horizon, across the outage.
+- `stableAsynchronyResilient` — a block in an honest stable read at `T` stays
+  in every honest stable read from `b₀` to the horizon, across the outage.
 
 ## Premise ledger
 
@@ -61,26 +61,26 @@ freedom. Tier 1 of proposer recurrence counts the windows from `t₀`, and tiers
 2 and 3 count those from GST; all count only windows that end inside the run.
 
 ```text
-┌─────────────────────────┬────────────────────────┬────────────────────────────────────────────────────┐
-│ Claim                   │ Regime                 │ Conditions                                         │
-├─────────────────────────┼────────────────────────┼────────────────────────────────────────────────────┤
-│ constants               │ none                   │ Constants.Valid                                    │
-│ nested                  │ none                   │ —                                                  │
-│ certificatesAccountable │ none                   │ collision-free roots on the two ancestor chains    │
-│ finalizedAccountable    │ RunWellFormed          │ horizon ≥ 0; sorted events; collision-free roots   │
-│ honestNeverSlashed      │ UnforgeableRun         │ UnforgeableSignatures; sorted; honest-only;        │
-│                         │                        │ horizon ≥ 0                                        │
-│ finalizedSafe           │ AccountableRegime      │ RunWellFormed; SlashableBound                      │
-│ available               │ SleepyRegime           │ base; WindowMajority; RecoveredBy                  │
-│ confirmedLive           │ LiveSleepyRegime       │ SleepyRegime; SingleProposerRecurrence (tier 1)    │
-│ stableLive              │ StrongLiveSleepyRegime │ LiveSleepyRegime;                                  │
-│                         │                        │ StrongMultiProposerRecurrence (tier 3)             │
-│ finalized               │ FinalityRegime         │ base; BelowOneThird; FullParticipation from GST;   │
-│                         │                        │ StrongMultiProposerRecurrence; gap + 2 ≤ K;        │
-│                         │                        │ run long enough                                    │
-│ stablePersists          │ OutageRegime           │ base with t_GST ≤ b₁; HealthyPrefixDelivery before │
-│                         │                        │ b₀; FreshMajority; SlashableBound; outage bounds   │
-└─────────────────────────┴────────────────────────┴────────────────────────────────────────────────────┘
+┌───────────────────────────┬────────────────────────┬────────────────────────────────────────────────────┐
+│ Claim                     │ Regime                 │ Conditions                                         │
+├───────────────────────────┼────────────────────────┼────────────────────────────────────────────────────┤
+│ constants                 │ none                   │ Constants.Valid                                    │
+│ nested                    │ none                   │ —                                                  │
+│ certificatesAccountable   │ none                   │ collision-free roots on the two ancestor chains    │
+│ finalizedAccountable      │ RunWellFormed          │ horizon ≥ 0; sorted events; collision-free roots   │
+│ honestNeverSlashed        │ UnforgeableRun         │ UnforgeableSignatures; sorted; honest-only;        │
+│                           │                        │ horizon ≥ 0                                        │
+│ finalizedSafe             │ AccountableRegime      │ RunWellFormed; SlashableBound                      │
+│ available                 │ SleepyRegime           │ base; WindowMajority; RecoveredBy                  │
+│ confirmedLive             │ LiveSleepyRegime       │ SleepyRegime; SingleProposerRecurrence (tier 1)    │
+│ stableLive                │ StrongLiveSleepyRegime │ LiveSleepyRegime;                                  │
+│                           │                        │ StrongMultiProposerRecurrence (tier 3)             │
+│ finalized                 │ FinalityRegime         │ base; BelowOneThird; FullParticipation from GST;   │
+│                           │                        │ StrongMultiProposerRecurrence; gap + 2 ≤ K;        │
+│                           │                        │ run long enough                                    │
+│ stableAsynchronyResilient │ OutageRegime           │ base with t_GST ≤ b₁; HealthyPrefixDelivery before │
+│                           │                        │ b₀; FreshMajority; SlashableBound; outage bounds   │
+└───────────────────────────┴────────────────────────┴────────────────────────────────────────────────────┘
 ```
 
 `RecoveredBy` is either genesis or a bounded recovery prefix under

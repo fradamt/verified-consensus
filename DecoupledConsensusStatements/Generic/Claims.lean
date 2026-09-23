@@ -78,7 +78,7 @@ structure Consensus
   finalized : ∀ rho t₀ gap, FinalityRegime P E I C rho t₀ gap →
     FinalizedAt P I C rho (t₀ + C.finalityStartup gap) gap
   /-- Outage regime. -/
-  stablePersists : ∀ rho T b₀ b₁, OutageRegime P E I C rho T b₀ b₁ →
+  stableAsynchronyResilient : ∀ rho T b₀ b₁, OutageRegime P E I C rho T b₀ b₁ →
     PersistsFrom P rho I.stable T b₀
 
 end DecoupledConsensusModel.Statements.Generic

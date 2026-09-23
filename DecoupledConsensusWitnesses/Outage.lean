@@ -1829,7 +1829,7 @@ theorem asynchrony_resilience_activated :
     rw [Proofs.readAt_eq S rho (fun st => Protocol.get_stable st) 0
       (S.a stableRound)]
     exact houtput
-  have h := (Proofs.concreteConsensus S).stablePersists
+  have h := (Proofs.concreteConsensus S).stableAsynchronyResilient
     rho (S.a stableRound) b0 b1 generic_outage_regime
   have hIn := h 0
     (by change (0 : Fin 2) ∈ ({0} : Finset (Fin 2)); simp)

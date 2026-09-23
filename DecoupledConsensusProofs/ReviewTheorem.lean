@@ -298,7 +298,7 @@ theorem concreteConsensus (S : Setup V) : Statements.Instantiation.Consensus S :
     confirmedLive := ?_
     stableLive := ?_
     finalized := ?_
-    stablePersists := ?_ }
+    stableAsynchronyResilient := ?_ }
   · intro rho
     refine { finalizedBelowStable := ?_, stableBelowConfirmed := ?_ }
     · simpa [gC, gS, gF, Instantiation.interface, Statements.instance] using

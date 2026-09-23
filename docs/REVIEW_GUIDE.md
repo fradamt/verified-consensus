@@ -161,7 +161,7 @@ the middle column.
 │ SleepyRegime           │ `AvailableAt`        │ confirmed and stable safety, confirmed and     │
 │                        │                      │ stable inclusion                               │
 │ LiveSleepyRegime       │ `LiveFrom`           │ confirmed liveness; stable liveness            │
-│ FreshSleepyRegime      │ `IncludedFrom`       │ stable inclusion within two rounds             │
+│ FreshSleepyRegime      │ `IncludedFrom`       │ stable inclusion within two rounds plus 8Δ     │
 │ FinalityRegime         │ `FinalizedAt`        │ finalized inclusion and finalized liveness     │
 │ OutageRegime           │ none                 │ stable persistence                             │
 └────────────────────────┴──────────────────────┴────────────────────────────────────────────────┘
@@ -237,7 +237,8 @@ The concrete regime-to-fixture non-vacuity map is:
 │                      │ non-genesis constructor; WeakGenesis supplies genesis.         │
 │ SleepyRegime         │ DecoupledConsensusModel.Witnesses.generic_sleepy_regime at `t₀ = 0`.                  │
 │ LiveSleepyRegime     │ `DecoupledConsensusModel.Witnesses.generic_live_sleepy_regime` at `gap = 3`.  │
-│ FreshSleepyRegime    │ `DecoupledConsensusModel.Witnesses.generic_fresh_sleepy_regime` at `t₀ = 0`.  │
+│ FreshSleepyRegime    │ `DecoupledConsensusModel.Witnesses.generic_fresh_sleepy_regime` at `t₀ = 0`;  │
+│                      │ `fresh_inclusion_activated` applies `stableIncludedFast` on it. │
 │ FinalityRegime       │ DecoupledConsensusModel.Witnesses.generic_finality_regime at `gap = 3`, `K = 5`.│
 │ OutageRegime         │ DecoupledConsensusModel.Witnesses.generic_outage_regime.                                  │
 └──────────────────────┴──────────────────────────────────────────────────────────────┘

@@ -1415,6 +1415,70 @@ theorem generic_live_sleepy_regime :
       S.E.electorate.weightOf ({0} : Finset (Fin 2))
     rw [byzantine_weight_eq, ← honest_eq, honest_weight_eq]
     norm_num
+theorem generic_fresh_sleepy_regime :
+    Statements.Generic.FreshSleepyRegime
+      (DecoupledConsensusModel.Execution.spec S)
+      (Statements.Instantiation.env S)
+      (Statements.Instantiation.interface S)
+      (Statements.Instantiation.constants S) rho 0 := by
+  refine { toSleepyRegime := generic_live_sleepy_regime.toSleepyRegime, fresh := ?_ }
+  intro t _ht _hlag _hhor
+  classical
+  unfold Statements.Generic.FreshMajority
+  have hat :
+      Statements.Generic.awakeAt (Statements.Instantiation.env S) rho.honest
+          (t - (Statements.Instantiation.constants S).participationLag) =
+        ({0} : Finset (Fin 2)) := by
+    rw [honest_eq]
+    change ({0} : Finset (Fin 2)).filter (fun v =>
+      (Statements.Instantiation.env S).awake v
+        (t - (Statements.Instantiation.constants S).participationLag) = true) = {0}
+    ext v
+    by_cases hv : v = 0 <;> simp [hv, Statements.Instantiation.env, S, node]
+  have hstale :
+      Statements.Generic.awakeIn (Statements.Instantiation.env S) rho.honest
+          (t - (Statements.Instantiation.constants S).participationWindow)
+          (t - (Statements.Instantiation.constants S).participationLag) \
+        Statements.Generic.awakeAt (Statements.Instantiation.env S) rho.honest
+          (t - (Statements.Instantiation.constants S).participationLag) = ∅ := by
+    rw [hat]
+    apply Finset.eq_empty_of_forall_notMem
+    intro v hv
+    rcases Finset.mem_sdiff.mp hv with ⟨hin, hnot⟩
+    have hvH : v ∈ rho.honest := (Finset.mem_filter.mp hin).1
+    rw [honest_eq] at hvH
+    exact hnot hvH
+  rw [hstale, Finset.union_empty, hat]
+  change S.E.electorate.weightOf (Finset.univ \ rho.honest) <
+    S.E.electorate.weightOf ({0} : Finset (Fin 2))
+  rw [byzantine_weight_eq, ← honest_eq, honest_weight_eq]
+  norm_num
+
+
+theorem fresh_inclusion_guard_active :
+    (Statements.Instantiation.interface S).proposalTime 1 = 4 ∧
+    (Statements.Instantiation.constants S).fastStableInclusionDelay = 32 ∧
+    (Statements.Instantiation.constants S).stableInclusionDelay = 44 ∧
+    4 + (Statements.Instantiation.constants S).fastStableInclusionDelay ≤ rho.horizon ∧
+    4 + (Statements.Instantiation.constants S).stableInclusionDelay ≤ rho.horizon := by
+  norm_num [Statements.Instantiation.interface, Statements.Instantiation.constants,
+    S, E, hc, cfg, rho, horizon, Protocol.proposal_time, Env.t, slotStart,
+    Setup.a, Protocol.HealConfig.a, Protocol.HealConfig.opening_slot]
+
+/-- The fast stable inclusion claim applied on this run: the slot-1 honest
+proposal is in every honest stable read by time 36. -/
+theorem fresh_inclusion_activated : ∃ B : Block (Fin 2),
+    Generic.HonestProposalAt (Statements.Instantiation.interface S) rho 1 B ∧
+    Generic.InBy (Execution.spec S) rho (Statements.Instantiation.interface S).stable B 36 := by
+  have h := (Proofs.concreteConsensus S).stableIncludedFast rho 0 generic_fresh_sleepy_regime 1
+  have ht : (Statements.Instantiation.interface S).proposalTime 1 = 4 := by rfl
+  have hd : (Statements.Instantiation.constants S).fastStableInclusionDelay = 32 := by
+    norm_num [Statements.Instantiation.constants, S, E, hc, cfg,
+      Setup.a, Protocol.HealConfig.a, Protocol.HealConfig.opening_slot, slotStart]
+  have hp : (Statements.Instantiation.interface S).proposer 1 ∈ rho.honest := by decide
+  have hh : (36 : Time) ≤ rho.horizon := by decide
+  simpa only [ht, hd] using h (by rw [ht]; norm_num) hp (by rw [ht, hd]; exact hh)
+
 /-! ## Closed finality safety, instantiated on this run -/
 
 theorem finality_execution : FinalityExecution S rho :=

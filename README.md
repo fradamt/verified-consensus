@@ -1,4 +1,4 @@
-# verified-decoupled-consensus
+# verified-consensus
 
 A Lean 4 model of the decoupled consensus protocol (Section 7 of the paper) and
 a machine-checked proof of its consensus guarantees.
@@ -168,4 +168,5 @@ depends on `Lean.ofReduceBool`. The review theorem does not.
 
 Paper: `consensus.tex` at commit `9f5ed717ffac` (not yet public). The reference
 pseudocode (Section 7, verbatim) is in [`docs/PROTOCOL.md`](docs/PROTOCOL.md).
-License: CC0-1.0.
+License: CC0-1.0. An earlier formalization of the accountable-safety and store
+arguments for the height-filtered protocol is at tag `legacy-2026-07`.

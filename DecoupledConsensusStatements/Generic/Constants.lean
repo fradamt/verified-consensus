@@ -35,6 +35,7 @@ The delay grid is:
 output inclusion delay growth delay
 confirmed confirmationDelay growthDelay
 stable stableInclusionDelay stableGrowthDelay
+stable (fresh) fastStableInclusionDelay
 finalized finalityDeadline gap * period + finalityDeadline
 ```
 
@@ -72,6 +73,9 @@ structure Constants where
   /-- Delay from a proposal at its proposal time to stable inclusion, in
   `Time`; the stable inclusion delay. -/
   stableInclusionDelay : Time
+  /-- Delay from a proposal at its proposal time to stable inclusion under a
+  fresh majority, in `Time`; the fast stable inclusion delay. -/
+  fastStableInclusionDelay : Time
   /-- Protocol-specific finality startup delay for recurrence gap `gap`, in
   `Time`; the finalized startup delay. -/
   finalityStartup : Nat → Time
@@ -98,6 +102,7 @@ structure Constants.Valid (C : Constants) : Prop where
     0 ≤ C.growthDelay gap ∧
     0 ≤ C.stableGrowthDelay gap ∧
     0 ≤ C.stableInclusionDelay ∧
+    0 ≤ C.fastStableInclusionDelay ∧
     0 ≤ C.finalityStartup gap ∧
     0 ≤ C.finalityDeadline gap
   prefixEnd_le_recoveryEnd : ∀ t₀ gap, C.prefixEnd t₀ gap ≤ C.recoveryEnd t₀ gap

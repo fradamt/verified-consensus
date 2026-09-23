@@ -13,7 +13,7 @@ proof theorem is hidden in a regime constructor.
 
 Defines: `AgreesUntil`, `Continues`, `BFTRegime`, `RecoveryRegime`,
 `RecoveredBy`, `AccountableRegime`, `SleepyRegime`, `LiveSleepyRegime`,
-`FinalityRegime`, and `OutageRegime`.
+`FreshSleepyRegime`, `FinalityRegime`, and `OutageRegime`.
 Read after: `Conditions`.
 Read next: `Claims`.
 -/
@@ -109,6 +109,17 @@ structure LiveSleepyRegime
     (rho : DecoupledConsensusModel.Generic.Run V P.Object) (t₀ : Time) (gap : Nat) : Prop
     extends SleepyRegime P E I C rho t₀ where
   recurrence : SingleProposerRecurrence I C rho t₀ gap
+
+/-- A fresh sleepy regime from `t₀`: the sleepy regime, and a fresh majority at
+every time from `t₀` whose reference sample is in the run. -/
+structure FreshSleepyRegime
+    (P : DecoupledConsensusModel.Generic.ProtocolSpec V)
+    (E : DecoupledConsensusModel.Generic.Env V) (I : Interface P) (C : Constants)
+    (rho : DecoupledConsensusModel.Generic.Run V P.Object) (t₀ : Time) : Prop
+    extends SleepyRegime P E I C rho t₀ where
+  fresh : ∀ t, t₀ ≤ t → C.participationLag ≤ t →
+    t - C.participationLag ≤ rho.horizon →
+    FreshMajority E rho.honest C t
 
 /-- The finality regime from `t₀`: BFT premises, strong recurrence from GST within
 `gap ≤ maxGap − 2` periods, and a run long enough to contain the startup. -/

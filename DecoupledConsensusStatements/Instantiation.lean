@@ -103,6 +103,8 @@ noncomputable def constants (S : Setup V) : Generic.Constants where
       (6 * S.E.Δ + ((1 + S.hc.η_SG : Nat) * (S.a 1 - S.a 0) + 2 * S.E.Δ))
   stableInclusionDelay :=
     6 * S.E.Δ + ((1 + S.hc.η_SG : Nat) * (S.a 1 - S.a 0) + 2 * S.E.Δ)
+  fastStableInclusionDelay :=
+    6 * S.E.Δ + ((2 : Nat) * (S.a 1 - S.a 0) + 2 * S.E.Δ)
   finalityStartup := fun gap =>
     healingBoundaryTime S
         (DecoupledConsensusModel.Statements.Instantiation.finalityStartup S gap

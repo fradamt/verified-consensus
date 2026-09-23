@@ -83,6 +83,8 @@ theorem constants_valid (S : Setup V) :
       add_nonneg (mul_nonneg hgap hperiod.le) (by positivity),
       add_nonneg (mul_nonneg hgap hperiod.le) hincl,
       hincl,
+      add_nonneg (by positivity)
+        (add_nonneg (mul_nonneg (by positivity) hperiod.le) (by positivity)),
       hstartup,
       add_nonneg hdeadline (by positivity)⟩
   · intro t₀ gap

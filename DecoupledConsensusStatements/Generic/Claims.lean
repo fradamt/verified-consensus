@@ -12,7 +12,7 @@ claims into the review contract.
 An auditor checks the unconditional fields, the premise-to-field mapping, and
 the exact conclusion record for each protocol result.
 
-Defines: `AvailableAt`, `StableLiveAt`, `FinalizedAt`, and `Consensus`.
+Defines: `AvailableAt`, `FinalizedAt`, and `Consensus`.
 Read after: `Properties` and `Regimes`.
 Read next: `DecoupledConsensusStatements.Instantiation`.
 -/
@@ -24,23 +24,16 @@ open DecoupledConsensusModel
 variable {V : Type} {P : DecoupledConsensusModel.Generic.ProtocolSpec V}
   [DecidableEq V] [_root_.Fintype V]
 
-/-- Available outputs from `t₀`; inclusion into the confirmed chain needs no
-recurrence: an honest proposal is confirmed by everyone within
-`confirmationDelay`. -/
+/-- Available outputs from `t₀`; inclusion needs no recurrence: an honest
+proposal is confirmed by everyone within `confirmationDelay`, and is in
+everyone's stable chain within `stableInclusionDelay`. -/
 structure AvailableAt (P : DecoupledConsensusModel.Generic.ProtocolSpec V)
     (I : Interface P) (C : Constants)
     (rho : DecoupledConsensusModel.Generic.Run V P.Object) (t₀ : Time) : Prop where
   confirmedSafe : SafeFrom P rho I.confirmed t₀
   confirmedIncluded : IncludedFrom P I rho I.confirmed t₀ C.confirmationDelay
   stableSafe : SafeFrom P rho I.stable t₀
-
-/-- The stable output from `t₀` when the strong recurrence holds: inclusion into the stable chain
-needs an honest multi-proposer window, because a G2 root forms only in such a window. -/
-structure StableLiveAt (P : DecoupledConsensusModel.Generic.ProtocolSpec V)
-    (I : Interface P) (C : Constants)
-    (rho : DecoupledConsensusModel.Generic.Run V P.Object) (t₀ : Time) (gap : Nat) : Prop where
-  stableIncluded : IncludedFrom P I rho I.stable t₀ (C.stableInclusionDelay gap)
-  stableLive : LiveFrom P I rho I.stable t₀ (C.stableGrowthDelay gap)
+  stableIncluded : IncludedFrom P I rho I.stable t₀ C.stableInclusionDelay
 
 /-- The finalized output from the end of the startup. -/
 structure FinalizedAt (P : DecoupledConsensusModel.Generic.ProtocolSpec V)
@@ -74,8 +67,8 @@ structure Consensus
   available : ∀ rho t₀, SleepyRegime P E I C rho t₀ → AvailableAt P I C rho t₀
   confirmedLive : ∀ rho t₀ gap, LiveSleepyRegime P E I C rho t₀ gap →
     LiveFrom P I rho I.confirmed t₀ (C.growthDelay gap)
-  stableLive : ∀ rho t₀ gap, StrongLiveSleepyRegime P E I C rho t₀ gap →
-    StableLiveAt P I C rho t₀ gap
+  stableLive : ∀ rho t₀ gap, LiveSleepyRegime P E I C rho t₀ gap →
+    LiveFrom P I rho I.stable t₀ (C.stableGrowthDelay gap)
   /-- Finality regime. -/
   finalized : ∀ rho t₀ gap, FinalityRegime P E I C rho t₀ gap →
     FinalizedAt P I C rho (t₀ + C.finalityStartup gap) gap

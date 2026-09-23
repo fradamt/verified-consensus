@@ -17,9 +17,7 @@ run_cmd do
   checkFields `DecoupledConsensusModel.Statements.Generic.OutputOrder
     ["finalizedBelowStable", "stableBelowConfirmed"]
   checkFields `DecoupledConsensusModel.Statements.Generic.AvailableAt
-    ["confirmedSafe", "confirmedIncluded", "stableSafe"]
-  checkFields `DecoupledConsensusModel.Statements.Generic.StableLiveAt
-    ["stableIncluded", "stableLive"]
+    ["confirmedSafe", "confirmedIncluded", "stableSafe", "stableIncluded"]
   checkFields `DecoupledConsensusModel.Statements.Generic.FinalizedAt
     ["finalizedIncluded", "finalizedLive"]
   for name in [
@@ -39,8 +37,7 @@ run_cmd do
       `DecoupledConsensusModel.Statements.Generic.AvailableAt.confirmedSafe,
       `DecoupledConsensusModel.Statements.Generic.AvailableAt.confirmedIncluded,
       `DecoupledConsensusModel.Statements.Generic.AvailableAt.stableSafe,
-      `DecoupledConsensusModel.Statements.Generic.StableLiveAt.stableIncluded,
-      `DecoupledConsensusModel.Statements.Generic.StableLiveAt.stableLive,
+      `DecoupledConsensusModel.Statements.Generic.AvailableAt.stableIncluded,
       `DecoupledConsensusModel.Statements.Generic.FinalizedAt.finalizedIncluded,
       `DecoupledConsensusModel.Statements.Generic.FinalizedAt.finalizedLive,
       `DecoupledConsensusModel.Statements.Instantiation.Consensus] do
@@ -102,8 +99,8 @@ example (P : Generic.ProtocolSpec V) (E : Generic.Env V)
         LiveFrom P I rho I.confirmed t₀ (C.growthDelay gap) := h.confirmedLive
 example (P : Generic.ProtocolSpec V) (E : Generic.Env V)
     (I : Interface P) (C : Constants) (h : Consensus P E I C) :
-      ∀ rho t₀ gap, StrongLiveSleepyRegime P E I C rho t₀ gap →
-        StableLiveAt P I C rho t₀ gap := h.stableLive
+      ∀ rho t₀ gap, LiveSleepyRegime P E I C rho t₀ gap →
+        LiveFrom P I rho I.stable t₀ (C.stableGrowthDelay gap) := h.stableLive
 example (P : Generic.ProtocolSpec V) (E : Generic.Env V) (I : Interface P) (C : Constants)
     (h : Consensus P E I C) :
       ∀ rho t₀ gap, FinalityRegime P E I C rho t₀ gap →

@@ -212,7 +212,7 @@ def SingleProposerRecurrence (I : Interface P) (C : Constants)
 
 /-- Tier 2, multi-proposer recurrence: within `gap` periods of every time from
 `start` a multi-proposer window starts: an opening slot and the following
-`proposerSlots − 1` slots all have honest proposers; recovery and stable growth use it.
+`proposerSlots − 1` slots all have honest proposers; recovery uses it.
 Only windows from `start` that end inside the run count. -/
 def MultiProposerRecurrence (I : Interface P) (C : Constants)
     (rho : DecoupledConsensusModel.Generic.Run V P.Object) (start : Time) (gap : Nat) : Prop :=

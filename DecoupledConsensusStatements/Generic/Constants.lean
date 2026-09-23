@@ -66,11 +66,12 @@ structure Constants where
   /-- The delay used by `liveFrom_of_includedFrom`: `gap · period + D`, with
   `D = confirmationDelay`, in `Time`; the confirmed growth delay. -/
   growthDelay : Nat → Time
-  /-- Stable-output growth delay for recurrence gap `gap`, in `Time`. -/
+  /-- The stable growth delay for recurrence gap `gap`: `gap · period + D`,
+  with `D = stableInclusionDelay`, in `Time`. -/
   stableGrowthDelay : Nat → Time
-  /-- Inclusion delay of the stable output when honest multi-proposer windows recur within
-  `gap` periods, in `Time`. -/
-  stableInclusionDelay : Nat → Time
+  /-- Delay from a proposal at its proposal time to stable inclusion, in
+  `Time`; the stable inclusion delay. -/
+  stableInclusionDelay : Time
   /-- Protocol-specific finality startup delay for recurrence gap `gap`, in
   `Time`; the finalized startup delay. -/
   finalityStartup : Nat → Time
@@ -96,7 +97,7 @@ structure Constants.Valid (C : Constants) : Prop where
     0 ≤ C.confirmationDelay ∧
     0 ≤ C.growthDelay gap ∧
     0 ≤ C.stableGrowthDelay gap ∧
-    0 ≤ C.stableInclusionDelay gap ∧
+    0 ≤ C.stableInclusionDelay ∧
     0 ≤ C.finalityStartup gap ∧
     0 ≤ C.finalityDeadline gap
   prefixEnd_le_recoveryEnd : ∀ t₀ gap, C.prefixEnd t₀ gap ≤ C.recoveryEnd t₀ gap

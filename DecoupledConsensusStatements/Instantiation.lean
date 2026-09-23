@@ -81,8 +81,9 @@ def interface (S : Setup V) :
 
 /-- `period` is one SG round: `R` slots of `4Δ`, i.e. `S.a 1 − S.a 0 = 4ΔR`;
 `participationLag` is one round and `participationWindow` is `η_SG` rounds;
-`growthDelay` is the exact inclusion-to-liveness corollary delay
-`gap · period + confirmationDelay`. -/
+`growthDelay` and `stableGrowthDelay` are the exact inclusion-to-liveness
+corollary delays `gap · period + confirmationDelay` and
+`gap · period + stableInclusionDelay`. -/
 noncomputable def constants (S : Setup V) : Generic.Constants where
   period := S.a 1 - S.a 0
   participationWindow := (S.hc.η_SG : Time) * (S.a 1 - S.a 0)
@@ -98,9 +99,10 @@ noncomputable def constants (S : Setup V) : Generic.Constants where
   growthDelay := fun gap =>
     (gap : Time) * (S.a 1 - S.a 0) + 6 * S.E.Δ
   stableGrowthDelay := fun gap =>
-    (gap + S.hc.η_SG : Nat) * (S.a 1 - S.a 0) + 2 * S.E.Δ
-  stableInclusionDelay := fun gap =>
-    6 * S.E.Δ + ((gap + S.hc.η_SG : Nat) * (S.a 1 - S.a 0) + 2 * S.E.Δ)
+    (gap : Time) * (S.a 1 - S.a 0) +
+      (6 * S.E.Δ + ((1 + S.hc.η_SG : Nat) * (S.a 1 - S.a 0) + 2 * S.E.Δ))
+  stableInclusionDelay :=
+    6 * S.E.Δ + ((1 + S.hc.η_SG : Nat) * (S.a 1 - S.a 0) + 2 * S.E.Δ)
   finalityStartup := fun gap =>
     healingBoundaryTime S
         (DecoupledConsensusModel.Statements.Instantiation.finalityStartup S gap

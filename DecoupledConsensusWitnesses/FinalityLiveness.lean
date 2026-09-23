@@ -1361,8 +1361,8 @@ theorem generic_finality_regime :
     subst v
     rfl
 
-theorem generic_strong_live_sleepy_regime :
-    Statements.Generic.StrongLiveSleepyRegime
+theorem generic_live_sleepy_regime :
+    Statements.Generic.LiveSleepyRegime
       (DecoupledConsensusModel.Execution.spec S)
       (Statements.Instantiation.env S)
       (Statements.Instantiation.interface S)
@@ -1371,20 +1371,18 @@ theorem generic_strong_live_sleepy_regime :
   have hperiod : 0 < (Statements.Instantiation.constants S).period :=
     Proofs.concretePeriod_pos S
   refine {
-    toLiveSleepyRegime := {
-      toSleepyRegime := {
-        execution := hfinal.execution
-        partialSynchrony := hfinal.partialSynchrony
-        gst := hfinal.gst
-        committees := hfinal.committees
-        windows := ?_
-        start := Statements.Generic.RecoveredBy.genesis }
-      recurrence :=
-        DecoupledConsensusModel.Proofs.Generic.MultiProposerRecurrence.toSingleProposerRecurrence
-          (DecoupledConsensusModel.Proofs.Generic.StrongMultiProposerRecurrence.toMultiProposerRecurrence
-            hfinal.recurrence hperiod)
-          (by norm_num) (by simp [Statements.Instantiation.constants]) }
-    strongRecurrence := hfinal.recurrence }
+    toSleepyRegime := {
+      execution := hfinal.execution
+      partialSynchrony := hfinal.partialSynchrony
+      gst := hfinal.gst
+      committees := hfinal.committees
+      windows := ?_
+      start := Statements.Generic.RecoveredBy.genesis }
+    recurrence :=
+      DecoupledConsensusModel.Proofs.Generic.MultiProposerRecurrence.toSingleProposerRecurrence
+        (DecoupledConsensusModel.Proofs.Generic.StrongMultiProposerRecurrence.toMultiProposerRecurrence
+          hfinal.recurrence hperiod)
+        (by norm_num) (by simp [Statements.Instantiation.constants]) }
   · intro t ht hlag hhor
     classical
     have hL : 1 ≤ S.a 1 - S.a 0 := by

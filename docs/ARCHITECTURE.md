@@ -44,7 +44,7 @@ DecoupledConsensusStatements.lean contents page
   DecoupledConsensusStatements/Generic/Constants.lean  timing and bound parameters, with a unit per field
   DecoupledConsensusStatements/Generic/Properties.lean  SafeFrom, LiveFrom, IncludedFrom, PersistsFrom, OutputOrder
   DecoupledConsensusStatements/Generic/Conditions.lean, Regimes.lean  atomic premises; the named premise bundles
-  DecoupledConsensusStatements/Generic/Claims.lean  the bundle: AvailableAt, StableLiveAt, FinalizedAt, Consensus
+  DecoupledConsensusStatements/Generic/Claims.lean  the bundle: AvailableAt, FinalizedAt, Consensus
   Instantiation.lean, Instantiation/*  env, interface, constants, Consensus; RoundTimes,
                                    Deadlines, OutageWindow, Proposals, Certificates
 

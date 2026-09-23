@@ -57,7 +57,11 @@ theorem constants_valid (S : Setup V) :
     have hΔ : (0 : Time) ≤ S.E.Δ := S.E.Δ_pos.le
     have hperiod : 0 < S.a 1 - S.a 0 := concretePeriod_pos S
     have hgap : (0 : Time) ≤ (gap : Time) := by positivity
-    have hgapη : (0 : Time) ≤ (gap + S.hc.η_SG : Nat) := by positivity
+    have hgapη : (0 : Time) ≤ (1 + S.hc.η_SG : Nat) := by positivity
+    have hincl : (0 : Time) ≤
+        6 * S.E.Δ + ((1 + S.hc.η_SG : Nat) * (S.a 1 - S.a 0) + 2 * S.E.Δ) :=
+      add_nonneg (by positivity)
+        (add_nonneg (mul_nonneg hgapη hperiod.le) (by positivity))
     have hboundary_nonneg : ∀ k : Round,
         0 ≤ Statements.Instantiation.healingBoundaryTime S (k + 1) - S.a 0 := by
       intro k
@@ -77,9 +81,8 @@ theorem constants_valid (S : Setup V) :
     dsimp [Statements.Instantiation.constants]
     exact ⟨by positivity,
       add_nonneg (mul_nonneg hgap hperiod.le) (by positivity),
-      add_nonneg (mul_nonneg hgapη hperiod.le) (by positivity),
-      add_nonneg (by positivity)
-        (add_nonneg (mul_nonneg hgapη hperiod.le) (by positivity)),
+      add_nonneg (mul_nonneg hgap hperiod.le) hincl,
+      hincl,
       hstartup,
       add_nonneg hdeadline (by positivity)⟩
   · intro t₀ gap

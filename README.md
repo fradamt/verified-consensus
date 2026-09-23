@@ -41,10 +41,10 @@ applied to this protocol. It has twelve fields:
 - `finalizedMonotone` — each honest node's finalized reads only extend.
 - `finalizedSafe` — honest finalized reads agree.
 - `available` — confirmed and stable reads are safe, and an honest proposal is
-  in every confirmed read within `6Δ` of its proposal.
+  in every confirmed read within `6Δ` of its proposal and in every stable read
+  within `η_SG + 1` rounds plus `8Δ`.
 - `confirmedLive` — the confirmed chain keeps growing.
-- `stableLive` — an honest proposal reaches every stable read by its deadline,
-  and the stable chain keeps growing.
+- `stableLive` — the stable chain keeps growing.
 - `finalized` — after a startup lag, an honest proposal is finalized everywhere
   by its deadline, and the finalized chain keeps growing.
 - `stableAsynchronyResilient` — a block in an honest stable read at `T` stays
@@ -75,8 +75,7 @@ freedom. Tier 1 of proposer recurrence counts the windows from `t₀`, and tiers
 │ finalizedSafe             │ AccountableRegime      │ RunWellFormed; SlashableBound                      │
 │ available                 │ SleepyRegime           │ base; WindowMajority; RecoveredBy                  │
 │ confirmedLive             │ LiveSleepyRegime       │ SleepyRegime; SingleProposerRecurrence (tier 1)    │
-│ stableLive                │ StrongLiveSleepyRegime │ LiveSleepyRegime;                                  │
-│                           │                        │ StrongMultiProposerRecurrence (tier 3)             │
+│ stableLive                │ LiveSleepyRegime       │ SleepyRegime; SingleProposerRecurrence (tier 1)    │
 │ finalized                 │ FinalityRegime         │ base; BelowOneThird; FullParticipation from GST;   │
 │                           │                        │ StrongMultiProposerRecurrence; gap + 2 ≤ K;        │
 │                           │                        │ run long enough                                    │

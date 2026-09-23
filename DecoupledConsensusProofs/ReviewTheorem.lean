@@ -15,6 +15,7 @@ public import DecoupledConsensusProofs.Execution.RecoveryWindowClosure
 public import DecoupledConsensusProofs.Execution.W4StableRecordGrowthClosed
 public import DecoupledConsensusProofs.Generic.W4FinalityClosed
 public import DecoupledConsensusProofs.Bridge.StandardVocabulary
+public import DecoupledConsensusProofs.Bridge.StableIncludedAnySlot
 public import DecoupledConsensusProofs.Bridge.GenericVocabulary
 public import DecoupledConsensusProofs.Bridge.GenericRegimes
 public import DecoupledConsensusProofs.Bridge.FinalizedLive
@@ -337,7 +338,8 @@ theorem concreteConsensus (S : Setup V) : Statements.Instantiation.Consensus S :
     refine {
       confirmedSafe := ?_
       confirmedIncluded := ?_
-      stableSafe := ?_ }
+      stableSafe := ?_
+      stableIncluded := ?_ }
     · simpa [gC, Instantiation.interface, Statements.instance] using
         (safeFrom_iff S rho gC t₀).mpr
           (available_confirmedSafe S rho t₀ hs hr)
@@ -346,6 +348,8 @@ theorem concreteConsensus (S : Setup V) : Statements.Instantiation.Consensus S :
     · simpa [gS, Instantiation.interface, Statements.instance] using
         (safeFrom_iff S rho gS t₀).mpr
           (available_stableSafe S rho t₀ hs hr)
+    · simpa [stableInclusionDelay_eq_constant] using
+        included_of_named S (available_stableIncluded_any S rho t₀ hs hr)
   · intro rho t₀ gap hlive
     have hs := sleepyRegime_of_generic S rho t₀ hlive.toSleepyRegime
     have hr := recoveredBy_of_generic S rho t₀ hlive.start
@@ -375,17 +379,36 @@ theorem concreteConsensus (S : Setup V) : Statements.Instantiation.Consensus S :
       (fun A => Block.preceq_self A)
       (fun hAC hBC => Block.compatible_of_preceq_common hAC hBC)
     simpa [gC, Instantiation.interface, Statements.instance] using hlive'
-  · intro rho t₀ gap hstrong
-    have hlive := hstrong.toLiveSleepyRegime
+  · intro rho t₀ gap hlive
     have hs := sleepyRegime_of_generic S rho t₀ hlive.toSleepyRegime
     have hr := recoveredBy_of_generic S rho t₀ hlive.start
-    have hrec := openingCarrierRecurrence_of_generic S rho S.E.t_GST gap
-      hstrong.strongRecurrence
-    refine { stableIncluded := ?_, stableLive := ?_ }
-    · simpa [stableInclusionDelay_eq_constant] using
-        included_of_named S (available_stableIncluded S rho t₀ hs hr gap hrec)
-    · exact growth_of_named S
-        (available_stableGrowth S rho t₀ hs hr gap hrec)
+    have hsafe := available_stableSafe S rho t₀ hs hr
+    have hmono : Statements.Generic.MonotoneFrom
+        (DecoupledConsensusModel.Execution.spec S) rho
+        (Statements.Instantiation.interface S).stable t₀ := by
+      simpa [gS, Instantiation.interface, Statements.instance] using
+        ((safeFrom_iff S rho gS t₀).mpr hsafe).monotone
+    have hfuture := noFutureRead_stable S rho hlive.toSleepyRegime.execution
+    have hincl : Statements.Generic.IncludedFrom
+        (DecoupledConsensusModel.Execution.spec S) (Statements.Instantiation.interface S) rho
+        (Statements.Instantiation.interface S).stable t₀
+          (Statements.Instantiation.constants S).stableInclusionDelay := by
+      simpa [stableInclusionDelay_eq_constant] using
+        included_of_named S (available_stableIncluded_any S rho t₀ hs hr)
+    have ht₀ : 0 ≤ t₀ := S.E.t_GST_nonneg.trans hlive.toSleepyRegime.gst
+    have hperiod : 0 < (Statements.Instantiation.constants S).period := by
+      simpa [Statements.Instantiation.constants] using concretePeriod_pos S
+    have hD : 0 ≤ (Statements.Instantiation.constants S).stableInclusionDelay := by
+      dsimp [Statements.Instantiation.constants]
+      have hΔ : (0 : Time) ≤ S.E.Δ := S.E.Δ_pos.le
+      have hL : (0 : Time) ≤ S.a 1 - S.a 0 := hperiod.le
+      positivity
+    have hlive' := DecoupledConsensusModel.Proofs.Generic.liveFrom_of_includedFrom
+      hmono hfuture hincl hlive.recurrence ht₀ hD hperiod
+      (fun hAB hBC => Block.preceq_trans hAB hBC)
+      (fun A => Block.preceq_self A)
+      (fun hAC hBC => Block.compatible_of_preceq_common hAC hBC)
+    simpa [Statements.Instantiation.constants] using hlive'
   · intro rho t₀ gap hreg
     refine { finalizedIncluded := ?_, finalizedLive := ?_ }
     · have hlegacy := finalityRegime_of_generic S rho t₀ gap hreg

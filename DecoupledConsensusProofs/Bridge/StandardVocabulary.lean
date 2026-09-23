@@ -1184,9 +1184,9 @@ private theorem honestProposalReadSafety_of_available
 noncomputable def stableInclusionDelay (S : Setup V) (gap : Nat) : Time :=
   6 * S.E.Δ + (legacyConstants S).stableGrowthDelay gap
 
-theorem stableInclusionDelay_eq_constant (S : Setup V) (gap : Nat) :
-    stableInclusionDelay S gap =
-      (Statements.Instantiation.constants S).stableInclusionDelay gap := by
+theorem stableInclusionDelay_eq_constant (S : Setup V) :
+    stableInclusionDelay S 1 =
+      (Statements.Instantiation.constants S).stableInclusionDelay := by
   rfl
 
 theorem available_stableIncluded (S : Setup V) :

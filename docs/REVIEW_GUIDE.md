@@ -158,10 +158,9 @@ the middle column.
 │ RunWellFormed          │ none                 │ finalized reads only extend                    │
 │ UnforgeableRun         │ none                 │ honest validators are never slashed            │
 │ AccountableRegime      │ none                 │ finalized agreement                            │
-│ SleepyRegime           │ `AvailableAt`        │ confirmed safety, confirmed inclusion, stable  │
-│                        │                      │ safety                                         │
-│ LiveSleepyRegime       │ `LiveFrom`           │ confirmed liveness                             │
-│ StrongLiveSleepyRegime │ `StableLiveAt`       │ stable inclusion and stable liveness           │
+│ SleepyRegime           │ `AvailableAt`        │ confirmed and stable safety, confirmed and     │
+│                        │                      │ stable inclusion                               │
+│ LiveSleepyRegime       │ `LiveFrom`           │ confirmed liveness; stable liveness            │
 │ FinalityRegime         │ `FinalizedAt`        │ finalized inclusion and finalized liveness     │
 │ OutageRegime           │ none                 │ stable persistence                             │
 └────────────────────────┴──────────────────────┴────────────────────────────────────────────────┘
@@ -171,8 +170,6 @@ the middle column.
 `SleepyRegime` requires `ExecutionValid`, `PartialSynchrony`, GST by `t₀`,
 `HonestCommittees`, `WindowMajority`, and a sound `RecoveredBy` start.
 `LiveSleepyRegime` adds `SingleProposerRecurrence` from `t₀` (tier 1).
-`StrongLiveSleepyRegime` inherits those premises and adds
-`StrongMultiProposerRecurrence` (tier 3), with the two-opening lookback.
 Tier 1 counts the windows from `t₀`, and tiers 2 and 3 count those from GST;
 all count only windows that end inside the run.
 `FinalityRegime` extends `BFTRegime`: execution validity, partial synchrony,
@@ -235,10 +232,7 @@ The concrete regime-to-fixture non-vacuity map is:
 │ RecoveredBy          │ StrongRecovery source and continuation facts for the           │
 │                      │ non-genesis constructor; WeakGenesis supplies genesis.         │
 │ SleepyRegime         │ DecoupledConsensusModel.Witnesses.generic_sleepy_regime at `t₀ = 0`.                  │
-│ LiveSleepyRegime     │ `DecoupledConsensusModel.Witnesses.generic_strong_live_sleepy_regime` projects  │
-│                      │ its weak parent at `gap = 3`.                                 │
-│ StrongLiveSleepyRegime│ `DecoupledConsensusModel.Witnesses.generic_strong_live_sleepy_regime` at      │
-│                      │ `gap = 3`, with the same strong recurrence as finality.        │
+│ LiveSleepyRegime     │ `DecoupledConsensusModel.Witnesses.generic_live_sleepy_regime` at `gap = 3`.  │
 │ FinalityRegime       │ DecoupledConsensusModel.Witnesses.generic_finality_regime at `gap = 3`, `K = 5`.│
 │ OutageRegime         │ DecoupledConsensusModel.Witnesses.generic_outage_regime.                                  │
 └──────────────────────┴──────────────────────────────────────────────────────────────┘
@@ -283,8 +277,8 @@ Let `L = S.a 1 − S.a 0 = 4ΔR` and
 │ maxGap                  │ K                                                            │ periods    │ Maximum generic recurrence gap.              │
 │ confirmationDelay       │ 6Δ                                                           │ Time       │ Proposal-to-confirmation delay.              │
 │ growthDelay             │ gap·L + 6Δ = gap·period + confirmationDelay                   │ Time       │ Inclusion-to-liveness corollary delay.        │
-│ stableGrowthDelay       │ (gap + η_SG)L + 2Δ                                           │ Time       │ Stable-output growth deadline.                │
-│ stableInclusionDelay    │ 6Δ + ((gap + η_SG)L + 2Δ)                                    │ Time       │ Stable-output inclusion deadline.            │
+│ stableGrowthDelay       │ gap·L + stableInclusionDelay                                 │ Time       │ Stable-output growth deadline.                │
+│ stableInclusionDelay    │ 6Δ + ((1 + η_SG)L + 2Δ)                                      │ Time       │ Stable-output inclusion deadline.            │
 │ finalityStartup         │ healingBoundaryTime(finalityStartup(gap,e) + 1) − a₀          │ Time       │ Finality startup lag.                         │
 │ finalityDeadline        │ healingBoundaryTime(finalityDeadline(gap,e) + 1) − a₀ + 3Δ    │ Time       │ Finality inclusion deadline.                 │
 │ outageStart(T)          │ nextAction(T) + L + Δ                                         │ Time       │ Earliest permitted outage start.             │
@@ -309,18 +303,15 @@ strictly future, `t < proposalTime`. `IncludedFrom` asks for the strict guard
 with a block below one honest read at `T`, then uses `b₀ ≤ t ≤ horizon` for
 every later read.
 
-The proof routes are split. `confirmedLive` uses
-`liveFrom_of_includedFrom` with `SingleProposerRecurrence`, confirmed inclusion,
-confirmed monotonicity, and no-future-read. Stable inclusion and stable liveness are both
-under `StrongLiveSleepyRegime`: stable inclusion uses its direct inclusion route,
-and stable liveness uses the existing stable-growth route. `finalizedIncluded`
+The proof routes are split. `confirmedLive` and `stableLive` use
+`liveFrom_of_includedFrom` with `SingleProposerRecurrence`, inclusion,
+monotonicity, and no-future-read of the confirmed and the stable output.
+Stable inclusion is `Proofs.available_stableIncluded_any`: an honest proposal is
+in every honest `live_confirmed` from its confirmation, so every honest SG vote
+from the next round covers it, and after `η_SG` rounds the window majority
+grades it. `finalizedIncluded`
 uses direct finality inclusion. `finalizedLive` uses the concrete finalized
 instance of the same corollary through `DecoupledConsensusModel.Proofs.finalized_growth`.
-
-Inclusion appears in two places because the confirmed chain is available from
-the sleepy regime without recurrence, while stable inclusion needs an
-honest-proposer window and therefore belongs with `StableLiveAt` under strong
-recurrence.
 
 ## Generic result bundle
 
@@ -333,14 +324,13 @@ eleven result fields, in premise-first order:
 4. `finalizedSafe` names `AccountableRegime`.
 5. `available` names `SleepyRegime` and returns `AvailableAt`.
 6. `confirmedLive` names `LiveSleepyRegime` and returns `LiveFrom`.
-7. `stableLive` names `StrongLiveSleepyRegime` and returns `StableLiveAt`.
+7. `stableLive` names `LiveSleepyRegime` and returns `LiveFrom`.
 8. `finalized` names `FinalityRegime` and returns `FinalizedAt`.
 9. `stableAsynchronyResilient` names `OutageRegime` and returns `PersistsFrom`.
 
 This makes each claim readable as `run and parameters → named premise → named
 conclusion`, except for the two fields with no run-regime premise at the top. Confirmed
-inclusion remains in `AvailableAt`; stable inclusion is explicit in
-`StableLiveAt` because it needs strong recurrence.
+and stable inclusion are in `AvailableAt`; they need no recurrence.
 
 The only review theorem is `Proofs.concreteConsensus : ∀ S,
 Statements.Instantiation.Consensus S`. `reviewedInternal`, `legacyConsensus`, and

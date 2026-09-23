@@ -168,6 +168,23 @@ theorem gradeFormingThroughout_of_awake
   rw [hstale, hprev]
   exact hgrade
 
+/-- Convert an awake grade majority at one covered round to the emitted-voter
+form. -/
+theorem gradeFormingMajority_of_awakeAt
+    (S : Setup V) (rho : NamedRun V)
+    (sch : NamedScheduleWellFormed S rho) {r : Round}
+    (hr : 0 < r) (hcovered : RoundCovered S rho r)
+    (hawake : AwakeGradeMajority S rho r) :
+    GradeFormingMajority S rho r := by
+  have hstale := staleHistoricalVoters_eq_awake S rho sch hr hcovered
+  have hprev : honestRoundVoters S rho (r - 1) =
+      honestAwakeAt S rho (r - 1) :=
+    honestRoundVoters_eq_awake S rho sch (r - 1)
+      (previous_action_in_horizon S rho hr hcovered)
+  unfold GradeFormingMajority
+  rw [hstale, hprev]
+  exact hawake
+
 #print axioms honestRoundVoters_eq_awake
 #print axioms outageSleepyThroughout_of_awake
 #print axioms gradeFormingThroughout_of_awake

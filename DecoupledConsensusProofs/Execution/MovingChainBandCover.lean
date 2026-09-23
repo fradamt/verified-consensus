@@ -29,16 +29,11 @@ variable {V : Type} [DecidableEq V] [Fintype V]
 /-- A common carrier ceiling with a processed frontier-band witness
 supplies the exact lost-or-floor alternative. No slot fold is needed.
 
-The cone-witness PIN IS CLOSED (a8c616ca): `canonicalConeWitness_of_bandDescendant`
-(`MovingChainRoundFloorFieldsRun.lean`) is live again and is called directly.
-
-Its proof replaced the erased band premise by the named one, because the named
-store agrees with `Protocol.derive_named` on its own bodies and with
-`derived_state` of an erasure only under a query hypothesis. So this theorem's
-old `hmem`/`hband` pair is now the single field `hwitness`: at every honest
-round read there is a RETAINED NAMED body above `End` whose `derive_named`
-height reaches the band. That is the same fact the erased pair asserted, said
-about the object the named store can actually answer for. -/
+`canonicalConeWitness_of_bandDescendant` supplies the cone witness. The named
+store agrees with `Protocol.derive_named` on its bodies, while agreement with
+`derived_state` of an erasure requires a query hypothesis. The `hwitness` field
+therefore combines membership with the band bound: each honest round read
+retains a named body above `End` whose derived height reaches the band. -/
 theorem movingChainRoundFloor_or_lost_of_carrierCeiling
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)
     (hcom : HonestCommittees S rho.honest)

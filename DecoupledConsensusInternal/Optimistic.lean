@@ -237,22 +237,18 @@ entry at `h+2`, so the skip regenerates itself exactly when `K = 2`. At
 heights, skip every even one, forever. Recommend `D ≥ 3`, or `K ≥ 3` with
 `D ≥ 2`.
 
-**ACCEPTED, and this is now the document's own domain** (PROTOCOL.md#the-complete-protocol,
-baseline `d50fb59`): "Fix constants `K ≥ 3` and `D ≥ 2`; `K` is meant large and
-`D` minimal. The steady pipeline enters heights at debt `h − h_F = 2`, so
+**Protocol domain** (PROTOCOL.md#the-complete-protocol): "Fix constants
+`K ≥ 3` and `D ≥ 2`; `K` is meant large and `D` minimal. The steady
+pipeline enters heights at debt `h − h_F = 2`, so
 `D ≥ 2`; `K ≥ 3` avoids a skip cadence that regenerates itself at `K = 2`."
-That is the second of the two options recommended above, and the `(2,2)`
-resonance simulation behind it is credited in the document's pending-feedback
-resolution. `Protocol.HeightConfig` carries the new bounds as its fields;
-the retired `K ≥ 2` and `D ≥ 1` survive there as derived theorems, since several
-lemmas need only those. -/
+`Protocol.HeightConfig` carries these bounds as fields. The weaker
+`K ≥ 2` and `D ≥ 1` bounds follow as theorems, which several lemmas use. -/
 
 /-- **(GA) + (CF)**: what P5's hand-off delivers, and P4-L's hypotheses minus the
 debt clause (check doc §5.1).
 
-Split out of `FrontierClean` so that the hand-off corollary can state exactly the
-premise P5 supplies. The check doc's §5.4 shape is one structure with three
-fields; extending preserves all three names on `FrontierClean`. -/
+This predicate states the exact premise P5 supplies to the hand-off
+corollary. `FrontierClean` extends it with the remaining fields. -/
 structure FrontierAligned (S : Setup V) (r : Round) (w : WorldView V)
     (h_c : Height) : Prop where
   /-- **(GR) The gate is reachable.** The fork-choice root is an ancestor of the
@@ -418,7 +414,7 @@ round whose opening proposer is honest.
 
 Separated from P4 because no safety conclusion uses any of it, and because both
 source papers supply it only from an assumed opportunity premise. What the Q3
-check buys is that the premise is now **reduced** — doc2's saved-target clause is
+check buys is that the premise is **reduced** — doc2's saved-target clause is
 derived and its finality-lock clause is redundant — rather than removed. -/
 def FinalityLiveness (S : Setup V) : Prop :=
   ∀ (ρ : Run V) (r₀ : Round) (Can₀ : Block V) (h_star h_c : Height) (J : Block V),

@@ -563,16 +563,20 @@ theorem commonFinalityAboveFrontier_of_openingCarrierRecurrence_of_pins_prepared
       hchainR, hgradeR, hnl⟩
   have hdensityHor : S.a (start + 1 + 4 * L + 3 * gap + 5) ≤ rho.horizon :=
     hstepHor _ hdensity_window_le_phase
-  have hqualified : ∀ k : Round, ∃ c : Round, k ≤ c ∧ c ≤ k + gap ∧
+  have hqualified : ∀ k : Round,
+      S.E.t_GST ≤ Protocol.proposal_time S.E (S.hc.opening_slot k) →
+      Protocol.proposal_time S.E (S.hc.opening_slot k) +
+        gap * (S.a 1 - S.a 0) ≤ rho.horizon →
+      ∃ c : Round, k ≤ c ∧ c ≤ k + gap ∧
       ProposerCarrierAt S rho c ∧
       (S.E.proposer (S.hc.opening_slot (c - 2)) ∈ rho.honest ∧
        S.E.proposer (S.hc.opening_slot (c - 1)) ∈ rho.honest) := by
-    intro k
-    obtain ⟨c, hlo, hhi, htwo, hone, hc⟩ := hop k
+    intro k hGST hwindow
+    obtain ⟨c, hlo, hhi, htwo, hone, hc⟩ := hop k hGST hwindow
     exact ⟨c, (Nat.le_add_right k 2).trans hlo, hhi, hc, htwo, hone⟩
   obtain ⟨c1, c2, hc1lo, h12, _, hc2hi, hc1, hc2, ha1, ha2, hnj, hp1, hp2⟩ :=
     exists_justifiableCarrierPair_afterTwoProgress_with_property_prepared
-      S adm hdensity hprogress hLpos hqualified hK
+      S adm hdensity hprogress hLpos hpostBoundary hqualified hK
         (start := start + 1) (hstart.trans (Nat.le_succ start))
         (hafterAll _ (hfirst_window_after
           (hstart.trans (Nat.le_succ start)) hLpos)) hdensityHor
@@ -717,7 +721,14 @@ theorem commonFinalityAboveFrontier_of_openingCarrierRecurrence_of_pins_prepared
     hPprev hPprevRun hP0 hP1 hparent hP1run hprevHor hpred
     (Nat.lt_or_ge _ _) hlive (hanchorAt c hqc hopening hPprev hprevHor)
     (hsourceAt c hlate hopening hround.inHorizon hPprev hprevHor)
+  have hfinalWindowRound : c + 1 + gap ≤
+      start + (4 * L + 4 * gap + 7) :=
+    (Nat.le_succ _).trans (hfinal_carrier_bound hchi (Nat.le_refl _))
+  have hfinalWindow := (openingProposal_window_le_action S (c + 1) gap).trans
+    (hstepHor _ hfinalWindowRound)
   obtain ⟨rFinal, hrLo, hrHi, hrTwo, hrPred, hrCarrier⟩ := hop (c + 1)
+    (hpostAll (c + 1) ((hstart.trans_lt hstartC).trans (Nat.lt_succ_self c)))
+    hfinalWindow
   have hcr : c < rFinal :=
     (Nat.lt_succ_self c).trans_le ((Nat.le_add_right (c + 1) 2).trans hrLo)
   have hrEnd := hfinal_carrier_bound hchi hrHi

@@ -350,7 +350,7 @@ that validator's own emissions, for every block the run puts in play.
   machinery.
 
 So `SlashableBound` is a theorem about admissible runs under `BelowOneThird`, not
-an assumption, and the gap between the two bounds is now paid for exactly once. -/
+an assumption, and the gap between the two bounds is paid for exactly once. -/
 
 omit [DecidableEq V] [Fintype V] in
 /-- A block the run's object list contains is a block some delivery carries

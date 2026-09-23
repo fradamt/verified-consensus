@@ -13,41 +13,12 @@ public import DecoupledConsensusInternal.Definitions.NamedLifecycle
 /-!
 # Honest-head resolution at later GST-zero duty stores
 
-Block admission is strict at the Goldfish support cutoff, but the confirmation
-and next-slot vote duties read later stores. This file transports admitted
-honest heads to those later reads. It does not produce admission: block relay
-and the receiver's finalized-ancestor guard remain the owners of that fact.
-
-## Named-runtime proof status 
-
-The `headsResolveIn_*` family below ports mechanically: `RunBlock` is
-`NamedRun.blockInRun` over `NamedBlock V`, so its one internal
-`RunBlock`-producing step now goes through `Proofs.NamedStoreBridge.
-exists_named_of_mem_stateBefore` and `Proofs.NamedWire.erase_root`, and
-`Admissible.toScheduleWellFormed`/`.toRootCollisionFree` route through the
-real auto field `.toNamedAdmissibleCore` (`NamedAdmissibleCore`'s own
-`.toNamedScheduleWellFormed`/`.toNamedRootCollisionFree` fields), not through
-`Execution.AdmissibleCore`'s same-named abbreviations, which the plain
-`.toAdmissibleCore` chain does not reach.
-
-**available — `emittedHead_mem_voteDutyStore`.** The bridge now relates the
-emitted vote to the same prepared `voteDutyRead` used by the named tick. It
-proves the prepared head's membership in that read's own candidate tree and
-then uses named root collision freedom to identify the emitted body.
-
-**Open — `voteDuty_emits_head`.** Its old conclusion still identifies an
-emitted head with a bare-contract `Protocol.get_head_in_tree` on
-`Proofs.Optimistic.voteDutyStore`. The named tick uses
-`Protocol.NamedDuties.goldfish_vote_with (NamedProfile.gradeContract n.cache)`;
-its cached frame anchor is not the fresh `Protocol.GradeContract.current`
-anchor. Closing that Q-PR2 agreement is the NamedOutageClosure branches's subject
-and is not importable here. No new public premise is introduced.
-
-`honestHead_mem_ownVoteDutyStore`'s earlier call required the blocked bare-head
-form, and it has no consumer anywhere in the union cone (grepped against the
-661-module list): it is retired verbatim  to
-`the compatibility layer
-.lean`.
+Block admission is strict at the Goldfish support cutoff, while confirmation
+and next-slot vote duties read later stores. This module transports admitted
+honest heads to those reads. `emittedHead_mem_voteDutyStore` identifies the
+emitted named head with a body in the prepared vote read; the resolution
+lemmas use named store membership and root collision freedom. Admission
+itself requires block relay and the receiver's finalized-ancestor guard.
 -/
 
 

@@ -192,6 +192,21 @@ theorem action_add_delta_le_openingProposal_of_round_lt
   unfold Setup.a HealConfig.a Protocol.proposal_time Env.t slotStart
   exact key _ _ S.E.Δ S.E.Δ_pos hslots
 
+/-- A recurrence window ending at the action time of its last round is inside
+the run whenever that action time is inside the run. -/
+theorem openingProposal_window_le_action (S : Setup V) (r gap : Round) :
+    Protocol.proposal_time S.E (S.hc.opening_slot r) +
+      gap * (S.a 1 - S.a 0) ≤ S.a (r + gap) := by
+  have hperiod : S.a 1 - S.a 0 = 4 * S.E.Δ * (S.hc.R : Time) := by
+    unfold Setup.a Protocol.HealConfig.a Protocol.HealConfig.opening_slot slotStart
+    push_cast
+    ring
+  have haction : S.a r =
+      Protocol.proposal_time S.E (S.hc.opening_slot r) + 6 * S.E.Δ := rfl
+  rw [a_add_rounds, hperiod, haction]
+  push_cast
+  nlinarith [S.E.Δ_pos]
+
 #print axioms slotOf_of_between'
 #print axioms round_of_opening_succ
 #print axioms round_of_slotOf_a

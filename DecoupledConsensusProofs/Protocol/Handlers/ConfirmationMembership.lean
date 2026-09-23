@@ -15,7 +15,7 @@ variable {V : Type} [DecidableEq V] [Fintype V]
 /-- The STABLE record joined the predicate with addendum 34 26 (
 ): the confirmation duty now floors the confirmation record on the stable
 record, and the floor's third arm writes the stable record itself, so the
-confirmation value's membership no longer follows from the arm alone. -/
+confirmation value's membership does not follow from the arm alone. -/
 def Confirmed (st : Protocol.Store V) : Prop :=
   st.live_confirmed ∈ st.T ∧ st.latest_confirmed ∈ st.T ∧ st.latest_stable ∈ st.T
 

@@ -13,8 +13,8 @@ public import DecoupledConsensusProofs.Protocol.Grades.SeedRelativeGrade
 /-!
 # Prepared first-interior SG safety
 
-This leaf prebuilds the first-interior SG argument over the three pinned
-producers in. It does not add a protocol premise.
+This module proves the first-interior SG argument from the three producer
+conditions stated in its imports.
 -/
 
 

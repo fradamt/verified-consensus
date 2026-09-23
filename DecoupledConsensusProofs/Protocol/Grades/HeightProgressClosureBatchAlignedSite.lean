@@ -255,7 +255,7 @@ set_option maxHeartbeats 400000 in
 /-- The lifecycle's `_of_actionBatchAligned` premise, closed at round `q` from
 the fixed-root facts and the opening parent ceilings.
 
-The conclusion is `Internal.PhaseGrades.BatchAlignedAt` in its restored
+The conclusion is `Internal.PhaseGrades.BatchAlignedAt` in its
 latest-input scope, exactly the shape the lifecycle's `_of_actionBatchAligned`
 premise asks for. -/
 theorem actionBatchAlignedAt_of_fixedRoot

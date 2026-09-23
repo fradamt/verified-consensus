@@ -584,7 +584,7 @@ and this file's job is that they are enough. -/
 
 
 /-- **Named twin of `VoteStoreExtends`**: the determinism residual observed at
-the prepared vote read. The sole semantic field `head` is now the
+the prepared vote read. The semantic field `head` is the
 contract-parametric `voterHeadAt`. -/
 structure NamedVoteStoreExtends (S : Setup V) (ρ : Run V) (v : V) (s : Slot)
     (tree₀ : Finset (Block V)) (H : Block V) (B : NamedBlock V) : Prop where

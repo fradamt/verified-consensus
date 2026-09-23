@@ -60,9 +60,9 @@ a progress quorum is `q` weight of **actual participation** — fresh votes at a
 height nobody has voted at, which conflict with nothing and are therefore
 unslashable. `SlashableBound` bounds only the faults that leave evidence, so it
 says nothing about how much weight votes at all; only `3 · w(faulty) < W`
-guarantees the honest weight a progress quorum needs. In the user's words,
-*progress is necessary to regain safety even.* There is no weak-form variant of
-P5, and everything downstream of its hand-off inherits the strong bound.
+guarantees the honest weight a progress quorum needs. Progress is necessary
+to regain safety. P5 has no weak-form variant, and its hand-off requires the
+strong bound downstream.
 
 **Stability is not P5's problem.** P4 carries (C0), so P5 needs the predicate at
 a **single** round. Stating it "for all later rounds" would duplicate P4's

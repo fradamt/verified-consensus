@@ -389,7 +389,7 @@ theorem timeout_bound : TimeoutDelayBound S extra := by
   norm_num [TimeoutDelayBound, extra, S, hc, cfg]
 
 theorem recurrence : ProposerOpeningCarrierRecurrence S rho gap := by
-  intro k
+  intro k _ _
   refine ⟨k + 2, le_rfl, by simp [gap], ?_⟩
   change (0 : Fin 2) ∈ ({0} : Finset (Fin 2)) ∧
     (0 : Fin 2) ∈ ({0} : Finset (Fin 2)) ∧
@@ -404,9 +404,12 @@ uses gap 3. -/
 theorem generic_opening_recurrence_gap_two_impossible :
     ¬ Statements.Generic.StrongMultiProposerRecurrence
       (Statements.Instantiation.interface S)
-      (Statements.Instantiation.constants S) rho 2 := by
+      (Statements.Instantiation.constants S) rho 0 2 := by
   intro h
-  obtain ⟨s, hlo, hhi, hcarrier, _hopen⟩ := h 1 (by norm_num)
+  obtain ⟨s, hlo, hhi, hcarrier, _hopen⟩ := h 1 (by norm_num) (by
+    norm_num [Statements.Instantiation.constants, S, E, hc, cfg, rho, horizon,
+      Protocol.proposal_time, Env.t, slotStart, Setup.a, Protocol.HealConfig.a,
+      Protocol.HealConfig.opening_slot])
   change (∃ r : Round, s = S.hc.opening_slot r) ∧ _ at hcarrier
   obtain ⟨r, hs⟩ := hcarrier.1
   rw [hs] at hlo hhi
@@ -1276,8 +1279,8 @@ theorem generic_finality_regime :
       (Statements.Instantiation.constants S) rho 0 3 := by
   have hrec : Statements.Generic.StrongMultiProposerRecurrence
       (Statements.Instantiation.interface S)
-      (Statements.Instantiation.constants S) rho 3 := by
-    intro t ht
+      (Statements.Instantiation.constants S) rho 0 3 := by
+    intro t ht _
     have hperiod : 0 < (Statements.Instantiation.constants S).period :=
       Proofs.concretePeriod_pos S
     let q : Nat := Int.toNat (t / (Statements.Instantiation.constants S).period)

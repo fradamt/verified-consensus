@@ -15,12 +15,6 @@ slot field is arbitrary, but of admission: the block handler refuses a block
 whose parent sits at a slot at or above its own, and every store is
 parent-closed. So the order holds on exactly what a store actually holds.
 
-Split out of `UserConfirmationFreshnessRun`. That module's tail, the user
-record advance, rests on `Proofs.UserConfirmation.stateBefore_latest_origin`, which
-was withheld when the split was made and is a theorem again under 
-(the SG arm of `UserConfirmationSelectionAt`); the tail is
-restored there. These eight bounds never touched it and stay here.
-
 The bounds run over the named runtime. Where tree membership meets block
 acceptance, `Proofs.NamedStoreBridge.exists_named_of_mem_stateBefore` supplies the
 named body behind an erased one; parent closure and the clock-slot agreement

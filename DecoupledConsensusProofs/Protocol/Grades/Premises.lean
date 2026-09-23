@@ -5,20 +5,17 @@ public import DecoupledConsensusProofs.Protocol.Handlers.SGArrival
 
 @[expose] public section
 
-/-! Stage-1 premise of the asynchrony-resilience second half (addendum 34,
-). `HonestConfirmedAbove` is the draft twin of the selection
-definition `Internal.NamedStableChainOutage.HonestConfirmedAbove`. Per the 
-on, the selection definition is now the conjunction of
-`HonestConfirmedAtOrAbove` and `HonestHeadHeldAbove` below, at the same round
-`s`; `HonestConfirmedAbove` here matches it exactly and is the ONLY public
-premise ( 8).
+/-! Stage-1 premise of the asynchrony-resilience second half.
+`HonestConfirmedAbove` combines `HonestConfirmedAtOrAbove` and
+`HonestHeadHeldAbove` at the same round `s`. It is the public premise of the
+second-half result.
 
 `HonestConfirmedAtOrAbove` and `HonestHeadHeldAbove` are individually usable
 building blocks, not premises on their own: neither appears alone in the
 signature of `common_support_base`, only as the two components of `hconf`.
 `HealthySGArrival` is a third intermediate predicate. -/
 
-/-! ## The `Δ` grid (addendum 34 17)
+/-! ## The `Δ` grid
 
 `OutageExecution.boundaryPublic` puts the outage boundary on the `Δ` grid.
 Action times `Δ(4qR + 6)` and the phase cutoffs are on the same grid, so a

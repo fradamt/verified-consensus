@@ -31,7 +31,7 @@ namespace DecoupledConsensusModel
 namespace Proofs
 namespace HealingSurface
 
-open Internal Execution Internal.HealingSurface Protocol
+open Internal Execution Internal.HealingSurface Protocol Proofs.HealingLemmas
 
 variable {V : Type} [DecidableEq V] [Fintype V]
 
@@ -118,6 +118,13 @@ theorem carrierOpening_height_gt_of_twoProgress_at_carrier_of_frontierFloor
 #print axioms carrierOpening_height_gt_of_twoProgress_at_carrier_of_frontierFloor
 
 /-- The recurrence consumer over the prepared record's verbatim field. -/
+private theorem w4ds_select_bounds_nat {q0 start rawLag gap : Nat}
+    (hstart : q0 ≤ start) :
+    q0 < start + 2 * rawLag + 1 ∧
+      start + 2 * rawLag + 1 + gap ≤
+        start + 2 * rawLag + 1 + gap + 1 := by
+  omega
+
 theorem carrierOpening_height_gt_of_twoProgress_carrier_of_frontierFloor
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)
     {q0 rawLag gap start : Round}
@@ -128,6 +135,7 @@ theorem carrierOpening_height_gt_of_twoProgress_carrier_of_frontierFloor
     (hprogress : EventualHeightProgressFrom S rho q0 rawLag)
     (hrawPos : 0 < rawLag)
     (hrec : MultiProposerRecurrence S rho gap)
+    (hpost : S.E.t_GST ≤ S.a q0)
     (hstart : q0 ≤ start)
     (hhor : S.a (start + 2 * rawLag + 1 + gap + 1) ≤ rho.horizon) :
     ∃ first : Round,
@@ -135,8 +143,14 @@ theorem carrierOpening_height_gt_of_twoProgress_carrier_of_frontierFloor
         first ≤ start + 2 * rawLag + 1 + gap ∧
         ProposerCarrierAt S rho first ∧
         honestHMaxAt S rho (S.a start) < carrierOpeningHeight S rho first := by
+  obtain ⟨hfirstGST, hfirstEnd⟩ :=
+    w4ds_select_bounds_nat (rawLag := rawLag) (gap := gap) hstart
   obtain ⟨first, hfirstLo, hfirstHi, hcarrier⟩ :=
     hrec (start + 2 * rawLag + 1)
+      (hpost.trans ((Int.le_add_of_nonneg_right S.E.Δ_pos.le).trans
+        (action_add_delta_le_openingProposal_of_round_lt S hfirstGST)))
+      ((openingProposal_window_le_action S (start + 2 * rawLag + 1) gap).trans
+        ((Assembly.a_mono S hfirstEnd).trans hhor))
   have hfirst : start + 2 * rawLag < first :=
     w4ds_nat_above_of_window hfirstLo
   have hfirstHor : S.a (first + 1) ≤ rho.horizon :=

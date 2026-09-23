@@ -41,7 +41,7 @@ structure StrongRecoveryPrefix (S : Setup V) (rho : Run V)
     (S.node v).awake r = true
   committees : HonestCommittees S rho.honest
   belowThird : BelowOneThird S rho.honest
-  recurrence : MultiProposerRecurrence S rho gap
+  recurrence : MultiProposerRecurrence S rho gap S.E.t_GST
   timeout : TimeoutDelayBound S extra
   postGST : S.E.t_GST ≤ S.a rGST
   start : BoundedPhaseStart S rho rGST gap extra n
@@ -74,7 +74,7 @@ structure StrongFinalityRun (S : Setup V) (rho : Run V) (gap : Round) : Prop whe
     (S.node v).awake r = true
   committees : HonestCommittees S rho.honest
   belowThird : BelowOneThird S rho.honest
-  recurrence : ProposerOpeningCarrierRecurrence S rho gap
+  recurrence : ProposerOpeningCarrierRecurrence S rho gap S.E.t_GST
   gapBound : gap + 2 ≤ S.cfg.K
 
 end Statements
@@ -126,7 +126,7 @@ structure BFTRegime (S : Setup V) (I : Interface V) (rho : Run V) (t₀ : Time) 
 structure RecoveryRegime (S : Setup V) (I : Interface V) (C : Constants) (rho : Run V)
     (t₀ : Time) (gap : Nat) (extra : Nat) : Prop
     extends BFTRegime S I rho t₀ where
-  recurrence : MultiProposerRecurrence S rho gap
+  recurrence : MultiProposerRecurrence S rho gap S.E.t_GST
   timeout : TimeoutDelayBound S extra
   horizon : rho.horizon = C.prefixEnd t₀ gap extra
 
@@ -134,7 +134,7 @@ structure RecoveryRegime (S : Setup V) (I : Interface V) (C : Constants) (rho : 
 structure FinalityRegime (S : Setup V) (I : Interface V) (rho : Run V) (t₀ : Time)
     (gap : Nat) (extra : Nat) : Prop
     extends BFTRegime S I rho t₀ where
-  recurrence : ProposerOpeningCarrierRecurrence S rho gap
+  recurrence : ProposerOpeningCarrierRecurrence S rho gap S.E.t_GST
   gapBound : gap + 2 ≤ S.cfg.K
   timeout : TimeoutDelayBound S extra
 

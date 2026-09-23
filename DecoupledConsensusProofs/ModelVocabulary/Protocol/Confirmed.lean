@@ -46,8 +46,7 @@ extend the SG root; the handler alone does not.
 It is the stable/raw-record compatibility that replaces the prior finality/raw-record
 compatibility now that `get_confirmed` falls back on `get_stable`. Under the
 safety regime every honest node's read satisfies it, from SG-root canonicity of
-honest Goldfish heads; that is a follow-up statement and discharges the
-hypotheses that carry this predicate. -/
+honest Goldfish heads; which supplies this predicate under the safety regime. -/
 def StableBelowConfirmed (st : Store V) : Prop :=
   Block.Preceq st.latest_stable st.latest_confirmed
 

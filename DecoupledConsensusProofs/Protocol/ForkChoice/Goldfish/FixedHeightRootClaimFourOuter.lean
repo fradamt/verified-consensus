@@ -649,7 +649,7 @@ theorem fixedHeightJustificationRoot_boundedProposalLifecycle_closed
          `proposalCandidate` come from `hvoteData`, the two compatibility
          fields from `hanchorCompat`, and `sameHMax` from the no-rise
          `h_max = H` at both prepared reads.
-         Its own candidate-score bridge is now proved inside that module
+         Its candidate-score bridge is proved inside that module
          (`namedProposalCandidateScoreBridge_afterGST`, 14412be5), so nothing
          is carried here: the theorem stands on its public premises. -/
       have hAparentPre : Block.Preceq A

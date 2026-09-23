@@ -173,14 +173,13 @@ private theorem carrier_named_of_generic
   exact ⟨by simpa using h0, by simpa using h1, by simpa using h2⟩
 
 theorem proposerRecurrence_of_generic (S : Setup V) (rho : Run V)
-    (gap : Round)
-    (h : Generic.MultiProposerRecurrence (I S) (C S) rho gap) :
-    Internal.MultiProposerRecurrence S rho gap := by
-  intro r
-  have hnonneg : 0 ≤ Protocol.proposal_time S.E (S.hc.opening_slot r) :=
-    Proofs.Optimistic.proposal_time_nonneg S.E _
+    (t₀ : Time) (gap : Round)
+    (h : Generic.MultiProposerRecurrence (I S) (C S) rho t₀ gap) :
+    Internal.MultiProposerRecurrence S rho gap t₀ := by
+  intro r hstart hhor
   obtain ⟨s, hlo, hhi, hcarrier⟩ :=
-    h (Protocol.proposal_time S.E (S.hc.opening_slot r)) hnonneg
+    h (Protocol.proposal_time S.E (S.hc.opening_slot r)) hstart
+      (by simpa [C, Instantiation.constants] using hhor)
   change (∃ r' : Round, s = S.hc.opening_slot r') ∧
     (∀ k < 3, S.E.proposer (s + k) ∈ rho.honest) at hcarrier
   obtain ⟨r', hs⟩ := hcarrier.1
@@ -229,14 +228,13 @@ private theorem earlier_opening_honest
     nlinarith
 
 theorem openingCarrierRecurrence_of_generic (S : Setup V) (rho : Run V)
-    (gap : Round)
-    (h : Generic.StrongMultiProposerRecurrence (I S) (C S) rho gap) :
-    Internal.ProposerOpeningCarrierRecurrence S rho gap := by
-  intro k
-  have hnonneg : 0 ≤ Protocol.proposal_time S.E (S.hc.opening_slot k) :=
-    Proofs.Optimistic.proposal_time_nonneg S.E _
+    (t₀ : Time) (gap : Round)
+    (h : Generic.StrongMultiProposerRecurrence (I S) (C S) rho t₀ gap) :
+    Internal.ProposerOpeningCarrierRecurrence S rho gap t₀ := by
+  intro k hstart hhor
   obtain ⟨s, hlo, hhi, hcarrier, hopen⟩ :=
-    h (Protocol.proposal_time S.E (S.hc.opening_slot k)) hnonneg
+    h (Protocol.proposal_time S.E (S.hc.opening_slot k)) hstart
+      (by simpa [C, Instantiation.constants] using hhor)
   change (∃ r' : Round, s = S.hc.opening_slot r') ∧
     (∀ j < 3, S.E.proposer (s + j) ∈ rho.honest) at hcarrier
   obtain ⟨r', hs⟩ := hcarrier.1

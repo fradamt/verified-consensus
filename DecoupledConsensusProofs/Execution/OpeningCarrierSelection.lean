@@ -21,8 +21,8 @@ theorem proposerRecurrence_of_openingCarrierRecurrence
     (S : Setup V) {rho : Run V} {gap : Round}
     (h : ProposerOpeningCarrierRecurrence S rho gap) :
     MultiProposerRecurrence S rho gap := by
-  intro k
-  obtain ⟨r, hlo, hhi, _, _, hc⟩ := h k
+  intro k hstart hhor
+  obtain ⟨r, hlo, hhi, _, _, hc⟩ := h k hstart hhor
   exact ⟨r, (Nat.le_add_right k 2).trans hlo, hhi, hc⟩
 
 

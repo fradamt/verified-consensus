@@ -210,12 +210,13 @@ def SingleProposerRecurrence (I : Interface P) (C : Constants)
     ∃ s, t < I.proposalTime s ∧ I.proposalTime s ≤ t + gap * C.period ∧
       I.proposer s ∈ rho.honest
 
-/-- Tier 2, multi-proposer recurrence: within `gap` periods of every nonnegative
-time a multi-proposer window starts: an opening slot and the following
-`proposerSlots − 1` slots all have honest proposers; recovery and stable growth use it. -/
+/-- Tier 2, multi-proposer recurrence: within `gap` periods of every time from
+`start` a multi-proposer window starts: an opening slot and the following
+`proposerSlots − 1` slots all have honest proposers; recovery and stable growth use it.
+Only windows from `start` that end inside the run count. -/
 def MultiProposerRecurrence (I : Interface P) (C : Constants)
-    (rho : DecoupledConsensusModel.Generic.Run V P.Object) (gap : Nat) : Prop :=
-  ∀ t : Time, 0 ≤ t → ∃ s, t < I.proposalTime s ∧
+    (rho : DecoupledConsensusModel.Generic.Run V P.Object) (start : Time) (gap : Nat) : Prop :=
+  ∀ t : Time, start ≤ t → t + gap * C.period ≤ rho.horizon → ∃ s, t < I.proposalTime s ∧
     I.proposalTime s ≤ t + gap * C.period ∧
     MultiProposerAt I C rho.honest s
 
@@ -226,10 +227,11 @@ In continuous time the smallest satisfiable strong gap is 3 (the window
 `[t + 2·period, t + gap·period]` is a point at gap 2), so the finality claims
 are non-vacuous only for `gap ≥ 3`, hence `K ≥ 5`; this is one period more than
 the paper's round-sampled premise. The finality fixture witnesses gap 3 at
-`K = 5`. -/
+`K = 5`.
+Only windows from `start` that end inside the run count. -/
 def StrongMultiProposerRecurrence (I : Interface P) (C : Constants)
-    (rho : DecoupledConsensusModel.Generic.Run V P.Object) (gap : Nat) : Prop :=
-  ∀ t : Time, 0 ≤ t → ∃ s, t + 2 * C.period ≤ I.proposalTime s ∧
+    (rho : DecoupledConsensusModel.Generic.Run V P.Object) (start : Time) (gap : Nat) : Prop :=
+  ∀ t : Time, start ≤ t → t + gap * C.period ≤ rho.horizon → ∃ s, t + 2 * C.period ≤ I.proposalTime s ∧
     I.proposalTime s ≤ t + gap * C.period ∧
     MultiProposerAt I C rho.honest s ∧
     ∀ s', I.opening s' → I.proposalTime s - 2 * C.period ≤ I.proposalTime s' →

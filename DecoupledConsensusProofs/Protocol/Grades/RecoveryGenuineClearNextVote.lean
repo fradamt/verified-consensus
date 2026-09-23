@@ -26,14 +26,13 @@ public import DecoupledConsensusProofs.Protocol.ForkChoice.Goldfish.RecoveryProp
 /-!
 # Genuine-clear next-vote seed
 
-the prior module is not restated by erasing its rows. The runtime now uses named
-attestations and named blocks, and vote cones use `NamedHonestVotesCone`.
+The runtime uses named attestations and named blocks, and vote cones use
+`NamedHonestVotesCone`.
 
 The named-height handover, exact selected-body relay, filtered retention, and
-source relative G2 grade are proved below. The cross-reader algebra is now in
-`RelativeCrossReaderRun`. Its current delivery interface is stronger than the
-windowed delivery that this recovery theorem can derive, so the final seed
-constructors remain recorded at the exact Open boundary below.
+source relative G2 grade are proved below. The cross-reader algebra in
+`RelativeCrossReaderRun` requires stronger delivery than the recovery window
+supplies, so the final seed constructors remain open.
 -/
 
 

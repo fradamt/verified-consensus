@@ -505,9 +505,9 @@ theorem publicTime_Gamma_0 (S : Setup V) (r : Round) :
 
 
 /-- A block in one read store whose insertion stamp is below a public cutoff is
-either genesis or has an exact acceptance event below that cutoff. **available
-: `Protocol.HonestWeightMajority.acceptsAt_block_lt_of_stamp_before`
-is no longer an upstream gap (selection aaa6210, `AdoptionConstructorRun.lean`).**
+either genesis or has an exact acceptance event below that cutoff.
+`Protocol.HonestWeightMajority.acceptsAt_block_lt_of_stamp_before` supplies
+the acceptance time bound.
 The erased `B: Block V` conclusion of the prior statement cannot survive as
 `NamedRun.acceptsAt S rho i p (.block B) t`: `Object.block`/`NamedObject.block`
 takes a `NamedBlock V`, never an erased one (`NamedObjects.lean:8`). This is

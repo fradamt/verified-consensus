@@ -11,11 +11,11 @@ open Execution Internal.NamedOutageEntry Internal.NamedStableChainOutage
 open Internal.NamedJointOutage Protocol
 variable {V : Type} [DecidableEq V] [Fintype V]
 
--- This private helper is copied without changes from the checked
--- NamedFinalityGuard module. It is not available through its public API.
--- The existing outer sleepy condition supplies the quorum's honest member.
--- The faulty-weight bound it accompanies is now
--- Proofs.NamedOutageInputs.boundary_faulty_lt_quorum.
+-- A quorum contains an honest signer when faulty weight is below the
+-- quorum threshold.
+-- The outer sleepy condition supplies the required honest participation.
+-- `Proofs.NamedOutageInputs.boundary_faulty_lt_quorum` supplies the
+-- faulty-weight bound at the outage boundary.
 private theorem quorum_honest_member (S : Setup V) (rho : NamedRun V)
     (Q : Finset V) (hQ : S.E.electorate.IsQuorum Q)
     (hbad : S.E.electorate.weightOf (Finset.univ \ rho.honest) < S.E.q) :

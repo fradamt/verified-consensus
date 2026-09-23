@@ -237,11 +237,7 @@ theorem sg_support_le_faulty (E : Env V) {pool : Round → Finset (SGVote V)}
 
 
 
-/-! `active_grade_eq_false_off_can` — the same statement about the `active_grade`
-wrapper — is **retired**. The fourth healing-39 fold deleted the wrapper
-(PROTOCOL.md#the-complete-protocol is now prose), and it never carried any content of its
-own: it was `grade_eq_false_off_can` with a conjunct that only restricts further.
-Its two consumers below call `grade_eq_false_off_can` directly. -/
+
 /-- §6.2 a block off `Can`'s chain draws **direct** support from faulty weight
 alone (PROTOCOL.md#the-complete-protocol). Needs only the head half of `BatchAligned`. -/
 theorem direct_support_le_faulty (E : Env V) {gv : GradeView V} {Hon : Finset V}

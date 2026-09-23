@@ -81,7 +81,7 @@ def latest_support_vote (pool : Round → Finset (SGVote V)) (η_SG : Round)
 
 /-- §3.3 `v` is *represented* at round `r` (baseline `c9c98df`): **the expiry
 window holds any of its votes, resolved or not** — the raw denominator, the SG
-analogue of the Goldfish walk's raw `votes`. Representation no longer reads
+analogue of the Goldfish walk's raw `votes`. Representation does not read
 resolution, so `T` is gone from its arguments. -/
 def represented (pool : Round → Finset (SGVote V)) (η_SG : Round)
     (v : V) (r : Round) : Bool :=

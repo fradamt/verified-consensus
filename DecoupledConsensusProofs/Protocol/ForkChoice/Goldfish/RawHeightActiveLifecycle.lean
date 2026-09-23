@@ -16,10 +16,9 @@ open DecoupledConsensusModel.Statements.Instantiation
 /-!
 # Active exact-height opening classification
 
-The root-robust carrier is restored over named blocks and named derivation.
-The caller now supplies the source as a run block, so root collision freedom
-recovers the exact retained named witness. The complete earlier source is
-retained below.
+The root-robust carrier uses named blocks and named derivation.
+A source run block and root collision freedom identify the retained named
+witness.
 -/
 
 namespace DecoupledConsensusModel

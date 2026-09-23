@@ -5,9 +5,8 @@ public import DecoupledConsensusInternal.ModelVocabulary.Execution.Run
 @[expose] public section
 
 /-! # Profile-independent confirmation score and gate 
-Byte-identical extraction of the five pure GF definitions from
-`Confirmation.lean` so that the named confirmation walk and the prior owner
-share one leaf without a cycle. -/
+The five pure GF definitions give the named confirmation walk its
+profile-independent score and gate without an import cycle. -/
 
 
 namespace DecoupledConsensusModel

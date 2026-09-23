@@ -86,11 +86,10 @@ def actionSGVoteAt (S : Setup V) (rho : Run V) (v : V) (r : Round) :
 /-- At a round action the store is the named confirmation write on the
 support-cutoff read, with the action read's own cache contract.
 
-Statement change (ledger row C): `actionStoreAt` is a
-`NamedNodeState`, and `NamedActionReads.actionReadFrom` applies
-`Protocol.NamedDuties.update_confirmation_with` unconditionally, so the prior
-`if_pos` branch selection is definitional and the prior
-`Proofs.Optimistic.attestStore`/`tickStore` pair no longer appears. -/
+`actionStoreAt` is a `NamedNodeState`, and
+`NamedActionReads.actionReadFrom` applies
+`Protocol.NamedDuties.update_confirmation_with` unconditionally. The write
+therefore reduces directly to the prepared read's confirmation update. -/
 theorem actionStoreAt_eq_update_confirmation
     (S : Setup V) (rho : Run V) (v : V) (r : Round) :
     (actionStoreAt S rho v r).st =

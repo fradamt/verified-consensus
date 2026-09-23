@@ -76,7 +76,7 @@ theorem proposedBlock_parent_slot_lt
 and the proposal filter only removes entries. Thus the honest proposal passes
 the receiver-side carried-attestation predicate.
 
-design note: this is now `Proofs.HealingSurface.proposedBlockErased_carried_admissible`,
+design note: this is `Proofs.HealingSurface.proposedBlockErased_carried_admissible`,
 proved from the named selector's own window bound (`selected_row_round_le`),
 with no `Admissible`/`SgRounds` premise. -/
 theorem proposedBlock_carried_attestations_admissible
@@ -150,7 +150,7 @@ theorem acceptsAt_proposedBlock
 /-- An honest proposal in the bounded proposal window is a block in the
 run-wide collision-freedom scope.
 
-: `RunBlock` is now `NamedRun.blockInRun`, itself a `NamedBlock`-typed
+: `RunBlock` is `NamedRun.blockInRun`, itself a `NamedBlock`-typed
 relation; this is exactly `DecoupledConsensusModel.Proofs.HealingSurface.proposedBlockAt_blockInRun_of_admissible`. -/
 theorem proposedBlock_runBlock
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)

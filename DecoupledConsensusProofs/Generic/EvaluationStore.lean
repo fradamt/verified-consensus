@@ -260,8 +260,8 @@ row arrived on a block the same call processed.
 
 **Named (C-class statement change).** `NamedRun.acceptsAt` now
 ranges over `actualHandlesAtIndex`, which admits carried rows as well as direct
-calls, so the erased conclusion "the node processed the attestation" no longer
-covers every branch. The carried branch is reported explicitly: its own block
+calls, so the erased conclusion "the node processed the attestation" does not
+cover every branch. The carried branch is reported explicitly: its own block
 call is a direct processing fact for the carrier. -/
 theorem processes_of_acceptsAt_attest
     (S : Setup V) {rho : Run V} {v : V} {i : Nat}

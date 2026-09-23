@@ -168,7 +168,7 @@ theorem updateConfirmation_eq_proposedBlock_of_dutyExecution
 /-- The contract-carrying analogue of `Adoption.GenuineConfirmation`: the
 selected value is the contract's own composed walk, and that walk cleared the
 confirmation gate. `Adoption.GenuineConfirmation` stays at the unparameterised
-`GradeContract.current` walk, which the named tick no longer runs. -/
+`GradeContract.current` walk, which the named tick does not run. -/
 structure GenuineConfirmationWith (contract : Protocol.GradeContract V)
     (E : Env V) (hc : Protocol.HealConfig) (st : Protocol.Store V) (s : Slot)
     (B : Block V) : Prop where

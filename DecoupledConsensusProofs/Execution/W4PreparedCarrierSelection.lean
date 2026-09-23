@@ -116,6 +116,11 @@ private theorem w4pcs_nat_c1_above_of_window
 private theorem w4pcs_nat_lt_trans_round {a b c : Nat}
     (h1 : a < b) (h2 : b < c) : a < c := by omega
 
+private theorem w4pcs_nat_first_window
+    {start rawLag gap : Nat} :
+    start + 2 * rawLag + 1 + gap ≤
+      start + 4 * rawLag + 3 * gap + 5 := by omega
+
 /-- The prepared-record twin of the carrier-pair selection theorem. -/
 theorem exists_justifiableCarrierPair_afterTwoProgress_with_property_prepared
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)
@@ -123,8 +128,13 @@ theorem exists_justifiableCarrierPair_afterTwoProgress_with_property_prepared
     (hdensity : CanonicalCarrierDensityFromPrepared S rho q0)
     (hprogress : EventualHeightProgressFrom S rho q0 rawLag)
     (hrawPos : 0 < rawLag)
+    (hpost : S.E.t_GST ≤ S.a q0)
     {P : Round → Prop}
-    (hrec : ∀ k : Round, ∃ r : Round, k ≤ r ∧ r ≤ k + gap ∧
+    (hrec : ∀ k : Round,
+      S.E.t_GST ≤ Protocol.proposal_time S.E (S.hc.opening_slot k) →
+      Protocol.proposal_time S.E (S.hc.opening_slot k) +
+        gap * (S.a 1 - S.a 0) ≤ rho.horizon →
+      ∃ r : Round, k ≤ r ∧ r ≤ k + gap ∧
       ProposerCarrierAt S rho r ∧ P r)
     (hgap : gap + 2 ≤ S.cfg.K)
     (hstart : q0 ≤ start)
@@ -145,10 +155,17 @@ theorem exists_justifiableCarrierPair_afterTwoProgress_with_property_prepared
             (Protocol.derive_named S.E S.cfg P2).nj = false)) ∧
         P c1 ∧ P c2 := by
   have hplain : MultiProposerRecurrence S rho gap := by
-    intro k
-    obtain ⟨r, hlo, hhi, hc, _⟩ := hrec k
+    intro k hGST hwindow
+    obtain ⟨r, hlo, hhi, hc, _⟩ := hrec k hGST hwindow
     exact ⟨r, hlo, hhi, hc⟩
-  obtain ⟨a, haLo, haHi, ha, haP⟩ := hrec (start + 2 * rawLag + 1)
+  have hGSTfirst : S.E.t_GST ≤ Protocol.proposal_time S.E
+      (S.hc.opening_slot (start + 2 * rawLag + 1)) :=
+    hpost.trans ((a_le_healingBoundaryTime S q0).trans hafter.le)
+  have hhorFirst :=
+    (openingProposal_window_le_action S (start + 2 * rawLag + 1) gap).trans
+      ((Assembly.a_mono S w4pcs_nat_first_window).trans hhor)
+  obtain ⟨a, haLo, haHi, ha, haP⟩ :=
+    hrec (start + 2 * rawLag + 1) hGSTfirst hhorFirst
   have haBound : a ≤ start + 4 * rawLag + 3 * gap + 4 :=
     w4pcs_nat_carrier_a_bound haHi
   have hafterA : healingBoundaryTime S q0 <
@@ -172,7 +189,7 @@ theorem exists_justifiableCarrierPair_afterTwoProgress_with_property_prepared
     (Assembly.a_mono S (w4pcs_nat_zwindow haHi)).trans hhor
   obtain ⟨z, hzLo, hzHi, hz, hzHeight⟩ :=
     carrierOpening_height_gt_of_twoProgress_carrier_of_frontierFloor S adm
-      hdensity.frontierFloor hprogress hrawPos hplain
+      hdensity.frontierFloor hprogress hrawPos hplain hpost
       (w4pcs_nat_q0_le_succ hstart haLo) hzWindowHor
   have haStrict : carrierOpeningHeight S rho a <
       carrierOpeningHeight S rho z :=
@@ -180,13 +197,12 @@ theorem exists_justifiableCarrierPair_afterTwoProgress_with_property_prepared
       (carrierOpeningHeight_le_honestHMaxAt_succ S adm hafterA ha
         (hproposalHor a haBound)) hzHeight
   have haz : a < z := w4pcs_nat_a_lt_z hzLo
-  have hzgapHor : Protocol.proposal_time S.E
-      (S.hc.opening_slot (z + gap)) ≤ rho.horizon :=
-    hproposalHor (z + gap) (w4pcs_nat_zgap_bound haHi hzHi)
+  have hzgapHor : S.a (z + gap) ≤ rho.horizon :=
+    hstepHor (z + gap) (w4pcs_nat_zgap_bound haHi hzHi)
   obtain ⟨c1, c2, hac1, hc1z, hc12, hnear, hc1, hc2, hstrictPair,
       hc1P, hc2P⟩ :=
     exists_strictHeightCarrierPair_with_property_of_canonicalSuffixFrom S adm
-      hdensity.execution.canonicalSuffixFrom hrec
+      hdensity.execution.canonicalSuffixFrom hpost hrec
       (z - a) a z (Nat.le_refl _) (w4pcs_nat_q0_le_carrier hstart haLo)
       hafterA ha haP hz haz haStrict hzgapHor
   have hc1Bound : c1 ≤ start + 4 * rawLag + 3 * gap + 4 :=

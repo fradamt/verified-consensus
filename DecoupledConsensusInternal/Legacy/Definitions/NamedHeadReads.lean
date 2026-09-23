@@ -13,14 +13,12 @@ open DecoupledConsensusModel.Statements.Instantiation
 The three protocol head reads and the confirmation selection, observed on
 the prepared named reads through the contract-parametric selectors the
 named duties call (`get_head_with`, `get_head_in_tree_with`,
-`update_confirmation_with`). No old core selector is re-run on an erased
-store. Replacement bodies follow for `ActualConfirmationSelection`,
-`HonestProposalReadSafety`, `AvailableChainGrowthFrom`, and the proposal
-and vote fields of `GSTZeroGuarantees` and `PhaseShiftSafety`. Rule for every
-old total `proposedBlock` occurrence: a SAFETY field quantifies the
-witness (`∀ B, proposedBlockAt S rho s = some B → …`), a LIVENESS or
-equality conclusion concludes the witness (`∃ B, proposedBlockAt S rho s =
-some B ∧ …`); the block appears as `B.erase` in geometric positions.
+`update_confirmation_with`). This module defines
+`ActualConfirmationSelection`, `HonestProposalReadSafety`,
+`AvailableChainGrowthFrom`, and the proposal and vote fields of
+`GSTZeroGuarantees` and `PhaseShiftSafety`. Safety fields quantify a proposal
+witness. Liveness and equality conclusions supply one. Geometric positions
+use its erasure `B.erase`.
 -/
 
 
@@ -57,14 +55,14 @@ def confirmationDutyOutput (S : Setup V) (before : NamedNodeState V) (time : Tim
   Protocol.NamedDuties.update_confirmation_with (NamedProfile.gradeContract n.cache)
     S.E S.hc n.st (S.E.slotOf time - 1)
 
-/-- Replacement body: a value selected by an actual confirmation tick. -/
+/-- A value selected by an actual confirmation tick. -/
 def ActualConfirmationSelection (S : Setup V) (rho : Run V) (v : V) (i : Nat)
     (C : Block V) : Prop :=
   ∃ time, rho.events[i]? = some (.tick v time) ∧
     0 < S.E.slotOf time ∧ time = Protocol.support_cutoff S.E (S.E.slotOf time) ∧
     (confirmationDutyOutput S (NamedRun.stateBefore S rho i v) time).core.live_confirmed = C
 
-/-- Replacement body: an honest proposal remains below all three later head reads. -/
+/-- An honest proposal remains below all three later head reads. -/
 structure HonestProposalReadSafety (S : Setup V) (rho : Run V) (s : Slot) : Prop where
   proposal : ∀ B, proposedBlockAt S rho s = some B →
     ∀ k, s < k → Protocol.proposal_time S.E k ≤ rho.horizon →
@@ -76,7 +74,7 @@ structure HonestProposalReadSafety (S : Setup V) (rho : Run V) (s : Slot) : Prop
     ∀ r, s ≤ S.hc.opening_slot r + 1 → S.a r ≤ rho.horizon →
     ∀ v ∈ rho.honest, Block.Preceq B.erase (actionHeadAt S rho v r)
 
-/-- Replacement body: bounded strict growth of the user confirmation record,
+/-- Bounded strict growth of the user confirmation record,
 with the honest proposal's existence concluded. -/
 def AvailableChainGrowthFrom (S : Setup V) (rho : Run V) (start : Slot) (gap : Round) : Prop :=
   ∀ r : Round, start ≤ S.hc.opening_slot r →
@@ -93,7 +91,7 @@ def AvailableChainGrowthFrom (S : Setup V) (rho : Run V) (start : Slot) (gap : R
           Block.Preceq B.erase (rho.storeAt S v t).latest_confirmed ∧
           Block.Preceq B.erase (confirmedOutputAt S rho v t))
 
-/-- Replacement fields for `GSTZeroGuarantees.latestAtProposal` and
+/-- Fields for `GSTZeroGuarantees.latestAtProposal` and
 `PhaseShiftSafety.honestProposalLive` (equality conclusions conclude the witness). -/
 def LatestAtProposalField (S : Setup V) (rho : Run V) (lo : Slot) : Prop :=
   ∀ s, lo < s → Protocol.confirmation_time S.E s ≤ rho.horizon →
@@ -109,7 +107,7 @@ def HonestProposalLiveField (S : Setup V) (rho : Run V) (start : Slot) : Prop :=
       ∀ v ∈ rho.honest,
         (rho.storeAt S v (Protocol.confirmation_time S.E s)).live_confirmed = B.erase
 
-/-- Replacement fields for `PhaseShiftSafety.seedAtVote` and `liveAtVote`. -/
+/-- Fields for `PhaseShiftSafety.seedAtVote` and `liveAtVote`. -/
 def SeedAtVoteField (S : Setup V) (rho : Run V) (start : Slot) (P : Block V) : Prop :=
   ∀ d, start ≤ d → Protocol.vote_time S.E d ≤ rho.horizon →
     ∀ v ∈ rho.honest, Block.Preceq P (voterHeadAt S rho v d)

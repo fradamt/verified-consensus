@@ -1265,16 +1265,20 @@ theorem exists_strictHeightCarrierPair_with_property_of_canonicalSuffixFrom
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)
     {q0 gap : Round}
     (hsuffix : CanonicalSuffixFrom S rho (healingBoundaryTime S q0))
+    (hpost : S.E.t_GST ≤ S.a q0)
     {P : Round → Prop}
-    (hrec : ∀ k : Round, ∃ r : Round, k ≤ r ∧ r ≤ k + gap ∧
+    (hrec : ∀ k : Round,
+      S.E.t_GST ≤ Protocol.proposal_time S.E (S.hc.opening_slot k) →
+      Protocol.proposal_time S.E (S.hc.opening_slot k) +
+        gap * (S.a 1 - S.a 0) ≤ rho.horizon →
+      ∃ r : Round, k ≤ r ∧ r ≤ k + gap ∧
       ProposerCarrierAt S rho r ∧ P r) :
     ∀ n a z : Round, z - a ≤ n → q0 ≤ a →
       healingBoundaryTime S q0 <
           Protocol.proposal_time S.E (S.hc.opening_slot a) →
       ProposerCarrierAt S rho a → P a → ProposerCarrierAt S rho z → a < z →
       carrierOpeningHeight S rho a < carrierOpeningHeight S rho z →
-      Protocol.proposal_time S.E (S.hc.opening_slot (z + gap)) ≤
-        rho.horizon →
+      S.a (z + gap) ≤ rho.horizon →
       ∃ c1 c2 : Round, a ≤ c1 ∧ c1 < z ∧ c1 < c2 ∧ c2 ≤ c1 + gap + 1 ∧
         ProposerCarrierAt S rho c1 ∧ ProposerCarrierAt S rho c2 ∧
         carrierOpeningHeight S rho c1 < carrierOpeningHeight S rho c2 ∧
@@ -1286,7 +1290,16 @@ theorem exists_strictHeightCarrierPair_with_property_of_canonicalSuffixFrom
       exact absurd haz (w4_nat_not_lt_of_sub_le_zero hn)
   | succ n ih =>
       intro a z hn hq0 hafter ha haP hz haz hstrict hhor
-      obtain ⟨b, hbLo, hbHi, hb, hbP⟩ := hrec (a + 1)
+      have hGSTwindow : S.E.t_GST ≤
+          Protocol.proposal_time S.E (S.hc.opening_slot (a + 1)) :=
+        hpost.trans ((Int.le_add_of_nonneg_right S.E.Δ_pos.le).trans
+          (action_add_delta_le_openingProposal_of_round_lt S
+            (lt_of_le_of_lt hq0 (Nat.lt_succ_self a))))
+      have hwindowRound : a + 1 + gap ≤ z + gap :=
+        Nat.add_le_add_right (Nat.succ_le_of_lt haz) gap
+      have hhorWindow := (openingProposal_window_le_action S (a + 1) gap).trans
+        ((Assembly.a_mono S hwindowRound).trans hhor)
+      obtain ⟨b, hbLo, hbHi, hb, hbP⟩ := hrec (a + 1) hGSTwindow hhorWindow
       have hab : a < b := (Nat.lt_succ_self a).trans_le hbLo
       have hbNear : b ≤ a + gap + 1 := w4_nat_near_of_next_window hbHi
       have hbBound : b ≤ z + gap := w4_nat_bound_of_near hbNear haz
@@ -1302,8 +1315,9 @@ theorem exists_strictHeightCarrierPair_with_property_of_canonicalSuffixFrom
             (w4_openingSlot_mono S.hc (Nat.le_of_lt haz)))
       have hbHor : Protocol.proposal_time S.E (S.hc.opening_slot b) ≤
           rho.horizon :=
-        (Protocol.proposal_time_mono S.E
-          (w4_openingSlot_mono S.hc hbBound)).trans hhor
+        (proposal_time_le_confirmation_time S.E _).trans
+          (by simpa only [opening_confirmation_time_eq_action] using
+            (Assembly.a_mono S hbBound).trans hhor)
       by_cases hgrow :
           carrierOpeningHeight S rho a < carrierOpeningHeight S rho b
       · exact ⟨a, b, Nat.le_refl a, haz, hab, hbNear, ha, hb, hgrow, haP, hbP⟩

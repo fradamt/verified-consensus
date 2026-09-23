@@ -16,25 +16,9 @@ public import DecoupledConsensusProofs.Protocol.ForkChoice.Goldfish.HeightRegime
 
 Both FG source cases deliver the exact source block to every honest reader
 before the action. Before the first global height crossing, its presence
-forces each reader's frontier to the source height. The recovery condition
-also gives the strict justification gap. The common-height frame used by
-the SG safety window is therefore a conclusion, not an input.
-
-This does not assert that the interval before the crossing lasts for a full
-SG bootstrap window, or that the deeper FG witness is already protected.
-
-The `RawExactHeightSeedRun` object is now present. The named source frame and
-round-local relative-grade consumer chain are live. The pre-rewrite
-declarations stay byte-exact in the comment below.
-
-```text
-error: Application type mismatch: The argument
-  a
-has type
-  CombinedAttestation V
-but is expected to have type
-  NamedAttestation ?m
-```
+fixes each reader's frontier at the source height. The recovery condition
+also gives the strict justification gap. These facts support the relative
+SG grade and checkpoint arguments below.
 -/
 
 namespace DecoupledConsensusModel

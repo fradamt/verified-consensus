@@ -34,15 +34,13 @@ the two facts as `FinalityFloorAt` and `HeightRegimeFrame`, proves the
 recovery-height instances, and gives the generic forms of the chain's
 leaves.
 
-restated under the sg-selection (rulings design note).
-`FinalityFloorAt` and `HeightRegimeFrame.rootBelow` now range over the named
-store: the finality-floor witness is a `NamedBlock` reached through
-`RunBlock` (`NamedRun.blockInRun`, which no longer admits an erased `Block`
-argument), and its height/finality fields are read through
-`Protocol.derive_named`, never the retired `derived_state` bridge.
+`FinalityFloorAt` and `HeightRegimeFrame.rootBelow` range over the named
+store. The finality-floor witness is a `NamedBlock` reached through
+`RunBlock` (`NamedRun.blockInRun`), and its height and finality fields use
+`Protocol.derive_named`.
 `HeightRegimeFrame.rootBelow`'s raw-tree witness stays an erased `Block`
 (`FGForkChoice` still computes over `Store.T`/`Store.σ`), but its height
-premise is now the store's own cached chain state (`st.σ Q`, an invariant
+premise is the store's own cached chain state (`st.σ Q`, an invariant
 clause of `Proofs.NamedStore.Coherent`'s `DerivedView`) rather than a recomputation
 through `derived_state`, which 1636 retired as agreeing with the real
 (named) computation only on timeout-free chains. See the closing note for
@@ -101,7 +99,7 @@ theorem localHMax_eq_blocked_succ_of_rawMem_of_prefixFrontier
 /-- **The finality floor** at predecessor height `blocked` over the event
 prefix `stop`, relative to a previous checkpoint `Tprev`: every honest
 finalized block is below every run block at height at least `blocked` that
-extends `Tprev`. The witness is a `NamedBlock` (`RunBlock` no longer admits
+extends `Tprev`. The witness is a `NamedBlock` (`RunBlock` cannot take
 an erased witness), read through `derive_named`; the finalized/`Tprev`
 comparisons stay over erased blocks (`ChainState`'s own fields), so the
 witness is compared through its `.erase`. -/

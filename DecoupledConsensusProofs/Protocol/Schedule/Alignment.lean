@@ -411,7 +411,7 @@ theorem index_lt_stateAt_length (S : Setup V) {ρ : Run V} (sch : ScheduleWellFo
 The block a vote names is in the reader's tree *and was processed before* `Γ`.
 
 This is a **FOR-REVIEW conditional**, not a theorem, and it is the timing half
-of the pair the re-stamp fold first surfaced. **Its discharge route is now the
+of the pair the re-stamp fold first surfaced. **Its discharge route is the
 typed forwarding contract** (baseline `7b2efec`): `Synchrony.relay_block` says
 an honest node forwards every block it *admits*, so an honest voter's own head
 — admitted at that voter before its vote — reaches every honest node within
@@ -427,7 +427,7 @@ old §6.2 `g0_clear` soundness argument needed and the re-stamp variant broke. T
 conditional here is the converse — "delivered ⟹ inside the cutoff" — which no
 encoding can supply for free.
 
-**Admission scoping (baseline `0a2c947`).** Delivery no longer implies
+**Admission scoping.** Delivery does not imply
 processing at all: `on_block` drops a block the receiver's `Σ.F` does not
 precede, and a vote whose head is dropped **never resolves at that store**
 (`τ = +∞` there, permanently). The conditional's discharge therefore carries a

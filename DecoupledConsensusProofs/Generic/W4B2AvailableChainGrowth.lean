@@ -34,6 +34,9 @@ namespace W4
 open Internal Execution Statements
 variable {V : Type} [DecidableEq V] [Fintype V]
 
+private theorem lt_add_three (a b c d : Nat) : a < a + 1 + b + c + d := by
+  omega
+
 
 /-- The healed post-GST records gives bounded available-chain growth when the
 continuation has the accepted proposer recurrence. Named twin of earlier's
@@ -41,9 +44,11 @@ continuation has the accepted proposer recurrence. Named twin of earlier's
 theorem availableChainGrowthFrom_of_healed
     (S : Setup V) {rho : Run V} {start : Slot} {P : Block V} {gap : Round}
     (hsafe : UserConfirmationAfterHealing S rho start P)
-    (hrec : ProposerOpeningCarrierRecurrence S rho gap) :
+    (hrec : ProposerOpeningCarrierRecurrence S rho gap)
+    (hGSTStart : S.E.t_GST ≤ Protocol.proposal_time S.E start) :
     AvailableChainGrowthFrom S rho start gap :=
   availableChainGrowthFrom_of_userProposals S hsafe.latestMonotone hsafe.proposals hrec
+    hGSTStart
 
 
 /-- The GST-zero safety records gives bounded available-chain growth from slot
@@ -53,9 +58,12 @@ from `0` to `confirmation_time 0` uses `Proofs.Optimistic.confirmation_time_nonn
 theorem availableChainGrowthFrom_of_genesis
     (S : Setup V) {rho : Run V} {gap : Round}
     (hsafe : GSTZeroGuarantees S rho)
-    (hrec : ProposerOpeningCarrierRecurrence S rho gap) :
+    (hrec : ProposerOpeningCarrierRecurrence S rho gap)
+    (hgst : S.E.t_GST = 0) :
     AvailableChainGrowthFrom S rho 0 gap := by
   apply availableChainGrowthFrom_of_userProposals S _ hsafe.userProposals hrec
+    (by simpa [hgst, Protocol.HealConfig.opening_slot] using
+      (Proofs.Optimistic.proposal_time_nonneg S.E 0))
   intro v hv t t' ht htt hhor
   apply hsafe.availableChain.2.1 v hv t t' _ htt hhor
   exact (Proofs.Optimistic.confirmation_time_nonneg S.E 0).trans ht
@@ -72,14 +80,26 @@ theorem availableChainGrowth (S : Setup V) : AvailableChainGrowth S where
     have hgst : GSTZeroGuarantees S rho :=
       Proofs.HealingSurface.gstZeroSafety S hgenesis.core hgenesis.committees
         hgenesis.gstZero hgenesis.windows
-    exact availableChainGrowthFrom_of_genesis S hgst hrec
+    exact availableChainGrowthFrom_of_genesis S hgst hrec hgenesis.gstZero
   afterGST := by
     intro rho rGST gap extra n hprefix
     obtain ⟨m, hnm, hmgap, hgapm, P, hP, hcont⟩ :=
       boundedSafetyRecovery_closed S rho rGST gap extra n hprefix
     refine ⟨m, hnm, hmgap, hgapm, ?_⟩
     intro rho' hweak continuationGap hrec'
-    exact availableChainGrowthFrom_of_healed S (hcont rho' hweak).userConfirmation hrec'
+    have hnm' : rGST < m := by
+      apply lt_of_lt_of_le ?_ hnm
+      have hs := hprefix.start
+      dsimp [Internal.BoundedPhaseStart] at hs
+      rw [hs]
+      exact lt_add_three _ _ _ _
+    have hGSTStart : S.E.t_GST ≤
+        Protocol.proposal_time S.E (S.hc.opening_slot m) :=
+      hprefix.postGST.trans
+        ((Int.le_add_of_nonneg_right S.E.Δ_pos.le).trans
+          (Proofs.HealingLemmas.action_add_delta_le_openingProposal_of_round_lt S hnm'))
+    exact availableChainGrowthFrom_of_healed S
+      (hcont rho' hweak).userConfirmation hrec' hGSTStart
 
 #print axioms availableChainGrowth
 

@@ -7,105 +7,12 @@ public import DecoupledConsensusProofs.Protocol.Handlers.StableOutputSeed
 @[expose] public section
 
 /-!
-## Open — `stableAt_confirmationCoverageBefore`
+# Confirmation coverage from a stable root
 
-The attempted declaration is retained byte-exactly below.
-
-```lean
-set_option maxHeartbeats 400000 in
-theorem stableAt_confirmationCoverageBefore
-    (S: Setup V) (rho: NamedRun V) (b0 b1: Time) (v: V)
-    (s: Round) (P: Block V)
-    (hexec: OutageExecution S rho b0 b1)
-    (hslash: NamedOutageEntry.SlashableBound S rho)
-    (hcom: HonestCommittees S rho.honest)
-    (hsleep: OutageSleepyThroughout S rho)
-    (hforming: GradeFormingThroughout S rho)
-    (hv: v ∈ rho.honest) (hmargin: FormationMargin S s b0)
-    (hstable: stableAt S rho v s P) (hs: 0 < s):
-    ConfirmationCoverageBefore S rho b0 s P:= by
-  intro w hw t hst ht hslot hcut
-  constructor
-  swap
-  · intro G hG
-    exact ?_
-  · exact ?_
-```
-
-`Premises.lean:145` defines the exact clause as:
-
-```lean
-def ConfirmationCoverageBefore (S: Setup V) (rho: NamedRun V) (b0: Time) (s: Round)
-    (P: Block V): Prop:=
-  ∀ w ∈ rho.honest, ∀ t: Time,
-    S.a s ≤ t → t < b0 →
-    0 < S.E.slotOf t → t = Protocol.support_cutoff S.E (S.E.slotOf t) →
-    Block.Preceq P (sgRoot S (confirmationReadAt S rho w t)) ∧
-    ∀ G, activeG2 S (confirmationReadAt S rho w t) = some G → Block.Preceq P G
-```
-
-Exact goal:
-
-```text
-G: Block V
-hG: activeG2 S (confirmationReadAt S rho w t) = some G
-⊢ P ⪯ G
-```
-
-First compiler error, verbatim:
-
-```text
-DecoupledConsensusProofs/NamedOutageClosure/StableCoverageAssemblyRun.lean:26:10: error: don't know how to synthesize placeholder
-context:
-V: Type
-inst†¹: DecidableEq V
-inst†: Fintype V
-S: Setup V
-rho: NamedRun V
-b0 b1: Time
-v: V
-s: Round
-P: Block V
-hexec: OutageExecution S rho b0 b1
-hslash: NamedOutageEntry.SlashableBound S rho
-hcom: HonestCommittees S rho.honest
-hsleep: OutageSleepyThroughout S rho
-hforming: GradeFormingThroughout S rho
-hv: v ∈ rho.honest
-hmargin: FormationMargin S s b0
-hstable: stableAt S rho v s P
-hs: 0 < s
-w: V
-hw: w ∈ rho.honest
-t: Time
-hst: S.a s ≤ t
-ht: t < b0
-hslot: 0 < S.E.slotOf t
-hcut: t = Protocol.support_cutoff S.E (S.E.slotOf t)
-G: Block V
-hG: activeG2 S (confirmationReadAt S rho w t) = some G
-⊢ P ⪯ G
-```
-
-The later-round carrier induction does not close the endpoint `t = S.a s`.
-At that time the round-`s` honest carrier is only being emitted. The strict
-prepared confirmation read still consumes the reader's round-`s` frozen G2
-root. The phase ladder puts the source reader's stable G2 root at G1 in every
-other honest reader; it proves compatibility with another reader's G2 root,
-not the directed relation `P ⪯ G`. The next-round relay and grade-forming
-step used by `honestCarriersAbove_succ_of_gradeFormingMajority_of_stable`
-starts one round later and cannot rewrite this current-frame value.
-
-The pre-rewrite earlier theorem
-`WeakGenesis.stableRoot_has_voteHead_bound_of_weakGenesis` ends at later
-`voteDutyHead` values. Its exact step is
-`stableRoot_preceq_honestPreviousEmission` followed by
-`actionSources_preceq_voteDutyHead_of_gstZero`; it has no conclusion about the
-current confirmation read's `activeG2`. The concrete selection difference is
-therefore the widened clause range `S.a s ≤ t`, together with the frozen
-current-round G2 field. S7 supplies later carrier heads but no theorem can
-orient this already-frozen field without strengthening the stable witness or
-narrowing the clause range. Both changes are forbidden for this branches.
+This module relates the active G2 root at a confirmation read to its SG root
+and proves `stableAt_confirmationCoverageBefore'`. The current-round frozen
+G2 field requires a separate order argument at the endpoint `t = S.a s`;
+later carrier induction alone does not give that direction.
 -/
 
 namespace DecoupledConsensusModel.Proofs.NamedOutageClosure

@@ -136,7 +136,7 @@ theorem graded_root_on_history
 /-! ## The SG step, index form, conditional on the two gaps -/
 
 /-- Index form of `JointHistoryGapsTime.fg_source_on_history_of`. `hconf`
-is now a one-shot `ConfirmationAtTick` at the SAME index `i` as the acting
+is a one-shot `ConfirmationAtTick` at the SAME index `i` as the acting
 tick (`hs`), and `hgraded` carries the single index bound `n` with `i ≤ n`. -/
 theorem fg_source_on_history_of
     (S : Setup V) (rho : NamedRun V) (core : NamedAdmissibleCore S rho)

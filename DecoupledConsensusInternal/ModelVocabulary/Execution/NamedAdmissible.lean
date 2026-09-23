@@ -9,7 +9,7 @@ public import DecoupledConsensusInternal.ModelVocabulary.Execution.NamedReceiptC
 @[expose] public section
 
 /-! Full named environmental contracts over the concrete run. Schedule and
-bounds retain their existing formulas. The approved named recipient relation
+bounds retain their existing formulas. The named recipient relation
 counts actual direct/self/carried calls; it does not promise successful admission.
 No compatibility contract or supplied configuration is changed. -/
 namespace DecoupledConsensusModel.Execution

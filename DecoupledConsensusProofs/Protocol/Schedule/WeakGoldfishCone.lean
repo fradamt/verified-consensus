@@ -1279,11 +1279,8 @@ private theorem coreHonestHeadsAvailable
 /-- **Public: an honest named cone and the next duty root prove timely block
 availability.**
 
-Restored outside this module's  block, on the available
-`coreHonestHeadsAvailable`. The earlier statement took
-`Proofs.Optimistic.HonestVotesCone` and the erased vote duty store; this one takes
-`NamedHonestVotesCone` and the prepared vote duty read. Same name and same
-namespace as the declaration the  block retains. -/
+The `coreHonestHeadsAvailable` theorem supplies the core availability fact.
+This result uses `NamedHonestVotesCone` and the prepared vote duty read. -/
 theorem honestHeadsAvailableBefore_of_postHealingCone_atVoteDuty
     (S : Setup V) {rho : Run V} (adm : AdmissibleCore S rho)
     {s : Slot} {v : V} (hv : v ∈ rho.honest)
@@ -1410,8 +1407,8 @@ theorem honestHeadsAvailableBefore_of_delivery_atVoteDuty
 
 
 /-- **Public: the prepared vote-duty head is a named run block and is the head
-the honest voter emits.** Restored outside the  block, on the available
-`coreVoterHeadEmits`; it supplies a whole `NamedHonestVotesCone` witness. -/
+the honest voter emits.** `coreVoterHeadEmits` supplies a
+`NamedHonestVotesCone` witness. -/
 theorem voterHead_runBlock_and_emits
     (S : Setup V) {rho : Run V} (adm : AdmissibleCore S rho)
     {w : V} (hw : w ∈ rho.honest) {s : Slot}

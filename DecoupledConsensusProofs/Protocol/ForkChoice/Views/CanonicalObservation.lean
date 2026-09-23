@@ -35,7 +35,7 @@ unfold to `Protocol.NamedActions.proposal_with` at the identical prepared read
 (`canonicalTickReadAtIndex` at the proposal instant is
 `Statements.Instantiation.proposerReadAt`), so this is an internal-consistency fact, not
 a cross-system claim (ledger: statement changed, `proposedBlock` retired
-under, target is now `Option (NamedBlock V)`). -/
+under, target has type `Option (NamedBlock V)`). -/
 theorem proposalStageBlockAtIndex_eq_proposedBlock
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)
     {i : Nat} {v : V} {t : Time}
@@ -106,7 +106,7 @@ theorem voteStageHeadAtIndex_eq_voteDutyHead
 /-- A named in-run proposal tick supplies the exact stage-1 observation, for
 whichever retained body the total `Statements.Instantiation.proposedBlockAt` reader
 selects at that slot (: the reader is `Option`-valued, so the retained
-witness `B` is now an explicit premise rather than a value the theorem
+witness `B` is an explicit premise rather than a value the theorem
 produces on its own; ledger: statement changed). -/
 theorem proposedBlock_observationAtIndex
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)

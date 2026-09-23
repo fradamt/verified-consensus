@@ -424,11 +424,7 @@ theorem q7_grade_eq_false_of_conflicts (E : Env V) (hc : Protocol.HealConfig) :
 
 
 
-/-! `active_grade_eq_false_of_conflicts` — the same statement about the
-`active_grade` wrapper — is **retired** with the wrapper (PROTOCOL.md#the-complete-protocol
-is now prose). It restricted `grade_eq_false_of_conflicts` by a conjunct that can
-only shrink the set, so it never carried content, and every site that reads a
-grade now reads it bare. -/
+
 
 
 

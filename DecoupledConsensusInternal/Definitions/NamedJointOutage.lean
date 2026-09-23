@@ -264,7 +264,7 @@ frame arm on the raw frozen root.
 The SG field reads at the round's opening ( 12) rather than
 at the pre-action checkpoint, `included` is the matching opening condition, and
 the two remaining checkpoint-based fields `fg` and `old_rows` are guarded by
-`S.a r ≤ rho.horizon`, which the opening condition no longer implies.
+`S.a r ≤ rho.horizon`, which the opening condition does not imply.
 
 The frame arm asserts the RAW frozen root and nothing else. The active candidate
 is not asserted, because a reader with `F ≺ P ⪯ J = get_fg_root` has an empty

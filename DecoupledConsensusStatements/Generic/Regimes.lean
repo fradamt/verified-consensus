@@ -62,7 +62,7 @@ structure RecoveryRegime
     (rho : DecoupledConsensusModel.Generic.Run V P.Object) (t₀ : Time)
     (gap : Nat) : Prop
     extends BFTRegime P E I rho t₀ where
-  recurrence : MultiProposerRecurrence I C rho gap
+  recurrence : MultiProposerRecurrence I C rho E.t_GST gap
   horizon : rho.horizon = C.prefixEnd t₀ gap
 
 /-- The run is recovered at genesis or after a bounded recovery prefix. -/
@@ -117,9 +117,9 @@ structure StrongLiveSleepyRegime
     (E : DecoupledConsensusModel.Generic.Env V) (I : Interface P) (C : Constants)
     (rho : DecoupledConsensusModel.Generic.Run V P.Object) (t₀ : Time) (gap : Nat) : Prop
     extends LiveSleepyRegime P E I C rho t₀ gap where
-  strongRecurrence : StrongMultiProposerRecurrence I C rho gap
+  strongRecurrence : StrongMultiProposerRecurrence I C rho E.t_GST gap
 
-/-- The finality regime from `t₀`: BFT premises, strong recurrence within
+/-- The finality regime from `t₀`: BFT premises, strong recurrence from GST within
 `gap ≤ maxGap − 2` periods, and a run long enough to contain the startup. -/
 structure FinalityRegime
     (P : DecoupledConsensusModel.Generic.ProtocolSpec V)
@@ -127,7 +127,7 @@ structure FinalityRegime
     (rho : DecoupledConsensusModel.Generic.Run V P.Object) (t₀ : Time)
     (gap : Nat) : Prop
     extends BFTRegime P E I rho t₀ where
-  recurrence : StrongMultiProposerRecurrence I C rho gap
+  recurrence : StrongMultiProposerRecurrence I C rho E.t_GST gap
   gapBound : gap + 2 ≤ C.maxGap
   longEnough : t₀ + C.finalityStartup gap ≤ rho.horizon
 

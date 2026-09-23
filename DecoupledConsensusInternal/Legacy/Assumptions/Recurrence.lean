@@ -24,8 +24,11 @@ def ProposerCarrierAt (S : Setup V) (ρ : Run V) (r : Round) : Prop :=
 /-- The triple-proposer recurrence: every inclusive round window
 `[r, r + gap]` contains a round whose opening proposer and next two
 slot proposers are all honest (PROTOCOL.md#the-complete-protocol). -/
-def MultiProposerRecurrence (S : Setup V) (ρ : Run V) (gap : Round) : Prop :=
-  ∀ r : Round, ∃ r' : Round, r ≤ r' ∧ r' ≤ r + gap ∧
+def MultiProposerRecurrence (S : Setup V) (ρ : Run V) (gap : Round)
+    (t₀ : Time := S.E.t_GST) : Prop :=
+  ∀ r : Round, t₀ ≤ Protocol.proposal_time S.E (S.hc.opening_slot r) →
+    Protocol.proposal_time S.E (S.hc.opening_slot r) + gap * (S.a 1 - S.a 0) ≤ ρ.horizon →
+    ∃ r' : Round, r ≤ r' ∧ r' ≤ r + gap ∧
     ProposerCarrierAt S ρ r'
 
 def ProposerOpeningCarrierAt (S : Setup V) (rho : Run V) (r : Round) : Prop :=
@@ -35,8 +38,11 @@ def ProposerOpeningCarrierAt (S : Setup V) (rho : Run V) (r : Round) : Prop :=
 
 /-- Each window contains the complete three-round pattern. The selected
 carrier is its last round; both earlier openings lie in the same window. -/
-def ProposerOpeningCarrierRecurrence (S : Setup V) (rho : Run V) (gap : Round) : Prop :=
-  ∀ k : Round, ∃ r : Round, k + 2 ≤ r ∧ r ≤ k + gap ∧
+def ProposerOpeningCarrierRecurrence (S : Setup V) (rho : Run V) (gap : Round)
+    (t₀ : Time := S.E.t_GST) : Prop :=
+  ∀ k : Round, t₀ ≤ Protocol.proposal_time S.E (S.hc.opening_slot k) →
+    Protocol.proposal_time S.E (S.hc.opening_slot k) + gap * (S.a 1 - S.a 0) ≤ rho.horizon →
+    ∃ r : Round, k + 2 ≤ r ∧ r ≤ k + gap ∧
     ProposerOpeningCarrierAt S rho r
 
 end Internal

@@ -952,7 +952,7 @@ theorem carry_interpreted_localCovers (S : Setup V) (rho : NamedRun V)
   exact hcover
 
 /-- `Inclusions.voters_subset_supporters` with `hfirst` replaced by `hpost`.
-Only clause 4 changes: a row in round `r`'s window is no longer forced to be a
+Only clause 4 changes: a row in round `r`'s window need not be a
 pre-outage emission, and the two coverage calls go through
 `carry_interpreted_localCovers` instead. -/
 theorem carry_voters_subset_supporters (S : Setup V) (rho : NamedRun V)

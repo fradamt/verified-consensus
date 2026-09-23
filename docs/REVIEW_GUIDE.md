@@ -143,7 +143,7 @@ This hierarchy fact is proved in the proof library.
 ## Generic premise ledger
 
 The ledger lists the direct premise for each field. `constants`, `nested`, and
-`certificates` have no run-regime premise. The conclusion record is shown in
+`certificatesAccountable` have no run-regime premise. The conclusion record is shown in
 the middle column.
 
 ```text
@@ -172,6 +172,8 @@ the middle column.
 `LiveSleepyRegime` adds `SingleProposerRecurrence` from `t₀` (tier 1).
 `StrongLiveSleepyRegime` inherits those premises and adds
 `StrongMultiProposerRecurrence` (tier 3), with the two-opening lookback.
+Tier 1 counts the windows from `t₀`, and tiers 2 and 3 count those from GST;
+all count only windows that end inside the run.
 `FinalityRegime` extends `BFTRegime`: execution validity, partial synchrony,
 GST by `t₀`, honest committees, `BelowOneThird`, and `FullParticipation`
 (every honest validator awake from GST).
@@ -324,7 +326,7 @@ recurrence.
 `Generic.Consensus` has the `constants : Constants.Valid` premise followed by
 ten result fields, in premise-first order:
 
-1. `nested` and `certificates` have no run-regime premise.
+1. `nested` and `certificatesAccountable` have no run-regime premise.
 2. `finalizedAccountable` names `RunWellFormed`.
 3. `honestNeverSlashed` names `UnforgeableRun`.
 4. `finalizedSafe` names `AccountableRegime`.

@@ -281,9 +281,8 @@ theorem FixedHeightRootTarget.not_again_after_target_rebase
 
 /-- One fixed-height justification root at an actual honest strict read,
 without a protected incompatible block. The justification carrier and the
-protected block are named bodies (design note C1): a bare `Block V`
-carrier can no longer be an `Execution.RunBlock`, which now lives over
-`NamedBlock V`, so both existentials name a body and record its erasure. -/
+protected block are named bodies : `Execution.RunBlock` requires a `NamedBlock V`, so both
+existentials name a body and record its erasure. -/
 structure FixedHeightJustificationRootAtRead
     (S : Setup V) (rho : Run V) (H : Height)
     (w : V) (read : Time) : Prop where

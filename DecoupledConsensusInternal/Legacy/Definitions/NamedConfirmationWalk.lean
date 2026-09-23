@@ -11,15 +11,10 @@ public import DecoupledConsensusInternal.Legacy.Definitions.NamedDutyReads
 The confirmation duty's ordinary composed walk starts at the SG root of the
 prepared read's contract, not at the prior core selector. The GF early/late
 vote sets, score and gate are profile-independent and keep their bodies;
-only the anchor changes. `confirmationInputStore` (Confirmation.lean:36) is
-corrected to the named reader projection
-`(NamedActionReads.confirmationReadAt S ρ v (confirmation_time s)).st.core`,
-which needs no new import there. The five pure score/gate definitions
-live in `ConfirmationScore.lean` (owner split); this file does
-not import `Confirmation.lean`. `Confirmation.lean` imports both, drops its
-own `confirmationWalk` and `GenuineConfirmationAt` (retired to prior), and
-`Props/UserConfirmationHistory.lean:17` calls `namedConfirmationWalk S n
-(S.E.slotOf time - 1)` on the prepared read it derives from.
+only the anchor changes. `confirmationInputStore` reads the core
+projection of the named confirmation read. The pure score and gate
+definitions are in `ConfirmationScore.lean`.
+The confirmation history calls `namedConfirmationWalk` on its prepared read.
 -/
 
 
@@ -37,7 +32,7 @@ def namedConfirmationWalk (S : Setup V) (n : NamedNodeState V) (s : Slot) : Bloc
   let tree := Protocol.get_filtered_block_tree st.toHealing.toFG
   Protocol.ghost A tree (confirmationScore S.E st s) (confirmationEligible S.E st s)
 
-/-- Replacement body for `GenuineConfirmationAt`: the actual slot-`s`
+/-- The actual slot-`s`
 evaluation records the named walk and that walk clears the gate on the same
 read's core store. The `get_fg_root` fallback stays excluded. -/
 def GenuineConfirmationAt (S : Setup V) (ρ : Run V) (v : V) (s : Slot) : Prop :=

@@ -231,15 +231,16 @@ theorem growth_of_included (S : Setup V) {rho : Run V}
     (hmono : Generic.MonotoneFrom (P S) rho g t₀)
     (hfuture : Generic.NoFutureRead (P S) (I S) rho g)
     (hincl : Generic.IncludedFrom (P S) (I S) rho g t₀ D)
-    (hrec : Generic.StrongMultiProposerRecurrence (I S) (C S) rho gap)
-    (ht₀ : 0 ≤ t₀) (hD : 0 ≤ D) :
+    (hrec : Generic.StrongMultiProposerRecurrence (I S) (C S) rho (E S).t_GST gap)
+    (ht₀ : 0 ≤ t₀) (hgst : (E S).t_GST ≤ t₀) (hD : 0 ≤ D) :
     Generic.LiveFrom (P S) (I S) rho g t₀
       ((gap : Time) * (C S).period + D) := by
   intro t ht hdeadline
   have hperiod : 0 < (C S).period := by
     simpa [C, Statements.Instantiation.constants] using concretePeriod_pos S
   have ht_nonneg : 0 ≤ t := ht₀.trans ht
-  obtain ⟨s, hslo, hsupper, hcarrier, _hlookback⟩ := hrec t ht_nonneg
+  obtain ⟨s, hslo, hsupper, hcarrier, _hlookback⟩ := hrec t
+    (hgst.trans ht) (by linarith)
   have htwo : 0 < 2 * (C S).period := by positivity
   have hsAfter : t < (I S).proposalTime s :=
     lt_of_lt_of_le (lt_add_of_pos_right t htwo) hslo
@@ -394,7 +395,8 @@ theorem finalized_growth (S : Setup V) :
       ((C S).finalityDeadline gap) := by
     simpa [C, Statements.Instantiation.constants, Statements.ourConstants] using
       included_of_named S hlegacyIncluded
-  exact growth_of_included S hmono hfuture hincl hregime.recurrence hstart hdeadline
+  exact growth_of_included S hmono hfuture hincl hregime.recurrence hstart
+    (hregime.gst.trans (le_add_of_nonneg_right hstartup)) hdeadline
 
 end Proofs
 end DecoupledConsensusModel

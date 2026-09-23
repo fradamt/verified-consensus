@@ -21,7 +21,7 @@ all and are reused verbatim from `JointHistoryB4B5.lean`.
 
 Both restated theorems replace their single TIME bound against the witness
 (`domain ….g2 < t` / `S.a k < t`) with an INDEX bound against `n`
-(`j < n` / `ii < n`), where the bounded quantity is now the tick event's own
+(`j < n` / `ii < n`), where the bound applies to the tick event's own
 position in `rho.events`, not its time. The two places that serves to need the
 witness time only to compare it against a schedule-derived time bound
 (`hSaklt`, `hlt`) now instead compare two EVENT TIMES directly and lift that

@@ -39,14 +39,13 @@ theorem userCandidateAtIndex_eq (S : Setup V) (rho : Run V) (v : V)
 
 design note: the prior conclusion equated `userCandidateAtIndex` to `confWalk S.E S.hc
 (confStore S rho v s) s`, the erased walk over the prior tick-store
-reconstruction. That equation is no longer available in general (Result23Shapes
+reconstruction. The two walks can differ in general (Result23Shapes
 Shape 10: the two anchors agree only when the confirmation read's own cache
 contract selects the same SG root as the unparameterised selector, a condition
-this theorem does not have). The mechanical replacement states the same
-normalization directly in the named vocabulary: the walk over the confirmation
-duty's own prepared read (`confirmationInputRead`).
+this theorem does not have). This theorem normalizes the walk over the
+confirmation duty's own prepared read (`confirmationInputRead`).
 
-: `UserConfirmationSelectionAt` now carries a second arm, the
+: `UserConfirmationSelectionAt` carries a second arm, the
 SG candidate the runtime's optional selector writes when the walk fails the
 gate. That value is not the walk and no green lemma relates the two, so the
 normalization carries the arm forward rather than resolving it: the middle

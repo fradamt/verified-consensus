@@ -665,7 +665,9 @@ theorem stableRecordGrowth_gstZero_lagged
     Proofs.HealingSurface.Handover.stableRecordSafety_gstZero_clean S rho h
   have hmono : ConfirmationMonotoneFrom S rho 0 := hsafe.availableChain.2.1
   exact W4StableWrite.stableRecordGrowthFrom_of_openingWriteWithin S h.core
-    (Proofs.Optimistic.confirmation_time_nonneg S.E 0) hrec hmono
+    (Proofs.Optimistic.confirmation_time_nonneg S.E 0) hrec
+    (by simpa [h.gstZero, Protocol.HealConfig.opening_slot] using
+      (Proofs.Optimistic.proposal_time_nonneg S.E 0)) hmono
     hsafe.userProposals hcanon
     (w4StableWriteWithinFrom_gstZero S rho h)
 

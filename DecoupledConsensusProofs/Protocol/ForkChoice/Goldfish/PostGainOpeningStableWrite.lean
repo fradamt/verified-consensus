@@ -333,6 +333,11 @@ private theorem postGain_frameStableRoot_of_high_viable_prefix
 
 /-- The first recurrent carrier strictly after the two-progress point has a
 named proposal strictly above the pre-progress honest frontier. -/
+private theorem postGain_window_le_nat {d l gap eta m : Nat}
+    (hm : d + 2 * l + max (1 + eta) (gap + 3) ≤ m) :
+    d + 2 * l + 1 + gap ≤ m := by
+  omega
+
 theorem exists_postGain_carrier_height_r270
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)
     (hcom : HonestCommittees S rho.honest) (hbelow : BelowOneThird S rho.honest)
@@ -359,7 +364,24 @@ theorem exists_postGain_carrier_height_r270
   let D := fgSafetyProgressDeadline S rho rGST gap delayExtra
   let L := progressLag' gap delayExtra
   let r0 : Round := D + 2 * L
-  obtain ⟨q, hqlo, hqhi, hcarrier⟩ := hrec (r0 + 1)
+  have hGSTdead : rGST ≤ D := by
+    dsimp only [D]
+    unfold fgSafetyProgressDeadline
+    exact (Nat.le_succ rGST).trans (Nat.le_add_right _ _)
+  have hGSTwindow : S.E.t_GST ≤
+      Protocol.proposal_time S.E (S.hc.opening_slot (r0 + 1)) :=
+    hpost.trans ((Int.le_add_of_nonneg_right S.E.Δ_pos.le).trans
+      (action_add_delta_le_openingProposal_of_round_lt S
+        (Nat.lt_of_le_of_lt hGSTdead (by
+          dsimp only [r0]
+          exact Nat.lt_succ_of_le (Nat.le_add_right D (2 * L))))))
+  have hwindowRound : r0 + 1 + gap ≤ m := by
+    simpa only [r0, D, L] using postGain_window_le_nat hm
+  have hhorAction : S.a m ≤ rho.horizon := by
+    simpa only [opening_confirmation_time_eq_action] using hhor
+  have hhorWindow := (openingProposal_window_le_action S (r0 + 1) gap).trans
+    ((Assembly.a_mono S hwindowRound).trans hhorAction)
+  obtain ⟨q, hqlo, hqhi, hcarrier⟩ := hrec (r0 + 1) hGSTwindow hhorWindow
   have hqStrict : r0 < q := Nat.lt_of_lt_of_le (Nat.lt_succ_self r0) hqlo
   have hqm : q + 1 < m := by
     have hgap : D + 2 * L + (gap + 3) ≤ m := by

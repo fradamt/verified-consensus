@@ -1081,7 +1081,7 @@ theorem delivery_well_formed : NamedDeliveryWellFormed S rho where
 
 theorem proposer_opening_carrier_recurrence :
     ProposerOpeningCarrierRecurrence S rho 2 := by
-  intro k
+  intro k _ _
   refine ⟨k + 2, le_rfl, le_rfl, ?_⟩
   simp [ProposerOpeningCarrierAt, ProposerCarrierAt, S, E, hc, rho]
 

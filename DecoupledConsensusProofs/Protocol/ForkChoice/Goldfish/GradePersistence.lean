@@ -22,10 +22,9 @@ argument must either keep a common descendant active or charge the transition
 that removes it to a conflicting certificate release or a permanent height
 crossing. No such transition is assumed here.
 
- repair: `GradeFormsAt` no longer exists; the common
-grade premise is `NamedGradeFormsAt`, the relative G2-domain-read grade
+The common grade premise is `NamedGradeFormsAt`, the relative G2-domain-read grade
 (`ActionSourceCoreRun.lean`). Consuming that grade at the exact action carrier
-now needs the additional fact that the graded block is still active at the
+requires the additional fact that the graded block is still active at the
 reader's own action read (the `hownActive`/`hownActiveAll` hypotheses below):
 under the frame runtime, activity at the earlier G2-domain tick does not by
 itself persist to the later action read (`ActionSourceCoreRun.preceq_actionQ2
@@ -38,7 +37,7 @@ from the exact-action-vote's ABSOLUTE resolved quorum to the RELATIVE
 G2-domain-read grade, and `GradeBootstrapCoreRun.lean` already records, at
 `gradeFormsAt_of_cleanActionRead`, that no such absolute-to-relative bridge
 exists in the live tree (: "the surface's own declared open step").
-Nothing here reopens that gap, so `gradeFormsAt_succ_of_gradeFormsAt_and_next
+Thus `gradeFormsAt_succ_of_gradeFormsAt_and_next
 _active` and its corollary `gradeFormsAt_of_seed_and_active_suffix` are Open
 (class d) and are recorded, not available, below.
 -/

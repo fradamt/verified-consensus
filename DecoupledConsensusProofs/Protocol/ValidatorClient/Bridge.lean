@@ -636,7 +636,7 @@ theorem honestNoDoubleTarget (S : Setup V) (ρ : Run V) :
           (emits_finality_locked S ρ hj ha' hfinality)) hT
 
 /-- **L4, complete** (`the design` §9 L4). The arithmetic was proved in
-`PerHeight.lean`; the honest core is now a theorem, so the lemma stands on
+`PerHeight.lean`; the honest core is a theorem, so the lemma stands on
 `BelowOneThird` alone. -/
 theorem perHeightCompletability (S : Setup V) {ρ : Run V}
     (hfb : BelowOneThird S ρ.honest) :

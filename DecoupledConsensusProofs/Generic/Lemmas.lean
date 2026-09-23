@@ -22,12 +22,12 @@ omit [DecidableEq V] [_root_.Fintype V] in
 period is positive. -/
 theorem toMultiProposerRecurrence
     {I : Interface P} {C : Constants}
-    {rho : DecoupledConsensusModel.Generic.Run V P.Object} {gap : Nat}
+    {rho : DecoupledConsensusModel.Generic.Run V P.Object} {t₀ : Time} {gap : Nat}
     (h : DecoupledConsensusModel.Statements.Generic.StrongMultiProposerRecurrence
-      I C rho gap) (hperiod : 0 < C.period) :
-    DecoupledConsensusModel.Statements.Generic.MultiProposerRecurrence I C rho gap := by
-  intro t ht
-  obtain ⟨s, hslo, hsupper, hcarrier, _hlookback⟩ := h t ht
+      I C rho t₀ gap) (hperiod : 0 < C.period) :
+    DecoupledConsensusModel.Statements.Generic.MultiProposerRecurrence I C rho t₀ gap := by
+  intro t ht hhor
+  obtain ⟨s, hslo, hsupper, hcarrier, _hlookback⟩ := h t ht hhor
   have htwo : 0 < 2 * C.period := by
     exact mul_pos (by norm_num) hperiod
   exact ⟨s, lt_of_lt_of_le (lt_add_of_pos_right t htwo) hslo, hsupper, hcarrier⟩
@@ -43,11 +43,11 @@ theorem toSingleProposerRecurrence
     {I : Interface P} {C : Constants}
     {rho : DecoupledConsensusModel.Generic.Run V P.Object} {t₀ : Time} {gap : Nat}
     (h : DecoupledConsensusModel.Statements.Generic.MultiProposerRecurrence
-      I C rho gap) (ht₀ : 0 ≤ t₀) (hslots : 0 < C.proposerSlots) :
+      I C rho t₀ gap) (ht₀ : 0 ≤ t₀) (hslots : 0 < C.proposerSlots) :
     DecoupledConsensusModel.Statements.Generic.SingleProposerRecurrence
       I C rho t₀ gap := by
   intro t ht hhor
-  obtain ⟨s, hsAfter, hsupper, hwindow⟩ := h t (ht₀.trans ht)
+  obtain ⟨s, hsAfter, hsupper, hwindow⟩ := h t ht hhor
   have hs_honest : I.proposer s ∈ rho.honest := by
     simpa using hwindow.2 0 hslots
   exact ⟨s, hsAfter, hsupper, hs_honest⟩

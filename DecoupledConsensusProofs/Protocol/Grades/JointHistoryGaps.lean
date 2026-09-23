@@ -90,7 +90,7 @@ lemma. -/
 
 /-! ## The requested signature, grown witness
 
-`ConfirmationOnActionRead` at the fixed witness `C` is no longer available
+`ConfirmationOnActionRead` at the fixed witness `C` is unavailable
 directly (the strict clause 4 only supplies it after possibly growing `C`
 through `NamedConfirmationOnHistoryQuery`), so the public conclusion is
 restated on the grown witness `C'` the same way the renewal driver needs it:

@@ -20,9 +20,13 @@ namespace Proofs
 namespace W4StableWrite
 
 open Internal Execution Statements
-open Proofs.HealingSurface Proofs.HealingSurface.Handover
+open Proofs.HealingSurface Proofs.HealingSurface.Handover Proofs.HealingLemmas
 
 variable {V : Type} [DecidableEq V] [Fintype V]
+
+private theorem w4Growth_prefix_round_gt_nat (a b c d : Nat) :
+    a < a + 1 + b + c + d := by
+  omega
 
 set_option maxHeartbeats 400000 in
 -- The selected write elaborates the complete prepared-V4 viability argument.
@@ -49,7 +53,19 @@ theorem stableRecordGrowth_afterGST_preparedClosed (S : Setup V) :
       (Protocol.confirmation_time S.E (S.hc.opening_slot m)) :=
     Handover.stableRecordCanonicalFrom_of_phaseShift_latestFinality
       S sch hphase hlatest
+  have hstrict : rGST < m := by
+    apply lt_of_lt_of_le ?_ hmn
+    have hs := hprefix.start
+    dsimp [Internal.BoundedPhaseStart] at hs
+    rw [hs]
+    exact w4Growth_prefix_round_gt_nat _ _ _ _
+  have hGSTStart : S.E.t_GST ≤
+      Protocol.proposal_time S.E (S.hc.opening_slot m) :=
+    hprefix.postGST.trans
+      ((Int.le_add_of_nonneg_right S.E.Δ_pos.le).trans
+        (action_add_delta_le_openingProposal_of_round_lt S hstrict))
   refine stableRecordGrowthFrom_of_openingWriteWithinAbove S hcont.core le_rfl hrec
+    hGSTStart
     hphase.userConfirmation.latestMonotone
     hphase.userConfirmation.proposals hcanon ?_
   refine w4StableWriteWithinFromAbove_of_dutyCover S hcont.core sch ?_

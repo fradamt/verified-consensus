@@ -32,17 +32,15 @@ takes no delay bound.
 
 ## Named runtime
 
-Every opening proposal is now a named witness: `proposedBlockAt S rho s = some P`
+Each opening proposal is a named witness: `proposedBlockAt S rho s = some P`
 with `P: NamedBlock V`, and its height is `Protocol.derive_named S.E S.cfg P`.
 The three-way opening split is proved here, on earlier's route, over the named
 opening window `NamedGateOffOpeningWindowAt`, and so is the seed entry
 `seedFixedRoot_or_gateOffWindow`, whose own producer
 (`frontierRegime_window_after_oneDelay`) is live.
 
-Two producers of this seed's immediate neighbourhood are retired in the
-current selection tree. They are pinned (PRE-BUILDING) in `SeedRetiredProducers`
-and `SeedPredPromotionInputs`, field for field at the retired declaration's own
-statement; nothing here re-proves them and no new protocol premise is added.
+`SeedRetiredProducers` and `SeedPredPromotionInputs` state the two
+additional producer conditions consumed by this seed.
 -/
 
 namespace DecoupledConsensusModel
@@ -171,7 +169,7 @@ gate off at that exact frontier.
 
 earlier's `SeedBaseCeilingRun.seedFixedRoot_or_gateOffWindow` on earlier's route; the
 route's own producer `frontierRegime_window_after_oneDelay` is live, so the
-statement is restored here rather than pinned. -/
+statement is proved here. -/
 private theorem seedBaseFixedRoot_or_gateOffWindow
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)
     (hfb : BelowOneThird S rho.honest)
@@ -547,6 +545,43 @@ private theorem seedExactOpening_outcome
 /-! ## The `M - 1` case is closed by the timeout-delay bound -/
 
 /-- Round arithmetic of the two extra carriers, with bare `Nat` binders. -/
+private theorem seedCloserSelectRound4_nat {base gap q endpoint delayExtra : Nat}
+    (hbaseq : base + 4 ≤ q)
+    (hbudget : q + 2 * gap + 6 + 2 * delayExtra ≤ endpoint) :
+    base < q + 2 + delayExtra ∧
+      q + 2 + delayExtra + gap ≤ endpoint := by
+  omega
+
+private theorem seedCloserSelectRound5_nat {base gap q q4 endpoint delayExtra : Nat}
+    (hbaseq : base + 4 ≤ q)
+    (hbudget : q + 2 * gap + 6 + 2 * delayExtra ≤ endpoint)
+    (hq4lo : q + 2 + delayExtra ≤ q4)
+    (hq4hi : q4 ≤ q + 2 + delayExtra + gap) :
+    base < q4 + 2 + delayExtra ∧
+      q4 + 2 + delayExtra + gap ≤ endpoint := by
+  omega
+
+private theorem seedAdoptionSelectRound1_nat {base gap delayExtra : Nat} :
+    base < base + 4 ∧
+      base + 4 + gap ≤ base + (4 * gap + 12 + 2 * delayExtra) := by
+  omega
+
+private theorem seedAdoptionSelectRound2_nat {base gap q1 delayExtra : Nat}
+    (hq1lo : base + 4 ≤ q1)
+    (hq1hi : q1 ≤ base + 4 + gap) :
+    base < q1 + 2 ∧
+      q1 + 2 + gap ≤ base + (4 * gap + 12 + 2 * delayExtra) := by
+  omega
+
+private theorem seedAdoptionSelectRound3_nat {base gap q1 q2 delayExtra : Nat}
+    (hq1lo : base + 4 ≤ q1)
+    (hq1hi : q1 ≤ base + 4 + gap)
+    (hq2lo : q1 + 2 ≤ q2)
+    (hq2hi : q2 ≤ q1 + 2 + gap) :
+    base < q2 + 2 + delayExtra ∧
+      q2 + 2 + delayExtra + gap ≤ base + (4 * gap + 12 + 2 * delayExtra) := by
+  omega
+
 private theorem seedCloserRounds_nat {base gap q q4 q5 endpoint : Nat}
     (hbaseq : base + 4 ≤ q)
     (hbudget : q + 2 * gap + 6 + 2 * delayExtra ≤ endpoint)
@@ -581,8 +616,20 @@ theorem seedPredCloser_of_timeoutDelay
     hgradedQ hcarrier hceiling hwindowQ hpred
   set M : Height := honestHMaxAt S rho (S.a base) with hMdef
   set endpoint : Round := base + seedLag gap delayExtra with hendpoint
-  obtain ⟨q4, hq4lo, hq4hi, hcar4⟩ := hrec (q + 2 + delayExtra)
-  obtain ⟨q5, hq5lo, hq5hi, hcar5⟩ := hrec (q4 + 2 + delayExtra)
+  have hselect (k : Round) (hbk : base < k) (hk : k + gap ≤ endpoint) :
+      ∃ c : Round, k ≤ c ∧ c ≤ k + gap ∧ ProposerCarrierAt S rho c :=
+    hrec k
+      (hpostBase.trans
+        ((Int.le_add_of_nonneg_right S.E.Δ_pos.le).trans
+          (action_add_delta_le_openingProposal_of_round_lt S hbk)))
+      ((openingProposal_window_le_action S k gap).trans
+        ((Assembly.a_mono S hk).trans hhorEnd))
+  obtain ⟨h4base, h4end⟩ := seedCloserSelectRound4_nat hbaseq hbudget
+  obtain ⟨q4, hq4lo, hq4hi, hcar4⟩ := hselect (q + 2 + delayExtra)
+    h4base h4end
+  obtain ⟨h5base, h5end⟩ := seedCloserSelectRound5_nat hbaseq hbudget hq4lo hq4hi
+  obtain ⟨q5, hq5lo, hq5hi, hcar5⟩ := hselect (q4 + 2 + delayExtra)
+    h5base h5end
   obtain ⟨m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15,
     m16⟩ :=
     seedCloserRounds_nat hbaseq hbudget hq4lo hq4hi hq5lo hq5hi
@@ -967,9 +1014,30 @@ theorem heightProgressSeedFrom_of_carrierAdoption
   · obtain ⟨u, hu, read, hread1, hread2, hfixRead⟩ := hfix
     exact Or.inr (Or.inl ⟨u, read, hu, hread1, hread2, hfixRead⟩)
   -- the three carrier rounds
-  obtain ⟨q1, hq1lo, hq1hi, hcar1⟩ := hrec (base + 4)
-  obtain ⟨q2, hq2lo, hq2hi, hcar2⟩ := hrec (q1 + 2)
-  obtain ⟨q3, hq3lo, hq3hi, hcar3⟩ := hrec (q2 + 2 + delayExtra)
+  have hselect (k : Round) (hbk : base < k) (hk : k + gap ≤ endpoint) :
+      ∃ c : Round, k ≤ c ∧ c ≤ k + gap ∧ ProposerCarrierAt S rho c :=
+    hrec k
+      (hpostBase.trans
+        ((Int.le_add_of_nonneg_right S.E.Δ_pos.le).trans
+          (action_add_delta_le_openingProposal_of_round_lt S hbk)))
+      ((openingProposal_window_le_action S k gap).trans
+        ((Assembly.a_mono S hk).trans hhorEnd))
+  have hfirst : base < base + 4 ∧ base + 4 + gap ≤ endpoint := by
+    simpa only [hendpoint, seedLag] using
+      (seedAdoptionSelectRound1_nat (base := base) (gap := gap) (delayExtra := delayExtra))
+  obtain ⟨q1, hq1lo, hq1hi, hcar1⟩ := hselect (base + 4)
+    hfirst.1 hfirst.2
+  have hsecond : base < q1 + 2 ∧ q1 + 2 + gap ≤ endpoint := by
+    simpa only [hendpoint, seedLag] using
+      (seedAdoptionSelectRound2_nat (delayExtra := delayExtra) hq1lo hq1hi)
+  obtain ⟨q2, hq2lo, hq2hi, hcar2⟩ := hselect (q1 + 2)
+    hsecond.1 hsecond.2
+  have hthird : base < q2 + 2 + delayExtra ∧
+      q2 + 2 + delayExtra + gap ≤ endpoint := by
+    simpa only [hendpoint, seedLag] using
+      (seedAdoptionSelectRound3_nat hq1lo hq1hi hq2lo hq2hi)
+  obtain ⟨q3, hq3lo, hq3hi, hcar3⟩ := hselect (q2 + 2 + delayExtra)
+    hthird.1 hthird.2
   obtain ⟨n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11, n12, n13, n14, n15,
     n16, n17, n18, n19, n20, n21, n22, n23, n24, n25, n26, n27, n28, n29,
     n30, n31⟩ :=

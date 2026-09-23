@@ -40,8 +40,8 @@ theorem finalized_preceq_get_confirmed (st : Protocol.Store V) :
 does and finality does. The `Protocol.StableBelowConfirmed` premise is a regime
 fact, not a run invariant of `update_confirmation_with`: an eligible Goldfish
 head can replace a conflicting confirmation record while the stable record keeps
-an ancestor on the previous branch. A follow-up statement discharges it under the
-safety regime, from SG-root canonicity of honest Goldfish heads. -/
+an ancestor on the previous branch. SG-root canonicity of honest
+Goldfish heads supplies it under the safety regime. -/
 theorem get_stable_preceq_latest (st : Protocol.Store V)
     (hs : Protocol.StableBelowConfirmed st) (h : Block.Preceq st.F st.latest_confirmed) :
     Block.Preceq (Protocol.get_stable st) st.latest_confirmed := by
@@ -69,8 +69,8 @@ stable output must also stay below it, which is the regime fact
 `Protocol.StableBelowConfirmed`: it is not a run invariant of
 `update_confirmation_with`, because an eligible Goldfish head can replace a
 conflicting confirmation record while the stable record keeps an ancestor on the
-old branch. A follow-up statement discharges it under the safety regime, from
-SG-root canonicity of honest Goldfish heads. -/
+old branch. SG-root canonicity of honest Goldfish heads supplies it under the safety
+regime. -/
 theorem get_confirmed_eq_latest (st : Protocol.Store V)
     (hs : Protocol.StableBelowConfirmed st)
     (h : Block.Preceq st.F st.latest_confirmed) :
@@ -85,8 +85,8 @@ output. The stable output is bounded through the confirmation record, by the
 regime fact `Protocol.StableBelowConfirmed`. It is not a run invariant of
 `update_confirmation_with`, because an eligible Goldfish head can replace a
 conflicting confirmation record while the stable record keeps an ancestor on the
-old branch. A follow-up statement discharges it under the safety regime, from
-SG-root canonicity of honest Goldfish heads. -/
+old branch. SG-root canonicity of honest Goldfish heads supplies it under the safety
+regime. -/
 theorem get_confirmed_preceq (st : Protocol.Store V) {B : Block V}
     (hs : Protocol.StableBelowConfirmed st)
     (hF : Block.Preceq st.F B) (hL : Block.Preceq st.latest_confirmed B) :
@@ -104,8 +104,8 @@ finality. The stable output can only hide the record when the stable record
 leaves it, which the regime fact `Protocol.StableBelowConfirmed` excludes. It is
 not a run invariant of `update_confirmation_with`, because an eligible Goldfish
 head can replace a conflicting confirmation record while the stable record keeps
-an ancestor on the previous branch. A follow-up statement discharges it under the
-safety regime, from SG-root canonicity of honest Goldfish heads. -/
+an ancestor on the previous branch. SG-root canonicity of honest
+Goldfish heads supplies it under the safety regime. -/
 theorem preceq_get_confirmed_of_latest (st : Protocol.Store V) {B : Block V}
     (hs : Protocol.StableBelowConfirmed st)
     (hL : Block.Preceq B st.latest_confirmed) (hF : Block.compatible B st.F = true) :
@@ -127,8 +127,8 @@ store it puts the previous stable output at finality in the lagging branch, and 
 the new store it keeps the new stable output from hiding the new record. It is
 not a run invariant of `update_confirmation_with`, because an eligible Goldfish
 head can replace a conflicting confirmation record while the stable record keeps
-an ancestor on the previous branch. A follow-up statement discharges it under the
-safety regime, from SG-root canonicity of honest Goldfish heads. -/
+an ancestor on the previous branch. SG-root canonicity of honest
+Goldfish heads supplies it under the safety regime. -/
 theorem get_confirmed_mono (old new : Protocol.Store V)
     (hsold : Protocol.StableBelowConfirmed old)
     (hsnew : Protocol.StableBelowConfirmed new)

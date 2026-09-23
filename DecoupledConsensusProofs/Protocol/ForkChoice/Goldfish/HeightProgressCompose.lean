@@ -438,7 +438,15 @@ private theorem heightOneFrontier_rise
           (hpostAt (k := start + 1) hstartOne) hcut
           (hactiveGenesis (k := start + 2) hseedRoundEnd)
           (hactiveGenesisDomain (k := start + 2) hseedRoundEnd))
+  have htrigger : start < start + 3 + delayExtra :=
+    (Nat.lt_add_of_pos_right (by decide : 0 < 3)).trans_le
+      (Nat.le_add_right (start + 3) delayExtra)
   obtain ⟨q, hqlo, hqhi, hcarrier⟩ := hrec (start + 3 + delayExtra)
+    (hpost.trans
+      ((Int.le_add_of_nonneg_right S.E.Δ_pos.le).trans
+        (action_add_delta_le_openingProposal_of_round_lt S htrigger)))
+    ((openingProposal_window_le_action S (start + 3 + delayExtra) gap).trans
+      ((Assembly.a_mono S hbound).trans hendHor))
   have hqEnd : q ≤ endpointRound := hqhi.trans hbound
   obtain ⟨hqpos, hseedQ, hseedQPred, hstartQPred⟩ :=
     lowSelected_nat hqlo

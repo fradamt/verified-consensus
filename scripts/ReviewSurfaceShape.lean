@@ -11,7 +11,7 @@ run_cmd do
     if actual != expected then
       throwError s!"Unexpected fields for {name}: {actual}"
   checkFields `DecoupledConsensusModel.Statements.Generic.Consensus
-    ["constants", "nested", "certificates", "finalizedAccountable",
+    ["constants", "nested", "certificatesAccountable", "finalizedAccountable",
       "honestNeverSlashed", "finalizedSafe", "available", "confirmedLive",
       "stableLive", "finalized", "stablePersists"]
   checkFields `DecoupledConsensusModel.Statements.Generic.OutputOrder
@@ -24,7 +24,7 @@ run_cmd do
     ["finalizedIncluded", "finalizedLive"]
   for name in [
       `DecoupledConsensusModel.Statements.Generic.Consensus.nested,
-      `DecoupledConsensusModel.Statements.Generic.Consensus.certificates,
+      `DecoupledConsensusModel.Statements.Generic.Consensus.certificatesAccountable,
       `DecoupledConsensusModel.Statements.Generic.Consensus.finalizedAccountable,
       `DecoupledConsensusModel.Statements.Generic.Consensus.honestNeverSlashed,
       `DecoupledConsensusModel.Statements.Generic.Consensus.finalizedSafe,
@@ -69,7 +69,7 @@ example (P : Generic.ProtocolSpec V) (E : Generic.Env V)
     (I : Interface P) (C : Constants)
     (h : Consensus P E I C) :
       ∀ c c' T T', I.collisionFree c c' → I.finalizes c T → I.finalizes c' T' →
-        Block.Compatible T T' ∨ I.evidence c c' := h.certificates
+        Block.Compatible T T' ∨ I.evidence c c' := h.certificatesAccountable
 example (P : Generic.ProtocolSpec V) (E : Generic.Env V)
     (I : Interface P) (C : Constants)
     (h : Consensus P E I C) :

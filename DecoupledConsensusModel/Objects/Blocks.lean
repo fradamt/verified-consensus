@@ -170,7 +170,7 @@ inductive Block (V : Type) where
   could propose a graded root and a receiver could adopt it; the 
   replacement of §6 deleted the proposal mechanism outright — "there is no
   proposal mechanism at this layer" (PROTOCOL.md `sec:healing`,
-  "no proposal mechanism at this layer") — and §1 no longer lists the field.
+  "no proposal mechanism at this layer").
 
   Both vote lists name blocks by root. -/
   | node (parent : Block V) (slot : Slot) (root : BlockId)

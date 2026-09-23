@@ -28,11 +28,10 @@ hMaxRise`, `_rebase_or_hMaxRise`) are already supplied by
 `FixedHeightRootCoreRun`; this module's job narrows to constructing the named
 admission witness from a post-GST relay delay and delegating to those.
 
-the prior "unless already rebased" case split is gone: the named finalization
-carrier now gives the receiver-finalized-below-carrier fact directly
+The named finalization carrier gives the receiver-finalized-below-carrier fact
+directly
 (`NamedFinalizationBridge.finalized_preceq_of_height_lt`), in the one useful
-direction, so the `hnotRebased` premise the prior proof needed to rule out the
-other direction is no longer meaningful and has been dropped.
+direction, so no `hnotRebased` premise is needed.
 -/
 
 

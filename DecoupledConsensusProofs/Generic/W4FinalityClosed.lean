@@ -38,7 +38,7 @@ private theorem w4close_select_openingCarrier
     (S : Setup V) {rho : Run V}
     {extra : Nat}
     {gap : Round} (hop : ProposerOpeningCarrierRecurrence S rho gap)
-    (rGST : Round)
+    (rGST : Round) (hpost : S.E.t_GST ≤ S.a rGST)
     (hhor : healingBoundaryTime S
       (rGST + w4UniformHandoffLag S gap extra) ≤ rho.horizon)
     (hdeadlineUniform :
@@ -54,7 +54,25 @@ private theorem w4close_select_openingCarrier
         rho.horizon := by
   let U := w4UniformMovingBoundaryRound S gap extra
   let L := progressLag' gap extra
-  obtain ⟨q, hqlo, hqhi, hopening⟩ := hop (rGST + U)
+  have hGSTwindow : S.E.t_GST ≤
+      Protocol.proposal_time S.E (S.hc.opening_slot (rGST + U)) := by
+    have hrlt : rGST < rGST + U := by
+      have hu : 0 < U := by
+        simpa only [U, w4UniformMovingBoundaryRound, Nat.succ_eq_add_one] using
+          (Nat.zero_lt_succ
+            (w4UniformFGSafetyDeadline S gap extra +
+              3 * progressLag' gap extra))
+      exact Nat.lt_add_of_pos_right hu
+    exact hpost.trans ((Int.le_add_of_nonneg_right S.E.Δ_pos.le).trans
+      (action_add_delta_le_openingProposal_of_round_lt S hrlt))
+  have hwindowRound : rGST + U + gap ≤
+      rGST + w4UniformHandoffLag S gap extra := by
+    simpa only [w4UniformHandoffLag, Nat.add_assoc] using
+      (Nat.le_add_right (rGST + U + gap) 3)
+  have hhorWindow := (openingProposal_window_le_action S (rGST + U) gap).trans
+    ((Assembly.a_mono S hwindowRound).trans
+      ((a_le_healingBoundaryTime S _).trans hhor))
+  obtain ⟨q, hqlo, hqhi, hopening⟩ := hop (rGST + U) hGSTwindow hhorWindow
   have hqGST : rGST ≤ q :=
     (Nat.le_add_right rGST (U + 2)).trans hqlo
   have hqWindow : q ≤ rGST + w4UniformHandoffLag S gap extra := by
@@ -129,7 +147,7 @@ private theorem w4close_uniformRecoveryFinalityPin
     w4_fgSafetyProgressDeadline_le_uniform (delayExtra := extra)
       S adm rGST gap hpost
   obtain ⟨q, hqlo, hqhi, hlateWide, hopening, hbaseHor⟩ :=
-    w4close_select_openingCarrier S hop rGST hhor hdeadline
+    w4close_select_openingCarrier S hop rGST hpost hhor hdeadline
   let q0 := fgSafetyProgressDeadline S rho rGST gap extra + 3
   have hlate : fgSafetyProgressDeadline S rho rGST gap extra +
       3 * progressLag' gap extra + 1 ≤ q := by

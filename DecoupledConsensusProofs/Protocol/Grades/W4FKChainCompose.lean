@@ -34,8 +34,8 @@ nothing is missing at the real consumer.
 
 **Do not discharge `W4CarrierJustificationHeightPin`.** It typecheks and cannot
 be inhabited, for the reason above; the three residual goals of an attempt are
-`⊢ ProposerCarrierAt S rho r`, `⊢ 0 < S.hc.opening_slot r` and
-`⊢ Protocol.proposal_time S.E (S.hc.opening_slot r + 2) ≤ rho.horizon`. Its
+`ProposerCarrierAt S rho r`, `0 < S.hc.opening_slot r` and
+`Protocol.proposal_time S.E (S.hc.opening_slot r + 2) ≤ rho.horizon`. Its
 replacement is `w4CarrierChainFinalityPin_of_voteHeads_and_actionRoot_of_fields`
 (`W4FKChainClosedRun.lean`), or `w4CarrierChainFinalityPin_of_fields`
 (`W4FKChainSpineRun.lean`) if the head cone and the reader finality advance

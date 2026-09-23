@@ -23,7 +23,7 @@ empty", so a row present after a tick was either present before it or written
 by that tick's own attestation. The induction over the event list lifts that
 to: a row at any index was written by an emission at a strictly earlier index.
 
-**Named runtime.** The signing state a node carries is now a
+**Named runtime.** The signing state a node carries is a
 `Protocol.NamedRecord`, whose `legacy` field is the unchanged §5.3 record;
 the anti-slashing rows are therefore read as `.Λ.legacy.target` and
 `.Λ.legacy.timeout`. The emitted object carries a `NamedAttestation`, whose

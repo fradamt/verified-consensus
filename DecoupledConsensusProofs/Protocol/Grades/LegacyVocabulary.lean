@@ -247,9 +247,8 @@ def g0_clear (E : Env V) (gv : GradeView V) (hc : HealConfig) (r : Round)
 
 /-- §6.4 the fresh SG root: "the deepest block of the filtered tree with
 grade 1" (PROTOCOL.md `sec:fresh-anchor`).
-**A named projection by choice** (baseline `6501c27`): the document no longer
-names this selection — it is the inline first branch of §6's `get_sg_root`
-redefinition (PROTOCOL.md `alg:fresh-anchor`). The anchor lemmas of
+This named projection is the first branch of §6's `get_sg_root`
+(PROTOCOL.md `alg:fresh-anchor`). The anchor lemmas of
 `Proofs/Optimistic/Anchor.lean` and the grade layer state facts about the fresh
 branch specifically, so the model keeps the name, the same way `fg_source`
 names `get_fg_vote`'s internal `C_fg`.
@@ -283,7 +282,7 @@ Three things the document is explicit about, and the model keeps all three.
   PROTOCOL.md `sec:substrate` is still what makes the selection a function
   in the model, since `Block.deepest?` ranges over a tree rather than a chain
   (F6.6).
-The range is now **literally `Protocol.grade2_block`'s**, differing only in the
+The range is **the same as `Protocol.grade2_block`'s**, differing only in the
 grade. `G2 ⟹ G1` then gives `Q₂ ⪯ fresh_anchor` as a within-store chain fact
 (`Proofs.HealingLemmas.Grades.grade2_preceq_fresh_anchor`), where under the strict
 version it needed a case split on `Q₂ = root`.

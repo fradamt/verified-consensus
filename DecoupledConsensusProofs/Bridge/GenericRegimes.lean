@@ -73,7 +73,7 @@ theorem recoveryRegime_of_generic (S : Setup V) (rho : Run V) (t₀ : Time)
     committees := h.committees
     belowThird := ?_
     allAwake := allAwake_of_generic S rho h.allAwake
-    recurrence := proposerRecurrence_of_generic S rho gap h.recurrence
+    recurrence := proposerRecurrence_of_generic S rho S.E.t_GST gap h.recurrence
     timeout := S.timeoutDelayBound
     horizon := ?_ }
   · simpa [E, Instantiation.env, Generic.BelowOneThird,
@@ -91,7 +91,7 @@ theorem finalityRegime_of_generic (S : Setup V) (rho : Run V) (t₀ : Time)
     committees := h.committees
     belowThird := ?_
     allAwake := allAwake_of_generic S rho h.allAwake
-    recurrence := openingCarrierRecurrence_of_generic S rho gap h.recurrence
+    recurrence := openingCarrierRecurrence_of_generic S rho S.E.t_GST gap h.recurrence
     gapBound := ?_
     timeout := S.timeoutDelayBound }
   · simpa [E, Instantiation.env, Generic.BelowOneThird,

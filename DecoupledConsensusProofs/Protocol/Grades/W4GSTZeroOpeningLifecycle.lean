@@ -960,7 +960,7 @@ theorem w4_anchor_preceq_liveConfirmed_or_fgRoot
 
 /-! ## The cover step, both arms
 
-With the write dichotomy the cover no longer takes an order fact. It cases on
+With the write dichotomy the cover does not require an order fact. It cases on
 the two arms of the write, and only ONE of the four SG-vote tiers ever reaches
 for the round's grade. -/
 

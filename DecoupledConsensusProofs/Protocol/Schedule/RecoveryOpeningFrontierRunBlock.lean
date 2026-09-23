@@ -18,69 +18,10 @@ public import DecoupledConsensusProofs.Protocol.Handlers.JustificationBound
 /-!
 # Run provenance for the opening confirmation frontier
 
-Historical earlier source: the erased frontier existential was not
-portable as written. The first declaration available in `75f32a9`; the named
-frontier theorem is implemented below. the prior route reads an erased
-reachable store and then treats the post-action confirmation store as the
-pre-action tree.
-
-earlier-vs-selection statement diff after the required  restatement:
-
-earlier: (hforms: GradeFormsAt S rho q P)
-selection: (hforms: NamedGradeFormsAt S rho q P)
-
-This is the only textual binder change. The named `attestStore_fields` theorem
-is now available, but it does not prove the missing confirmation-time chain.
-
-First compiler error (verbatim):
-
-DecoupledConsensusProofs/HealingSurface/RecoveryOpeningFrontierRunBlockRun.lean:35:15:
-error(lean.unknownIdentifier): Unknown identifier `Proofs.Bridges.depReachable_stateBeforeTime`
-
-earlier route (verbatim): `Proofs.Bridges.depReachable_stateBeforeTime`, followed by
-`Proofs.Records.justifiedInTree_depReachable`,
-`Proofs.Optimistic.confirmedInTree_depReachable`,
-`Proofs.Optimistic.confirmedInTree_attestStore`, and
-`Proofs.Optimistic.attestStore_fields`.
-
-The named replacement for direct tree membership is
-`Proofs.NamedStoreBridge.liveConfirmed_mem_stateBeforeTime`. The named
-`attestStore_fields` field-preservation theorem available in `ad817fc`. The
-named common-frontier route and its action-read compatibility producers are
-implemented below. the prior route was `depReachable_stateBeforeTime` →
-`confirmedInTree_attestStore` → `Proofs.Optimistic.attestStore_fields` → the frontier
-producer.
-
-Exact earlier goals:
-
-theorem openingActionLiveConfirmed_mem_storeBeforeTime
-    (S: Setup V) {rho: Run V} (adm: Admissible S rho)
-    (v: V) (r: Round):
-    (actionStoreAt S rho v r).live_confirmed ∈
-      (rho.storeBeforeTime S v (S.a r)).T
-
-theorem exists_openingConfirmationFrontier_runBlock_of_gradeFormsAt_after_gst
-    (S: Setup V) {rho: Run V} (adm: Admissible S rho)
-    {q: Round} {P: Block V}
-    (hforms: NamedGradeFormsAt S rho q P)
-    (hpost: S.E.t_GST ≤
-      Protocol.proposal_time S.E (S.hc.opening_slot q))
-    (hhor: Protocol.confirmation_time S.E
-      (S.hc.opening_slot q) ≤ rho.horizon)
-    (hnonempty: rho.honest.Nonempty):
-    ∃ C: Block V,
-      Block.Preceq P C ∧
-        (∀ v ∈ rho.honest,
-          Block.Preceq (actionStoreAt S rho v q).live_confirmed C) ∧
-        RunBlock S rho C ∧
-        (C = P ∨ ∃ v ∈ rho.honest,
-          C = (actionStoreAt S rho v q).live_confirmed)
-
-The second goal also needs a named action-read compatibility producer. The
-available named candidate, root, and anchor results require
-`FinalityFilterRetainedAtRead`; `NamedGradeFormsAt` alone only gives the
-earlier G2-domain read. No producer in this cone supplies that retention or
-the pairwise live-confirmation compatibility from the public hypotheses.
+This module proves receipt and delivery facts for Goldfish votes, then relates
+honest confirmation reads across views after GST. The named runtime carries
+block membership through `NamedStoreBridge`; the frontier argument uses
+compatibility of the action reads and the confirmation reads.
 -/
 
 

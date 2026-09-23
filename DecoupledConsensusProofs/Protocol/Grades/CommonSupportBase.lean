@@ -485,8 +485,8 @@ theorem common_support_base_at_of_early
     have htaueq : tau = early S.E S.hc r .g2 := min_eq_right (le_of_lt (not_le.mp hearly))
     have htau0 : (0 : Time) ≤ tau := htaueq ▸ early_nonneg S hR hrpos
     
-    -- that leaves an unresolved placeholder here no longer occurs. The support round is
-    -- `r - 1 ≥ s + 1` and the pairing round is `r - 2 ≥ s`, where both
+    -- The support round lies beyond the confirmed slot.
+    -- It is `r - 1 ≥ s + 1` and the pairing round is `r - 2 ≥ s`, where both
     -- `HonestConfirmedAtOrAbove` and `HonestHeadHeldAbove` apply.
     have hcut : formationConfirmationTime S (s + 1) < tau :=
       htaueq ▸ formation_lt_early S hR hgap

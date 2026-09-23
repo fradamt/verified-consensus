@@ -488,7 +488,7 @@ omit [Fintype V] in
 is *not* an obstruction: a vote it rejects is already in the bucket, and
 `PoolStamps` says it is already stamped. The other three are, and are
 hypotheses — `hfresh` is new with the expiry clause (baseline `7b2efec`): an
-expired vote is now dropped outright, so every caller owes that the vote's slot
+expired vote is dropped outright, so every caller owes that the vote's slot
 is within the store's two-slot window. -/
 theorem mem_and_stamp_of_process (st : Protocol.Store V) (u : GoldfishVote V)
     (h : PoolStamps st) (hfresh : ¬ u.slot < st.s - 1) (hslot : ¬ st.s < u.slot)

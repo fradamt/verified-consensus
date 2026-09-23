@@ -227,7 +227,7 @@ theorem carrierOpening_mem_actionBodies
 /-- **Exact honest target rows at a carrier.** Every honest round-`r` action
 emits the opening proposal's height and canonical target, with the timeout bit
 clear. This is earlier's `carrierRows_exactTargets` restated over
-`proposedBlockAt`/`derive_named`, with the floor no longer existential: the
+`proposedBlockAt`/`derive_named`, with an explicit floor: the
 selection round record already names the FG source. -/
 theorem carrierRows_exactTargets_named
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)

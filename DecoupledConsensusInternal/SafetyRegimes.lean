@@ -22,7 +22,7 @@ structure DynamicParticipationSafety (S : Setup V) : Prop where
     -- Explicit and TEMPORARY (addendum 34, option (a)): the confirmation duty's
     -- stable write precedes the record it writes at the same read. A regime
     -- fact, not yet a run invariant. Discharged, and removed, by the
-    -- stable-record canonicity follow-up theorem; that discharge is mandatory.
+    -- stable-record canonicity theorem; that discharge is mandatory.
     HonestHeadExtendsStableFrom S rho 0 →
     HonestCommittees S rho.honest →
     S.E.t_GST = 0 →
@@ -34,10 +34,10 @@ structure DynamicParticipationSafety (S : Setup V) : Prop where
     -- Explicit and TEMPORARY (addendum 34, option (a)): the confirmation duty's
     -- stable write precedes the record it writes at the same read. A regime
     -- fact, not yet a run invariant. Discharged, and removed, by the
-    -- stable-record canonicity follow-up theorem; that discharge is mandatory.
+    -- stable-record canonicity theorem; that discharge is mandatory.
     HonestHeadExtendsStableFrom S rho 0 →
     HonestCommittees S rho.honest → BelowOneThird S rho.honest →
-    MultiProposerRecurrence S rho gap → TimeoutDelayBound S delayExtra → S.E.t_GST ≤ S.a rGST →
+    MultiProposerRecurrence S rho gap S.E.t_GST → TimeoutDelayBound S delayExtra → S.E.t_GST ≤ S.a rGST →
     BoundedPhaseStart S rho rGST gap delayExtra n → rho.horizon = S.a (n + gap) →
     ∃ m, n ≤ m ∧ m ≤ n + gap ∧ n + gap ≤ m + gap ∧
       ∃ B : NamedBlock V,

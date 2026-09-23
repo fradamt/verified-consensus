@@ -244,7 +244,7 @@ theorem preceq_get_stable (st : Protocol.Store V) {P : Block V}
 
 /-- **Conjunct 3 from the write's own disjunction.** The confirmation duty leaves
 the stable record untouched when its grade-2 block is absent, so what the
-boundary carry delivers is `P ⪯ F ∨ P ⪯ latest_stable`. Both arms give the user
+boundary carry delivers is `P ⪯ F ∨ P ⪯ latest_stable`. Both arms give the confirmed
 output, and the finality arm is the stronger one: `get_stable` is
 `latest_stable` when `F ⪯ latest_stable` and `F` otherwise, so `P ⪯ F` closes
 BOTH branches, while the record arm needs the compatibility side condition that

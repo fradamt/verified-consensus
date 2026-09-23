@@ -152,7 +152,7 @@ theorem latest_confirmed_stateAt (S : Setup V) {rho : Run V}
 `update_confirmation_with` over the confirmation duty's own prepared read**,
 under the contract that read's cache determines. Byte-for-byte
 `TickBridges.live_confirmed_eq_update`, targeting `latest_confirmed`; `confStore`
-no longer names the actual duty input (: the running contract is the
+does not name the actual duty input (: the running contract is the
 cache-derived `frameContract`, not the default), so the statement is phrased
 over `confirmationInputRead` directly, as its `live_confirmed` twin already is. -/
 theorem latest_confirmed_eq_update (S : Setup V) {rho : Run V}

@@ -57,8 +57,8 @@ the defence. That defence is unnecessary:
   previous item (`Proofs.AlignedRoundLemmas.sub_frontier_reveal_harmless`).
 
 **(e) is deleted because it is a theorem.** It said no honest validator has
-emitted two different targets at one height. That is now
-`Proofs.AlignedRoundLemmas.honest_no_double_target`, proved outright over the
+emitted two different targets at one height. This follows from
+`Proofs.AlignedRoundLemmas.honest_no_double_target`, proved over the
 execution layer: `Λ.target` is write-once, every emitting row of `height_pair`
 tests or sets it, `finality_pair` emits only under it, and a validator's record
 is written by its own ticks alone. Rev. 3 stated it as a clause because the
@@ -93,7 +93,7 @@ the load-bearing one. The other three do not carry it and do not need it:
 hypothesis; `heads` is universally quantified over emissions, and there it is the
 `a.round = r - 1` pin — not a guard — that keeps the clause in the past.
 
-**`J` is no longer a parameter of the base predicate.** With (c) gone nothing in
+**`J` is absent from the base predicate.** Nothing in
 (a), (b), (d′) or (f) names a justified block, so the justification is carried
 only by `AlignedRoundPlus`, where (c⁺) needs it.
 -/
@@ -169,7 +169,7 @@ structure AlignedRound (S : Setup V) (ρ : Run V) (r : Round) (Can : Block V)
 
   **Rev. 4 extends the bound from `h* < h` down to `h* ≤ h`**, which is what
   lets clause (c) go. Rev. 3 left the same-height case to Lemma U plus the
-  deleted clause (e); the honest half of Lemma U is now proved
+  deleted clause (e); the honest half of Lemma U follows from
   (`Proofs.AlignedRoundLemmas.honest_no_double_target`), and the *canonicality*
   half at `h*` — that the height-`h*` justification is on `Can` at all — was
   what (c) supplied and nothing else did. Extending (d′) supplies it directly,

@@ -561,9 +561,8 @@ theorem worldStep_h_max_le_succ
 
 
 /-- One actual event-prefix step raises one node's maximum by at most one.
-`del` is no longer load-bearing (: the run is rebuilt through the
-named duty chain directly, not `Proofs.Bridges.depReachable_of_admissible`) but is
-kept so every existing call site's argument shape still applies. -/
+The `del` argument preserves the caller interface; the proof uses the
+named duty chain directly. -/
 theorem stateBefore_hMax_le_succ
     (S : Setup V) {rho : Run V} (del : DeliveryWellFormed S rho)
     (v : V) (i : Nat) :

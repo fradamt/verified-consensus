@@ -134,7 +134,7 @@ theorem honestHMaxCarrierAt_of_eq
   exact hcarrierT
 
 /-! The complete earlier goals for the available cluster remain below. The
-comparison step is now supplied by
+comparison step is supplied by
 `NamedFinalizationBridge.named_no_off_can_finalization`; every other ingredient
 is supplied by the named state-before-time producers:
 `Proofs.Bridges.storeFinalizationOnChain_stateBefore` supplies the named finalization

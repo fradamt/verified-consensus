@@ -6,10 +6,9 @@ public import DecoupledConsensusProofs.Protocol.ForkChoice.Goldfish.Records
 
 @[expose] public section
 
-/-! Structural geometry of the named derivation, split out of
-`NamedStoreRoots` so that the optimistic action layer can use it. The two
-consumers sit on opposite sides of `NamedAdmission`, so they cannot share
-that module. Nothing here is an execution or authenticity claim. -/
+/-! Structural geometry of the named derivation. These lemmas sit below
+`NamedAdmission` so that both the named store and the optimistic action
+layer can use them. Nothing here is an execution or authenticity claim. -/
 namespace DecoupledConsensusModel.Proofs.NamedDerivationGeometry
 open DecoupledConsensusModel Protocol
 variable {V Row : Type} [DecidableEq V]

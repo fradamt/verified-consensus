@@ -358,7 +358,7 @@ theorem proposalViableAtDuty_of_package_and_head
 
 /-! ## Closing the awake-window pin, and the branch
 
-`PreparedV4AwakeWindows` is now discharged from the safety closure's own
+`PreparedV4AwakeWindows` follows from the safety closure's own
 producer, exported additively as
 `Handover.preparedV4_awakeWindows_of_prefix_core`. -/
 

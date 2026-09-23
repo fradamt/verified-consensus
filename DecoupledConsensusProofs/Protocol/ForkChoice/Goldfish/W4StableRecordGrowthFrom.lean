@@ -315,7 +315,7 @@ theorem dutyCoverAt_of_viable_and_localG2
 
 /-! ## Consuming the widened deadline: a write up to `η_SG` rounds later
 
-The point of the user's constant (`Liveness.lean:46-54`) is that the stable
+The widened stable growth constant allows for the fact that the stable
 root may lag: under an awake-window majority the round's G2 root is formed from
 votes over the expiry window, so the duty that first carries an opening
 proposal into the stable record can be up to `η_SG` rounds after that opening,
@@ -351,6 +351,7 @@ theorem stableRecordGrowthFrom_of_openingWriteWithin
     {start : Slot} {gap : Round} {t0 : Time}
     (ht0 : t0 ≤ Protocol.confirmation_time S.E start)
     (hrec : ProposerOpeningCarrierRecurrence S rho gap)
+    (hGSTStart : S.E.t_GST ≤ Protocol.proposal_time S.E start)
     (hmono : ConfirmationMonotoneFrom S rho t0)
     (hprops : UserProposalsConfirmedAfter S rho start)
     (hcanon : StableRecordCanonicalFrom S rho t0)
@@ -359,6 +360,9 @@ theorem stableRecordGrowthFrom_of_openingWriteWithin
   intro r hstart hhor
   classical
   obtain ⟨c, hclo, hchi, _hp2, hp1, _hcar⟩ := hrec r
+    (hGSTStart.trans (Protocol.proposal_time_mono S.E hstart))
+    ((Proofs.HealingLemmas.openingProposal_window_le_action S r gap).trans
+      ((Assembly.a_mono S (Nat.add_le_add_left (le_widened_deadline S gap) r)).trans hhor))
   have hc2 : 2 ≤ c := le_trans (Nat.le_add_left 2 r) hclo
   have hc1 : 1 ≤ c := le_trans (by decide : (1 : Nat) ≤ 2) hc2
   obtain ⟨q, rfl⟩ : ∃ q : Round, c = q + 1 :=
@@ -433,6 +437,7 @@ theorem stableRecordGrowthFrom_of_openingWriteWithinAbove
     {start : Slot} {gap : Round} {t0 : Time}
     (ht0 : t0 ≤ Protocol.confirmation_time S.E start)
     (hrec : ProposerOpeningCarrierRecurrence S rho gap)
+    (hGSTStart : S.E.t_GST ≤ Protocol.proposal_time S.E start)
     (hmono : ConfirmationMonotoneFrom S rho t0)
     (hprops : UserProposalsConfirmedAfter S rho start)
     (hcanon : StableRecordCanonicalFrom S rho t0)
@@ -441,6 +446,9 @@ theorem stableRecordGrowthFrom_of_openingWriteWithinAbove
   intro r hstart hhor
   classical
   obtain ⟨c, hclo, hchi, _hp2, hp1, _hcar⟩ := hrec r
+    (hGSTStart.trans (Protocol.proposal_time_mono S.E hstart))
+    ((Proofs.HealingLemmas.openingProposal_window_le_action S r gap).trans
+      ((Assembly.a_mono S (Nat.add_le_add_left (le_widened_deadline S gap) r)).trans hhor))
   have hc2 : 2 ≤ c := le_trans (Nat.le_add_left 2 r) hclo
   have hc1 : 1 ≤ c := le_trans (by decide : (1 : Nat) ≤ 2) hc2
   obtain ⟨q, rfl⟩ : ∃ q : Round, c = q + 1 :=

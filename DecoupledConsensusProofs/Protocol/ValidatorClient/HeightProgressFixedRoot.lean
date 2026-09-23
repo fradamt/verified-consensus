@@ -1791,7 +1791,18 @@ theorem fixedRootProgress_of_lifecycle
           intro hB2exact
           have hpostB2 : S.E.t_GST ≤ S.a (q2 + 1) :=
             hpost.trans (hreadAction.trans (Assembly.a_mono S hrQ2Succ))
+          have htrigger3 : q2 + 1 < q2 + 2 + delayExtra :=
+            (Nat.lt_succ_self (q2 + 1)).trans_le
+              (Nat.le_add_right (q2 + 2) delayExtra)
+          have hwindow3 : q2 + 2 + delayExtra + gap ≤ endpointRound :=
+            (fixedThirdEnd_nat hbound hq1lo hq1hi hq2lo hq2hi
+              (Nat.le_add_right _ _) le_rfl).1
           obtain ⟨q3, hq3lo, hq3hi, hcarrier3⟩ := hrec (q2 + 2 + delayExtra)
+            (hpostB2.trans
+              ((Int.le_add_of_nonneg_right S.E.Δ_pos.le).trans
+                (action_add_delta_le_openingProposal_of_round_lt S htrigger3)))
+            ((openingProposal_window_le_action S (q2 + 2 + delayExtra) gap).trans
+              ((Assembly.a_mono S hwindow3).trans hendHor))
           obtain ⟨hq3End, hrThreeQ3⟩ :=
             fixedThirdEnd_nat hbound hq1lo hq1hi hq2lo hq2hi hq3lo hq3hi
           have hfixedWindow3 : ∀ r', q2 + 1 ≤ r' → r' ≤ q3 →
@@ -2030,7 +2041,18 @@ theorem fixedRootProgress_of_lifecycle
     · -- the first opening already sits at the fixed frontier
       have hreadAction2 : read ≤ S.a q1 :=
         hreadAction.trans (Assembly.a_mono S hrQ1)
+      have htrigger2 : q1 < q1 + 2 + delayExtra :=
+        (Nat.lt_add_of_pos_right (by decide : 0 < 2)).trans_le
+          (Nat.le_add_right (q1 + 2) delayExtra)
+      have hwindow2 : q1 + 2 + delayExtra + gap ≤ endpointRound :=
+        (fixedExactEnd_nat hbound hq1lo hq1hi
+          (Nat.le_add_right _ _) le_rfl).1
       obtain ⟨q2, hq2lo, hq2hi, hcarrier2⟩ := hrec (q1 + 2 + delayExtra)
+        ((hpost.trans hreadAction2).trans
+          ((Int.le_add_of_nonneg_right S.E.Δ_pos.le).trans
+            (action_add_delta_le_openingProposal_of_round_lt S htrigger2)))
+        ((openingProposal_window_le_action S (q1 + 2 + delayExtra) gap).trans
+          ((Assembly.a_mono S hwindow2).trans hendHor))
       obtain ⟨hq2End, hrThreeQ2⟩ :=
         fixedExactEnd_nat hbound hq1lo hq1hi hq2lo hq2hi
       have hfixedWindow2 : ∀ r', q1 + 1 ≤ r' → r' ≤ q2 →

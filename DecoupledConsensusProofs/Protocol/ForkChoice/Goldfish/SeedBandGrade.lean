@@ -147,15 +147,9 @@ theorem seedG1_at_voteDuty_of_ownG2
     Proofs.Optimistic.tickStore, read] using hG1Read
 
 
-/-- **The fresh anchor exists wherever a grade-1 block does.**
-
-Local copy of `VoteBelowSource.fresh_anchor_isSome_of_G1`, which that file put
-behind an  comment as prior grade scaffold. The retirement
-is about the selection runtime no longer recomputing an anchor inside a duty; the
-store-level fact is unchanged, and `SeedClearCarrierCompatiblePreviousAt` still
-reads exactly this `Protocol.fresh_anchor`. Proof text is the retired one,
-verbatim: two grade-1 blocks of one store are compatible, so their set is a
-chain and "deepest" is total on it. -/
+/-- A grade-1 block makes `Protocol.fresh_anchor` nonempty. Two grade-1
+blocks in one store are compatible, so their set is a chain and the deepest
+selection is defined. -/
 private theorem seedFreshAnchor_isSome_of_G1 (E : Env V)
     {hc : Protocol.HealConfig} {st : Protocol.HealingStore V} {r : Round} {B : Block V}
     (hmem : B ∈ Protocol.get_filtered_block_tree st.toFG)

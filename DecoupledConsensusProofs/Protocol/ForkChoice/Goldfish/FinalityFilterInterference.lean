@@ -120,8 +120,8 @@ maximum is at most `H + 1`.
 
 /derived-state class: the protected block is a named
 body `D`; the height premise is `derive_named`-valued (the retired
-`derived_state`/`DerivedStateAgrees` bridge at a `DepReachableStore` no longer
-exists), and the store's cached agreement with it comes from
+`derived_state`/`DerivedStateAgrees` bridge at a `DepReachableStore` does not
+exist), and the store's cached agreement with it comes from
 `Proofs.NamedStore.Coherent`'s `DerivedView` clause
 (`Proofs.NamedStoreBridge.derivedView_stateBeforeTime`), read at the reader's own
 named prefix invariant. -/

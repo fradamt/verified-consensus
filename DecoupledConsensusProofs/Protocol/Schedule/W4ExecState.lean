@@ -164,7 +164,7 @@ theorem w4cx_movingSlotPreEntryN_voterAnchorAt_preceq_prev_of_ceiling
 
 #print axioms w4cx_movingSlotPreEntryN_voterAnchorAt_preceq_prev_of_ceiling
 
-/-! The branch-2 Byzantine pin is now a one-line schedule split over the two
+/-! The branch-2 Byzantine pin follows by a schedule split over the two
 anchor twins. The schedule disjunction itself remains the exact output shape
 of `w4_proposalSchedule_hybrid`; no default-contract object is introduced. -/
 

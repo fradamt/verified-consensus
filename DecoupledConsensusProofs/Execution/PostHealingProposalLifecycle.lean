@@ -45,8 +45,7 @@ argument rather than reusing it). Byte-exact original archived at
 
 **Open (class d), — frozen public boundary.**
 `honestProposalLifecycleFrom_of_canonicalSuffixExecution` remains absent. The
-restored `UserConfirmationRecoveryRun` producer now supplies the exact named
-record equality. No live caller exists in this selection module. The next public
+`UserConfirmationRecoveryRun` theorem supplies the exact named record equality. The next public
 statement has no head-premise field:
 
 ```lean

@@ -15,7 +15,7 @@ variable {V : Type} [DecidableEq V] [Fintype V]
 
 /-- PROPOSED precise completion of the index-cut wording in 1602.
 Includes the empty and terminal prefixes and strict-read prefixes whose
-next event is later than t. Not yet an approved interpretation. -/
+next event is later than t. This is an index bound on the next event. -/
 def PrefixThrough (rho : NamedRun V) (i : Nat) (t : Time) : Prop :=
   i ≤ rho.events.length ∧
     ∀ j : Nat, j < i → ∀ e : NamedEvent V,

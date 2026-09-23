@@ -24,7 +24,7 @@ below says which of the three it is:
 * **proved** — a theorem in `HealingSurface/` discharges it outright;
 * **proved from a named premise** — a theorem discharges it given a conditional
   stated in this file, never a standing assumption;
-* **Open** — stated, not proved, with the owner named in its comment.
+* **Open** — stated, not proved; its comment identifies the missing premise.
 
 **No new assumption.** The allowed set is `Admissible`, `HonestCommittees`,
 `BelowOneThird`, `NonfinalityRun`, `BaselineAtRef`, the triple-proposer
@@ -267,10 +267,6 @@ other validators' ticks never reach this entry, and the node's own tick is one
 `create_attestation`. So `LockCompatible` is preserved and `Λ.target` only grows, and
 the earlier emission's target is what every later one must name.
 
-**This is `Internal.AlignedRound`'s deleted clause (e), restored.** Rev. 4 deleted
-it on the ground that it is a theorem; it retired with the prior write discipline
-(`the design notes` §5) and it is a theorem again.
-
 Stated over `targetsAt`, so it covers the height pair and the finality pair
 together; that is the pair E1 convicts on, and it is what clause (d′) reads. -/
 def HonestNoDoubleTarget (S : Setup V) (ρ : Run V) : Prop :=
@@ -381,7 +377,7 @@ reader, its block stamp precedes the veto freeze.
 prepared round action after clipping against its own finalized root. The
 saved-frame result is retained as the root identity serves to select the active
 prefix, but the grade result in this predicate is the action read's result.
-Owner: the run layer, alongside `BatchDelivered`. -/
+The run layer also supplies `BatchDelivered`. -/
 def AnchorVisible (S : Setup V) (ρ : Run V) (r : Round) : Prop :=
   ∀ u ∈ ρ.honest, ∀ root A : Block V,
     DecoupledConsensusModel.Protocol.phaseResult (DecoupledConsensusModel.Protocol.readFrame
@@ -433,8 +429,8 @@ itself.
 split: the far anchor is inactive at the feeding store, or it is a stamped
 grade-0 veto there and therefore compatible with the veto-free fed value.
 
-`ordered` and `deepest_relayed` are **Open**. Owner: the availability
-layer — `ordered` is the TSQ counting (same-slot denominator absorption,
+`ordered` and `deepest_relayed` are **Open**. Their availability
+arguments require `ordered` is the TSQ counting (same-slot denominator absorption,
 cross-slot first-confirmation-persists) and `deepest_relayed` is this
 statement's own declared liveness residual.
 
@@ -583,7 +579,7 @@ below keep them apart:
 
 **`target_gate` records Rule B's exact write.** A nonempty finality pair writes
 its target to `Λ.lock[h_j]`. The target entry can remain empty. Thus a finality
-vote no longer proves that the validator first emitted a target row at that
+vote does not prove that the validator first emitted a target row at that
 height.
 
 The emission-level lock fact is **proved**
@@ -594,7 +590,7 @@ allows and names what is left:
 * `public_through` is **premise-shaped**. "A certificate is public for the whole
   clean round" is the hypothesis of L8's sentence, not a consequence of it;
   producing it is post-GST relay of the certificate plus monotonicity of `Σ.h_j`
-  across the interval. Owner: the availability layer. The two-instant hygiene
+  across the interval. The two-instant condition
   above is what keeps this visible — a cap through an interval is not produced by
   a witness at an instant.
 * `agree_at` reduces to `March.agree_at_of_head` plus **two** named things, both
@@ -612,7 +608,7 @@ allows and names what is left:
 * `quorum` **asks for more weight than the certificate supplies**. The
   certificate proves that its honest height-target voters have weight at least
   `q − b`. Rule B permits additional finality voters with an empty target row,
-  so the prior exact characterization of the finality-voting set is no longer
+  so an exact characterization of the finality-voting set is not
   valid. The residual is still the missing honest target-row weight up to `q`,
   plus transport from an emission index to the instant `a_{r+1}`. -/
 structure FinalityMarch (S : Setup V) (ρ : Run V) (r : Round) (h : Height)
@@ -797,8 +793,7 @@ def VoteBelowSource (S : Setup V) : Prop :=
 **The run-level lift below is Open**, and its debt is one bridge, not a
 protocol fact: every honest emission comes out of `create_attestation`
 (`on_tick_emit` → `Protocol.attest_with` → `round_action_with`), which is the same
-emission analysis `Optimistic/Emission.lean` performs for the SG fibre. Owner:
-the run layer.
+emission analysis `Optimistic/Emission.lean` performs for the SG fibre.
 
 This is the flagged strong result, and it is the machine-checked version of the
 two independent traces that refuted the E1 alarm. It is also a
@@ -825,7 +820,7 @@ def DivergenceE1Safe (S : Setup V) (ρ : Run V) : Prop :=
 
 /-- **The healing theorem** (`the design` §9).
 
-**Open — stated, not proved.** Owner: the run layer, and it is the
+**Open — stated, not proved.** It is the
 assembly of everything above rather than an independent obligation. Each clause
 names the lemmas it consumes, so the theorem's debt is exactly the union of its
 lemmas' debts and nothing more.

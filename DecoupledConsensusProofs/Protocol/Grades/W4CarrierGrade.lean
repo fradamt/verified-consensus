@@ -21,7 +21,7 @@ round's opening proposal is both the height history's natural reference and a
 block already delivered before the round-`r` G2-domain read, because
 `S.a (r-1) + Δ ≤ Γ[-1] r`.
 
-The producer is the corresponding branch's probe D, over four available theorems.
+The producer uses four theorems for the corresponding branch.
 -/
 
 

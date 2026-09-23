@@ -389,7 +389,7 @@ private theorem sg_a_add_delta_le_of_lt_public (S : Setup V) (b0 : Time)
 
 /-- A round strictly below `r` has its whole action before round `r`'s opening:
 `a_q = 4Δ·os(q) + 6Δ` and `os(q) + 3 ≤ os(r)` for `R ≥ 3`. This replaces the
-horizon step `S.a q ≤ S.a r ≤ rho.horizon`, which `DomainIncluded` no longer
+horizon step `S.a q ≤ S.a r ≤ rho.horizon`, which `DomainIncluded` does not
 supports. -/
 private theorem sg_a_le_domain_g1 (S : Setup V) {q r : Round} (hR : 3 ≤ S.hc.R)
     (hqr : q < r) : S.a q ≤ domain S.E S.hc r .g1 := by
@@ -1250,7 +1250,7 @@ opposed vacuously through the domination clause, and its non-covering late
 token could sit outside the boundary inventory. At `tau = min b0 (early r.g2)`
 that cannot happen: the late token still traces back to an honest emission, and
 every honest emission falls into case 1, case 2 or case 3 above. In case 3 the
-row is *in* the inventory at `tau` — the inventory cutoff is now at or before
+row is *in* the inventory at `tau` — the inventory cutoff is at or before
 the early cutoff, so nothing that the early view could have shown is missing
 from it — so the sender is a stale risk rather than a free opponent. -/
 private theorem sg_opposition_contained (S : Setup V) (rho : NamedRun V) (b0 b1 : Time)

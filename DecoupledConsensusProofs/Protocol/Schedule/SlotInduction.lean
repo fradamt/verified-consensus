@@ -85,10 +85,10 @@ Neither mentions a fork
 choice, a slot or a committee, which is the point: what the slot induction was
 missing is delivery and hygiene, not agreement.
 
-**Admission scoping (baseline `0a2c947`).** `on_block` now drops
-non-descendants of the receiver's `Σ.F`, so delivery of the head no longer
-implies membership: the discharge of this conditional additionally needs the
-honest head **live at the receiver** — `Σ.F ⪯ X` at the receiving store when
+**Admission scoping.** `on_block` drops non-descendants of the
+receiver's `Σ.F`, so delivery of the head does not imply membership.
+This conditional also needs the honest head **live at the receiver**:
+`Σ.F ⪯ X` at the receiving store when
 the head arrives. Under the availability arc that is the receiver's finalized
 block sitting on the honest chain below the head; the qualifier is recorded
 here rather than folded silently. -/
@@ -108,9 +108,8 @@ theorem HeadsResolveIn.of_eq {S : Setup V} {ρ : Run V} {s : Slot}
 
 /-! ### The bridge is not an atom
 
-`HeadsResolveIn` splits into *membership* and *root uniqueness*, and each half has
-an owner outside this file. Writing the split down is what keeps the residual
-honest: neither half mentions a fork choice, a committee or a slot induction. -/
+`HeadsResolveIn` splits into *membership* and *root uniqueness*. Neither
+property requires fork choice, committee assumptions, or slot induction. -/
 
 omit [Fintype V] in
 /-- **`find?` resolves a member whose root nothing else in the tree carries**

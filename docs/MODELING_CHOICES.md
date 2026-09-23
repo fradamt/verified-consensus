@@ -109,6 +109,12 @@ to confirm. A path with no library prefix is under `DecoupledConsensusModel/`.
   `capPerSigner_length_le_keys` proves the bound of twice the number of distinct
   (validator, round) keys, and `mem_proposalRows_of_unique` keeps every selected
   honest row that is not already on the parent chain, in an admissible run. The count of keys in the round window is not a separate lemma.
+- **Limits** — two distinct rows from one validator and round stay visible on
+  chain, but a Byzantine validator with many variants chooses which two, and
+  such a pair need not be slashable evidence. The cap bounds honest proposals
+  only: the model puts no limit on the rows of a received block, counts rows
+  and not bytes, and does not bound computation. A deployment at Ethereum scale
+  needs aggregate signatures.
 
 ## 2 The tick
 
@@ -195,7 +201,9 @@ to confirm. A path with no library prefix is under `DecoupledConsensusModel/`.
   `Generic.Event.key` orders events by time, then by phase, so a tick precedes
   the deliveries at that time. The run holds no emission list, so an emission is
   a fact about the protocol, not data a run may misstate. A guard-rejected call
-  consumes nothing, and the node can accept the same object later.
+  consumes nothing, and the node can accept the same object later. A claim
+  reads the state after all events at its time; it says nothing about the
+  states between deliveries at one time.
 - **Check** — each claim uses the fold its statement needs, no premise adds
   emissions to a run, and `Statements.Generic.PartialSynchrony` uses `handlesAt`
   for its conclusion and `acceptsAt` for its relay trigger.
@@ -218,7 +226,8 @@ to confirm. A path with no library prefix is under `DecoupledConsensusModel/`.
   is not modelled.
 - **Check** — the outage claim states delivery as healthy before `b₀` and again
   from `t_GST`, and `Δ` is strict: the premises conclude
-  `t' < max t t_GST + Δ`.
+  `t' < max t t_GST + Δ`: an object sent before GST arrives before
+  `t_GST + Δ`.
 
 ### 5.2 A round-sampled awake profile, read in continuous time — representation
 
@@ -298,7 +307,9 @@ time in scope: `Statements.Generic.WindowMajority`,
 `Statements.Generic.FreshMajority`, `Statements.Generic.SingleProposerRecurrence`,
 `Statements.Generic.MultiProposerRecurrence` and
 `Statements.Generic.StrongMultiProposerRecurrence` are continuous-time contracts, and
-are therefore stronger than the round-sampled form.
+are therefore stronger than the round-sampled form. The recurrence tiers count
+only the windows that end inside the run and start at or after `t₀` (tier 1)
+or GST (tiers 2 and 3).
 
 One consequence is visible in the constants. In continuous time the window
 `[t + 2·period, t + gap·period]` of `StrongMultiProposerRecurrence` is a single point

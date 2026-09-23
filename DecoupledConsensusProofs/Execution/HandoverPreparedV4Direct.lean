@@ -23,6 +23,10 @@ open Internal Execution Internal.NamedRecoveryRead Protocol Proofs.Optimistic
 variable {V : Type} [DecidableEq V] [Fintype V]
 variable {delayExtra : Nat}
 
+private theorem directV4_trigger_after_gst_nat {r d l eta n : Nat}
+    (hrd : r ≤ d) (hn : d + 2 * l + 1 + eta ≤ n) : r < n := by
+  omega
+
 private theorem confirmationTime_mono_directV4
     (E : Env V) {s t : Slot} (hst : s ≤ t) :
     Protocol.confirmation_time E s ≤ Protocol.confirmation_time E t := by
@@ -109,7 +113,20 @@ theorem settledBootstrap_of_strong_preparedV4_of_live_pins
   let D := fgSafetyProgressDeadline S rho rGST gap delayExtra
   let L := progressLag' gap delayExtra
   let base : Round := D + 2 * L + 1
-  obtain ⟨m, hmlo, hmhi, hcarrier⟩ := hrec n
+  have hGSTdead : rGST ≤ D := by
+    dsimp only [D]
+    unfold fgSafetyProgressDeadline
+    exact (Nat.le_succ rGST).trans (Nat.le_add_right _ _)
+  have hGSTtrigger : S.E.t_GST ≤
+      Protocol.proposal_time S.E (S.hc.opening_slot n) :=
+    hpost.trans ((Int.le_add_of_nonneg_right S.E.Δ_pos.le).trans
+      (Proofs.HealingLemmas.action_add_delta_le_openingProposal_of_round_lt S
+        (directV4_trigger_after_gst_nat hGSTdead (by simpa only [D, L] using hn))))
+  have hhorAction : S.a (n + gap) ≤ rho.horizon := by
+    simpa only [opening_confirmation_time_eq_action] using hhor
+  have hhorTrigger :=
+    (Proofs.HealingLemmas.openingProposal_window_le_action S n gap).trans hhorAction
+  obtain ⟨m, hmlo, hmhi, hcarrier⟩ := hrec n hGSTtrigger hhorTrigger
   let start := S.hc.opening_slot m
   obtain ⟨P, hP⟩ := proposedBlockAt_isSome S rho start
   have hhorM : Protocol.confirmation_time S.E start ≤ rho.horizon :=

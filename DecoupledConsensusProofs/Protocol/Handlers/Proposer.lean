@@ -43,7 +43,7 @@ it. So the spoofed-block counterexample that defeats `GradeFormsAt` as literally
 stated cannot occur in an admissible run.
 
 Genesis is excluded by the claim hypotheses alone: `Block.genesis.proposer?` is
-`none` (F1.1), so `0 < s` is no longer needed here — it survives in the store
+`none` (F1.1), so `0 < s` is unnecessary here — it survives in the store
 form, where it feeds the `ProposerOk` dichotomy.
 
 The whole content is `Unforgeable.unforgeable` at `Object.author`, now a field

@@ -150,7 +150,7 @@ chain state carries the freshest justification" (PROTOCOL.md `alg:pair-rules`). 
 `(h_j, J)` exactly when a justification is not yet finalized *and* the record
 allows it; otherwise the empty pair, which is `none` of an `Option FinalityPair`.
 
-**It no longer writes the lock.** `record_attestation` does, from the emitted
+**This action does not write the lock.** `record_attestation` does, from the emitted
 attestation.
 
 The record test allows `Λ.target[h_j]` to be empty or equal to `J`. A validator

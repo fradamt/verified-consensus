@@ -17,7 +17,7 @@ generalization without changing the execution model. The conclusion is
 calls, matching the already-restated `broadcast_gst_zero` family in
 `Availability/Sync.lean`.
 
-The relative-SG representation chain is now stated over `NamedAttestation`
+The relative-SG representation chain is stated over `NamedAttestation`
 and `NamedRun.actualHandlesAt`. `NamedEmissionShape` supplies the emitted-row
 shape and the CarriesRow-aware `NamedSGArrival` producer retains the row at
 the actual receiver call. The five post-GST declarations below use this

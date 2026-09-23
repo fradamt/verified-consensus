@@ -290,7 +290,7 @@ theorem concreteConsensus (S : Setup V) : Statements.Instantiation.Consensus S :
   refine {
     constants := constants_valid S
     nested := ?_
-    certificates := ?_
+    certificatesAccountable := ?_
     finalizedAccountable := ?_
     honestNeverSlashed := ?_
     finalizedSafe := ?_
@@ -378,7 +378,8 @@ theorem concreteConsensus (S : Setup V) : Statements.Instantiation.Consensus S :
     have hlive := hstrong.toLiveSleepyRegime
     have hs := sleepyRegime_of_generic S rho t₀ hlive.toSleepyRegime
     have hr := recoveredBy_of_generic S rho t₀ hlive.start
-    have hrec := openingCarrierRecurrence_of_generic S rho gap hstrong.strongRecurrence
+    have hrec := openingCarrierRecurrence_of_generic S rho S.E.t_GST gap
+      hstrong.strongRecurrence
     refine { stableIncluded := ?_, stableLive := ?_ }
     · simpa [stableInclusionDelay_eq_constant] using
         included_of_named S (available_stableIncluded S rho t₀ hs hr gap hrec)

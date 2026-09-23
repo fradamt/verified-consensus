@@ -13,7 +13,7 @@ the protocol tick, and the event prefix.
 
 ## Named-run proof (design note)
 
-`on_tick_emit` is now `Execution.NamedNode.tick`, a named `NodeState` in
+`on_tick_emit` uses `Execution.NamedNode.tick`, a named `NodeState` in
 and a named `NodeState × List Object` out (`Execution/Node.lean`). The emitted
 row is a `NamedAttestation`, read through `.erase` wherever the bare
 `CombinedAttestation`/`HeightPair` facts apply ('s Rows note); the plain

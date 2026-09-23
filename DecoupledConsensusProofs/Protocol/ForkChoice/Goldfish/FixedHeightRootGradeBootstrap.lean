@@ -47,7 +47,16 @@ theorem fixedHeightJustificationRoot_boundedGradeFormsAt_of_proposerRecurrence_o
   · right
     have hcapEnd : honestHMaxAt S rho (S.a (r + 4 + gap)) ≤ H :=
       Nat.le_of_not_gt hrise
+    have hrlt : r < r + 3 := Nat.lt_add_of_pos_right (by decide : 0 < 3)
+    have hwindowEnd : r + 3 + gap ≤ r + 4 + gap :=
+      Nat.add_le_add_right (Nat.add_le_add_left (by decide : 3 ≤ 4) r) gap
     obtain ⟨q, hqlo, hqhi, hcarrier⟩ := hrecurrence (r + 3)
+      (hpost.trans (hreadAction.trans
+        ((Int.le_add_of_nonneg_right S.E.Δ_pos.le).trans
+          (Proofs.HealingLemmas.action_add_delta_le_openingProposal_of_round_lt S
+            hrlt))))
+      ((Proofs.HealingLemmas.openingProposal_window_le_action S (r + 3) gap).trans
+        ((Assembly.a_mono S hwindowEnd).trans hendHor))
     have hqlo' : r + 1 + 2 ≤ q := by
       simpa only [Nat.add_assoc] using hqlo
     have hqTwo : 2 ≤ q :=

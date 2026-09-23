@@ -591,20 +591,21 @@ theorem proposerCarrierAt (r : Round) :
   simp
 
 theorem proposerRecurrence : MultiProposerRecurrence S run gap := by
-  intro r
+  intro r _ _
   exact ⟨r, le_rfl, by simp [gap], proposerCarrierAt r⟩
 
 theorem generic_proposer_recurrence :
     Statements.Generic.MultiProposerRecurrence
       (Statements.Instantiation.interface S)
-      (Statements.Instantiation.constants S) sourceRun gap := by
-  intro t ht
+      (Statements.Instantiation.constants S) sourceRun E.t_GST gap := by
+  intro t ht _
+  have ht0 : 0 ≤ t := E.t_GST_nonneg.trans ht
   let L : Time := S.a 1 - S.a 0
   let q : Nat := Int.toNat (t / L)
   let r : Round := q + 1
   have hL : 0 < L := by
     exact Proofs.concretePeriod_pos S
-  have hq : 0 ≤ t / L := Int.ediv_nonneg ht hL.le
+  have hq : 0 ≤ t / L := Int.ediv_nonneg ht0 hL.le
   have hq' : (q : Time) = t / L := by
     dsimp [q]
     exact Int.toNat_of_nonneg hq
@@ -650,7 +651,7 @@ theorem proposerOpeningCarrierAt (r : Round) :
 
 theorem proposerOpeningCarrierRecurrence :
     ProposerOpeningCarrierRecurrence S run gap := by
-  intro k
+  intro k _ _
   exact ⟨k + 2, le_rfl, by simp [gap], proposerOpeningCarrierAt (k + 2)⟩
 
 theorem self_handles_of_emission {i : Nat} {o : Object (Fin 2)} {t : Time}
@@ -1466,7 +1467,8 @@ theorem generic_recovery_regime :
     committees := ?_
     belowThird := ?_
     allAwake := ?_
-    recurrence := generic_proposer_recurrence
+    recurrence := by
+      simpa [Statements.Instantiation.env, S] using generic_proposer_recurrence
     horizon := ?_ }
   · intro s
     simpa [Statements.Instantiation.interface, Statements.instance] using honestCommittees s

@@ -59,7 +59,8 @@ structure Consensus
   constants : C.Valid
   /-- No premise. -/
   nested : ∀ rho, OutputOrder P I rho
-  certificates : ∀ c c' T T', I.collisionFree c c' → I.finalizes c T → I.finalizes c' T' →
+  /-- No run premise. -/
+  certificatesAccountable : ∀ c c' T T', I.collisionFree c c' → I.finalizes c T → I.finalizes c' T' →
     Block.Compatible T T' ∨ I.evidence c c'
   /-- Well-formed run. -/
   finalizedAccountable : ∀ rho, RunWellFormed E I rho → AccountablySafeFrom P I rho I.finalized 0

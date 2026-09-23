@@ -44,10 +44,13 @@ theorem availableChainGrowthFrom_of_userProposals
     (S : Setup V) {rho : Run V} {start : Slot} {gap : Round}
     (hmono : ConfirmationMonotoneFrom S rho (Protocol.confirmation_time S.E start))
     (hprops : UserProposalsConfirmedAfter S rho start)
-    (hrec : ProposerOpeningCarrierRecurrence S rho gap) :
+    (hrec : ProposerOpeningCarrierRecurrence S rho gap)
+    (hGSTStart : S.E.t_GST ≤ Protocol.proposal_time S.E start) :
     AvailableChainGrowthFrom S rho start gap := by
   intro r hstart hhor
   obtain ⟨c, hclo, hchi, _, hp1, hcarrier⟩ := hrec r
+    (hGSTStart.trans (Protocol.proposal_time_mono S.E hstart))
+    ((Proofs.HealingLemmas.openingProposal_window_le_action S r gap).trans hhor)
   have hp2 := hcarrier.1
   have harith : ∀ x y : Nat, x + 2 ≤ y → x < y - 1 ∧ y - 1 < y := by
     intro x y hxy

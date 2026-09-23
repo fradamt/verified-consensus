@@ -179,7 +179,7 @@ the definitions stay separate only because the store types differ.
 
 The admission guard is load-bearing twice: it is what makes every `Σ.h_max`
 bump live at bump time — `Σ.F` is always viable, with no fault bound
-(`Proofs.finalizedViableInvariant`) — and it makes **resolution
+(`Proofs.NamedFinalizedViable.finalizedViable_readAt`) — and it makes **resolution
 admission-dependent**: a vote resolves only when its head is in the receiving
 store. The resolution-transfer conditionals carry that scoping
 (`HeadArrivesBefore`, `HeadsResolveIn`, `BatchDelivered`).

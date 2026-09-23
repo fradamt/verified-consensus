@@ -199,8 +199,7 @@ private theorem fold_viable (S : Setup V) (events : List (NamedEvent V)) (w : Na
 
 /-! ## 3. The exports
 
-`FinalizedViable` at every named read, with no premise. This is the run-level
-producer `finalizedViableInvariant` never had over the named runtime. -/
+`FinalizedViable` at every named read, with no premise. -/
 
 
 theorem finalizedViable_stateBeforeTime (S : Setup V) (rho : Run V) (t : Time) (v : V) :

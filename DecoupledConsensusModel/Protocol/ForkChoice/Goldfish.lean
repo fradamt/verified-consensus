@@ -476,7 +476,7 @@ structure FGStore (V : Type) extends toSG : Protocol.SGStore V where
   /-- §5.1 `Σ.h_max`: the running maximum state height
   (PROTOCOL.md `sec:fg-fork-choice`). **Monotone** — the field only grows; every block that
   raises it is live at that moment (the admission guard), which is what keeps
-  `Σ.F` viable (`Proofs.finalizedViableInvariant`). -/
+  `Σ.F` viable (`Proofs.NamedFinalizedViable.finalizedViable_readAt`). -/
   h_max : Height
 
 namespace FGStore

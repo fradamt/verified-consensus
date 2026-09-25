@@ -293,6 +293,9 @@ Let `L = S.a 1 − S.a 0 = 4ΔR` and
 └─────────────────────────┴──────────────────────────────────────────────────────────────┴────────────┴─────────────────────────────────────────────┘
 ```
 
+`nextAction(T) = a_s` for the first round `s` whose action is at or after `T`;
+`Proofs.roundAfter_eq_nextRound` shows that its round is `nextRound T`.
+
 The setup timeout is `timeoutDelay = (2 + e)R` for
 `e = S.cfg.timeoutDelay / S.hc.R − 2`;
 `timeout_rounds` requires this to be a whole number of rounds and at least

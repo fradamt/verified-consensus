@@ -368,3 +368,4 @@ public import DecoupledConsensusProofs.Protocol.Handlers.JustificationBound
 public import DecoupledConsensusProofs.Execution.FinalizedViable
 public import DecoupledConsensusProofs.Objects.StableOutputNextRoundFGWitness
 public import DecoupledConsensusProofs.Protocol.Grades.StableOutputNextRoundGoldfishCarriers
+public import DecoupledConsensusProofs.Bridge.RoundAfter

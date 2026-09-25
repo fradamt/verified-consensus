@@ -89,8 +89,10 @@ structure Constants where
   expire, in `Time`. -/
   expiry : Time → Time
 
-/-- The constants are well formed; the live and outage claims below are not
-vacuous. -/
+/-- The constants are well formed: a positive period, nonnegative windows and
+delays, a recovery end after the prefix end, and a nonempty outage window.
+`maxGap_ge_two` is a sanity bound; the finality premise is satisfiable only for
+`maxGap ≥ 5` (see `StrongMultiProposerRecurrence`). -/
 structure Constants.Valid (C : Constants) : Prop where
   period_pos : 0 < C.period
   participationWindow_nonneg : 0 ≤ C.participationWindow

@@ -125,7 +125,7 @@ step_shape() {
   return 0
 }
 
-# Check a single `'name' depends on axioms: [a, b, c]` line from
+# Check a single `'name' depends on axioms: [a, b, c]` entry from
 # ReviewAxioms.lean against the allowed axiom set.
 check_axiom_line() {
   local line="$1" bad=0 list ax
@@ -161,11 +161,24 @@ step_axioms() {
     echo "  sorryAx present in the axiom report" >&2
     bad=1
   fi
+  # Lean wraps a list past 120 columns, one axiom per line, so join up to `]`.
+  local entry=""
   while IFS= read -r line; do
-    [[ "$line" == *"depends on axioms:"* ]] || continue
-    seen=$((seen + 1))
-    check_axiom_line "$line" || bad=1
+    if [[ -z "$entry" ]]; then
+      [[ "$line" == *"depends on axioms:"* ]] || continue
+      seen=$((seen + 1))
+      entry="$line"
+    else
+      entry+=" $line"
+    fi
+    [[ "$entry" == *"]"* ]] || continue
+    check_axiom_line "$entry" || bad=1
+    entry=""
   done <<<"$out"
+  if [[ -n "$entry" ]]; then
+    echo "  unterminated axiom list: $entry" >&2
+    bad=1
+  fi
   if [[ $seen -eq 0 ]]; then
     echo "  no 'depends on axioms' line found; ReviewAxioms.lean output format may have changed" >&2
     bad=1

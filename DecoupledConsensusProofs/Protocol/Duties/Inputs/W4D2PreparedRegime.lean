@@ -54,7 +54,7 @@ private theorem w4d2ActionFGSourceEqLive
           ((NamedProfile.gradeContract (actionReadAt S rho v r).cache).read S.E S.hc
             (actionReadAt S rho v r).st.core.toHealing r).clear =
           some (actionStoreAt S rho v r).live_confirmed :=
-        deepest_clear_eq_tip (by simpa using hAlive) hclearAt
+        deepest_clear_eq_tip (by simpa using! hAlive) hclearAt
       rw [PhaseGrades.nodeFGSource, Protocol.fg_source_with.eq_def, hQ2] at hsource'
       simp only [hwalk, Option.some.injEq] at hsource'
       exact hsource'.symm

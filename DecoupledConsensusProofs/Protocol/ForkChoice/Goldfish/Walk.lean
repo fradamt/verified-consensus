@@ -58,7 +58,7 @@ theorem pickUnique?_eq_some {α : Type} [DecidableEq α] {T : Finset α} {p : α
     pickUnique? T p = some C := by
   have hex : ∃! a, a ∈ T ∧ p a = true := ⟨C, ⟨hC, hp⟩, fun b hb => huniq b hb.1 hb.2⟩
   unfold pickUnique?
-  rw [dif_pos hex]
+  rw [dite_eq_left hex]
   refine congrArg some ?_
   have hspec := Finset.choose_spec (fun a => p a = true) T hex
   exact huniq _ hspec.1 hspec.2
@@ -69,7 +69,7 @@ unique one. -/
 theorem pickUnique?_empty {α : Type} [DecidableEq α] {T : Finset α} {p : α → Bool}
     (h : T = ∅) : pickUnique? T p = none := by
   unfold pickUnique?
-  rw [dif_neg]
+  rw [dite_eq_right]
   rintro ⟨a, ⟨ha, -⟩, -⟩
   rw [h] at ha
   exact absurd ha (by simp)

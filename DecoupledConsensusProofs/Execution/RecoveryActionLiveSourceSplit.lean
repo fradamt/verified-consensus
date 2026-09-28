@@ -56,7 +56,7 @@ theorem actionStoreAt_liveConfirmed_genuine_or_fgRoot
     refine ⟨confWalkWith contract S.E S.hc st (S.hc.opening_slot r),
       { selected := ?_, genuine := hgate }, ?_⟩
     · exact update_confirmation_with_live_confirmed contract S.E S.hc st
-        (S.hc.opening_slot r) ▸ if_pos hgate
+        (S.hc.opening_slot r) ▸ ite_eq_left hgate
     · change confWalkWith contract S.E S.hc st (S.hc.opening_slot r) =
         (actionStoreAt S rho v r).st.core.live_confirmed
       rw [show (actionStoreAt S rho v r).st.core =
@@ -64,7 +64,7 @@ theorem actionStoreAt_liveConfirmed_genuine_or_fgRoot
         (S.hc.opening_slot r) by
           simpa only [contract, st] using
             actionStoreAt_eq_update_confirmation_confStore S rho v r]
-      rw [update_confirmation_with_live_confirmed, if_pos hgate]
+      rw [update_confirmation_with_live_confirmed, ite_eq_left hgate]
   · right
     refine ⟨Protocol.get_fg_root st.toHealing.toFG, rfl, ?_⟩
     change Protocol.get_fg_root st.toHealing.toFG =
@@ -74,7 +74,7 @@ theorem actionStoreAt_liveConfirmed_genuine_or_fgRoot
         (S.hc.opening_slot r) by
           simpa only [contract, st] using
             actionStoreAt_eq_update_confirmation_confStore S rho v r]
-    rw [update_confirmation_with_live_confirmed, if_neg hgate]
+    rw [update_confirmation_with_live_confirmed, ite_eq_right hgate]
     rfl
 
 

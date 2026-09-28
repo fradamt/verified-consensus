@@ -131,7 +131,7 @@ theorem settledBootstrap_of_strong_preparedV4_of_live_pins
   obtain ⟨P, hP⟩ := proposedBlockAt_isSome S rho start
   have hhorM : Protocol.confirmation_time S.E start ≤ rho.horizon :=
     (confirmationTime_mono_directV4 S.E
-      (by simpa only [start] using Nat.mul_le_mul_right S.hc.R hmhi)).trans hhor
+      (by simpa only [start] using! Nat.mul_le_mul_right S.hc.R hmhi)).trans hhor
   have hhorVote : Protocol.vote_time S.E start ≤ rho.horizon :=
     (vote_time_le_confirmation_time S.E start).trans hhorM
   have hhorVoteDelta : Protocol.vote_time S.E start + S.E.Δ ≤ rho.horizon := by
@@ -143,7 +143,7 @@ theorem settledBootstrap_of_strong_preparedV4_of_live_pins
     simpa only [D, L, base, Nat.add_assoc] using hn
   have hbaseM : base + S.hc.η_SG ≤ m := hbaseN.trans hmlo
   have hDtwoM : D + 2 ≤ m := by
-    have hLpos : 1 ≤ L := by simpa only [L] using progressLag'_pos gap
+    have hLpos : 1 ≤ L := by simpa only [L] using! progressLag'_pos gap
     have h2L : 2 ≤ 2 * L := by
       simpa only [Nat.mul_one] using Nat.mul_le_mul_left 2 hLpos
     exact (Nat.add_le_add_left h2L D).trans
@@ -233,7 +233,7 @@ theorem settledBootstrap_of_strong_preparedV4_of_live_pins
       Block.Preceq B P.erase := by
     intro q hqlo hqhi w hw B hB
     have hDtwoCut : D + 2 < base + S.hc.η_SG := by
-      have hLpos : 1 ≤ L := by simpa only [L] using progressLag'_pos gap
+      have hLpos : 1 ≤ L := by simpa only [L] using! progressLag'_pos gap
       have h2L : 2 ≤ 2 * L := by
         simpa only [Nat.mul_one] using Nat.mul_le_mul_left 2 hLpos
       have htail : D + 2 * L < base + S.hc.η_SG := by
@@ -255,7 +255,7 @@ theorem settledBootstrap_of_strong_preparedV4_of_live_pins
   refine ⟨m, hmlo, hmhi, hcarrier, P, by simpa only [start] using hP, ?_, ?_⟩
   · refine
       { settled := by
-          simpa only [base, start] using Nat.mul_le_mul_right S.hc.R hbaseM
+          simpa only [base, start] using! Nat.mul_le_mul_right S.hc.R hbaseM
         basePost := ?_
         seed := ⟨?_, hcone⟩
         seedAll := ?_
@@ -271,7 +271,7 @@ theorem settledBootstrap_of_strong_preparedV4_of_live_pins
         ((Nat.le_succ rGST).trans
           (gstRound_succ_le_deadline (delayExtra := delayExtra)
             S rho rGST gap)).trans (by
-              simpa only [D, base] using Nat.le_add_right D (2 * L + 1))
+              simpa only [D, base] using! Nat.le_add_right D (2 * L + 1))
       exact hpost.trans (Assembly.a_mono S hrGSTbase)
     · intro w hw _
       rw [hheads w hw]

@@ -50,7 +50,7 @@ theorem projected_vote_persists_after_cutoff
     have hround := GradeDeliveryRun.projected_rounds_storeBeforeTime
       S adm.toNamedAdmissibleCore.toNamedScheduleWellFormed v early k
       (Protocol.sgVote a.erase) hu
-    simpa only [Protocol.sgVote] using hround
+    simpa only [Protocol.sgVote] using! hround
   obtain ⟨hhandle, -, hpost⟩ := hacc
   obtain ⟨-, e, he, -, htime⟩ := hhandle
   have heEarly : e.time < early := by
@@ -106,7 +106,7 @@ theorem projected_vote_reflects_after_cutoff
     have hround := GradeDeliveryRun.projected_rounds_storeBeforeTime
       S adm.toNamedAdmissibleCore.toNamedScheduleWellFormed v later k
       (Protocol.sgVote a.erase) hu
-    simpa only [Protocol.sgVote] using hround
+    simpa only [Protocol.sgVote] using! hround
   obtain ⟨hhandle, -, hpost⟩ := hacc
   obtain ⟨-, e, he, -, htime⟩ := hhandle
   have heEarly : e.time < early := by
@@ -198,12 +198,12 @@ theorem summary_equivocation_persists_after_cutoff
   have huSource : u ∈
       (rho.storeBeforeTime S v early).toHealing.sg_votes (q - 1) := by
     simpa only [sourceBatch, source, Protocol.round_batch,
-      if_neg (Nat.ne_of_gt hq), Protocol.HealingStore.gradeView,
+      ite_eq_right (Nat.ne_of_gt hq), Protocol.HealingStore.gradeView,
       Protocol.Store.toHealing] using huData.1
   have hcSource : c ∈
       (rho.storeBeforeTime S v early).toHealing.sg_votes (q - 1) := by
     simpa only [sourceBatch, source, Protocol.round_batch,
-      if_neg (Nat.ne_of_gt hq), Protocol.HealingStore.gradeView,
+      ite_eq_right (Nat.ne_of_gt hq), Protocol.HealingStore.gradeView,
       Protocol.Store.toHealing] using hcData.1
   have huPersist := projected_vote_persists_after_cutoff S adm hv (q := q)
     hcut hlater
@@ -219,13 +219,13 @@ theorem summary_equivocation_persists_after_cutoff
     apply Finset.mem_filter.mpr
     refine ⟨?_, huData.2⟩
     simpa only [laterBatch, laterView, Protocol.round_batch,
-      if_neg (Nat.ne_of_gt hq), Protocol.HealingStore.gradeView,
+      ite_eq_right (Nat.ne_of_gt hq), Protocol.HealingStore.gradeView,
       Protocol.Store.toHealing] using huPersist.1
   have hcLater : c ∈ laterBatch := by
     apply Finset.mem_filter.mpr
     refine ⟨?_, hcData.2⟩
     simpa only [laterBatch, laterView, Protocol.round_batch,
-      if_neg (Nat.ne_of_gt hq), Protocol.HealingStore.gradeView,
+      ite_eq_right (Nat.ne_of_gt hq), Protocol.HealingStore.gradeView,
       Protocol.Store.toHealing] using hcPersist.1
   have hfibre : ∀ y ∈ laterBatch, y.val_index = x ∧ y.round = q - 1 := by
     intro y hy
@@ -234,7 +234,7 @@ theorem summary_equivocation_persists_after_cutoff
     have hyRaw : y ∈
         (rho.storeBeforeTime S v later).toHealing.sg_votes (q - 1) := by
       simpa only [laterBatch, laterView, Protocol.round_batch,
-        if_neg (Nat.ne_of_gt hq), Protocol.HealingStore.gradeView,
+        ite_eq_right (Nat.ne_of_gt hq), Protocol.HealingStore.gradeView,
         Protocol.Store.toHealing] using hyData.1
     exact GradeDeliveryRun.projected_rounds_storeBeforeTime
       S adm.toNamedAdmissibleCore.toNamedScheduleWellFormed v later (q - 1) y hyRaw
@@ -276,12 +276,12 @@ theorem summary_equivocation_reflects_after_cutoff
   have huLater : u ∈
       (rho.storeBeforeTime S v later).toHealing.sg_votes (q - 1) := by
     simpa only [laterBatch, laterView, Protocol.round_batch,
-      if_neg (Nat.ne_of_gt hq), Protocol.HealingStore.gradeView,
+      ite_eq_right (Nat.ne_of_gt hq), Protocol.HealingStore.gradeView,
       Protocol.Store.toHealing] using huData.1
   have hcLater : c ∈
       (rho.storeBeforeTime S v later).toHealing.sg_votes (q - 1) := by
     simpa only [laterBatch, laterView, Protocol.round_batch,
-      if_neg (Nat.ne_of_gt hq), Protocol.HealingStore.gradeView,
+      ite_eq_right (Nat.ne_of_gt hq), Protocol.HealingStore.gradeView,
       Protocol.Store.toHealing] using hcData.1
   have huSource := projected_vote_reflects_after_cutoff S adm hv (q := q)
     hcut hlater
@@ -297,13 +297,13 @@ theorem summary_equivocation_reflects_after_cutoff
     apply Finset.mem_filter.mpr
     refine ⟨?_, huData.2⟩
     simpa only [sourceBatch, source, Protocol.round_batch,
-      if_neg (Nat.ne_of_gt hq), Protocol.HealingStore.gradeView,
+      ite_eq_right (Nat.ne_of_gt hq), Protocol.HealingStore.gradeView,
       Protocol.Store.toHealing] using huSource.1
   have hcOpen : c ∈ sourceBatch := by
     apply Finset.mem_filter.mpr
     refine ⟨?_, hcData.2⟩
     simpa only [sourceBatch, source, Protocol.round_batch,
-      if_neg (Nat.ne_of_gt hq), Protocol.HealingStore.gradeView,
+      ite_eq_right (Nat.ne_of_gt hq), Protocol.HealingStore.gradeView,
       Protocol.Store.toHealing] using hcSource.1
   have hfibre : ∀ y ∈ sourceBatch, y.val_index = x ∧ y.round = q - 1 := by
     intro y hy
@@ -312,7 +312,7 @@ theorem summary_equivocation_reflects_after_cutoff
     have hyRaw : y ∈
         (rho.storeBeforeTime S v early).toHealing.sg_votes (q - 1) := by
       simpa only [sourceBatch, source, Protocol.round_batch,
-        if_neg (Nat.ne_of_gt hq), Protocol.HealingStore.gradeView,
+        ite_eq_right (Nat.ne_of_gt hq), Protocol.HealingStore.gradeView,
         Protocol.Store.toHealing] using hyData.1
     exact GradeDeliveryRun.projected_rounds_storeBeforeTime
       S adm.toNamedAdmissibleCore.toNamedScheduleWellFormed v early (q - 1) y hyRaw
@@ -359,7 +359,7 @@ theorem G1_persists_after_cutoff
     have huv : u.val_index = x := (Finset.mem_filter.mp hu).2
     have huSource : u ∈
         (rho.storeBeforeTime S v early).toHealing.sg_votes (q - 1) := by
-      simpa only [source, Protocol.round_batch, if_neg hq,
+      simpa only [source, Protocol.round_batch, ite_eq_right hq,
         Protocol.HealingStore.gradeView, Protocol.Store.toHealing] using
         (Finset.mem_filter.mp hu).1
     have hutSource : occurrenceBefore
@@ -410,7 +410,7 @@ theorem G1_persists_after_cutoff
         (Protocol.round_batch laterView q) x := by
       apply Finset.mem_filter.mpr
       refine ⟨?_, huv⟩
-      simpa only [laterView, Protocol.round_batch, if_neg hq,
+      simpa only [laterView, Protocol.round_batch, ite_eq_right hq,
         Protocol.HealingStore.gradeView, Protocol.Store.toHealing] using huPersist.1
     have huLaterTime : occurrenceBefore
         (Protocol.sg_resolution_time laterView.T laterView.timestamp_block

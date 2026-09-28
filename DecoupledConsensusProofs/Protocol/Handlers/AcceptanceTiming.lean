@@ -134,12 +134,12 @@ private theorem new_of_on_goldfish_vote (st : Protocol.Store V)
   by_cases h₁ : x.slot < st.s - 1 ∨ st.s < x.slot ∨ x ∈ st.gf_votes x.slot
   · rw [show Protocol.on_goldfish_vote st x = st by
       unfold Protocol.on_goldfish_vote
-      rw [if_pos h₁]] at hpost
+      rw [ite_eq_left h₁]] at hpost
     exact absurd hpost hpre
   by_cases h₂ : Protocol.equivocates (st.pool x.slot) x.val_index = true
   · rw [show Protocol.on_goldfish_vote st x = st by
       unfold Protocol.on_goldfish_vote
-      rw [if_neg h₁, if_pos h₂]] at hpost
+      rw [ite_eq_right h₁, ite_eq_left h₂]] at hpost
     exact absurd hpost hpre
   obtain ⟨hgf, -, -⟩ := on_goldfish_vote_insert st x h₁ h₂
   simp only [hgf] at hpost
@@ -210,20 +210,21 @@ private theorem onBlockUsing (c : Time) (k : Slot) (E : Env V) (st : Protocol.St
     VoteInsertStep c k st (Protocol.on_block_using E st B buildState) := by
   by_cases hfirst : st.s < B.slot ∨ B ∈ st.T ∨ B.parent ∉ st.T
   · rw [show Protocol.on_block_using E st B buildState = st by
-      simp only [Protocol.on_block_using, if_pos hfirst]]
+      simp only [Protocol.on_block_using, ite_eq_left hfirst]]
     exact refl' c k st
   by_cases hadmit : (!Block.preceq st.F B) = true
   · rw [show Protocol.on_block_using E st B buildState = st by
-      simp only [Protocol.on_block_using, if_neg hfirst, if_pos hadmit]]
+      simp only [Protocol.on_block_using, ite_eq_right hfirst, ite_eq_left hadmit]]
     exact refl' c k st
   by_cases hprop : B.proposer? ≠ some (E.proposer B.slot)
   · rw [show Protocol.on_block_using E st B buildState = st by
-      simp only [Protocol.on_block_using, if_neg hfirst, if_neg hadmit, if_pos hprop]]
+      simp only [Protocol.on_block_using, ite_eq_right hfirst, ite_eq_right hadmit,
+        ite_eq_left hprop]]
     exact refl' c k st
   by_cases hslot : ¬ B.parent.slot < B.slot
   · rw [show Protocol.on_block_using E st B buildState = st by
-      simp only [Protocol.on_block_using, if_neg hfirst, if_neg hadmit, if_neg hprop,
-        if_pos hslot]]
+      simp only [Protocol.on_block_using, ite_eq_right hfirst, ite_eq_right hadmit,
+        ite_eq_right hprop, ite_eq_left hslot]]
     exact refl' c k st
   let stored : Protocol.Store V :=
     { st with
@@ -236,7 +237,7 @@ private theorem onBlockUsing (c : Time) (k : Slot) (E : Env V) (st : Protocol.St
   have hout : Protocol.on_block_using E st B buildState =
       Protocol.update_finality unpacked (unpacked.σ B) := by
     unfold Protocol.on_block_using
-    rw [if_neg hfirst, if_neg hadmit, if_neg hprop, if_neg hslot]
+    rw [ite_eq_right hfirst, ite_eq_right hadmit, ite_eq_right hprop, ite_eq_right hslot]
   have hstored : VoteInsertStep c k st stored :=
     of_eq rfl rfl rfl
   have hfold : VoteInsertStep c k stored unpacked := by
@@ -500,7 +501,7 @@ theorem acceptsAt_gfVote_time_shape
           u.slot := by
         rw [← hstate]; exact hpost
       have hle : (rho.stateBefore S i v).st.core.t ≤ t := by
-        simpa [Event.time] using
+        simpa [Event.time] using!
           store_time_le_event_time S adm.toNamedScheduleWellFormed he v
       have hs := poolStamps_stateBefore S adm.toNamedScheduleWellFormed v i
       have hstep := VoteInsertStep.onTickEmit S v (rho.stateBefore S i v) t hle
@@ -526,7 +527,7 @@ theorem proposal_time_le_of_acceptsAt_gfVote
     exact le_trans hmono (le_trans
       (proposal_time_slotOf_le S.E
         (stateBefore_store_time_nonneg S adm.toNamedScheduleWellFormed v i))
-      (by simpa [Event.time] using
+      (by simpa [Event.time] using!
         store_time_le_event_time S adm.toNamedScheduleWellFormed he v))
   · have hmono : Protocol.proposal_time S.E u.slot ≤
         Protocol.proposal_time S.E (S.E.slotOf t) :=
@@ -594,7 +595,7 @@ theorem confirmationAcceptanceTiming_of_admissible
       rw [congrArg NamedNodeState.st (congrFun hn v)]
     have huprefix : u ∈ (rho.stateBefore S n v).st.core.pool s := by
       rw [hstoreEq] at hupool
-      simpa only [Proofs.Optimistic.tickStore] using hupool
+      simpa only [Proofs.Optimistic.tickStore] using! hupool
     have hulist : u ∈ (rho.stateBefore S n v).st.core.gf_votes s := by
       simpa only [Protocol.Store.pool, List.mem_toFinset] using huprefix
     exact (poolStamps_stateBefore S adm.toNamedScheduleWellFormed v n).slot s u hulist
@@ -670,7 +671,7 @@ theorem targetReceiptVotesAcceptedInWindow_of_admissible
       (Protocol.view_freeze S.E s)
       ((rho.stateBefore S n w).st.core.pool s) := by
     rw [hstoreEq] at hu
-    simpa only [Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using hu
+    simpa only [Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using! hu
   have huPool : u ∈ (rho.stateBefore S n w).st.core.pool s :=
     (Finset.mem_filter.mp huPrefix).1
   have huList : u ∈ (rho.stateBefore S n w).st.core.gf_votes s := by
@@ -746,7 +747,7 @@ theorem acceptsAt_gfVote_time_shape
           u.slot := by
         rw [← hstate]; exact hpost
       have hle : (rho.stateBefore S i v).st.core.t ≤ t := by
-        simpa [Event.time] using
+        simpa [Event.time] using!
           store_time_le_event_time S adm.toNamedScheduleWellFormed he v
       have hs := poolStamps_stateBefore S adm.toNamedScheduleWellFormed v i
       have hstep := VoteInsertStep.onTickEmit S v (rho.stateBefore S i v) t hle
@@ -770,7 +771,7 @@ theorem proposal_time_le_of_acceptsAt_gfVote
     exact le_trans hmono (le_trans
       (proposal_time_slotOf_le S.E
         (stateBefore_store_time_nonneg S adm.toNamedScheduleWellFormed v i))
-      (by simpa [Event.time] using
+      (by simpa [Event.time] using!
         store_time_le_event_time S adm.toNamedScheduleWellFormed he v))
   · have hmono : Protocol.proposal_time S.E u.slot ≤
         Protocol.proposal_time S.E (S.E.slotOf t) :=
@@ -822,7 +823,7 @@ theorem confirmationAcceptanceTiming_of_admissible
       rw [congrArg NamedNodeState.st (congrFun hn v)]
     have huprefix : u ∈ (rho.stateBefore S n v).st.core.pool s := by
       rw [hstoreEq] at hupool
-      simpa only [Proofs.Optimistic.tickStore] using hupool
+      simpa only [Proofs.Optimistic.tickStore] using! hupool
     have hulist : u ∈ (rho.stateBefore S n v).st.core.gf_votes s := by
       simpa only [Protocol.Store.pool, List.mem_toFinset] using huprefix
     exact (poolStamps_stateBefore S adm.toNamedScheduleWellFormed v n).slot s u hulist
@@ -887,7 +888,7 @@ theorem confirmationVotesAcceptedInWindow_of_timing
     rw [congrArg NamedNodeState.st (congrFun hn v)]
   have huprefix : u ∈ (rho.stateBefore S n v).st.core.pool s := by
     rw [hstoreEq] at hupool
-    simpa only [Proofs.Optimistic.tickStore] using hupool
+    simpa only [Proofs.Optimistic.tickStore] using! hupool
   have hulist : u ∈ (rho.stateBefore S n v).st.core.gf_votes s := by
     simpa only [Protocol.Store.pool, List.mem_toFinset] using huprefix
   have hus : u.slot = s :=
@@ -926,7 +927,7 @@ theorem targetReceiptVotesAcceptedInWindow_of_admissible
       (Protocol.view_freeze S.E s)
       ((rho.stateBefore S n w).st.core.pool s) := by
     rw [hstoreEq] at hu
-    simpa only [Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using hu
+    simpa only [Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using! hu
   have huPool : u ∈ (rho.stateBefore S n w).st.core.pool s :=
     (Finset.mem_filter.mp huPrefix).1
   have huList : u ∈ (rho.stateBefore S n w).st.core.gf_votes s := by

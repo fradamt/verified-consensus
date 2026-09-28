@@ -191,8 +191,8 @@ theorem confWalkWith_eq_of_support (contract : Protocol.GradeContract V) (E : En
     refine ghost_reaches hpre hpath ?_ ?_
     · refine ghost_step_none ?_
       intro C _ hpar
-      simp only [confEligible, decide_eq_false_iff_not, confCount, confScore]
-      exact hsup.not_eligible hN hvalid (preceq_parent_false hpar)
+      simp only [confEligible, confCount, confScore]
+      exact decide_eq_false (hsup.not_eligible hN hvalid (preceq_parent_false hpar))
     · intro H hanch hHB hne
       obtain ⟨C, hpar, hCB⟩ := exists_child_towards B hHB hne
       have hCA : Block.Preceq (confAnchorWith contract E hc st) C :=
@@ -209,8 +209,8 @@ theorem confWalkWith_eq_of_support (contract : Protocol.GradeContract V) (E : En
       refine argmax?_eq_some_of_dominates ?_ ?_
       · rw [Protocol.ghost_children, Finset.mem_filter]
         refine ⟨hpath C hCA hCne hCB, hpar, ?_⟩
-        simp only [confEligible, decide_eq_true_eq, confCount, confScore]
-        exact hsup.eligible hN hvalid hCB
+        simp only [confEligible, confCount, confScore]
+        exact decide_eq_true (hsup.eligible hN hvalid hCB)
       · intro D hD hDC
         rw [Protocol.ghost_children, Finset.mem_filter] at hD
         have hDB : Block.preceq D B = false := by
@@ -220,8 +220,8 @@ theorem confWalkWith_eq_of_support (contract : Protocol.GradeContract V) (E : En
         simp only [confScore]
         exact hsup.score_lt hN hvalid hCB hDB
   have helig : confEligible E st s B = true := by
-    simp only [confEligible, decide_eq_true_eq, confCount, confScore]
-    exact hsup.eligible hN hvalid (Block.preceq_self B)
+    simp only [confEligible, confCount, confScore]
+    exact decide_eq_true (hsup.eligible hN hvalid (Block.preceq_self B))
   exact ⟨hwalk, helig⟩
 
 /-- **The slot-`s` evaluation confirms `B` exactly, under the contract the
@@ -240,7 +240,7 @@ theorem live_confirmed_eq_with (contract : Protocol.GradeContract V) (E : Env V)
     (Protocol.update_confirmation_with contract E hc st s).live_confirmed = B := by
   obtain ⟨hwalk, helig⟩ :=
     confWalkWith_eq_of_support contract E hc st s Hon B hsup hvalid hpre hpath
-  rw [update_confirmation_with_live_confirmed, hwalk, if_pos helig]
+  rw [update_confirmation_with_live_confirmed, hwalk, ite_eq_left helig]
 
 
 /-! ## Safety at the store: two slot-`s` evaluations agree -/

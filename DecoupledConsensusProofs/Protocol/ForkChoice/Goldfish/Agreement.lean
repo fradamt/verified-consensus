@@ -626,7 +626,7 @@ theorem goldfish_vote_eq_extends_with (S : Setup V) (ρ : Run V) (v : V) (s : Sl
         (voteDutyRead S ρ v s).st.core.s)
       ((voteDutyRead S ρ v s).st.core.s - 1) = B.erase := hal.head
   simp only [Protocol.NamedDuties.goldfish_vote_with, Protocol.goldfish_vote_with,
-    hhead, if_pos hcom]
+    hhead, ite_eq_left hcom]
 
 /-! ## 9. O12 — `EvaluationReaches`
 
@@ -706,8 +706,8 @@ theorem update_confirmation_preceq_with (contract : Protocol.GradeContract V)
       show confEligible E st k (confWalkWith contract E hc st k) = true
       have : confWalkWith contract E hc st k = B := hA.trans hAB
       rw [this]
-      simp only [confEligible, decide_eq_true_eq, confCount, confScore]
-      exact hsup.eligible hvalid (fun X hX => hX)
+      simp only [confEligible, confCount, confScore]
+      exact decide_eq_true (hsup.eligible hvalid (fun X hX => hX))
     · exact hnel hel
 
 
@@ -801,7 +801,7 @@ theorem ghost_children_insert_of_ne {tree : Finset (Block V)} {eligible : Block 
     {B H X : Block V} (hpar : B.parent? = some H) (hne : X ≠ H) :
     Protocol.ghost_children (insert B tree) eligible X =
       Protocol.ghost_children tree eligible X := by
-  rw [Protocol.ghost_children, Protocol.ghost_children, Finset.filter_insert, if_neg]
+  rw [Protocol.ghost_children, Protocol.ghost_children, Finset.filter_insert, ite_eq_right]
   rintro ⟨hp, -⟩
   rw [hpar, Option.some.injEq] at hp
   exact hne hp.symm
@@ -816,7 +816,7 @@ theorem ghost_children_insert_self {tree : Finset (Block V)} {eligible : Block V
     {B H : Block V} (hpar : B.parent? = some H) (helig : eligible B = true)
     (hstop : ∀ C ∈ tree, C.parent? = some H → eligible C = false) :
     Protocol.ghost_children (insert B tree) eligible H = {B} := by
-  rw [Protocol.ghost_children, Finset.filter_insert, if_pos ⟨hpar, helig⟩]
+  rw [Protocol.ghost_children, Finset.filter_insert, ite_eq_left ⟨hpar, helig⟩]
   have hempty : tree.filter (fun C => C.parent? = some H ∧ eligible C = true) = ∅ := by
     rw [Finset.filter_eq_empty_iff]
     rintro C hC ⟨h1, h2⟩

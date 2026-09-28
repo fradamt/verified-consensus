@@ -89,7 +89,7 @@ theorem actionSGBlockAt_eq_liveConfirmed_of_batchAligned
   have hwalk : Protocol.deepest_clear (some (nodeAnchor S ast r))
       ast.st.core.toHealing.live_confirmed
       (nodeClear S ast r) = some ast.st.core.live_confirmed :=
-    prepared_deepest_clear_eq_tip (by simpa using hanchorLive) hclearLive
+    prepared_deepest_clear_eq_tip (by simpa using! hanchorLive) hclearLive
   have hround : S.hc.round_of ast.st.core.toHealing.s = r := by
     simpa only [ast, Protocol.Store.toHealing] using actionStoreAt_round S rho v r
   change Protocol.get_sg_vote_with (NamedProfile.gradeContract ast.cache)
@@ -102,7 +102,7 @@ theorem actionSGBlockAt_eq_liveConfirmed_of_batchAligned
     DecoupledConsensusModel.Protocol.frameContract
   change Protocol.currentSGVote ast.st.core.toHealing
       { nodeRead S ast r with Q2 := nodeQ2 S ast r } = D
-  letI := (nodeRead S ast r).rawG2_decidable
+  let := (nodeRead S ast r).rawG2_decidable
   unfold Protocol.currentSGVote
   change (match Protocol.deepest_clear (some (nodeAnchor S ast r))
       ast.st.core.toHealing.live_confirmed (nodeClear S ast r) with

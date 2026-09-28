@@ -66,8 +66,9 @@ theorem finalized_mem_viable_of_height_lt_max {S : Setup V} {ρ : Run V}
     rw [hcoh.1]
     exact Finset.mem_image_of_mem NamedBlock.erase hWb
   simp only [Protocol.V_tree, Protocol.viable_tree,
-    Protocol.finalized_descendants, Protocol.viable,
-    Finset.mem_filter, decide_eq_true_eq, Protocol.Store.toHealing]
+    Protocol.finalized_descendants, Finset.mem_filter]
+  simp only [Protocol.viable, decide_eq_true_eq]
+  simp only [Protocol.Store.toHealing]
   refine ⟨⟨hFT, hcur⟩, W.erase, hWT, hFW, ?_⟩
   rw [hcoh.2.2.2.2 W hWb, hmaxW]
   exact Nat.sub_le _ _
@@ -90,9 +91,9 @@ theorem candidate_comparable_with_finalized {S : Setup V} {ρ : Run V}
   intro X hX
   simp only [Protocol.get_filtered_block_tree,
     Protocol.get_filtered_block_tree_from,
-    Protocol.viable_tree, Protocol.finalized_descendants,
-    Protocol.viable, Finset.mem_filter, decide_eq_true_eq,
-    Protocol.Store.toHealing] at hX
+    Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter] at hX
+  simp only [Protocol.viable, decide_eq_true_eq] at hX
+  simp only [Protocol.Store.toHealing] at hX
   obtain ⟨⟨⟨_, _⟩, W, hWT, hXW, hWheight⟩, _⟩ := hX
   have hWT' : W ∈ st.bodies.image NamedBlock.erase := by rw [← hcoh.1]; exact hWT
   obtain ⟨Wn, hWnb, hWnE⟩ := Finset.mem_image.mp hWT'

@@ -97,7 +97,7 @@ theorem exists_derivedHeight_eq_on_chain
   induction B with
   | genesis =>
       have hHle : H ≤ 1 := by
-        simpa only [Protocol.derive_named] using hHB
+        simpa only [Protocol.derive_named] using! hHB
       have hEq : H = 1 := Nat.le_antisymm hHle hH
       subst H
       exact ⟨NamedBlock.genesis, Proofs.NamedAncestry.named_self _, rfl⟩

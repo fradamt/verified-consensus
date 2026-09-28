@@ -204,7 +204,7 @@ theorem jointAt_of_entry_history
     Internal.NamedStableChainOutage.roundConfirmationRead,
     Internal.NamedOutageEntry.confirmationReadAt,
     NamedActionReads.confirmationReadAt,
-    NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using hpair
+    NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using! hpair
 
 /-! Action and relative-G2 instances of the same disjunctive producer. -/
 

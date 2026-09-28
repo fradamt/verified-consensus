@@ -210,7 +210,7 @@ private theorem succ_le_boundaryRound (S : Setup V) (rho : NamedRun V)
     sch.tick_total v hv τ hpublic hnonneg (hlt.le.trans hb0)
   have hfiltered : NamedEvent.tick v τ ∈
       rho.events.filter (fun e => decide (e.time < b0)) :=
-    List.mem_filter.mpr ⟨htick, by simpa only [NamedEvent.time, decide_eq_true_eq]⟩
+    List.mem_filter.mpr ⟨htick, decide_eq_true hlt⟩
   have hclock : τ ≤ (NamedRun.stateBeforeTime S rho b0 v).st.core.t :=
     tick_mem_le_strict_clock S rho sch hfiltered
   have hslot : S.hc.opening_slot (s + 1) ≤

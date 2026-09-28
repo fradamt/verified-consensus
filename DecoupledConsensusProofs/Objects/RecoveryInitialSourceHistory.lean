@@ -238,7 +238,7 @@ theorem PrefixFGSelectorConeAt.laterFGWitness_eq_or_extends_checkpoint_of_frameN
     have hraw : Block.Preceq K.erase Tnext.erase ∨
         Block.Preceq Tnext.erase K.erase := by
       rw [hKerase]
-      simpa only [Block.compatible, Bool.or_eq_true] using hcompat
+      simpa only [Block.compatible, Bool.or_eq_true] using! hcompat
     rcases hraw with hKT | hTK
     · exact Or.inl (Protocol.namedPreceq_of_runBlock_erase_preceq
         adm hKrun hTnextRun hKT)

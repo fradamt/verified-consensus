@@ -372,7 +372,7 @@ private theorem stage2_opposition_stale (S : Setup V) (rho : NamedRun V) (b0 b1 
       · exact absurd (rawInputs_localCovers S rho sch auth roots hR b0 s (s + 1) Pn hconf
           hhead hfirst hexec.boundaryPublic w hw hFP u huh (late S.E S.hc (s + 1) .g2)
           hzraw hzs) hncov
-      · push_neg at hzs
+      · push Not at hzs
         obtain ⟨a, hav, har, hap, hwin, halt, haem⟩ :=
           rawInputs_trace S rho sch auth (domain S.E S.hc (s + 1) .g2)
             (late S.E S.hc (s + 1) .g2) w S.hc.η_SG (s + 1) u huh hzraw

@@ -47,7 +47,7 @@ theorem NamedSGProposalLifecycleInputs.confirmationSeed
   have hrecord := Proofs.Optimistic.live_confirmed_eq_update S
     adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hw (s + 1) hhor
   constructor
-  · simpa only [Proofs.Optimistic.confStore_eq_confirmationInputRead] using
+  · simpa only [Proofs.Optimistic.confStore_eq_confirmationInputRead] using!
       hrecord.symm.trans hgc.2
   · exact ConfirmationOrigin.update_confirmation_stable_le_confirmed
       (NamedProfile.gradeContract

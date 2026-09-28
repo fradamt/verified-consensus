@@ -371,7 +371,7 @@ private theorem claimOne_namedGradeProcessedAtAction
     have hfiltered := (hforms v hv).1
     have htree := Proofs.Records.get_filtered_block_tree_subset _ hfiltered
     simpa only [PhaseGrades.filteredTree, PhaseGrades.readAt,
-      Run.storeBeforeTime] using htree
+      Run.storeBeforeTime] using! htree
   rw [storeBeforeTime_eq_storeAt_sub_one_recovery] at hsource ⊢
   apply StoreFinality.stateAt_T_subset
     S adm.toNamedAdmissibleCore.toNamedScheduleWellFormed v
@@ -634,7 +634,7 @@ theorem fixedHeightJustificationRoot_boundedOpeningConeRootLock_of_proposerRecur
           (hJ'erase.trans rfl)
         have hJbody : Jn ∈
             (rho.storeBeforeTime S u (S.a (q - 1))).bodies := by
-          simpa only [hJ'eq] using hJ'body
+          simpa only [hJ'eq] using! hJ'body
         have hJactive : Jn.erase ∈ PhaseGrades.filteredTree
             (actionReadAt S rho u (q - 1)) := by
           have hfiltered := mem_filtered_of_mem_tree_of_exactFGRoot_heightCap
@@ -643,7 +643,7 @@ theorem fixedHeightJustificationRoot_boundedOpeningConeRootLock_of_proposerRecur
           simpa only [PhaseGrades.filteredTree, PhaseGrades.readAt, actionReadAt,
             NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
             NamedActionReads.confirmationReadFrom,
-            NamedActionReads.preparedCache] using hfiltered
+            NamedActionReads.preparedCache] using! hfiltered
         exact preceq_actionSGBlockAt_of_namedGradeFormsAt
           S adm.toNamedAdmissibleCore hqPredPos hnextHor hformsNamed hu hJactive
       have hrq : r < q :=

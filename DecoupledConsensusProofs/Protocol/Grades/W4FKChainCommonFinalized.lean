@@ -94,7 +94,7 @@ theorem canonicalCarrier_commonFinalized_of_justifiedPrefix_of_suffix
       Nat.add_le_add_left S.hc.R_ge_two (r * S.hc.R)
   have hconfTwo : Protocol.confirmation_time S.E (S.hc.opening_slot r + 2) ≤
       S.a (r + 1) := by
-    simpa only [Setup.a, Protocol.a_eq_confirmation_time] using
+    simpa only [Setup.a, Protocol.a_eq_confirmation_time] using!
       Int.add_le_add_right (Protocol.proposal_time_mono S.E hslotTwo) (6 * S.E.Δ)
   have hconfOne : Protocol.confirmation_time S.E (S.hc.opening_slot r + 1) ≤
       S.a (r + 1) :=

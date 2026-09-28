@@ -112,7 +112,7 @@ theorem SettledBootstrapPreparedV4.fgRoot_at_read_has_vote_head_core_of_pins
       obtain ⟨i, hi, _⟩ := hemit
       have h := (adm.toNamedScheduleWellFormed.in_horizon _
         (List.mem_of_getElem? hi)).2
-      simpa only [Event.time, htime] using h
+      simpa only [Event.time, htime] using! h
     let source := S.hc.opening_slot a.round
     let last := max first source
     have hfirstLast : first ≤ last := Nat.le_max_left _ _

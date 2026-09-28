@@ -264,16 +264,15 @@ private theorem postGain_frameStableRoot_of_high_viable_prefix
   have hFroot : Block.Preceq st.F root :=
     StoreFinality.finalized_preceq_fgRoot (by
       simpa only [st, n, NamedActionReads.confirmationReadAt,
-        NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using hFJ)
+        NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using! hFJ)
   have hQfiltered_of_root (hrootQ : Block.Preceq root Q) :
       Q ∈ Protocol.get_filtered_block_tree st.toHealing.toFG := by
-    simp only [Protocol.get_filtered_block_tree,
-      Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
-      Protocol.finalized_descendants, Finset.mem_filter,
-      decide_eq_true_eq, Protocol.Store.toHealing]
+    simp only [Protocol.get_filtered_block_tree, Protocol.get_filtered_block_tree_from,
+      Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter]
+    simp only [Protocol.Store.toHealing, decide_eq_true_eq]
     exact ⟨⟨⟨hQmem', Block.preceq_trans hFroot hrootQ⟩, hQviable'⟩, hrootQ⟩
   have hQroot : Block.Preceq Q root ∨ Block.Preceq root Q := by
-    simpa only [Block.compatible, Bool.or_eq_true] using hQrootCompat
+    simpa only [Block.compatible, Bool.or_eq_true] using! hQrootCompat
   simp only [DecoupledConsensusModel.Protocol.frameStableRoot]
   rw [show (DecoupledConsensusModel.Protocol.readFrame n.cache n.st.core.toHealing r).g2.bind id =
       some R2 by simpa only [n] using hraw]
@@ -291,7 +290,7 @@ private theorem postGain_frameStableRoot_of_high_viable_prefix
           contradiction
       have hinvPre := (Proofs.NamedRuntime.stateBeforeTime_invariants S rho t v).1
       have hinv : Proofs.NamedConfirmationMembership.Invariant S.E S.cfg n.st := by
-        simpa only [n, NamedActionReads.confirmationReadAt] using
+        simpa only [n, NamedActionReads.confirmationReadAt] using!
           Proofs.NamedConfirmationMembership.invariant_clock S.E S.cfg _ _ hinvPre
       have hrootMem : root ∈ st.T := by
         simpa only [n, st, root] using
@@ -320,7 +319,7 @@ private theorem postGain_frameStableRoot_of_high_viable_prefix
           simpa only [hXG] using hQX
       have hGcore : G ∈ st.T := by
         have := Proofs.Records.get_filtered_block_tree_subset _ hGfiltered
-        simpa only [n, st] using this
+        simpa only [n, st] using! this
       obtain ⟨Gn, hGerase, hGrun⟩ :=
         Proofs.NamedStoreBridge.runBlock_of_mem_core_T_stateBeforeTime S
           adm.toNamedScheduleWellFormed hv t hGcore
@@ -411,7 +410,7 @@ theorem exists_postGain_carrier_height_r270
   have hDq : D ≤ q := by
     exact (Nat.le_add_right D (2 * L)).trans hqStrict.le
   have hDtwoQ : D + 2 ≤ q := by
-    have hLpos : 1 ≤ L := by simpa only [L] using progressLag'_pos gap
+    have hLpos : 1 ≤ L := by simpa only [L] using! progressLag'_pos gap
     have h2L : 2 ≤ 2 * L := by
       simpa only [Nat.mul_one] using Nat.mul_le_mul_left 2 hLpos
     exact (Nat.add_le_add_left h2L D).trans hqStrict.le
@@ -462,7 +461,7 @@ theorem exists_postGain_carrier_height_r270
       honestHMaxAt S rho (S.a r0) := by
     have h := honestHMaxAt_gt_after_twoProgress S adm hcom hbelow hrec
       hdelay hpost (r := r0) (show D + 2 * L ≤ r0 by rfl) hr0Hor
-    simpa only [Nat.add_assoc] using h
+    simpa only [Nat.add_assoc] using! h
   have hr0Post : S.E.t_GST ≤ S.a r0 := by
     have hrGSTr0 : rGST ≤ r0 :=
       (Nat.le_succ rGST).trans
@@ -540,7 +539,7 @@ private theorem postGain_localFrameRoot_above_proposal
   have hcarrierMem : actionSGBlockAt S rho u q ∈
       (NamedRun.stateBeforeTime S rho (domain S.E S.hc r .g2) v).st.core.T := by
     have := Proofs.HealingLemmas.find?_mem hyfind
-    simpa only [hprev] using this
+    simpa only [hprev] using! this
   have hPdomain : P.erase ∈
       (NamedRun.stateBeforeTime S rho (domain S.E S.hc r .g2) v).st.core.T :=
     Proofs.Records.mem_of_preceq
@@ -570,7 +569,7 @@ private theorem postGain_localFrameRoot_above_proposal
   refine ⟨raw, R2, ?_, ?_, rfl, hPraw⟩
   · simpa only [r] using hfreeze
   · simpa only [confirmationInputRead, o, t, r, hfreeze, Option.map_some, R2]
-      using hg2Prepared
+      using! hg2Prepared
 
 
 
@@ -951,7 +950,7 @@ theorem postGainOpeningWrite_high_at_node
     rw [show Protocol.confirmation_time S.E o = S.a r by
       simpa only [o] using opening_confirmation_time_eq_action S r]
     exact Proofs.HealingLemmas.round_of_slotOf_a S r
-  simpa only [t, o, r, hround] using hstable
+  simpa only [t, o, r, hround] using! hstable
 
 
 

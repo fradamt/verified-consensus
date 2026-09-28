@@ -184,10 +184,10 @@ theorem MovingSlotFoldAtN.step_of_slotCone
       hcut hdata.postVote hdata.postProp hdata.slotHor htiming
   refine ⟨fun d => if d ≤ c + 1 then F d else Next, ?_⟩
   have hlow : ∀ d : Slot, d ≤ c + 1 →
-      (if d ≤ c + 1 then F d else Next) = F d := fun _ hd => if_pos hd
+      (if d ≤ c + 1 then F d else Next) = F d := fun _ hd => ite_eq_left hd
   have hhigh :
       (if c + 1 + 1 ≤ c + 1 then F (c + 1 + 1) else Next) = Next :=
-    if_neg (nat_not_succ_succ_le c)
+    ite_eq_right (nat_not_succ_succ_le c)
   have hendNext : Block.Preceq End Next := hfrontier.oldPreceq
   have hprevNext : Block.Preceq (F (c + 1)) Next :=
     Block.preceq_trans (movingSlotEntryStateN_prevLe hfold.entry) hendNext
@@ -198,12 +198,12 @@ theorem MovingSlotFoldAtN.step_of_slotCone
     by_cases hec : e ≤ c + 1
     · rw [hlow d (hde.trans hec), hlow e hec]
       exact hfold.mono d e hd hde hec
-    · rw [if_neg hec]
+    · rw [ite_eq_right hec]
       by_cases hdle : d ≤ c + 1
       · rw [hlow d hdle]
         exact Block.preceq_trans
           (hfold.mono d (c + 1) hd hdle (Nat.le_refl _)) hprevNext
-      · rw [if_neg hdle]
+      · rw [ite_eq_right hdle]
         exact Block.preceq_self Next
   have habsorbed : ∀ d : Slot, s0 ≤ d → d < c + 1 + 1 →
       S.E.proposer d ∈ rho.honest →
@@ -236,7 +236,7 @@ theorem MovingSlotFoldAtN.step_of_slotCone
       have hout := hfold.entry.confOutcome_atPrev_named S adm hcom hfb
         hdata.pos hround ht1 hpostAction hcut hdata.postVote hdata.slotHor hu
       refine ⟨hout.1, ?_⟩
-      rw [if_neg (nat_not_add_two_le_succ d)]
+      rw [ite_eq_right (nat_not_add_two_le_succ d)]
       exact hfrontier.genuinePreceq u hu _ hout.1
   have hconfAbove : ∀ d : Slot, s0 ≤ d → d + 1 < c + 1 + 1 →
       ∀ u ∈ rho.honest,
@@ -265,7 +265,7 @@ theorem MovingSlotFoldAtN.step_of_slotCone
       exact hfold.windowCone d hd hlt
     · have hdeq : d = c + 1 := Nat.le_antisymm (nat_le_of_lt_succ' hdlt) hge
       subst hdeq
-      rw [if_neg (nat_not_succ_succ_le c)]
+      rw [ite_eq_right (nat_not_succ_succ_le c)]
       exact hcone
   have hhistoryAt : ∀ E' : Block V,
       MovingSlotEntryStateN S rho t1 M0 (c + 1 + 1) Next E' →

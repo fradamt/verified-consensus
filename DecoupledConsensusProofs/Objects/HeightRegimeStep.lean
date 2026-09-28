@@ -49,7 +49,7 @@ private theorem actionBody_runBlock_heightRegime
   have hDpre : D ∈ (rho.stateBeforeTime S (S.a r) v).st.bodies := by
     simpa only [actionStoreAt, actionReadAt, NamedActionReads.actionReadAt,
       NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hD
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hD
   obtain ⟨i, hi, -⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix S rho
     adm.toNamedAdmissibleCore.toNamedScheduleWellFormed.sorted (S.a r)
   have hDi : D ∈ (rho.stateBefore S i v).st.bodies := by
@@ -586,7 +586,8 @@ theorem PrefixFGSelectorConeAt.heightRegimeFrame_succ_of_frame
     by_cases hgate: (rho.stateBefore S n v).st.h_max = (rho.stateBefore S n v).st.h_j + 1
     · have hroot: Protocol.get_fg_root (rho.stateBefore S n v).st.toHealing.toFG =
           (rho.stateBefore S n v).st.J:= by
-        simp only [Protocol.get_fg_root, Protocol.Store.toHealing, if_pos hgate]
+        simp only [Protocol.get_fg_root]
+        exact if_pos hgate
       have hhj: (rho.stateBefore S n v).st.h_j = blocked + 1:= by
         rw [hmax] at hgate
         exact (Nat.add_right_cancel hgate).symm
@@ -595,7 +596,8 @@ theorem PrefixFGSelectorConeAt.heightRegimeFrame_succ_of_frame
       exact hTQ
     · have hroot: Protocol.get_fg_root (rho.stateBefore S n v).st.toHealing.toFG =
           (rho.stateBefore S n v).st.F:= by
-        simp only [Protocol.get_fg_root, Protocol.Store.toHealing, if_neg hgate]
+        simp only [Protocol.get_fg_root]
+        exact if_neg hgate
       rw [hroot]
       exact Block.preceq_trans (hFT v hv n hn) hTQ
   · -- every honest FG source at the next height extends the checkpoint
@@ -738,7 +740,7 @@ theorem PrefixFGSelectorConeAt.heightRegimeFrame_succ_of_frameN
         obtain ⟨k, hk, _⟩ := hemit
         have hin := (adm.in_horizon
           (Event.tick b.val_index tb) (List.mem_of_getElem? hk)).2
-        simpa only [Event.time, htime] using hin
+        simpa only [Event.time, htime] using! hin
       have hKfixed :
           (Protocol.derive_named S.E S.cfg K).T_h = K.erase := by
         have hDrun := actionBody_runBlock_heightRegime S adm hb hDmem
@@ -784,8 +786,8 @@ theorem PrefixFGSelectorConeAt.heightRegimeFrame_succ_of_frameN
     · have hroot : Protocol.get_fg_root
           (rho.stateBefore S n v).st.core.toHealing.toFG =
           (rho.stateBefore S n v).st.core.J := by
-        simp only [Protocol.get_fg_root, Protocol.Store.toHealing,
-          if_pos hgate]
+        simp only [Protocol.get_fg_root]
+        exact ite_eq_left hgate
       have hhj : (rho.stateBefore S n v).st.core.h_j = blocked + 1 := by
         rw [hmax] at hgate
         exact (Nat.add_right_cancel hgate).symm
@@ -795,8 +797,8 @@ theorem PrefixFGSelectorConeAt.heightRegimeFrame_succ_of_frameN
     · have hroot : Protocol.get_fg_root
           (rho.stateBefore S n v).st.core.toHealing.toFG =
           (rho.stateBefore S n v).st.core.F := by
-        simp only [Protocol.get_fg_root, Protocol.Store.toHealing,
-          if_neg hgate]
+        simp only [Protocol.get_fg_root]
+        exact ite_eq_right hgate
       rw [hroot]
       exact Block.preceq_trans (hFT v hv n hn) (Proofs.NamedWire.erase_preceq hTQ)
   · intro p hp r hr hhor B hBmem hsource hBh
@@ -808,7 +810,7 @@ theorem PrefixFGSelectorConeAt.heightRegimeFrame_succ_of_frameN
         simpa only [actionStoreAt, actionReadAt,
           NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
           NamedActionReads.confirmationReadFrom,
-          NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hBmem
+          NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hBmem
       have heq := congrFun (stateBeforeTime_eq_stateBefore_strictEventIndex
         S adm.toNamedScheduleWellFormed (S.a r)) p
       rw [heq] at hBpre

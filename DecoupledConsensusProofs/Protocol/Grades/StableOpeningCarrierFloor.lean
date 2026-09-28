@@ -332,7 +332,7 @@ private theorem sameReaderG1G0BodyReadyGuard_of_actionActive
               unfold DecoupledConsensusModel.Protocol.localCovers Protocol.head_covers at hcover
               simp only [Protocol.HealingStore.gradeView, Protocol.Store.toHealing, hconf] at hcover
               rw [hfind] at hcover
-              simpa only [hHnErase] using hcover
+              simpa only [hHnErase] using! hcover
             have hfindTarget' : Block.find?
                 (readAt S rho (domain S.E S.hc r .g0) u).st.core.T Hn.root =
                 some Hn.erase := by
@@ -560,7 +560,7 @@ theorem openingHeads_above_confirmationAnchors
           Block.genesis := by
         simpa only [t, Internal.NamedRecoveryRead.confirmationInputRead,
           NamedActionReads.confirmationReadAt,
-          NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using hgen
+          NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using! hgen
       rw [hgen']
       exact Protocol.preceq_genesis _
     · have htime : ta = S.a a.round := (emits_attest_shape S hemit).2
@@ -569,11 +569,11 @@ theorem openingHeads_above_confirmationAnchors
           S (Nat.zero_lt_succ d) ?_).trans
           (Protocol.proposal_time_lt_vote_time S.E (d + 1))
         rw [← htime]
-        simpa only [Nat.add_sub_cancel] using hat
+        simpa only [Nat.add_sub_cancel] using! hat
       have hbound := ((hsources a.round haTime).2 a.val_index ha).2 _ hT
       simpa only [t, Internal.NamedRecoveryRead.confirmationInputRead,
         NamedActionReads.confirmationReadAt,
-        NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using hbound
+        NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using! hbound
   rcases confirmationAnchorAt_cases S rho u d with hfg | ⟨raw, A, hframe, hactive, hA⟩
   · rw [hfg]
     exact hroot
@@ -877,7 +877,7 @@ theorem openingConfirmation_genuine_above_anchor
           (Protocol.vote_time S.E slot) x).1
       have hinv : Proofs.NamedConfirmationMembership.Invariant S.E S.cfg duty.st := by
         simpa only [duty, Internal.NamedRecoveryRead.voteDutyRead,
-          NamedActionReads.confirmationReadAt] using
+          NamedActionReads.confirmationReadAt] using!
           Proofs.NamedConfirmationMembership.invariant_clock S.E S.cfg _ _ hinvPre
       have hroot : Protocol.get_fg_root duty.st.core.toHealing.toFG ∈
           duty.st.core.T := Proofs.NamedStoreRoots.fg_root_mem duty.st hinv.1.2
@@ -936,7 +936,7 @@ theorem openingConfirmation_genuine_above_anchor
           Internal.NamedRecoveryRead.confirmationInputRead,
           NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom,
-          Protocol.NamedStore.setClock] using h
+          Protocol.NamedStore.setClock] using! h
       exact Block.preceq_trans (by simpa only [Protocol.Store.toHealing] using hFroot)
         (Block.preceq_trans hrootA (by
           rw [hXerase]
@@ -955,8 +955,8 @@ theorem openingConfirmation_genuine_above_anchor
         S hexec.core hexec.healthy hslotPos
           (by simpa only [slot, opening_confirmation_time_eq_action] using hasCap)
           u hu _ rfl hxHon hXemit
-      exact ⟨X.erase, by simpa only [st, confStore, tickStore] using hfind,
-        by simpa only [st, confStore, tickStore] using hstamp⟩
+      exact ⟨X.erase, by simpa only [st, confStore, tickStore] using! hfind,
+        by simpa only [st, confStore, tickStore] using! hstamp⟩
     have hXmem : X.erase ∈
         (NamedRun.stateBeforeTime S rho
           (Protocol.confirmation_time S.E slot) u).st.core.T := by
@@ -965,14 +965,15 @@ theorem openingConfirmation_genuine_above_anchor
       Proofs.Optimistic.emitted_vote_head_slot_le_of_store_mem S hexec.core hxHon hu hXemit rfl
         hXmem (by rfl)
     exact ⟨X.erase, by rw [hXerase]; exact hheads u hu x hxHon,
-      hXslot, hcount, by simpa only [st, confStore, tickStore] using hfind⟩
+      hXslot, hcount, by simpa only [st, confStore, tickStore] using! hfind⟩
   have hvalid : Protocol.VoteSetValid S.E slot (confLate S.E st slot) := by
-    simpa only [st, confStore, tickStore] using
+    simpa only [st, confStore, tickStore] using!
       voteSetValid_confLate_stateBeforeTime S
         hexec.core.toNamedScheduleWellFormed u
           (Protocol.confirmation_time S.E slot) slot
   have hAeligible : confEligible S.E st slot A = true := by
-    simp only [confEligible, decide_eq_true_eq, confCount, confScore]
+    simp only [confEligible, decide_eq_true_eq]
+    simp only [confCount, confScore]
     exact hsupport.eligible hvalid (fun _ h => h)
   have hwalkEligible : confEligible S.E st slot
       (confWalkWith contract S.E S.hc st slot) = true := by
@@ -993,7 +994,7 @@ theorem openingConfirmation_genuine_above_anchor
       (confAnchorWith contract S.E S.hc st) (confTree st)
         (confScore S.E st slot) (confEligible S.E st slot)
   refine ⟨⟨rfl, hwalkEligible⟩, ?_⟩
-  rw [update_confirmation_with_live_confirmed, if_pos hwalkEligible]
+  rw [update_confirmation_with_live_confirmed, ite_eq_left hwalkEligible]
   exact hfloor
 
 #print axioms openingConfirmation_genuine_above_anchor
@@ -1251,7 +1252,7 @@ theorem stableAt_actionAnchor_clear
     (readAt S rho (domain S.E S.hc s .g1) u).st.core.toHealing.gradeView
     (readAt S rho (domain S.E S.hc s .g1) u).st.core.F
     S.hc.η_SG s (q10_early_le_late S s .g1) hrawTree
-    (by simpa only [storeGrade] using hG1u)
+    (by simpa only [storeGrade] using! hG1u)
   let root1 := DecoupledConsensusModel.Protocol.clipGrade raw1
     (Proofs.HealingSurface.actionReadAt S rho u s).st.core.F
   have hframe :
@@ -1459,9 +1460,9 @@ private theorem actionAnchor_preceq_actionSGBlockAt_of_live_clear
     rw [hk]
     rfl
   have hlive' : Block.Preceq grades.anchor st.live_confirmed := by
-    simpa only [grades, st, n, nodeAnchor, nodeRead] using hlive
+    simpa only [grades, st, n, nodeAnchor, nodeRead] using! hlive
   have hclear' : grades.clear grades.anchor = true := by
-    simpa only [grades, st, n, nodeClear, nodeRead] using hclear
+    simpa only [grades, st, n, nodeClear, nodeRead] using! hclear
   have hchain : grades.anchor ∈ Protocol.chain_of st.live_confirmed :=
     stable_chain_mem_of_preceq hlive'
   rw [heq]
@@ -1567,7 +1568,7 @@ theorem stableAt_raw_preceq_actionAnchor
     (readAt S rho (domain S.E S.hc s .g1) u).st.core.toHealing.gradeView
     (readAt S rho (domain S.E S.hc s .g1) u).st.core.F
     S.hc.η_SG s (q10_early_le_late S s .g1) hrawTree
-    (by simpa only [storeGrade] using hG1)
+    (by simpa only [storeGrade] using! hG1)
   have hstore : storeRoot S.E S.hc
       (readAt S rho (domain S.E S.hc s .g1) u).st s .g1 = some raw1 := by
     simpa only [storeRoot, phaseRoot] using hraw1
@@ -1608,28 +1609,28 @@ theorem stableAt_raw_preceq_actionAnchor
             NamedActionReads.confirmationReadFrom,
             Protocol.NamedDuties.update_confirmation_with,
             Protocol.update_confirmation_with,
-            Protocol.Store.toHealing] using hFJ)
+            Protocol.Store.toHealing] using! hFJ)
     exact Block.preceq_trans hrawF (Block.preceq_trans hFroot hrootAnchor)
   · have hV : Raw.erase ∈ Protocol.V_tree
         (NamedRun.stateBeforeTime S rho (S.a s) u).st.core.toHealing.toFG :=
       NamedFGProtection.viable_of_held_before_boundary
         S rho b0 b1 s hexec hmargin hsleep Raw hnoRaw u hu
-          (S.a s) hasCap hRawHeld (by simpa only [hRawErase] using hFraw)
+          (S.a s) hasCap hRawHeld (by simpa only [hRawErase] using! hFraw)
     have hprotected := NamedFGProtection.fg_protection_of_held_before_boundary
       S rho b0 b1 s hexec hmargin hsleep Raw hnoRaw u hu
         (S.a s) hasCap hRawHeld
     rcases hprotected with hrawRoot | hrawFiltered
-    · exact Block.preceq_trans (by simpa only [hRawErase] using hrawRoot)
+    · exact Block.preceq_trans (by simpa only [hRawErase] using! hrawRoot)
         hrootAnchor
     · have hrootRaw : Block.Preceq
           (Protocol.get_fg_root
             (Proofs.HealingSurface.actionReadAt S rho u s).st.core.toHealing.toFG) raw := by
         have h := Proofs.Records.preceq_get_fg_root_of_mem_filtered hrawFiltered
-        simpa only [hRawErase] using h
+        simpa only [hRawErase] using! h
       have hfiltered : raw ∈
           filteredTree (Proofs.HealingSurface.actionReadAt S rho u s) := by
         apply Proofs.Records.mem_filtered_of_mem_V_tree
-        · simpa only [hRawErase] using hV
+        · simpa only [hRawErase] using! hV
         · exact hrootRaw
       obtain ⟨A, hactive, hrawA⟩ :=
         activePrefix_covers hfiltered hrawRoot1
@@ -1782,11 +1783,11 @@ theorem preceq_actionSGBlockAt_of_anchor_live_clear
     rw [hk]
     rfl
   have hAX' : Block.Preceq grades.anchor X := by
-    simpa only [grades, st, n, nodeAnchor, nodeRead] using hAX
+    simpa only [grades, st, n, nodeAnchor, nodeRead] using! hAX
   have hlive' : Block.Preceq X st.live_confirmed := by
-    simpa only [st, n] using hlive
+    simpa only [st, n] using! hlive
   have hclear' : grades.clear X = true := by
-    simpa only [grades, st, n, nodeClear, nodeRead] using hclear
+    simpa only [grades, st, n, nodeClear, nodeRead] using! hclear
   have hchain : X ∈ Protocol.chain_of st.live_confirmed :=
     stable_chain_mem_of_preceq hlive'
   rw [heq]
@@ -1798,7 +1799,7 @@ theorem preceq_actionSGBlockAt_of_anchor_live_clear
       have hsome := deepest_clear_isSome_of_mem
         (floor := some grades.anchor) (C := st.live_confirmed)
         (B := X) (test := grades.clear)
-        (by simpa using hAX') hchain hclear'
+        (by simpa using! hAX') hchain hclear'
       rw [hwalk] at hsome
       simp at hsome
   | some C =>
@@ -1811,7 +1812,7 @@ theorem preceq_actionSGBlockAt_of_anchor_live_clear
               grades.clear B = true) := by
         refine Finset.mem_filter.mpr
           ⟨List.mem_toFinset.mpr hchain, ?_, hclear'⟩
-        simpa using hAX'
+        simpa using! hAX'
       exact Proofs.HealingLemmas.deepest?_dominates hwalk hcandidate
         (Block.compatible_of_preceq_common hlive' hC_live)
 
@@ -1858,7 +1859,7 @@ theorem openingConfirmation_above_of_preceq_openingHeads
     (hgenuine u hu).2
   have hcompat := Block.compatible_of_preceq_common (hheads u hu u hu) (hPheads u hu)
   rcases (show Block.Preceq A P ∨ Block.Preceq P A by
-      simpa only [Block.compatible, Bool.or_eq_true] using hcompat) with hAP | hPA
+      simpa only [Block.compatible, Bool.or_eq_true] using! hcompat) with hAP | hPA
   swap
   · exact Block.preceq_trans hPA hAout
   have hslotPos : 0 < slot := by
@@ -1878,7 +1879,7 @@ theorem openingConfirmation_above_of_preceq_openingHeads
         (Protocol.vote_time S.E slot) u).1
     have hinv : Proofs.NamedConfirmationMembership.Invariant S.E S.cfg duty.st := by
       simpa only [duty, Internal.NamedRecoveryRead.voteDutyRead,
-        NamedActionReads.confirmationReadAt] using
+        NamedActionReads.confirmationReadAt] using!
         Proofs.NamedConfirmationMembership.invariant_clock S.E S.cfg _ _ hinvPre
     have hroot : Protocol.get_fg_root duty.st.core.toHealing.toFG ∈
         duty.st.core.T := Proofs.NamedStoreRoots.fg_root_mem duty.st hinv.1.2
@@ -1931,7 +1932,7 @@ theorem openingConfirmation_above_of_preceq_openingHeads
       Internal.NamedRecoveryRead.confirmationInputRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock] using h
+      Protocol.NamedStore.setClock] using! h
   rcases hprot with hPfg | hPfilt
   · exact Block.preceq_trans (Block.preceq_trans hPfg hrootA) hAout
   -- the ghost walk from the anchor passes `P`
@@ -1955,7 +1956,7 @@ theorem openingConfirmation_above_of_preceq_openingHeads
           (Protocol.vote_time S.E slot) x).1
       have hinv : Proofs.NamedConfirmationMembership.Invariant S.E S.cfg duty.st := by
         simpa only [duty, Internal.NamedRecoveryRead.voteDutyRead,
-          NamedActionReads.confirmationReadAt] using
+          NamedActionReads.confirmationReadAt] using!
           Proofs.NamedConfirmationMembership.invariant_clock S.E S.cfg _ _ hinvPre
       have hroot : Protocol.get_fg_root duty.st.core.toHealing.toFG ∈
           duty.st.core.T := Proofs.NamedStoreRoots.fg_root_mem duty.st hinv.1.2
@@ -2019,8 +2020,8 @@ theorem openingConfirmation_above_of_preceq_openingHeads
         confVotes S.E st slot := by
       apply canonicalSuffixHonestVoteCounted_of_delivery
         S hexec.core hexec.healthy hslotPos hconfCap u hu _ rfl hxHon hXemit
-      exact ⟨X.erase, by simpa only [st, confStore, tickStore] using hfind,
-        by simpa only [st, confStore, tickStore] using hstamp⟩
+      exact ⟨X.erase, by simpa only [st, confStore, tickStore] using! hfind,
+        by simpa only [st, confStore, tickStore] using! hstamp⟩
     have hXmem : X.erase ∈
         (NamedRun.stateBeforeTime S rho
           (Protocol.confirmation_time S.E slot) u).st.core.T := by
@@ -2029,9 +2030,9 @@ theorem openingConfirmation_above_of_preceq_openingHeads
       Proofs.Optimistic.emitted_vote_head_slot_le_of_store_mem S hexec.core hxHon hu hXemit rfl
         hXmem (by rfl)
     exact ⟨X.erase, by rw [hXerase]; exact hPheads x hxHon,
-      hXslot, hcount, by simpa only [st, confStore, tickStore] using hfind⟩
+      hXslot, hcount, by simpa only [st, confStore, tickStore] using! hfind⟩
   have hvalid : Protocol.VoteSetValid S.E slot (confLate S.E st slot) := by
-    simpa only [st, confStore, tickStore] using
+    simpa only [st, confStore, tickStore] using!
       voteSetValid_confLate_stateBeforeTime S
         hexec.core.toNamedScheduleWellFormed u
           (Protocol.confirmation_time S.E slot) slot
@@ -2106,7 +2107,7 @@ theorem honestCarriersAbove_of_preceq_openingHeads
     (hheads u huHon u huHon) (hPheads u huHon)
   rcases (show Block.Preceq (confirmationAnchorAt S rho u (S.hc.opening_slot s)) P ∨
       Block.Preceq P (confirmationAnchorAt S rho u (S.hc.opening_slot s)) by
-        simpa only [Block.compatible, Bool.or_eq_true] using hcompat) with hAP | hPA
+        simpa only [Block.compatible, Bool.or_eq_true] using! hcompat) with hAP | hPA
   · have hAP' : Block.Preceq
         (nodeAnchor S (Proofs.HealingSurface.actionReadAt S rho u s) s) P := by
       rw [actionAnchor_eq_openingConfirmationAnchor]
@@ -2146,7 +2147,7 @@ theorem held_of_preceq_openingHeads
         (Protocol.vote_time S.E slot) u).1
     have hinv : Proofs.NamedConfirmationMembership.Invariant S.E S.cfg duty.st := by
       simpa only [duty, Internal.NamedRecoveryRead.voteDutyRead,
-        NamedActionReads.confirmationReadAt] using
+        NamedActionReads.confirmationReadAt] using!
         Proofs.NamedConfirmationMembership.invariant_clock S.E S.cfg _ _ hinvPre
     have hroot : Protocol.get_fg_root duty.st.core.toHealing.toFG ∈
         duty.st.core.T := Proofs.NamedStoreRoots.fg_root_mem duty.st hinv.1.2

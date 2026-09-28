@@ -61,7 +61,7 @@ theorem honestEmittedHeight_le_localHMaxBeforeTime
   have hbound :=
     Proofs.NamedStoreBridge.heights_le_hMax_stateBeforeTime S rho (S.a a.round) v C hCmem
   rw [hheight] at hbound
-  simpa only [htime] using hbound
+  simpa only [htime] using! hbound
 
 theorem honestEmittedHeight_le_localHMax
     (S : Setup V) {rho : Run V} (adm : AdmissibleCore S rho)

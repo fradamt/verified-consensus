@@ -248,7 +248,7 @@ theorem protectedBlock_preceq_actionHead_of_cone_compatible
   have hvalid0 := voteSetValid_pool_stateBeforeTime
     S adm.toNamedScheduleWellFormed v (S.a r) q
   have hvalid : Protocol.VoteSetValid S.E q raw := by
-    simpa only [ast, raw, actionStoreAt_pool S rho v r q] using hvalid0
+    simpa only [ast, raw, actionStoreAt_pool S rho v r q] using! hvalid0
   have hhead : Block.Preceq B
       (Protocol.get_head_with gc S.E S.hc ast.toHealing raw support q) := by
     unfold Protocol.get_head_with

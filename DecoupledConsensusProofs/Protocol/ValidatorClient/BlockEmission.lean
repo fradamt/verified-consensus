@@ -41,8 +41,8 @@ theorem block_mem_on_tick_emit (S : Setup V) (v : V) (n : NodeState V) (t : Time
         Object.block B ∈ l₁ ∨ Object.block B ∈ l₂ := by
     intro P inst a₁ a₂ b₁ b₂ l₁ l₂ hm
     by_cases hP : P
-    · rw [if_pos hP] at hm; exact Or.inl hm
-    · rw [if_neg hP] at hm; exact Or.inr hm
+    · rw [ite_eq_left hP] at hm; exact Or.inl hm
+    · rw [ite_eq_right hP] at hm; exact Or.inr hm
   have hsplit : ∀ l₁ l₂ l₃ : List (Object V), Object.block B ∈ l₁ ++ l₂ ++ l₃ →
       Object.block B ∈ l₁ ∨ Object.block B ∈ l₂ ∨ Object.block B ∈ l₃ := by
     intro l₁ l₂ l₃ hm

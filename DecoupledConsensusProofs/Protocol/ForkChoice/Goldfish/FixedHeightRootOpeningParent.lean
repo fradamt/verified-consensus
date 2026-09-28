@@ -227,18 +227,18 @@ private theorem fixedRoot_cacheAtRound_align_self_opening
   by_cases h1 : r = c.round
   · rw [show DecoupledConsensusModel.Protocol.alignRound c r = c by
       unfold DecoupledConsensusModel.Protocol.alignRound
-      rw [if_pos h1]]
+      rw [ite_eq_left h1]]
   · by_cases h2 : r = c.round + 1
     · rw [show DecoupledConsensusModel.Protocol.alignRound c r =
         ⟨r, c.next, DecoupledConsensusModel.Protocol.pendingFrame⟩ by
         unfold DecoupledConsensusModel.Protocol.alignRound
-        rw [if_neg h1, if_pos h2]]
+        rw [ite_eq_right h1, ite_eq_left h2]]
       subst h2
       simp [DecoupledConsensusModel.Protocol.cacheAtRound]
     · rw [show DecoupledConsensusModel.Protocol.alignRound c r =
         ⟨r, DecoupledConsensusModel.Protocol.pendingFrame, DecoupledConsensusModel.Protocol.pendingFrame⟩ by
         unfold DecoupledConsensusModel.Protocol.alignRound
-        rw [if_neg h1, if_neg h2]]
+        rw [ite_eq_right h1, ite_eq_right h2]]
       simp [DecoupledConsensusModel.Protocol.cacheAtRound, h1, h2]
 
 private theorem fixedRoot_clip_grade_compatible_opening (g F : Block V) :
@@ -661,7 +661,7 @@ theorem fixedRoot_preparedProposalAnchor_preceq_of_previousCarriers
           simpa only [read, PhaseGrades.readAt, proposerReadAt,
             NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom, hopen,
-            Protocol.NamedStore.setClock] using
+            Protocol.NamedStore.setClock] using!
             (Proofs.Records.preceq_get_fg_root_of_F
               (st := (NamedRun.stateBeforeTime S rho
                 (Protocol.proposal_time S.E o) (S.E.proposer o)).st.core.toHealing.toFG)
@@ -889,7 +889,7 @@ theorem fixedRoot_preparedProposalAnchor_preceq_of_previousCarriers
             adm.toNamedAdmissibleCore.toNamedRootCollisionFree
             hHeadrun hCnrun hheadCnRoot
         have hAC : Block.Preceq A C :=
-          Block.preceq_trans (by simpa only [hheadCarrier] using hAhead)
+          Block.preceq_trans (by simpa only [hheadCarrier] using! hAhead)
             (hupper v hv)
         exact hAC
 
@@ -944,7 +944,7 @@ theorem fixedRoot_actionCarrier_mem_proposerRead
       K J hKrun hJrun K J (Or.inl (Proofs.NamedAncestry.named_self K))
       (Or.inr (Proofs.NamedAncestry.named_self J)) hKroot
   have hJbody : J ∈ (rho.storeBeforeTime S p tp).bodies := by
-    simpa only [hKJ] using hKbody
+    simpa only [hKJ] using! hKbody
   have hJactive : J.erase ∈
       Protocol.get_filtered_block_tree pre.toHealing.toFG := by
     exact mem_filtered_of_mem_tree_of_exactFGRoot_heightCap S rho p tp
@@ -1017,7 +1017,7 @@ theorem fixedRoot_preparedProposalConeSupport_of_namedCone
     simpa only [Protocol.proposerDutyStore, Proofs.Optimistic.tickStore,
       proposalDutyRead, proposerReadAt,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       hroot
   have hresolve0 := Protocol.headsResolveIn_proposerDutyStore_of_postHealingCone
     S adm hpost hhor hprop hrootDuty hnames
@@ -1025,7 +1025,7 @@ theorem fixedRoot_preparedProposalConeSupport_of_namedCone
     simpa only [st, n, proposalDutyRead, proposerReadAt,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      Protocol.proposerDutyStore, Proofs.Optimistic.tickStore] using hresolve0
+      Protocol.proposerDutyStore, Proofs.Optimistic.tickStore] using! hresolve0
   have hss : support ⊆ raw := by
     intro u hu
     simp only [support, raw, Protocol.proposer_support_view,
@@ -1086,13 +1086,13 @@ theorem fixedRoot_preparedProposalConeSupport_of_namedCone
       exact List.mem_toFinset.mpr hpool'
     have hfind' : Block.find? st.toHealing.T
         (⟨x, s, X.erase.root⟩ : GoldfishVote V).head = some X.erase := by
-      simpa only [st, n] using hfind
+      simpa only [st, n] using! hfind
     have hXmem : X.erase ∈
         (rho.storeBeforeTime S (S.E.proposer (s + 1))
           (Protocol.proposal_time S.E (s + 1))).T := by
       simpa only [st, n, proposalDutyRead, proposerReadAt,
         NamedActionReads.confirmationReadAt,
-        NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+        NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
         (Proofs.HealingLemmas.find?_mem hfind)
     have hXslot : X.erase.slot ≤ s :=
       Proofs.Optimistic.emitted_vote_head_slot_le_of_store_mem S
@@ -1103,15 +1103,13 @@ theorem fixedRoot_preparedProposalConeSupport_of_namedCone
       refine ⟨?_, ?_⟩
       · simpa only [Protocol.proposer_view, hprev,
           Protocol.Store.toHealing] using List.mem_toFinset.mp hraw
-      · change decide (Protocol.resolved st.toHealing.T
-          (⟨x, s, X.erase.root⟩ : GoldfishVote V) = true) = true
-        simp [Protocol.resolved, hfind', hXslot]
+      · simp [Protocol.resolved, hfind', hXslot]
     exact ⟨X.erase, hX, hXslot, hsupport, hfind⟩
   have hcone := Proofs.Optimistic.coneSupport_of_named_votes (E := S.E) (T := st.T)
     (votes := raw) (support := support) (late := raw) (s := s)
     (Hon := rho.honest) (tgt := fun X => Block.Preceq T X)
     (hcom s) (subset_refl _) hss hne hvote
-  simpa only [raw, support, st, n, hslot, hprev] using hcone
+  simpa only [raw, support, st, n, hslot, hprev] using! hcone
 
 theorem fixedRoot_preparedProposalHead_preceq_of_cone
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)
@@ -1174,14 +1172,11 @@ theorem fixedRoot_preparedProposalHead_preceq_of_cone
       Block.preceq_trans hProot (Block.preceq_trans hfgsg hsghead)
     simpa only [proposedParent, proposalInputAt,
       Internal.NamedRecoveryRead.proposalDutyRead, n, st, gc, tree, votes, support,
-      DutyInputDefaults.proposal_input_parent] using hhead
+      DutyInputDefaults.proposal_input_parent] using! hhead
   · have hPT : P ∈ st.T := by
       have hparts := hPfiltered
-      simp only [Protocol.get_filtered_block_tree,
-        Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
-        Protocol.finalized_descendants, Finset.mem_filter,
-        Protocol.Store.toHealing] at hparts
-      exact hparts.1.1.1
+      exact Finset.mem_of_mem_filter _
+        (Finset.mem_of_mem_filter _ (Finset.mem_of_mem_filter _ hparts))
     have hpath : ∀ C : Block V,
         Block.Preceq (Protocol.get_sg_root_with gc S.E S.hc st.toHealing
           (S.hc.round_of st.s)) C →
@@ -1202,7 +1197,7 @@ theorem fixedRoot_preparedProposalHead_preceq_of_cone
       (Protocol.get_head_in_tree_with_layer gc S.E S.hc st.toHealing tree votes support
         (st.s - 1))
     rw [Proofs.Optimistic.get_head_in_tree_split_with]
-    simpa only [tree, votes, support] using hhead
+    simpa only [tree, votes, support] using! hhead
 
 /-- The two callback-free parent ceilings needed by the fixed-root opening
 lifecycle. -/

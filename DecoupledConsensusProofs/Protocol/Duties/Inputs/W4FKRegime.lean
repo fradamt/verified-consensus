@@ -92,7 +92,7 @@ private theorem w4fkActionFGSourceEqLive
           ((NamedProfile.gradeContract (actionReadAt S rho v r).cache).read S.E S.hc
             (actionReadAt S rho v r).st.core.toHealing r).clear =
           some (actionStoreAt S rho v r).live_confirmed :=
-        deepest_clear_eq_tip (by simpa using hAlive) hclearAt
+        deepest_clear_eq_tip (by simpa using! hAlive) hclearAt
       rw [PhaseGrades.nodeFGSource, Protocol.fg_source_with.eq_def, hQ2] at hsource'
       simp only [hwalk, Option.some.injEq] at hsource'
       exact hsource'.symm
@@ -209,7 +209,7 @@ private theorem w4fkLiveConfirmedMemStoreBeforeTimeAction
     NamedActionReads.confirmationReadFrom,
     NamedDuties.confirmation_core,
     Protocol.NamedStore.setClock, n, Run.storeBeforeTime]
-    using hmem
+    using! hmem
 
 
 /-- Verbatim copy of branches `w4-nl`'s `w4RunBlockOfMemStoreBeforeTime`
@@ -281,7 +281,7 @@ theorem honestHeightRowAt_le_carrierOpeningHeight_named
     have hQpre : Q ∈ (rho.stateBeforeTime S (S.a k) v).st.bodies := by
       simpa only [actionStoreAt, actionReadAt, NamedActionReads.actionReadAt,
         NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
-        NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hQbody
+        NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hQbody
     have hbound :=
       Proofs.NamedStoreBridge.heights_le_hMax_stateBeforeTime S rho (S.a k) v Q hQpre
     rw [hQheight] at hbound
@@ -303,7 +303,7 @@ theorem honestHeightRowAt_le_carrierOpeningHeight_named
       have hQpre : Q ∈ (rho.storeBeforeTime S v (S.a k)).bodies := by
         simpa only [actionStoreAt, actionReadAt, NamedActionReads.actionReadAt,
           NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
-          NamedActionReads.preparedCache, Run.storeBeforeTime] using hQbody
+          NamedActionReads.preparedCache, Run.storeBeforeTime] using! hQbody
       have hQrun : RunBlock S rho Q :=
         w4fkRunBlockOfMemStoreBeforeTime S adm hv (t := S.a k) hQpre
       have hPrun : RunBlock S rho P :=

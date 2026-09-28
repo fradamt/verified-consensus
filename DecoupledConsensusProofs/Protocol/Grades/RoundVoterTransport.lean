@@ -114,7 +114,7 @@ theorem carriersAbove_of_postOutageAbove
   obtain ⟨a, haround, _, hemit⟩ := honestRoundVoter_emits S rho hu
   rcases hK6 u huHon with hroot | htree
   · exact Block.preceq_trans hroot (by
-      simpa only [Proofs.HealingSurface.actionStoreAt] using
+      simpa only [Proofs.HealingSurface.actionStoreAt] using!
         Proofs.HealingSurface.actionFGRoot_preceq_actionSGBlockAt S rho u r)
   · exact (h.emitted_vote_floor_of_finalized_or_active S rho P r core
       u huHon hr hhor haround hemit (Or.inr htree)).2
@@ -158,7 +158,7 @@ theorem carriersAbove_of_sg_clause
         Internal.NamedOutageEntry.confirmationReadAt,
         Proofs.HealingSurface.actionStoreAt, Proofs.HealingSurface.actionReadAt,
         NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
-        Protocol.NamedDuties.update_confirmation_with] using
+        Protocol.NamedDuties.update_confirmation_with] using!
           Proofs.HealingSurface.actionFGRoot_preceq_actionSGBlockAt S rho u r)
   · let action := NamedActionReads.actionReadAt S rho u r
     have hframeAction : (DecoupledConsensusModel.Protocol.readFrame action.cache
@@ -170,10 +170,10 @@ theorem carriersAbove_of_sg_clause
         NamedActionReads.confirmationReadFrom,
         NamedActionReads.preparedCache, Protocol.NamedStore.setClock,
         NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
-        Protocol.NamedDuties.update_confirmation_with] using hframe
+        Protocol.NamedDuties.update_confirmation_with] using! hframe
     have hro : S.hc.round_of
         (Internal.NamedJointOutage.checkpoint S rho u r).st.core.toHealing.s = r := by
-      simpa only [Protocol.Store.toHealing] using
+      simpa only [Protocol.Store.toHealing] using!
         (Proofs.HealingLemmas.round_of_slotOf_a S r)
     unfold Internal.NamedStableChainOutage.activeG2
       DecoupledConsensusModel.Protocol.frameSGCandidate at hactive
@@ -190,7 +190,7 @@ theorem carriersAbove_of_sg_clause
         NamedActionReads.preparedCache, Protocol.NamedStore.setClock,
         NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
         Protocol.NamedDuties.update_confirmation_with,
-        Protocol.update_confirmation_with] using hactive
+        Protocol.update_confirmation_with] using! hactive
     have hactiveAction : ((DecoupledConsensusModel.Protocol.readFrame action.cache
         action.st.core.toHealing r).g2.bind id).bind
           (DecoupledConsensusModel.Protocol.activePrefix
@@ -200,13 +200,13 @@ theorem carriersAbove_of_sg_clause
       simpa only [Option.bind_some, id_eq] using hactiveTree
     have hclosed : DecoupledConsensusModel.Protocol.allClosed
         (DecoupledConsensusModel.Protocol.readFrame action.cache action.st.core.toHealing r) = true := by
-      simpa only [action] using
+      simpa only [action] using!
           Proofs.HealingSurface.actionFrame_allClosed S hexec.core huHon hr hhor
     have hQ : Internal.PhaseGrades.nodeQ2 S action r = some G := by
       simp only [Internal.PhaseGrades.nodeQ2, Internal.PhaseGrades.nodeRead,
         NamedProfile.gradeContract, DecoupledConsensusModel.Protocol.frameContract,
         Protocol.grade2_block_with, DecoupledConsensusModel.Protocol.frameGradeRead,
-        DecoupledConsensusModel.Protocol.grade2Block, hclosed, if_true]
+        DecoupledConsensusModel.Protocol.grade2Block, hclosed, ite_true]
       exact hactiveAction
     exact Proofs.HealingSurface.preceq_actionSGBlockAt_of_actionQ2 S hexec.core
       huHon hr hhor hQ hPG
@@ -275,7 +275,7 @@ theorem confirmationDutyRoot_comparable_of_sg_clause
         S rho stop w
       have hFroot := Proofs.Records.preceq_get_fg_root_of_F
         (st := (NamedRun.stateBeforeTime S rho stop w).st.core.toHealing.toFG)
-        (by simpa only [Protocol.Store.toHealing] using hFJ)
+        (by simpa only [Protocol.Store.toHealing] using! hFJ)
       have hroot' : Block.Preceq Pn.erase
           (Protocol.get_fg_root
             (NamedRun.stateBeforeTime S rho stop w).st.core.toHealing.toFG) := by
@@ -311,7 +311,7 @@ theorem confirmationDutyRoot_comparable_of_sg_clause
       (Block.preceq_trans
         (Proofs.Records.preceq_get_fg_root_of_F
           (st := n.st.core.toHealing.toFG)
-          (by simpa only [Protocol.Store.toHealing] using hFJ))
+          (by simpa only [Protocol.Store.toHealing] using! hFJ))
         (fgRoot_preceq_dutyStableRoot S n hG)))
   · have hframeStart : (DecoupledConsensusModel.Protocol.readFrame
         (NamedRun.stateBeforeTime S rho start w).cache
@@ -334,7 +334,7 @@ theorem confirmationDutyRoot_comparable_of_sg_clause
         n.st.core.toHealing r).g2 =
         some (some (DecoupledConsensusModel.Protocol.clipGrade raw
           (NamedRun.stateBeforeTime S rho u w).st.core.F)) := by
-      simpa only [n, DecoupledConsensusModel.Protocol.phaseResult] using hprepared
+      simpa only [n, DecoupledConsensusModel.Protocol.phaseResult] using! hprepared
     have hPclip : Block.Preceq Pn.erase
         (DecoupledConsensusModel.Protocol.clipGrade raw
           (NamedRun.stateBeforeTime S rho u w).st.core.F) :=
@@ -457,7 +457,6 @@ theorem honestRoundVote_interpreted_at_g2_reader_of_deadline
   obtain ⟨D, hD, hDerase⟩ := Finset.mem_image.mp hHmem
   have hDsource : D ∈
       (NamedRun.stateBeforeTime S rho (S.a r) u).st.bodies := by
-    change D ∈ (NamedRun.stateBeforeTime S rho (S.a r) u).st.bodies
     exact hD
   have hDrun : NamedRun.blockInRun S rho D :=
     held_blockInRun S rho hexec.core.toNamedScheduleWellFormed
@@ -593,7 +592,6 @@ theorem honestRoundVote_interpreted_at_g1_reader
   obtain ⟨D, hD, hDerase⟩ := Finset.mem_image.mp hHmem
   have hDsource : D ∈
       (NamedRun.stateBeforeTime S rho (S.a r) u).st.bodies := by
-    change D ∈ (NamedRun.stateBeforeTime S rho (S.a r) u).st.bodies
     exact hD
   have hDrun : NamedRun.blockInRun S rho D :=
     held_blockInRun S rho hexec.core.toNamedScheduleWellFormed
@@ -1226,8 +1224,8 @@ theorem clauses_at_reader_of_carriersAbove_of_outageExecution
         simpa only [Electorate.weightOf, Finset.sum_empty] using hlt)
     obtain ⟨u, hu⟩ := hvoters
     have hupos := (Finset.mem_filter.mp (hpositive hu)).2
-    simp only [DecoupledConsensusModel.Protocol.positive, decide_eq_true_eq,
-      DecoupledConsensusModel.Protocol.Supports] at hupos
+    simp only [DecoupledConsensusModel.Protocol.positive, decide_eq_true_eq] at hupos
+    simp only [DecoupledConsensusModel.Protocol.Supports] at hupos
     obtain ⟨tok, htok, _, hcover, _, _⟩ := hupos
     simp only [DecoupledConsensusModel.Protocol.readyView, Finset.mem_image] at htok
     obtain ⟨y, hy, rfl⟩ := htok
@@ -1245,7 +1243,7 @@ theorem clauses_at_reader_of_carriersAbove_of_outageExecution
       | some H =>
         have hHmem := Proofs.HealingLemmas.find?_mem hfind
         have hPH : Block.Preceq P H := by
-          simpa [hconfirmed, hfind] using hcover
+          simpa [hconfirmed, hfind] using! hcover
         have hclosed := Proofs.NamedStoreBridge.parentClosed_stateBeforeTime S rho
           (domain S.E S.hc (r + 1) p) w
         have hPmem : P ∈ (NamedRun.stateBeforeTime S rho
@@ -1326,8 +1324,8 @@ theorem clause_at_reader_of_carriersAbove
         simpa only [Electorate.weightOf, Finset.sum_empty] using hlt)
     obtain ⟨u, hu⟩ := hvoters
     have hupos := (Finset.mem_filter.mp (hpositive hu)).2
-    simp only [DecoupledConsensusModel.Protocol.positive, decide_eq_true_eq,
-      DecoupledConsensusModel.Protocol.Supports] at hupos
+    simp only [DecoupledConsensusModel.Protocol.positive, decide_eq_true_eq] at hupos
+    simp only [DecoupledConsensusModel.Protocol.Supports] at hupos
     obtain ⟨tok, htok, _, hcover, _, _⟩ := hupos
     simp only [DecoupledConsensusModel.Protocol.readyView, Finset.mem_image] at htok
     obtain ⟨y, hy, rfl⟩ := htok
@@ -1345,7 +1343,7 @@ theorem clause_at_reader_of_carriersAbove
       | some H =>
         have hHmem := Proofs.HealingLemmas.find?_mem hfind
         have hPH : Block.Preceq P H := by
-          simpa [hconfirmed, hfind] using hcover
+          simpa [hconfirmed, hfind] using! hcover
         have hclosed := Proofs.NamedStoreBridge.parentClosed_stateBeforeTime S rho
           (domain S.E S.hc (r + 1) p) w
         have hPmem : P ∈ (NamedRun.stateBeforeTime S rho
@@ -1466,7 +1464,7 @@ theorem opening_sg_clause_of_g2_clause
             (domain S.E S.hc r .g1) w
           have hFroot := Proofs.Records.preceq_get_fg_root_of_F
             (st := (NamedRun.readAt S rho (domain S.E S.hc r .g1) w).st.core.toHealing.toFG)
-            (by simpa only [Protocol.Store.toHealing] using hFJ)
+            (by simpa only [Protocol.Store.toHealing] using! hFJ)
           exact Block.compatible_of_preceq_common hroot hFroot
         · simp only [Block.compatible, Bool.or_eq_true]
           exact Or.inr (q10_filtered_F hPtree)
@@ -1547,7 +1545,7 @@ theorem postOutageAbove_of_seed'
         ∃ R, postOutageFrozenG2At S rho w (r + 1) = some R ∧
           Block.Preceq P R := by
     intro w hw
-    simpa only [postOutageReadAt, postOutageFrozenG2At] using
+    simpa only [postOutageReadAt, postOutageFrozenG2At] using!
       clauses_at_reader_of_carriersAbove_of_outageExecution
         S rho b0 b1 hexec P r hpost
         hseed.1 hseed.2 hmajority .g2 (Or.inr rfl)
@@ -1594,7 +1592,7 @@ theorem postOutageAbove_of_seed'
         have hFroot := Proofs.Records.preceq_get_fg_root_of_F
           (st := (NamedRun.stateBeforeTime S rho
             (domain S.E S.hc (r + 2) .g2) w).st.core.toHealing.toFG)
-          (by simpa only [Protocol.Store.toHealing] using hFJ)
+          (by simpa only [Protocol.Store.toHealing] using! hFJ)
         have hroot' : Block.Preceq P
             (Protocol.get_fg_root
               (NamedRun.stateBeforeTime S rho
@@ -1719,7 +1717,7 @@ theorem postOutageAbove_induction_from_seed'
       intro hhor
       have hprevHor : domain S.E S.hc (r0 + k + 2) .g2 ≤ rho.horizon :=
         (base_domain_g2_mono S (Nat.le_succ (r0 + k + 2))).trans
-          (by simpa only [Nat.add_assoc] using hhor)
+          (by simpa only [Nat.add_assoc] using! hhor)
       have hprev := ih hprevHor
       have hr0q : r0 ≤ r0 + k + 1 := Nat.le_add_right r0 (k + 1)
       have hpostq : b1 ≤ S.a (r0 + k + 1) :=
@@ -1783,7 +1781,7 @@ private theorem confirmationDutyRoot_covers_core
   rcases hK6 with hfg | hPtree
   · have hfg' : Block.Preceq P (Protocol.get_fg_root n.st.core.toHealing.toFG) := by
       simpa only [n, NamedActionReads.confirmationReadAt,
-        NamedActionReads.confirmationReadFrom] using hfg
+        NamedActionReads.confirmationReadFrom] using! hfg
     exact Block.preceq_trans hfg' (fgRoot_preceq_dutyStableRoot S n hG)
   rcases hroot with hPF | ⟨raw, hfreeze, hPraw⟩
   · have hPFnow : Block.Preceq P
@@ -1801,7 +1799,7 @@ private theorem confirmationDutyRoot_covers_core
         (by simpa only [Protocol.Store.toHealing] using hFJ)
     have hPFn : Block.Preceq P n.st.core.F := by
       simpa only [n, NamedActionReads.confirmationReadAt,
-        NamedActionReads.confirmationReadFrom] using hPFnow
+        NamedActionReads.confirmationReadFrom] using! hPFnow
     exact Block.preceq_trans hPFn
       (Block.preceq_trans hFroot (fgRoot_preceq_dutyStableRoot S n hG))
   · have hFleP : Block.Preceq
@@ -1831,13 +1829,13 @@ private theorem confirmationDutyRoot_covers_core
     rw [hfreeze'] at hframe
     have hnround : S.hc.round_of n.st.core.s = q := by
       simpa only [n, NamedActionReads.confirmationReadAt,
-        NamedActionReads.confirmationReadFrom] using hround
+        NamedActionReads.confirmationReadFrom] using! hround
     have hframe' : (DecoupledConsensusModel.Protocol.readFrame n.cache
         n.st.core.toHealing q).g2 =
         some (some (DecoupledConsensusModel.Protocol.clipGrade raw
           (NamedRun.stateBeforeTime S rho u w).st.core.F)) := by
       simpa only [n, NamedActionReads.confirmationReadAt,
-        NamedActionReads.confirmationReadFrom] using hframe
+        NamedActionReads.confirmationReadFrom] using! hframe
     have hPtreeN : P ∈ Protocol.get_filtered_block_tree
         n.st.core.toHealing.toFG := by
       dsimp only [n]
@@ -1962,7 +1960,7 @@ theorem stable_above_P_through_horizon_of_root
         S rho t w
       have hFroot := Proofs.Records.preceq_get_fg_root_of_F
         (st := (NamedRun.stateBeforeTime S rho t w).st.core.toHealing.toFG)
-        (by simpa only [Protocol.Store.toHealing] using hFJ)
+        (by simpa only [Protocol.Store.toHealing] using! hFJ)
       exact Block.compatible_of_preceq_common hroot hFroot
     · simp only [Block.compatible, Bool.or_eq_true]
       exact Or.inr (q10_filtered_F hPtree)
@@ -2012,7 +2010,7 @@ theorem postOutageAbove_of_seed_truncated
         ∃ R, postOutageFrozenG2At S rho w (r + 1) = some R ∧
           Block.Preceq P R := by
     intro w hw
-    simpa only [postOutageReadAt, postOutageFrozenG2At] using
+    simpa only [postOutageReadAt, postOutageFrozenG2At] using!
       clauses_at_reader_of_carriersAbove_of_outageExecution
         S rho b0 b1 hexec P r hpost
         hseed.1 hseed.2 hmajority .g2 (Or.inr rfl)
@@ -2225,12 +2223,12 @@ theorem postOutageSeedAt_of_sg_clause
         · simp only [Block.compatible, Bool.or_eq_true]
           left
           simpa only [NamedActionReads.confirmationReadAt,
-            NamedActionReads.confirmationReadFrom] using hroot
+            NamedActionReads.confirmationReadFrom] using! hroot
         · have hfgPre := Proofs.Records.preceq_get_fg_root_of_mem_filtered htree
           simp only [Block.compatible, Bool.or_eq_true]
           right
           simpa only [NamedActionReads.confirmationReadAt,
-            NamedActionReads.confirmationReadFrom] using hfgPre
+            NamedActionReads.confirmationReadFrom] using! hfgPre
       exact confirmationDutyRoot_comparable_of_sg_clause S rho b0 b1 Pn r
         hexec hr hsg w hw u (by simpa only [start] using huStart) huNext
           hcut (hK6next w hw) hfg hG')
@@ -2248,7 +2246,7 @@ theorem postOutageSeedAt_of_sg_clause
         S rho t w
       have hFroot := Proofs.Records.preceq_get_fg_root_of_F
         (st := (NamedRun.stateBeforeTime S rho t w).st.core.toHealing.toFG)
-        (by simpa only [Protocol.Store.toHealing] using hFJ)
+        (by simpa only [Protocol.Store.toHealing] using! hFJ)
       exact Block.compatible_of_preceq_common hroot hFroot
     · simp only [Block.compatible, Bool.or_eq_true]
       exact Or.inr (q10_filtered_F htree)
@@ -2354,13 +2352,13 @@ theorem output_floors_at_read
             (NamedRun.stateBeforeTime S rho (t + 1) w).st.core.toHealing.toFG) :=
         Proofs.Records.preceq_get_fg_root_of_F
           (st := (NamedRun.stateBeforeTime S rho (t + 1) w).st.core.toHealing.toFG)
-          (by simpa only [Protocol.Store.toHealing] using hFJ)
+          (by simpa only [Protocol.Store.toHealing] using! hFJ)
       have hGmem := NamedProposalParent.activePrefix_mem
         (Protocol.get_filtered_block_tree
           (NamedRun.readAt S rho t w).st.core.toHealing.toFG) raw G hactive
       have hrootG := Proofs.Records.preceq_get_fg_root_of_mem_filtered hGmem
       exact Block.preceq_trans hPFnow (Block.preceq_trans (by
-        simpa only [← readAt_eq_succ] using hFroot) hrootG)
+        simpa only [← readAt_eq_succ] using! hFroot) hrootG)
     · have hcomplete := FrameCompleted.frame_g2_completed_in_round
         S rho core w hw q hq (t + 1) hg2lt hsucc hg2hor
       have hfreeze' : DecoupledConsensusModel.Protocol.freezeRoot S.E
@@ -2376,7 +2374,7 @@ theorem output_floors_at_read
             (NamedRun.stateBeforeTime S rho (t + 1) w).st.core.F)) := by
         simpa only [readFrameAt, readRound_readAt S rho core.toNamedScheduleWellFormed
           w hw t ht0 hhor, clockRoundAt_eq S t q ht0 hopen hnext,
-          ← readAt_eq_succ] using hcomplete
+          ← readAt_eq_succ] using! hcomplete
       rw [hframe'] at hframe
       have hraw : DecoupledConsensusModel.Protocol.clipGrade raw0
           (NamedRun.stateBeforeTime S rho (t + 1) w).st.core.F = raw :=
@@ -2403,10 +2401,10 @@ theorem output_floors_at_read
       have hFJ := Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime
         S rho (t + 1) w
       apply preceq_sgRoot_of_fg_root
-      exact Block.preceq_trans (by simpa only [← readAt_eq_succ] using hPFnow)
+      exact Block.preceq_trans (by simpa only [← readAt_eq_succ] using! hPFnow)
         (Proofs.Records.preceq_get_fg_root_of_F
           (st := (NamedRun.readAt S rho t w).st.core.toHealing.toFG)
-          (by simpa only [Protocol.Store.toHealing, ← readAt_eq_succ] using hFJ))
+          (by simpa only [Protocol.Store.toHealing, ← readAt_eq_succ] using! hFJ))
     · have hcomplete := FrameCompleted.frame_phase_completed_in_round
         S rho core w hw q hq .g1 (t + 1) hg1lt hsucc hg1hor
       have hfreeze' : DecoupledConsensusModel.Protocol.freezeRoot S.E
@@ -2421,7 +2419,7 @@ theorem output_floors_at_read
             (NamedRun.stateBeforeTime S rho (t + 1) w).st.core.F)) := by
         simpa only [readFrameAt, readRound_readAt S rho core.toNamedScheduleWellFormed
           w hw t ht0 hhor, clockRoundAt_eq S t q ht0 hopen hnext,
-          ← readAt_eq_succ] using hcomplete
+          ← readAt_eq_succ] using! hcomplete
       have hPclip := (q10_retained_prefix raw0
         (NamedRun.stateBeforeTime S rho (t + 1) w).st.core.F P hcompat).mpr hPraw0
       exact preceq_sgRoot_of_g1 S (NamedRun.readAt S rho t w) hframe' hPtree
@@ -2473,7 +2471,7 @@ theorem confirmationDutyRoot_covers
   rcases hK6 with hfg | hPtree
   · have hfg' : Block.Preceq P (Protocol.get_fg_root n.st.core.toHealing.toFG) := by
       simpa only [n, NamedActionReads.confirmationReadAt,
-        NamedActionReads.confirmationReadFrom] using hfg
+        NamedActionReads.confirmationReadFrom] using! hfg
     exact Block.preceq_trans hfg' (fgRoot_preceq_dutyStableRoot S n hG)
   rcases hroot with hPF | ⟨raw, hfreeze, hPraw⟩
   · have hPFnow : Block.Preceq P
@@ -2491,7 +2489,7 @@ theorem confirmationDutyRoot_covers
         (by simpa only [Protocol.Store.toHealing] using hFJ)
     have hPFn : Block.Preceq P n.st.core.F := by
       simpa only [n, NamedActionReads.confirmationReadAt,
-        NamedActionReads.confirmationReadFrom] using hPFnow
+        NamedActionReads.confirmationReadFrom] using! hPFnow
     exact Block.preceq_trans hPFn
       (Block.preceq_trans hFroot (fgRoot_preceq_dutyStableRoot S n hG))
   · have hFleP : Block.Preceq
@@ -2521,13 +2519,13 @@ theorem confirmationDutyRoot_covers
     rw [hfreeze'] at hframe
     have hnround : S.hc.round_of n.st.core.s = q := by
       simpa only [n, NamedActionReads.confirmationReadAt,
-        NamedActionReads.confirmationReadFrom] using hround
+        NamedActionReads.confirmationReadFrom] using! hround
     have hframe' : (DecoupledConsensusModel.Protocol.readFrame n.cache
         n.st.core.toHealing q).g2 =
         some (some (DecoupledConsensusModel.Protocol.clipGrade raw
           (NamedRun.stateBeforeTime S rho u w).st.core.F)) := by
       simpa only [n, NamedActionReads.confirmationReadAt,
-        NamedActionReads.confirmationReadFrom] using hframe
+        NamedActionReads.confirmationReadFrom] using! hframe
     have hPtreeN : P ∈ Protocol.get_filtered_block_tree
         n.st.core.toHealing.toFG := by
       dsimp only [n]
@@ -2618,13 +2616,13 @@ theorem prepared_outputs_eq_strict
     rw [show (readFrameAt S (NamedActionReads.confirmationReadAt S rho w u)).g2 =
         (readFrameAt S (NamedRun.readAt S rho (u - 1) w)).g2 by
       rw [readFrameAt, readFrameAt, hroundPrepared, hreadRound, hstrict]
-      simpa only [Internal.NamedOutageEntry.confirmationReadAt] using hg2p.trans hg2.symm]
+      simpa only [Internal.NamedOutageEntry.confirmationReadAt] using! hg2p.trans hg2.symm]
     rw [htreePrepared]
   · rw [sgRoot_eq, sgRoot_eq, hroundPrepared, hreadRound]
     rw [show (readFrameAt S (NamedActionReads.confirmationReadAt S rho w u)).g1 =
         (readFrameAt S (NamedRun.readAt S rho (u - 1) w)).g1 by
       rw [readFrameAt, readFrameAt, hroundPrepared, hreadRound, hstrict]
-      simpa only [Internal.NamedOutageEntry.confirmationReadAt] using hg1p.trans hg1.symm]
+      simpa only [Internal.NamedOutageEntry.confirmationReadAt] using! hg1p.trans hg1.symm]
     unfold DecoupledConsensusModel.Protocol.anchor
     rw [htreePrepared, hrootPrepared]
 
@@ -2804,7 +2802,7 @@ private theorem transition_read_floors
     · have hFJ := Proofs.NamedStoreBridge.finalized_preceq_justified_readAt S rho t w
       have hFroot := Proofs.Records.preceq_get_fg_root_of_F
         (st := (NamedRun.readAt S rho t w).st.core.toHealing.toFG)
-        (by simpa only [Protocol.Store.toHealing] using hFJ)
+        (by simpa only [Protocol.Store.toHealing] using! hFJ)
       exact Block.compatible_of_preceq_common hroot hFroot
     · simp only [Block.compatible, Bool.or_eq_true]
       exact Or.inr (q10_filtered_F htree)
@@ -2862,7 +2860,7 @@ private theorem transition_prepared_floors
         S rho u w
       have hFroot := Proofs.Records.preceq_get_fg_root_of_F
         (st := (NamedRun.stateBeforeTime S rho u w).st.core.toHealing.toFG)
-        (by simpa only [Protocol.Store.toHealing] using hFJ)
+        (by simpa only [Protocol.Store.toHealing] using! hFJ)
       exact Block.compatible_of_preceq_common hroot hFroot
     · simp only [Block.compatible, Bool.or_eq_true]
       exact Or.inr (q10_filtered_F hPtree)
@@ -2974,7 +2972,7 @@ private theorem transition_stable
           · left
             rw [← Option.some.inj hG']
             simpa only [NamedActionReads.confirmationReadAt,
-              NamedActionReads.confirmationReadFrom] using hroot
+              NamedActionReads.confirmationReadFrom] using! hroot
           · right
             rw [← Option.some.inj hG']
             exact Proofs.Records.preceq_get_fg_root_of_mem_filtered htree
@@ -2991,7 +2989,7 @@ private theorem transition_stable
         S rho stop w
       have hFroot := Proofs.Records.preceq_get_fg_root_of_F
         (st := (NamedRun.stateBeforeTime S rho stop w).st.core.toHealing.toFG)
-        (by simpa only [Protocol.Store.toHealing] using hFJ)
+        (by simpa only [Protocol.Store.toHealing] using! hFJ)
       have hrootStop : Block.Preceq Pn.erase
           (Protocol.get_fg_root
             (NamedRun.stateBeforeTime S rho stop w).st.core.toHealing.toFG) := by
@@ -3001,7 +2999,7 @@ private theorem transition_stable
     · have hFleP := q10_filtered_F htree
       dsimp only [stop]
       simpa only [← readAt_eq_succ, Block.compatible, Bool.or_eq_true]
-        using (Or.inr hFleP : Block.Preceq Pn.erase
+        using! (Or.inr hFleP : Block.Preceq Pn.erase
           (NamedRun.readAt S rho t w).st.core.F ∨
             Block.Preceq (NamedRun.readAt S rho t w).st.core.F Pn.erase)
   rw [readAt_eq_succ]
@@ -3231,7 +3229,7 @@ theorem stableUserOutputsFrom_of_induction
               · left
                 rw [← Option.some.inj hG']
                 simpa only [NamedActionReads.confirmationReadAt,
-                  NamedActionReads.confirmationReadFrom] using hroot
+                  NamedActionReads.confirmationReadFrom] using! hroot
               · right
                 rw [← Option.some.inj hG']
                 have hfg := Proofs.Records.preceq_get_fg_root_of_mem_filtered htree
@@ -3268,7 +3266,7 @@ theorem stableUserOutputsFrom_of_induction
           S rho (t + 1) w
         have hFroot := Proofs.Records.preceq_get_fg_root_of_F
           (st := (NamedRun.stateBeforeTime S rho (t + 1) w).st.core.toHealing.toFG)
-          (by simpa only [Protocol.Store.toHealing] using hFJ)
+          (by simpa only [Protocol.Store.toHealing] using! hFJ)
         have hroot' : Block.Preceq P
             (Protocol.get_fg_root
               (NamedRun.stateBeforeTime S rho (t + 1) w).st.core.toHealing.toFG) := by

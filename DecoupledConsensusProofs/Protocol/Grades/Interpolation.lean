@@ -42,7 +42,7 @@ private theorem preceq_deepest_of_compatible {T : Finset (Block V)} {G P : Block
     (hG : Block.deepest? T = some G) (hP : P ∈ T)
     (hcomp : Block.compatible P G = true) : Block.Preceq P G := by
   rcases (show Block.Preceq P G ∨ Block.Preceq G P by
-    simpa only [Block.compatible, Bool.or_eq_true] using hcomp) with hPG | hGP
+    simpa only [Block.compatible, Bool.or_eq_true] using! hcomp) with hPG | hGP
   · exact hPG
   · have hdeep : Block.isDeepestIn T G = true := pick_property hG
     simp only [Block.isDeepestIn, decide_eq_true_eq] at hdeep
@@ -57,7 +57,7 @@ private theorem preceq_deepest_of_compatible {T : Finset (Block V)} {G P : Block
 private theorem eq_of_compatible_depth {A B : Block V}
     (hcomp : Block.compatible A B = true) (h : A.depth = B.depth) : A = B := by
   rcases (show Block.Preceq A B ∨ Block.Preceq B A by
-    simpa only [Block.compatible, Bool.or_eq_true] using hcomp) with hAB | hBA
+    simpa only [Block.compatible, Bool.or_eq_true] using! hcomp) with hAB | hBA
   · exact Block.preceq_eq_of_depth_le hAB (le_of_eq h.symm)
   · exact (Block.preceq_eq_of_depth_le hBA (le_of_eq h)).symm
 
@@ -89,7 +89,7 @@ private theorem deepest_some_of_chain {T : Finset (Block V)} {P : Block V}
       (Nat.le_antisymm (hmax a haT) hno.1)
   refine ⟨T.choose (fun a => Block.isDeepestIn T a = true) huniq, ?_⟩
   unfold Block.deepest? pickUnique?
-  rw [dif_pos huniq]
+  rw [dite_eq_left huniq]
 
 /-- The active prefix of a saved root covers every tree member below that root,
 and is never `none` when there is such a member. The filtered set is a set of
@@ -138,7 +138,7 @@ theorem clip_retains (g F B : Block V) (hBF : Block.compatible B F = true)
         · subst B
           exact False.elim (hGF hBF)
         · exact hBp
-      simpa only [clipGrade, hGF, Bool.eq_false_iff.mpr hGF, ↓reduceIte] using ih hBp
+      simpa only [clipGrade, hGF, Bool.eq_false_iff.mpr hGF, ↓reduceIte] using! ih hBp
 
 
 /-! ## 2. The two frame conjuncts at one read
@@ -238,7 +238,7 @@ theorem preceq_get_stable (st : Protocol.Store V) {P : Block V}
   · exact hlat
   · rename_i hno
     rcases (show Block.Preceq P st.F ∨ Block.Preceq st.F P by
-      simpa only [Block.compatible, Bool.or_eq_true] using hF) with hPF | hFP
+      simpa only [Block.compatible, Bool.or_eq_true] using! hF) with hPF | hFP
     · exact hPF
     · exact absurd (Block.preceq_trans hFP hlat) hno
 
@@ -558,9 +558,8 @@ theorem readRound_readAt (S : Setup V) (rho : NamedRun V)
       (Proofs.Optimistic.proposal_time_nonneg S.E (S.E.slotOf t)) (hpt.trans hhor)
   have hfil : NamedEvent.tick w (Protocol.proposal_time S.E (S.E.slotOf t)) ∈
       rho.events.filter (fun e => decide (e.time < t + 1)) :=
-    List.mem_filter.mpr ⟨htick, by
-      simp only [NamedEvent.time, decide_eq_true_eq]
-      exact ip_lt_succ_of_le _ _ hpt⟩
+    List.mem_filter.mpr ⟨htick,
+      decide_eq_true (ip_lt_succ_of_le _ _ hpt)⟩
   have hdown : S.E.slotOf t ≤
       S.E.slotOf (NamedRun.stateBeforeTime S rho (t + 1) w).st.core.t :=
     Protocol.slot_le_slotOf_of_proposal_time_le S.E
@@ -868,14 +867,14 @@ private theorem ip_phase_clip (F : Block V) (c : Cache V) (r : Round) (p : Phase
 private theorem ip_cacheAtRound_align_self (c : Cache V) (r : Round) :
     cacheAtRound (alignRound c r) r = cacheAtRound c r := by
   by_cases h1 : r = c.round
-  · rw [show alignRound c r = c by unfold alignRound; rw [if_pos h1]]
+  · rw [show alignRound c r = c by unfold alignRound; rw [ite_eq_left h1]]
   · by_cases h2 : r = c.round + 1
     · rw [show alignRound c r = ⟨r, c.next, pendingFrame⟩ by
-        unfold alignRound; rw [if_neg h1, if_pos h2]]
+        unfold alignRound; rw [ite_eq_right h1, ite_eq_left h2]]
       subst h2
       simp [cacheAtRound]
     · rw [show alignRound c r = ⟨r, pendingFrame, pendingFrame⟩ by
-        unfold alignRound; rw [if_neg h1, if_neg h2]]
+        unfold alignRound; rw [ite_eq_right h1, ite_eq_right h2]]
       simp [cacheAtRound, h1, h2]
 
 private theorem ip_complete_one_other (E : Env V) (hc : Protocol.HealConfig)

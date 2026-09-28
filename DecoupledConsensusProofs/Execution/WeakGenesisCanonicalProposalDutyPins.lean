@@ -97,7 +97,7 @@ theorem canonicalProposalDuty_positive_of_gstZero_named_of_pins
       Protocol.VoteSetValid S.E s
         (confLate S.E (Proofs.Optimistic.confStore S rho v s) s) := by
     intro v _hv
-    simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using
+    simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using!
       voteSetValid_confLate_stateBeforeTime S h.core.toNamedScheduleWellFormed v
         (Protocol.confirmation_time S.E s) s
   have hcandidate' : ∀ v ∈ rho.honest,

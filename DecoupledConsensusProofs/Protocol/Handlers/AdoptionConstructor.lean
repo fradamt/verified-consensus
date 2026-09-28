@@ -43,7 +43,7 @@ theorem stampedBefore_block_of_resolution
     stampedBefore tb Gamma H = true := by
   simp only [stampedBefore_eq_occurrenceBefore, Protocol.resolution_time,
     hfind, Protocol.head_slot_le_of_resolution_time hfind hresolved,
-    if_true] at hresolved ⊢
+    ite_true] at hresolved ⊢
   cases hv : tv u with
   | none =>
       simp only [hv, occurrenceMax, occurrenceBefore] at hresolved
@@ -68,27 +68,27 @@ theorem on_block_new_timestamp
     (Protocol.on_block E cfg st B).timestamp_block B = some (st.t : Stamp) := by
   by_cases hfirst : st.s < B.slot ∨ B ∈ st.T ∨ B.parent ∉ st.T
   · rw [show Protocol.on_block E cfg st B = st by
-      simp only [Protocol.on_block, Protocol.on_block_using, if_pos hfirst]] at hpost
+      simp only [Protocol.on_block, Protocol.on_block_using, ite_eq_left hfirst]] at hpost
     exact False.elim (hpre hpost)
   by_cases hadmit : (!Block.preceq st.F B) = true
   · rw [show Protocol.on_block E cfg st B = st by
-      simp only [Protocol.on_block, Protocol.on_block_using, if_neg hfirst,
-        if_pos hadmit]] at hpost
+      simp only [Protocol.on_block, Protocol.on_block_using, ite_eq_right hfirst,
+        ite_eq_left hadmit]] at hpost
     exact False.elim (hpre hpost)
   by_cases hprop : B.proposer? ≠ some (E.proposer B.slot)
   · rw [show Protocol.on_block E cfg st B = st by
-      simp only [Protocol.on_block, Protocol.on_block_using, if_neg hfirst,
-        if_neg hadmit, if_pos hprop]] at hpost
+      simp only [Protocol.on_block, Protocol.on_block_using, ite_eq_right hfirst,
+        ite_eq_right hadmit, ite_eq_left hprop]] at hpost
     exact False.elim (hpre hpost)
   by_cases hparent : ¬ B.parent.slot < B.slot
   · rw [show Protocol.on_block E cfg st B = st by
-      simp only [Protocol.on_block, Protocol.on_block_using, if_neg hfirst,
-        if_neg hadmit, if_neg hprop,
-        if_pos hparent]] at hpost
+      simp only [Protocol.on_block, Protocol.on_block_using, ite_eq_right hfirst,
+        ite_eq_right hadmit, ite_eq_right hprop,
+        ite_eq_left hparent]] at hpost
     exact False.elim (hpre hpost)
-  simp only [Protocol.on_block, Protocol.on_block_using, if_neg hfirst,
-    if_neg hadmit, if_neg hprop,
-    if_neg hparent, update_finality_timestamp_block,
+  simp only [Protocol.on_block, Protocol.on_block_using, ite_eq_right hfirst,
+    ite_eq_right hadmit, ite_eq_right hprop,
+    ite_eq_right hparent, update_finality_timestamp_block,
     foldl_on_goldfish_vote_checked_timestamp_block]
   simp
 
@@ -115,7 +115,7 @@ theorem on_tick_emit_proposal_timestamp_block
     Protocol.NamedStore.setClock,
     Proofs.Optimistic.proposal_time_ne_vote_time S.E s,
     Proofs.Optimistic.proposal_time_ne_support_cutoff S.E s, hprop, hs,
-    and_false, and_true, if_false, if_true, Protocol.NamedDuties.attest_with,
+    and_false, and_true, ite_false, ite_true, Protocol.NamedDuties.attest_with,
     Protocol.NamedAdmission.admit_row]
   split
   · split <;> exact on_sg_vote_timestamp_block _ _ _
@@ -167,29 +167,29 @@ private theorem checked_new_block_stamp (E : Env V) (hc : Protocol.HealConfig)
       hc st B).timestamp_block B = some (st.t : Stamp) := by
   dsimp only [Protocol.on_block_checked_using] at hpost ⊢
   by_cases hvalid : Protocol.carried_attestations_admissible hc B = true
-  · simp only [hvalid, if_true] at hpost ⊢
+  · simp only [hvalid, ite_true] at hpost ⊢
     by_cases hfirst : st.s < B.slot ∨ B ∈ st.T ∨ B.parent ∉ st.T
-    · simp only [Protocol.on_block_using, if_pos hfirst] at hpost
+    · simp only [Protocol.on_block_using, ite_eq_left hfirst] at hpost
       exact False.elim (hpre hpost)
     · by_cases hfinal : (!Block.preceq st.F B) = true
-      · simp only [Protocol.on_block_using, if_neg hfirst, if_pos hfinal] at hpost
+      · simp only [Protocol.on_block_using, ite_eq_right hfirst, ite_eq_left hfinal] at hpost
         exact False.elim (hpre hpost)
       · by_cases hproposer : B.proposer? ≠ some (E.proposer B.slot)
-        · simp only [Protocol.on_block_using, if_neg hfirst, if_neg hfinal,
-            if_pos hproposer] at hpost
+        · simp only [Protocol.on_block_using, ite_eq_right hfirst, ite_eq_right hfinal,
+            ite_eq_left hproposer] at hpost
           exact False.elim (hpre hpost)
         · by_cases hparent : ¬ B.parent.slot < B.slot
-          · simp only [Protocol.on_block_using, if_neg hfirst, if_neg hfinal,
-              if_neg hproposer, if_pos hparent] at hpost
+          · simp only [Protocol.on_block_using, ite_eq_right hfirst, ite_eq_right hfinal,
+              ite_eq_right hproposer, ite_eq_left hparent] at hpost
             exact False.elim (hpre hpost)
-          · simp only [Protocol.on_block_using, if_neg hfirst, if_neg hfinal,
-              if_neg hproposer, if_neg hparent,
+          · simp only [Protocol.on_block_using, ite_eq_right hfirst, ite_eq_right hfinal,
+              ite_eq_right hproposer, ite_eq_right hparent,
               update_finality_timestamp_block,
               foldl_on_goldfish_vote_checked_timestamp_block]
             simp
   · have hfalse : Protocol.carried_attestations_admissible hc B = false :=
       Bool.eq_false_of_not_eq_true hvalid
-    simp only [hfalse, Bool.false_eq_true, if_false] at hpost
+    simp only [hfalse, Bool.false_eq_true, ite_false] at hpost
     exact False.elim (hpre hpost)
 
 private theorem core_new_body_stamp (S : Setup V) (st : Protocol.NamedStore V)
@@ -201,7 +201,7 @@ private theorem core_new_body_stamp (S : Setup V) (st : Protocol.NamedStore V)
   by_cases hp : B.parent ∉ st.bodies
   · simp only [hp] at hpost
     exact False.elim (hpre hpost)
-  · rw [if_neg hp] at hpost ⊢
+  · rw [ite_eq_right hp] at hpost ⊢
     let after := Protocol.on_block_checked_using
       (fun current => Protocol.on_block_using S.E current B.erase
         (fun parentState => Protocol.named_transition S.E S.cfg parentState B))
@@ -210,10 +210,10 @@ private theorem core_new_body_stamp (S : Setup V) (st : Protocol.NamedStore V)
     change (Protocol.NamedStore.commitBlock st after B).core.timestamp_block B.erase = _
     by_cases hfresh : B.erase ∉ st.core.T ∧ B.erase ∈ after.T
     · unfold Protocol.NamedStore.commitBlock
-      rw [if_pos hfresh]
+      rw [ite_eq_left hfresh]
       exact checked_new_block_stamp S.E S.hc st.core B.erase _ hfresh.1 hfresh.2
     · unfold Protocol.NamedStore.commitBlock at hpost ⊢
-      rw [if_neg hfresh] at hpost
+      rw [ite_eq_right hfresh] at hpost
       exact False.elim (hpre hpost)
 
 /-- A fresh named body admitted through the full named block handler receives
@@ -292,7 +292,7 @@ private theorem tick_bodies_proposal
     Protocol.NamedStore.setClock,
     Proofs.Optimistic.proposal_time_ne_vote_time S.E s,
     Proofs.Optimistic.proposal_time_ne_support_cutoff S.E s, hprop, hs,
-    and_false, and_true, if_false, if_true, Protocol.NamedDuties.attest_with,
+    and_false, and_true, ite_false, ite_true, Protocol.NamedDuties.attest_with,
     Protocol.NamedAdmission.admit_row]
   split
   · split <;> rfl
@@ -471,7 +471,7 @@ theorem targetPoolVoteAcceptedBeforeVote
       adm.toNamedAdmissibleCore.toNamedScheduleWellFormed Γ
   have huPool : u ∈ (NamedRun.stateBefore S rho n w).st.core.pool s := by
     simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore, Run.storeBeforeTime, hn, Γ] using hu
+      Proofs.Optimistic.tickStore, Run.storeBeforeTime, hn, Γ] using! hu
   have huList : u ∈ (NamedRun.stateBefore S rho n w).st.core.gf_votes s := by
     simpa only [Protocol.Store.pool, List.mem_toFinset] using huPool
   have hus : u.slot = s :=
@@ -547,7 +547,7 @@ theorem targetCarrierVote_settledInPool
       have hΓe : Γ ≤ (Event.tick w t).time :=
         Proofs.Optimistic.le_time_of_index_ge S adm.toNamedScheduleWellFormed (t := Γ)
           (j := i) (e := Event.tick w t) (by simpa [N] using hNle) htick
-      exact (not_le_of_gt (by simpa only [Γ] using hhi)) hΓe
+      exact (not_le_of_gt (by simpa only [Γ] using! hhi)) hΓe
     have hcarry : PoolCarry pre.st.core (NamedRun.stateBefore S rho N w).st.core :=
       pool_carry S adm.toNamedScheduleWellFormed w N (Nat.le_of_lt hiN)
     have hstore : Proofs.Optimistic.voteDutyStore S rho w (s + 1) =
@@ -587,7 +587,7 @@ theorem targetCarrierVote_settledInPool
       lt_of_le_of_lt
         (by simpa [pre, Event.time] using
           store_time_le_event_time S adm.toNamedScheduleWellFormed hi w)
-        (by simpa only [Γ] using hhi)
+        (by simpa only [Γ] using! hhi)
     have hCpre : C ∉ pre.bodies := by
       simpa only [Object.processed, NamedReceipt.processed, decide_eq_false_iff_not]
         using hpreProcessed
@@ -635,7 +635,7 @@ theorem targetCarrierVote_settledInPool
       have hpool : u ∈ (NamedRun.stateBefore S rho N w).st.core.pool s :=
         (Finset.mem_filter.mp hfinal).1
       rw [hstore]
-      simpa only [Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using hpool
+      simpa only [Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using! hpool
     · apply Or.inr
       apply equivocates_mono _ u.val_index hequiv
       intro x hx
@@ -643,7 +643,7 @@ theorem targetCarrierVote_settledInPool
       have hpool : x ∈ (NamedRun.stateBefore S rho N w).st.core.pool s :=
         (Finset.mem_filter.mp hfinal).1
       rw [hstore]
-      simpa only [Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using hpool
+      simpa only [Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using! hpool
 
 
 

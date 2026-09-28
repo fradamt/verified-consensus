@@ -54,10 +54,10 @@ theorem FinalityFilterNoninterferenceAtRead.ancestor
           Protocol.get_filtered_block_tree st.toHealing.toFG :=
         Proofs.Records.mem_filtered_of_preceq
           (st := st.toHealing.toFG)
-          (by simpa only [Protocol.NamedStore.toHealing] using hFJ)
+          (by simpa only [Protocol.NamedStore.toHealing] using! hFJ)
           (by simpa only [st] using hBfiltered) hPT hPB hrootP
       exact (by simpa only [st] using hPfiltered)
-    · exact Or.inl (by simpa only [st] using hProot)
+    · exact Or.inl (by simpa only [st] using! hProot)
 
 
 

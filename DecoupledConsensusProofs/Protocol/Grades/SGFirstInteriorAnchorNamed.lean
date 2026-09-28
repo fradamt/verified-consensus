@@ -88,7 +88,7 @@ theorem voterAnchorAt_compatible_actionSGBlock_selectedQ2_after_GST
         hdeadlineVote hvoteHor hnext hw hp
     simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      Run.storeBeforeTime] using hcompat
+      Run.storeBeforeTime] using! hcompat
   · obtain ⟨root, L, hframe, hactive, hanchor⟩ := hactive
     have hroundRead : S.hc.round_of (voteDutyRead S rho w d).st.core.s = c + 1 := by
       simpa only [Proofs.Optimistic.voteDutyRead_slot] using hround
@@ -216,7 +216,7 @@ theorem voterAnchorAt_compatible_actionSGBlock_clear_after_GST
         hdeadlineVote hvoteHor hnext hw hp
     simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      Run.storeBeforeTime] using hcompat
+      Run.storeBeforeTime] using! hcompat
   · obtain ⟨root, L, hframe, hactive, hanchor⟩ := hactive
     have hroundRead : S.hc.round_of (voteDutyRead S rho w d).st.core.s = c + 1 := by
       simpa only [Proofs.Optimistic.voteDutyRead_slot] using hround
@@ -233,7 +233,7 @@ theorem voterAnchorAt_compatible_actionSGBlock_clear_after_GST
         Block.Preceq
           (Protocol.get_fg_root
             (actionStoreAt S rho p (c + 1)).st.core.toHealing.toFG) L by
-      simpa only [Block.compatible, Bool.or_eq_true] using hrootCompat) with
+      simpa only [Block.compatible, Bool.or_eq_true] using! hrootCompat) with
       hLroot | hrootL
     · rw [hanchor]
       simp only [Block.compatible, Bool.or_eq_true]

@@ -199,7 +199,7 @@ private theorem actionBody_runBlock_named_regime
   have hDpre : D ∈ (rho.stateBeforeTime S (S.a r) v).st.bodies := by
     simpa only [actionStoreAt, actionReadAt, NamedActionReads.actionReadAt,
       NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hD
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hD
   obtain ⟨i, hi, _⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix S rho
     adm.toNamedScheduleWellFormed.sorted (S.a r)
   have hDi : D ∈ (rho.stateBefore S i v).st.bodies := by
@@ -252,7 +252,7 @@ theorem round_succ_le_of_higherBlock
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using hBmem
+      NamedRun.stateBeforeTime] using! hBmem
   have heq := congrFun (stateBeforeTime_eq_stateBefore_strictEventIndex
     S adm.toNamedScheduleWellFormed (S.a r)) p
   rw [heq] at hBpre
@@ -508,7 +508,7 @@ theorem NamedHeightRegimeBase.exists_regime_delayed
   have hactionHorizon : S.a a.round ≤ rho.horizon := by
     have hin := (adm.in_horizon (Event.tick a.val_index ta)
       (List.mem_of_getElem? hiEvent)).2
-    simpa only [Event.time, htime] using hin
+    simpa only [Event.time, htime] using! hin
   have ready : GradeRoundReady S rho a.round :=
     gradeRoundReady_of_action_horizon S hgst hround hactionHorizon
   have hguard := crossReaderBodyReadyGuard_of_namedHeightRegimeFrame
@@ -560,7 +560,7 @@ theorem NamedHeightRegimeBase.exists_regime_before_deadline_of_exists_regime
     exact hreg.seed.exactTick
   rw [← hfilter] at hmem
   have htime : S.a a.round ≤ S.a deadline := by
-    simpa only [Event.time, hreg.seed.actionTime_eq, decide_eq_true_eq] using
+    simpa only [Event.time, hreg.seed.actionTime_eq, decide_eq_true_eq] using!
       (List.mem_filter.mp hmem).2
   exact (action_strictMono S).le_iff_le.mp htime
 

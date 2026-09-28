@@ -97,7 +97,7 @@ theorem storeGrade_g0_mem_domainTree
       | some H =>
           have hQH : Block.Preceq Q H := by
             simpa [DecoupledConsensusModel.Protocol.localCovers, Protocol.head_covers,
-              hkey, hfind] using hcov
+              hkey, hfind] using! hcov
           have hHT : H ∈ n.st.core.T := Proofs.HealingLemmas.find?_mem hfind
           have hpc := Proofs.NamedStoreBridge.parentClosed_stateBeforeTime S rho
             (domain S.E S.hc r .g0) w
@@ -184,7 +184,7 @@ theorem relativeG0_compatible_clearSource
     (readAt S rho (domain S.E S.hc r .g0) w).st.core.F S.hc.η_SG r
     (e := early S.E S.hc r .g0) (l := late S.E S.hc r .g0)
     (by simp [early, late, Phase.earlyOffset, Phase.lateOffset]) hQtree
-    (by simpa only [storeGrade] using hQgrade)
+    (by simpa only [storeGrade] using! hQgrade)
   have hactionFrame := actionFrame_g0 S adm.toNamedAdmissibleCore hw hr hactionHor
   have hframe : (DecoupledConsensusModel.Protocol.readFrame (actionReadAt S rho w r).cache
       (actionReadAt S rho w r).st.core.toHealing r).g0 =
@@ -198,7 +198,7 @@ theorem relativeG0_compatible_clearSource
         (actionReadAt S rho w r).st.core.F) := by
     apply (NamedOutageClosure.q10_retained_prefix raw
       (actionReadAt S rho w r).st.core.F Q ?_).mpr hQraw
-    simpa only [Block.compatible, Bool.or_eq_true] using Or.inr hFQ
+    simpa only [Block.compatible, Bool.or_eq_true] using! Or.inr hFQ
   have hCclip : Block.compatible C
       (DecoupledConsensusModel.Protocol.clipGrade raw
         (actionReadAt S rho w r).st.core.F) = true := by
@@ -356,7 +356,7 @@ theorem preparedAnchor_compatible_carrier_of_relativeSettlement
         exact relativeSeed_sameReaderG1_compatible S rho c w hAG1 hQG1
   · rw [hrootCarrier]
     rcases hsettled w hw A hAG1 v hv with hAroot | hAactive
-    · simpa only [Block.compatible, Bool.or_eq_true] using Or.inl hAroot
+    · simpa only [Block.compatible, Bool.or_eq_true] using! Or.inl hAroot
     · have hrootA : Block.Preceq
           (Protocol.get_fg_root
             (rho.storeBeforeTime S v (S.a c)).toHealing.toFG) A :=
@@ -368,7 +368,7 @@ theorem preparedAnchor_compatible_carrier_of_relativeSettlement
         change Protocol.get_fg_root (actionStoreAt S rho v c).toHealing.toFG = _
         exact actionStoreAt_fgRoot_eq_storeBeforeTime S rho v c
       rw [hrootEq]
-      simpa only [Block.compatible, Bool.or_eq_true] using Or.inr hrootA
+      simpa only [Block.compatible, Bool.or_eq_true] using! Or.inr hrootA
 
 /-- Pointwise K3 from the gate-off frame and round open. All relative
 settlement and selected-Q2 noninterference facts are derived internally. -/

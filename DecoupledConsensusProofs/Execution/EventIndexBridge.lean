@@ -40,7 +40,7 @@ theorem tick_lt_of_deliver_index (rho : NamedRun V)
     (hk : rho.events[k]? = some (.tick u t'))
     (ht' : t' ≤ t) : k < j := by
   by_contra hcon
-  push_neg at hcon
+  push Not at hcon
   rcases lt_or_eq_of_le hcon with hlt | heq
   · obtain ⟨hjLen, hjGet⟩ := List.getElem?_eq_some_iff.mp hj
     obtain ⟨hkLen, hkGet⟩ := List.getElem?_eq_some_iff.mp hk

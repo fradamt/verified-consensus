@@ -142,7 +142,7 @@ private theorem w4_preceq_voterHeadAt_of_namedNextVoteAdoption
       (NamedProfile.gradeContract read.cache) S.E S.hc st.toHealing
       tree votes support (st.s - 1))
   rw [get_head_in_tree_split_with, hprev]
-  simpa only [Protocol.Store.toHealing, read, st] using
+  simpa only [Protocol.Store.toHealing, read, st] using!
     (Protocol.goldfish_fork_choice_captures_of_confirmation
       S.E st.σ st.h_max source.T st.T tree st.s
       (confEarly S.E source s) (confLate S.E source s)
@@ -178,7 +178,7 @@ theorem HealedTwoSlotHandoffPrepared.honestVotesCone_two_after
   refine ⟨X, ?_, hXrun, hXemit⟩
   have hhead := w4_preceq_voterHeadAt_of_namedNextVoteAdoption S heligible
     (h.adoption w hw)
-  simpa only [hXhead] using hhead
+  simpa only [hXhead] using! hhead
 
 
 end HealingSurface

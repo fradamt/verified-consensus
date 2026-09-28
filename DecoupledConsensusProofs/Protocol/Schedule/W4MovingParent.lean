@@ -140,7 +140,7 @@ theorem MovingFrontierChainStateN.endpoint_preceq_proposedParent_of_ceiling_name
     simpa only [proposalDutyRead, proposerReadAt,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      Run.storeBeforeTime] using hrootRaw
+      Run.storeBeforeTime] using! hrootRaw
   have hsourceBand :
       (proposalDutyRead S rho (c + 1)).st.core.h_max - 1 ≤
         (Protocol.derive_named S.E S.cfg E).h := by

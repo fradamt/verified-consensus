@@ -259,10 +259,10 @@ private theorem cacheAtRound_align (c : Cache V) (q r : Round)
     (hlow : c.round ≤ q) (hhigh : q ≤ r) :
     cacheAtRound (alignRound c q) r = cacheAtRound c r := by
   by_cases h1 : q = c.round
-  · rw [show alignRound c q = c by unfold alignRound; rw [if_pos h1]]
+  · rw [show alignRound c q = c by unfold alignRound; rw [ite_eq_left h1]]
   · by_cases h2 : q = c.round + 1
     · rw [show alignRound c q = ⟨q, c.next, pendingFrame⟩ by
-        unfold alignRound; rw [if_neg h1, if_pos h2]]
+        unfold alignRound; rw [ite_eq_right h1, ite_eq_left h2]]
       subst h2
       by_cases hr : r = c.round + 1
       · subst hr
@@ -270,7 +270,7 @@ private theorem cacheAtRound_align (c : Cache V) (q r : Round)
       · have h3 : ¬ r = c.round := round_succ_ne hhigh
         simp [cacheAtRound, hr, h3]
     · rw [show alignRound c q = ⟨q, pendingFrame, pendingFrame⟩ by
-        unfold alignRound; rw [if_neg h1, if_neg h2]]
+        unfold alignRound; rw [ite_eq_right h1, ite_eq_right h2]]
       obtain ⟨h3, h4⟩ := round_gap hlow hhigh h1 h2
       simp [cacheAtRound, h3, h4]
 
@@ -358,7 +358,7 @@ private theorem complete_one_domain_some (E : Env V) (hc : Protocol.HealConfig)
             (early E hc r p) (late E hc r p)) := by
       unfold completeOne
       rw [hf]
-      exact if_pos ht
+      exact ite_eq_left ht
     rw [he]
     cases p <;> simp [putPhase, phaseResult]
   · rw [complete_one_some E hc st r t p p f hf]
@@ -400,7 +400,7 @@ private theorem phase_domain_cache (E : Env V) (hc : Protocol.HealConfig)
     have e1 : cacheAtRound (⟨c.round, completeFrame E hc st c.round t c.current,
         completeFrame E hc st (c.round + 1) t c.next⟩ : Cache V) r =
         completeFrame E hc st (c.round + 1) t c.next := by
-      simp only [cacheAtRound, if_neg hne, if_pos h2]
+      simp only [cacheAtRound, ite_eq_right hne, ite_eq_left h2]
     rw [e1, ← h2]
     exact complete_frame_domain_some E hc st r t p c.next ht
 

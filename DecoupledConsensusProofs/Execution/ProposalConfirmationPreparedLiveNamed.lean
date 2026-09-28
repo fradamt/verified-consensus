@@ -137,7 +137,7 @@ theorem honestProposal_confirmationSeedPrepared_live_after_SG_healing_named
         (voterHeadAt S rho v start) := by
       simpa only [confirmationInputRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Protocol.voteDutyHead] using hrootHead
+        Protocol.voteDutyHead] using! hrootHead
     simpa only [hheads v hv] using hrootHead'
   have hgenuine := genuineConfirmationAndPreceq_of_postHealingCone
     S adm hcom hstartPos hpostVote hhor hv hcone hroot hanchor hcandidate
@@ -145,7 +145,7 @@ theorem honestProposal_confirmationSeedPrepared_live_after_SG_healing_named
     S adm hcom hstartPos hpostVote hhor hPrun hnames hv hroot hcandidate
   have hvalid : Protocol.VoteSetValid S.E start
       (confLate S.E (confStore S rho v start) start) := by
-    simpa only [confStore, tickStore] using
+    simpa only [confStore, tickStore] using!
       voteSetValid_confLate_stateBeforeTime S adm.toNamedScheduleWellFormed v
         (Protocol.confirmation_time S.E start) start
   have hpath : ∀ C : Block V,
@@ -175,14 +175,14 @@ theorem honestProposal_confirmationSeedPrepared_live_after_SG_healing_named
     (NamedProfile.gradeContract (confirmationInputRead S rho v start).cache)
     S.E S.hc (confStore S rho v start) start rho.honest P.erase
       (by simpa only [confStore_eq_confirmationInputRead, confVotes,
-        confirmationVotes] using hsupport) hvalid hanchor' hpath
+        confirmationVotes] using! hsupport) hvalid hanchor' hpath
   have helig : confEligible S.E (confStore S rho v start) start P.erase = true := by
     rw [← hwalk]
     exact hgenuine.1.genuine
   change (Protocol.update_confirmation_with
     (NamedProfile.gradeContract (confirmationInputRead S rho v start).cache)
     S.E S.hc (confStore S rho v start) start).live_confirmed = P.erase
-  rw [update_confirmation_with_live_confirmed, hwalk, if_pos helig]
+  rw [update_confirmation_with_live_confirmed, hwalk, ite_eq_left helig]
 
 #print axioms honestProposal_confirmationSeedPrepared_live_after_SG_healing_named
 

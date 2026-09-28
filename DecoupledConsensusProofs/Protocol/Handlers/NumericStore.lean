@@ -73,7 +73,7 @@ private theorem raw_block_step (E : Env V) (st : Protocol.Store V) (B : Block V)
          by_cases hCB : C = B
          · subst C
            exact Nat.le_max_right _ _
-         · simp only [if_neg hCB]
+         · simp only [ite_eq_right hCB]
            exact (h C ((Finset.mem_insert.mp hC).resolve_left hCB)).trans (Nat.le_max_left _ _))
 
 private theorem named_core_step (S : Setup V) (st : Protocol.NamedStore V) (B : NamedBlock V) :

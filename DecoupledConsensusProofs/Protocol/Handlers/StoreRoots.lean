@@ -108,7 +108,7 @@ theorem roots_process_block_core (E : Env V) (hc : Protocol.HealConfig) (cfg : H
         (Protocol.on_block_checked_using
           (fun current => Protocol.on_block_using E current B.erase
             (fun parentState => named_transition E cfg parentState B)) hc st.core B.erase) B)
-    rw [if_neg (not_not.mpr hp)]
+    rw [ite_eq_right (not_not.mpr hp)]
     unfold RootsInTree
     rw [NamedStore.commit_core]
     dsimp only [Protocol.on_block_checked_using]
@@ -116,7 +116,7 @@ theorem roots_process_block_core (E : Env V) (hc : Protocol.HealConfig) (cfg : H
     · exact ⟨raw_F_mem E st.core B.erase _ hRoots.1,
         raw_J_mem E st.core B.erase _ hRoots.2 hBuilt⟩
     · exact hRoots
-  · simpa only [Protocol.NamedStore.process_block_core, if_pos hp] using hRoots
+  · simpa only [Protocol.NamedStore.process_block_core, ite_eq_left hp] using hRoots
 
 omit [Fintype V] in
 theorem roots_admit_row (hc : Protocol.HealConfig) (st : Protocol.NamedStore V)
@@ -125,7 +125,7 @@ theorem roots_admit_row (hc : Protocol.HealConfig) (st : Protocol.NamedStore V)
   unfold RootsInTree
   rw [NamedAdmission.admit_row_core]
   simpa only [(coreEq_on_sg_vote hc st.core row.erase).F_eq,
-    (coreEq_on_sg_vote hc st.core row.erase).J_eq, on_sg_vote_T] using h
+    (coreEq_on_sg_vote hc st.core row.erase).J_eq, on_sg_vote_T] using! h
 
 omit [Fintype V] in
 theorem roots_admit_rows (hc : Protocol.HealConfig) (st : Protocol.NamedStore V)

@@ -59,10 +59,10 @@ theorem get_stable_eq_finalized_of_not_preceq (st : Protocol.Store V)
   by_cases hfs : Block.preceq st.F st.latest_stable = true
   · refine absurd ?_ hnot
     unfold Protocol.get_stable
-    rw [if_pos hfs]
+    rw [ite_eq_left hfs]
     exact hs
   · unfold Protocol.get_stable
-    exact if_neg hfs
+    exact ite_eq_right hfs
 
 /-- A current record that already extends finality is returned unchanged. The
 stable output must also stay below it, which is the regime fact
@@ -76,7 +76,7 @@ theorem get_confirmed_eq_latest (st : Protocol.Store V)
     (h : Block.Preceq st.F st.latest_confirmed) :
     Protocol.get_confirmed st = st.latest_confirmed := by
   unfold Protocol.get_confirmed
-  exact if_pos (get_stable_preceq_latest st hs h)
+  exact ite_eq_left (get_stable_preceq_latest st hs h)
 
 
 

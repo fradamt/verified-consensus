@@ -234,7 +234,7 @@ theorem proposedBlock_admittedBefore_vote_of_gstZero_named
     simpa only [R, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      voteDutyHead] using
+      voteDutyHead] using!
       fgRootAtRead_preceq_voteDutyHead_of_gstZero_named
         S h.core h.committees h.gstZero h.windows hconfHor
           hd hupper (t := Protocol.vote_time S.E (d + 1))
@@ -259,7 +259,7 @@ theorem proposedBlock_admittedBefore_vote_of_gstZero_named
     S h.core (Nat.zero_lt_succ d) hprop hpost hhor hB hv
   simpa only [R, Internal.NamedRecoveryRead.voteDutyRead,
     NamedActionReads.confirmationReadAt,
-    NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+    NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
     Block.preceq_trans hparent hparentBlock
 
 #print axioms proposedBlock_admittedBefore_vote_of_gstZero_named

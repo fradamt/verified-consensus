@@ -31,7 +31,7 @@ theorem greatest_member_of_common_ancestor_bound
   rcases Block.preceq_linear (hbound B hB) (hbound Base hBase) with h | h
   · exact h
   · have heq := Block.preceq_eq_of_depth_le h hdepthLe
-    simpa only [heq] using Block.preceq_self Base
+    simpa only [heq] using! Block.preceq_self Base
 
 end HealingSurface
 end Proofs

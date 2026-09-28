@@ -25,7 +25,7 @@ private theorem actionHistory_compatible_ancestor
     (hBT : Block.compatible B T = true) :
     Block.compatible A T = true := by
   rcases (show Block.Preceq B T ∨ Block.Preceq T B by
-    simpa only [Block.compatible, Bool.or_eq_true] using hBT) with hBT | hTB
+    simpa only [Block.compatible, Bool.or_eq_true] using! hBT) with hBT | hTB
   · simp only [Block.compatible, Bool.or_eq_true]
     exact Or.inl (Block.preceq_trans hAB hBT)
   · exact Block.compatible_of_preceq_common hAB hTB
@@ -100,7 +100,7 @@ theorem voterAnchorAt_compatible_of_previousSGHistory_named
           (Protocol.get_fg_root
             (Internal.NamedRecoveryRead.voteDutyRead S rho w
               (s + 1)).st.core.toHealing.toFG) by
-      simpa only [Block.compatible, Bool.or_eq_true] using hroot) with
+      simpa only [Block.compatible, Bool.or_eq_true] using! hroot) with
       hrootT | hTroot
     · have hdomainVote : DecoupledConsensusModel.Protocol.domain S.E S.hc c .g1 ≤
           Protocol.vote_time S.E (s + 1) := by
@@ -238,7 +238,7 @@ theorem voterAnchorAt_compatible_of_previousSGHistory_named
             b.confirmed = some Hb.root := by
           exact ⟨j, hj, hHb, hconfirmed⟩
         rcases (show Block.Preceq Hb.erase T ∨ Block.Preceq T Hb.erase by
-          simpa only [Block.compatible, Bool.or_eq_true] using hcarrierT) with
+          simpa only [Block.compatible, Bool.or_eq_true] using! hcarrierT) with
           hHbT | hTHb
         · obtain ⟨y, hy, hyround, -⟩ :=
             interpretedInputs_exact_of_honest_window_vote_after_gst_common_upper
@@ -322,7 +322,7 @@ theorem voterAnchorAt_compatible_of_previousSGHistory_named
           S adm.toNamedScheduleWellFormed w
             (DecoupledConsensusModel.Protocol.domain S.E S.hc c .g1) k y hyk
         have hkq : k = q := hyRoundK.symm.trans hyRound
-        simpa only [hkq] using hyk
+        simpa only [hkq] using! hyk
       have hySender : y.val_index = u := by
         have hyraw := (Finset.mem_filter.mp hy).1
         simp only [DecoupledConsensusModel.Protocol.rawInputs, Finset.mem_filter] at hyraw
@@ -486,7 +486,7 @@ theorem phaseGrade_compatible_of_previousSGHistory_named
         b.confirmed = some Hb.root := by
       exact ⟨j, hj, hHb, hconfirmed⟩
     rcases (show Block.Preceq Hb.erase T ∨ Block.Preceq T Hb.erase by
-      simpa only [Block.compatible, Bool.or_eq_true] using hcarrierT) with
+      simpa only [Block.compatible, Bool.or_eq_true] using! hcarrierT) with
       hHbT | hTHb
     · obtain ⟨y, hy, hyround, -⟩ :=
         interpretedInputs_exact_of_honest_window_vote_after_gst_common_upper
@@ -561,7 +561,7 @@ theorem phaseGrade_compatible_of_previousSGHistory_named
       S adm.toNamedScheduleWellFormed w
         (DecoupledConsensusModel.Protocol.domain S.E S.hc c p) k y hyk
     have hkq : k = q := hyRoundK.symm.trans hyRound
-    simpa only [hkq] using hyk
+    simpa only [hkq] using! hyk
   have hySender : y.val_index = u := by
     have hyraw := (Finset.mem_filter.mp hy).1
     simp only [DecoupledConsensusModel.Protocol.rawInputs, Finset.mem_filter] at hyraw
@@ -745,7 +745,7 @@ theorem sgEmissionsCompatible_succ_of_previousSGHistory_and_openingVotes_named
       Block.Preceq T
         (Protocol.get_fg_root
           (actionStoreAt S rho w c).st.core.toHealing.toFG) by
-    simpa only [Block.compatible, Bool.or_eq_true] using hrootT) with
+    simpa only [Block.compatible, Bool.or_eq_true] using! hrootT) with
     hrootBelow | hTBelow
   · have hdomainHor : ∀ p : DecoupledConsensusModel.Protocol.Phase,
         DecoupledConsensusModel.Protocol.domain S.E S.hc c p ≤ rho.horizon := by
@@ -775,7 +775,7 @@ theorem sgEmissionsCompatible_succ_of_previousSGHistory_and_openingVotes_named
           NamedActionReads.actionReadAt,
           NamedActionReads.actionReadFrom,
           NamedActionReads.confirmationReadFrom,
-          NamedActionReads.preparedCache] using
+          NamedActionReads.preparedCache] using!
             (Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime
               S rho (S.a c) w)
       have hactionFroot : Block.Preceq
@@ -895,7 +895,7 @@ theorem fgConfirmationWitness_compatible_of_previousSGHistory_and_openingVotes_n
         (WeakGoldfish.genuineConfirmation_compatible_of_priorProtectedHeads
           S adm.toNamedAdmissibleCore hcom hw hopen hpost hhor hC hheads)
     · rw [← hRlive, hRroot]
-      simpa only [c] using hroot
+      simpa only [c] using! hroot
   obtain ⟨Cfg, hsource, hWCfg⟩ := Option.map_eq_some_iff.mp hW
   have hsourceNode : PhaseGrades.nodeFGSource S
       (actionReadAt S rho w c) c = some Cfg := by
@@ -935,7 +935,7 @@ theorem fgConfirmationWitness_compatible_of_previousSGHistory_and_openingVotes_n
         Block.Preceq T
           (Protocol.get_fg_root
             (actionStoreAt S rho w c).st.core.toHealing.toFG) by
-      simpa only [c, Block.compatible, Bool.or_eq_true] using hroot) with
+      simpa only [c, Block.compatible, Bool.or_eq_true] using! hroot) with
       hrootBelow | hTBelow
     · have hdomainHor : DecoupledConsensusModel.Protocol.domain S.E S.hc c .g2 ≤
           rho.horizon :=
@@ -959,7 +959,7 @@ theorem fgConfirmationWitness_compatible_of_previousSGHistory_and_openingVotes_n
           NamedActionReads.actionReadAt,
           NamedActionReads.actionReadFrom,
           NamedActionReads.confirmationReadFrom,
-          NamedActionReads.preparedCache] using
+          NamedActionReads.preparedCache] using!
             (Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime
               S rho (S.a c) w)
       have hactionFroot : Block.Preceq
@@ -1055,7 +1055,7 @@ theorem PrefixFGSelectorConeAt.checkpointVoteStep_of_actionHistories_of_frame_na
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
       Protocol.NamedStore.setClock, Proofs.Optimistic.voteDutyStore,
-      Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using
+      Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using!
       (hseed.fgRoot_compatible_of_recentWitnessHistory_of_frame_named
         adm hcom hbelow hfirst hframe hc0 ready hpostPrev hG1
           hpred hminimal hsourceRead hhistory hw)
@@ -1113,7 +1113,7 @@ theorem PrefixFGSelectorConeAt.checkpointVoteStep_of_actionHistories_of_frame_na
           NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom,
           Protocol.NamedStore.setClock, Proofs.Optimistic.voteDutyStore,
-          Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using hbnd
+          Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using! hbnd
       exact False.elim ((Nat.not_lt_of_ge hrowLe) hhigh)
     · have hcompat := hhistory b.round (Nat.le_of_not_gt hold)
           (by simpa only [(Proofs.Optimistic.emits_attest_shape S hemit).2] using htb)

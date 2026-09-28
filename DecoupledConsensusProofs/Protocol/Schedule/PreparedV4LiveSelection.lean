@@ -148,7 +148,7 @@ theorem SettledBootstrapPreparedV4.liveConfirmedSelection_preceq_voteDutyHead_co
   by_cases hg : confEligible S.E (confStore S rho w q) q
       (confWalkWith contract S.E S.hc (confStore S rho w q) q) = true
   · exact (hslot.2 q hq hqd w hw _ ⟨rfl, hg⟩).heads x hx
-  · rw [update_confirmation_with_live_confirmed, if_neg hg]
+  · rw [update_confirmation_with_live_confirmed, ite_eq_right hg]
     have hcutpos : 0 < base + S.hc.η_SG :=
       Nat.lt_of_lt_of_le (Nat.zero_lt_of_lt S.hc.η_SG_ge_one)
         (Nat.le_add_left _ _)
@@ -183,7 +183,7 @@ theorem SettledBootstrapPreparedV4.liveConfirmedSelection_preceq_voteDutyHead_co
             exact ht.trans (confirmationTime_lt_nextVote_of_lt_v4 S.E hqd)
           exact ((_of_actionSources_preceq_voteDutyHead_core hhor hd hupper hx
             a.round (Nat.le_of_not_gt hold) hat).2 a.val_index ha).2 _ hT
-    simpa only [contract, confRoot, confStore, tickStore] using hroot
+    simpa only [contract, confRoot, confStore, tickStore] using! hroot
 
 #print axioms SettledBootstrapPreparedV4.liveConfirmedSelection_preceq_voteDutyHead_core_of_pins
 
@@ -287,7 +287,7 @@ theorem SettledBootstrapPreparedV4.liveConfirmed_at_read_preceq_voteDutyHead_cor
         (voterHeadAt S rho x d) := by
       rw [live_confirmed_eq_update
         S adm.toNamedScheduleWellFormed hv cut hcutHor]
-      simpa only [Proofs.Optimistic.confStore_eq_confirmationInputRead] using hsel
+      simpa only [Proofs.Optimistic.confStore_eq_confirmationInputRead] using! hsel
     simpa only [Run.storeAt,
       stateAt_eq_take S adm.toNamedScheduleWellFormed, m] using hsel'
   rw [Run.storeAt, stateAt_eq_take S adm.toNamedScheduleWellFormed]
@@ -322,7 +322,7 @@ theorem SettledBootstrapPreparedV4.liveConfirmed_at_read_preceq_voteDutyHead_cor
       Protocol.confirmation_time S.E q := by
     have h := filter_false_of_index_ge S adm.toNamedScheduleWellFormed _
       (downward_le (Protocol.confirmation_time S.E cut)) hmi hqevent
-    simpa only [decide_eq_false_iff_not, not_le, Event.time] using h
+    simpa only [decide_eq_false_iff_not, not_le, Event.time] using! h
   have hqlo : cut ≤ q := by
     by_contra h
     exact (not_lt_of_ge (confirmationTime_mono_v4 S.E

@@ -128,7 +128,7 @@ private theorem actionOutputs_at_actual_vote_aux_v4
                     (S.hc.opening_slot r)).cache)
                 S.E S.hc (confStore S rho w (S.hc.opening_slot r))
                 (S.hc.opening_slot r) C := by
-              simpa only [Setup.a, Protocol.a_eq_confirmation_time] using hC
+              simpa only [Setup.a, Protocol.a_eq_confirmation_time] using! hC
             rw [← hEq]
             exact hg.selected ▸ hprotected.heads x hx
           · rw [← hEq, hR]

@@ -56,7 +56,7 @@ theorem foldl_worldStep_filter_node (S : Setup V) (v : V)
   | cons e events ih =>
       by_cases he : e.node = v
       · simp only [List.foldl_cons, List.filter_cons, he, decide_true,
-          if_true]
+          ite_true]
         exact ih _
       · have hlocal : World.step S initial e v = initial v := by
           cases e with
@@ -67,7 +67,7 @@ theorem foldl_worldStep_filter_node (S : Setup V) (v : V)
               simp only [Event.node] at he
               exact Function.update_of_ne (Ne.symm he) _ _
         simp only [List.foldl_cons, List.filter_cons, he, decide_false, Bool.false_eq_true,
-          if_false]
+          ite_false]
         exact (ih _).trans (foldl_worldStep_congr_at S hlocal _)
 
 /-- Agreement at the cutoff implies agreement at each earlier cutoff. -/

@@ -64,16 +64,16 @@ private theorem new_body_guards
   rw [on_block_with_bodies] at hpost
   unfold Protocol.NamedStore.process_block_core at hpost
   by_cases hp : B.parent ∈ st.bodies
-  · simp only [hp, not_true_eq_false, if_false] at hpost
+  · simp only [hp, not_true_eq_false, ite_false] at hpost
     by_cases ha : Protocol.carried_attestations_admissible hc B.erase = true
-    · simp only [Protocol.on_block_checked_using, ha, if_true] at hpost
+    · simp only [Protocol.on_block_checked_using, ha, ite_true] at hpost
       by_cases hfirst : st.core.s < B.erase.slot ∨ B.erase ∈ st.core.T ∨
           B.erase.parent ∉ st.core.T
-      · simp only [Protocol.on_block_using, hfirst, if_true,
+      · simp only [Protocol.on_block_using, hfirst, ite_true,
           commitBlock_self_bodies] at hpost
         exact False.elim (hpre hpost)
       · by_cases hfinal : (!Block.preceq st.core.F B.erase) = true
-        · simp only [Protocol.on_block_using, hfirst, if_false, hfinal, if_true,
+        · simp only [Protocol.on_block_using, hfirst, ite_false, hfinal, ite_true,
             commitBlock_self_bodies] at hpost
           exact False.elim (hpre hpost)
         · have hfinalFalse : (!Block.preceq st.core.F B.erase) = false :=
@@ -92,7 +92,7 @@ private theorem new_body_guards
     · have haf : Protocol.carried_attestations_admissible hc B.erase = false :=
         Bool.eq_false_of_not_eq_true ha
       simp only [Protocol.on_block_checked_using, haf, Bool.false_eq_true,
-        if_false, commitBlock_self_bodies] at hpost
+        ite_false, commitBlock_self_bodies] at hpost
       exact False.elim (hpre hpost)
   · simp only [hp] at hpost
     exact False.elim (hpre hpost)
@@ -127,9 +127,9 @@ private theorem handler_inserts
       Proofs.update_finality_T, Proofs.foldl_on_goldfish_vote_checked_T S.E]
   rw [on_block_with_bodies]
   unfold Protocol.NamedStore.process_block_core
-  rw [if_neg (not_not.mpr hp)]
+  rw [ite_eq_right (not_not.mpr hp)]
   unfold Protocol.NamedStore.commitBlock
-  rw [if_pos ⟨hfresh, hafter⟩]
+  rw [ite_eq_left ⟨hfresh, hafter⟩]
   exact Finset.mem_insert_self _ _
 
 omit [Fintype V] in
@@ -184,7 +184,7 @@ private theorem guards_of_acceptsAt_block (S : Setup V) {rho : Run V}
         S.E.proposer (S.E.slotOf t) = (S.node v).val_index := by
       refine ⟨hdue.1, hdue.2.1, ?_⟩
       rw [hdue.2.2, S.node_val_index]
-    simp only [if_pos hdue'] at hpost
+    simp only [ite_eq_left hdue'] at hpost
     have heq := Proofs.NamedReceiptCallsBase.self_proposal_call S rho htick hB
     have heqStore := congrArg Prod.fst heq
     rw [heqStore] at hpost
@@ -381,7 +381,8 @@ theorem acceptsAt_block_of_delivery_guards_core
         NamedReceipt.process S (NamedRun.stateBefore S rho i v).st (Object.block B) :=
       Proofs.NamedReceiptCallsBase.delivery_result S rho hi
     rw [hstate]
-    simpa only [NamedReceipt.process, NamedReceipt.processed, decide_eq_true_eq] using hnew
+    simp only [NamedReceipt.process, NamedReceipt.processed]
+    exact decide_eq_true hnew
 
 theorem acceptsAt_block_of_delivery_guards
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)

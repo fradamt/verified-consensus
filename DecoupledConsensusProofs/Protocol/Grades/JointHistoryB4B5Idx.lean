@@ -66,7 +66,7 @@ theorem index_lt_of_time_lt (rho : NamedRun V)
     (hi : rho.events[i]? = some e) (hj : rho.events[j]? = some f)
     (ht : e.time < f.time) : i < j := by
   by_contra hcon
-  push_neg at hcon
+  push Not at hcon
   rcases lt_or_eq_of_le hcon with hlt | heq
   · obtain ⟨hjLen, hjGet⟩ := List.getElem?_eq_some_iff.mp hj
     obtain ⟨hiLen, hiGet⟩ := List.getElem?_eq_some_iff.mp hi
@@ -339,7 +339,7 @@ theorem graded_root_below_of_positive
       exact absurd hcov (by simp)
     | some head =>
       have hpreceq : Block.Preceq raw head := by
-        simpa only [Protocol.head_covers, hfind] using hcov
+        simpa only [Protocol.head_covers, hfind] using! hcov
       obtain ⟨K, hKrun, -, hKroot, hKC⟩ :=
         hsgv ii named.val_index (S.a named.round) named hhon hii hobj hiin key
           (hconfsame.trans hc)

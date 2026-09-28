@@ -170,7 +170,7 @@ private theorem named_acceptsAt_after_cutoff
           (by rw [Proofs.NamedWire.erase_slot]; exact hproposalLe)
       have hjBound := index_succ_le_strict_filter_length rho
         adm.toNamedAdmissibleCore.toNamedScheduleWellFormed.sorted GammaOut
-        hdeliv (by simpa only [heDelivEq] using ht'cutoff)
+        hdeliv (by simpa only [heDelivEq] using! ht'cutoff)
       have haccept := Protocol.acceptsAt_block_of_delivery_guards S adm hdeliv
         hslot (hFhist j (Nat.le_trans (Nat.le_succ j) hjBound))
         (Protocol.proposer_eq_of_acceptsAt_block S hacc)
@@ -209,7 +209,7 @@ theorem actionConeWitness_visibleAtReader_after_gst
     simpa only [source, actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using hDT
+      NamedRun.stateBeforeTime] using! hDT
   obtain ⟨n, hn, hbefore⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix S rho
     adm.toNamedAdmissibleCore.toNamedScheduleWellFormed.sorted (S.a r)
   have hD_n : D ∈ (rho.stateBefore S n p).st.bodies := by

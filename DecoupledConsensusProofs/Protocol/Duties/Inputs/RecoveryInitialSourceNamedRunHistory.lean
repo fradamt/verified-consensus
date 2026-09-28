@@ -88,7 +88,7 @@ private theorem runHistory_compatible_checkpoint_below
     (hLC : Block.compatible L C = true) (hTC : Block.Preceq T C) :
     Block.compatible L T = true := by
   rcases (show Block.Preceq L C ∨ Block.Preceq C L by
-    simpa only [Block.compatible, Bool.or_eq_true] using hLC) with hLC | hCL
+    simpa only [Block.compatible, Bool.or_eq_true] using! hLC) with hLC | hCL
   · exact Block.compatible_of_preceq_common hLC hTC
   · simp only [Block.compatible, Bool.or_eq_true]
     exact Or.inr (Block.preceq_trans hTC hCL)
@@ -463,7 +463,7 @@ theorem PrefixFGSelectorConeAt.fgRoot_compatible_of_recentWitnessHistory_of_fram
         simpa only [actionStoreAt, actionReadAt,
           NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
           NamedActionReads.confirmationReadFrom,
-          NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using
+          NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using!
             hactionPre
       · have hselectedCfg : PhaseGrades.nodeQ2
             S (actionReadAt S rho a.val_index a.round) a.round =
@@ -479,7 +479,7 @@ theorem PrefixFGSelectorConeAt.fgRoot_compatible_of_recentWitnessHistory_of_fram
       simpa only [actionStoreAt, actionReadAt,
         NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
         NamedActionReads.confirmationReadFrom,
-        NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using
+        NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using!
           hsourceAt
     have heqSource := congrFun
       (stateBeforeTime_eq_stateBefore_strictEventIndex
@@ -563,7 +563,7 @@ theorem PrefixFGSelectorConeAt.checkpointVoteStep_of_actionHistories_of_frame_ru
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
       Protocol.NamedStore.setClock, Proofs.Optimistic.voteDutyStore,
-      Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using
+      Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using!
       (hseed.fgRoot_compatible_of_recentWitnessHistory_of_frame_run
         adm hcom hbelow hfirst hframe hc0 ready hpostPrev hG1
           hpred hminimal hsourceRead hhistory hw)
@@ -622,7 +622,7 @@ theorem PrefixFGSelectorConeAt.checkpointVoteStep_of_actionHistories_of_frame_ru
           NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom,
           Protocol.NamedStore.setClock, Proofs.Optimistic.voteDutyStore,
-          Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using hbnd
+          Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using! hbnd
       exact False.elim ((Nat.not_lt_of_ge hrowLe) hhigh)
     · have hcompat := hhistory b.round (Nat.le_of_not_gt hold)
           (by simpa only [(Proofs.Optimistic.emits_attest_shape S hemit).2] using htb)
@@ -708,7 +708,7 @@ private theorem PrefixFGSelectorConeAt.checkpointVoteStep_beforeNextAction_of_fr
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom,
         Protocol.NamedStore.setClock, Proofs.Optimistic.voteDutyStore,
-        Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using hupper
+        Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using! hupper
     rw [hPheight] at hhigh
     exact False.elim ((Nat.not_lt_of_ge hband) hhigh)
   · intro w hw
@@ -720,7 +720,7 @@ private theorem PrefixFGSelectorConeAt.checkpointVoteStep_beforeNextAction_of_fr
       NamedActionReads.confirmationReadFrom,
       Protocol.NamedStore.setClock, Proofs.Optimistic.voteDutyStore,
       Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore,
-      Block.compatible, Bool.or_eq_true] using Or.inl hroot
+      Block.compatible, Bool.or_eq_true] using! Or.inl hroot
   · intro w hw
     rcases voterAnchorAt_cases S rho w (s + 1) with
       hroot | ⟨root, L, hframeL, hactiveL, hanchorL⟩
@@ -733,7 +733,7 @@ private theorem PrefixFGSelectorConeAt.checkpointVoteStep_beforeNextAction_of_fr
         NamedActionReads.confirmationReadFrom,
         Protocol.NamedStore.setClock, Proofs.Optimistic.voteDutyStore,
         Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore,
-        Block.compatible, Bool.or_eq_true] using Or.inl hroot'
+        Block.compatible, Bool.or_eq_true] using! Or.inl hroot'
     · rw [hanchorL]
       obtain ⟨Q, hQ⟩ : ∃ Q : Block V, PhaseGrades.nodeQ2
           S (actionReadAt S rho a.val_index a.round) a.round = some Q := by
@@ -1034,7 +1034,7 @@ private theorem PrefixFGSelectorConeAt.relativeCarrierWindow_source_beforeNextAc
           some (actionSGBlockAt S rho u a.round)
   rcases (show Block.Preceq Hb.erase T.erase ∨
       Block.Preceq T.erase Hb.erase by
-    simpa only [Block.compatible, Bool.or_eq_true] using hcarrierT) with
+    simpa only [Block.compatible, Bool.or_eq_true] using! hcarrierT) with
     hHbT | hTHb
   · simpa only [hbround, hHbErase, hHbRoot] using
       (interpretedInputs_exact_of_honest_window_vote_after_gst_common_upper
@@ -1144,7 +1144,7 @@ theorem PrefixFGSelectorConeAt.checkpointProtection_nextOpening_of_frame_run
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
       Protocol.NamedStore.setClock, Proofs.Optimistic.voteDutyStore,
-      Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using
+      Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using!
       (hseed.fgRoot_preceq_before_nextAction_of_frame_run
         adm hcom hbelow hfirst hframe hc0 ready hpostPrev hG1 hpred
           hminimal hread hnext hw)
@@ -1186,12 +1186,12 @@ theorem PrefixFGSelectorConeAt.checkpointProtection_nextOpening_of_frame_run
             NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom,
             Protocol.NamedStore.setClock, Proofs.Optimistic.voteDutyStore,
-            Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using hupper
+            Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using! hupper
         rw [hPheight] at hhigh
         exact False.elim ((Nat.not_lt_of_ge hband) hhigh))
       (by
         intro w hw
-        simpa only [Block.compatible, Bool.or_eq_true] using
+        simpa only [Block.compatible, Bool.or_eq_true] using!
           Or.inl (hroot w hw)) hanchors
   simpa only [hb.2.2.2] using hstep
 
@@ -1462,7 +1462,7 @@ private theorem runHistory_actionBody_runBlock
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hD
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hD
   obtain ⟨j, hj, _⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix S rho
     adm.toNamedScheduleWellFormed.sorted (S.a r)
   have hDj : D ∈ (rho.stateBefore S j v).st.bodies := by
@@ -1501,7 +1501,7 @@ theorem NamedHeightRegimeRun.witness_eq
       obtain ⟨k, hk, _⟩ := hemit
       have hin := (adm.in_horizon
         (Event.tick b.val_index tb) (List.mem_of_getElem? hk)).2
-      simpa only [Event.time, htime] using hin
+      simpa only [Event.time, htime] using! hin
     have hDrun : RunBlock S rho D :=
       runHistory_actionBody_runBlock S adm hb hDmem
     have hKrun : RunBlock S rho K :=

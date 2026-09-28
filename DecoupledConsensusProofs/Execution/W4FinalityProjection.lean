@@ -122,13 +122,13 @@ theorem commonFinalizedHeight_le_honestHMaxAt
     show (Run.stateAt S rho (S.a r) v).st.core.finalized_height ≤
       (Run.stateAt S rho (S.a r) v).st.core.h_max
     by_cases hF : (Run.stateAt S rho (S.a r) v).st.core.F = Block.genesis
-    · simp only [Protocol.Store.finalized_height, if_pos hF]
+    · simp only [Protocol.Store.finalized_height, ite_eq_left hF]
       exact Nat.zero_le _
     · obtain ⟨D, hD, hDe⟩ := Proofs.NamedStoreBridge.exists_named_of_mem_stateAt
         S rho (S.a r) v (Proofs.NamedStoreBridge.finalizedInTree_stateAt S rho (S.a r) v)
       have hview := Proofs.NamedStoreBridge.derivedView_stateAt S rho (S.a r) v D hD
       have hheights := Proofs.NamedStoreBridge.heights_le_hMax_stateAt S rho (S.a r) v D hD
-      rw [Protocol.Store.finalized_height, if_neg hF, ← hDe, hview]
+      rw [Protocol.Store.finalized_height, ite_eq_right hF, ← hDe, hview]
       exact hheights
   exact (hcommon v hv).trans
     (hlocal.trans (localHMax_le_honestHMaxAt S rho (S.a r) hv))

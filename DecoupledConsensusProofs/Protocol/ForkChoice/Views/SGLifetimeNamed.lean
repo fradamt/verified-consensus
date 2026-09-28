@@ -37,7 +37,7 @@ private theorem namedVotesCone_of_allHonestVoterHeads
   intro w hw hcommittee
   obtain ⟨X, hXhead, hXrun, hXemit⟩ :=
     voteDutyHead_runBlock_and_emits S adm hs hhor hw hcommittee
-  exact ⟨X, by simpa only [hXhead] using hheads w hw, hXrun, hXemit⟩
+  exact ⟨X, by simpa only [hXhead] using! hheads w hw, hXrun, hXemit⟩
 
 private theorem preceq_voterHeadAt_of_namedNextVoteAdoption
     (S : Setup V) {rho : Run V} {source : Protocol.Store V}
@@ -62,7 +62,7 @@ private theorem preceq_voterHeadAt_of_namedNextVoteAdoption
       (NamedProfile.gradeContract read.cache) S.E S.hc st.toHealing
       tree votes support (st.s - 1))
   rw [get_head_in_tree_split_with, hprev]
-  simpa only [Protocol.Store.toHealing, read, st] using
+  simpa only [Protocol.Store.toHealing, read, st] using!
     (Protocol.goldfish_fork_choice_captures_of_confirmation
       S.E st.σ st.h_max source.T st.T tree st.s
       (confEarly S.E source s) (confLate S.E source s)
@@ -115,7 +115,7 @@ private theorem preparedVoteViewValid
   simpa only [read, t, Internal.NamedRecoveryRead.voteDutyRead,
     NamedActionReads.confirmationReadAt,
     NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock, hn]
-    using hvalid
+    using! hvalid
 
 private theorem goldfishConeStepAtVoteHorizon
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)
@@ -143,7 +143,7 @@ private theorem goldfishConeStepAtVoteHorizon
     simpa only [st, read, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-      using hresolve0
+      using! hresolve0
   have hbase := Protocol.canonicalSuffixConeSupportVoterView
     S adm hcom hs hpost hcutHor hnames hw
       (support_cutoff_le_vote_time_succ S.E s)
@@ -155,7 +155,7 @@ private theorem goldfishConeStepAtVoteHorizon
   have hcone : ConeSupport S.E st.T votes support votes (st.s - 1)
       rho.honest (fun X => Block.Preceq B X) := by
     simpa only [st, read, votes, support, hslot, Protocol.Store.toHealing]
-      using hbase
+      using! hbase
   have hmajority : Protocol.voters_count S.E votes (st.s - 1) <
       2 * (Protocol.goldfishSupporters S.E st.T votes support (st.s - 1) B).card :=
     Protocol.supporterMajority_of_cone S.E hcone hvalid
@@ -176,7 +176,7 @@ private theorem goldfishConeStepAtVoteHorizon
       (NamedProfile.gradeContract read.cache) S.E S.hc st.toHealing
       tree votes support (st.s - 1))
   simpa only [get_head_in_tree_eq_voterHeadAt_of_anchor, read, st, tree]
-    using hhead
+    using! hhead
 
 /-- The prepared all-honest head step. Previous honest heads produce the
 named vote cone. In the strict anchor branch the frozen-head split supplies
@@ -226,7 +226,7 @@ theorem allHonestHeads_succ_of_voterAnchorCompatible_after_GST_named
           (s + 1)).st.core.s)
   rcases (show Block.Preceq (voterAnchorAt S rho w (s + 1)) B ∨
       Block.Preceq B (voterAnchorAt S rho w (s + 1)) by
-    simpa only [Block.compatible, Bool.or_eq_true] using hanchors w hw) with
+    simpa only [Block.compatible, Bool.or_eq_true] using! hanchors w hw) with
     hanchorB | hBanchor
   · have hrootB : Block.Preceq
         (Protocol.get_fg_root
@@ -355,7 +355,7 @@ private theorem voterAnchorAt_compatible_of_previousSGHistory_voteHorizon
           (Protocol.get_fg_root
             (Internal.NamedRecoveryRead.voteDutyRead S rho w
               (s + 1)).st.core.toHealing.toFG) by
-      simpa only [Block.compatible, Bool.or_eq_true] using hroot) with
+      simpa only [Block.compatible, Bool.or_eq_true] using! hroot) with
       hrootB | hBroot
     · have hdomainVote : DecoupledConsensusModel.Protocol.domain S.E S.hc c .g1 ≤
           Protocol.vote_time S.E (s + 1) := by
@@ -547,7 +547,7 @@ theorem actionSGBlock_preceq_voterHeadAt_after_GST
                   simpa only [Internal.NamedRecoveryRead.voteDutyRead,
                     NamedActionReads.confirmationReadAt,
                     NamedActionReads.confirmationReadFrom,
-                    Protocol.NamedStore.setClock, Run.storeBeforeTime] using hrootPre
+                    Protocol.NamedStore.setClock, Run.storeBeforeTime] using! hrootPre
                 exact Block.compatible_of_preceq_common hrootPre'
                   (hprevHeads z hz)
               have hsgPost : S.E.t_GST ≤ S.a k :=
@@ -557,7 +557,7 @@ theorem actionSGBlock_preceq_voterHeadAt_after_GST
               apply voterAnchorAt_compatible_of_previousSGHistory_named
                 S adm hbelow
               · simpa only [vote_time_succ_add_delta_eq_confirmation_time] using hjor
-              · simpa only [hround] using Nat.succ_pos k
+              · simpa only [hround] using! Nat.succ_pos k
               · simpa only [hround, Nat.add_sub_cancel] using hhistory
               · simpa only [hround, Nat.add_sub_cancel] using hsgPost
               · exact hz
@@ -658,7 +658,7 @@ theorem nextVoteDutyAnchor_compatible_of_honestPreviousHead_after_SG_healing_nam
     simpa only [Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock, Run.storeBeforeTime] using hrootPre
+      Protocol.NamedStore.setClock, Run.storeBeforeTime] using! hrootPre
   have hroot : Block.compatible
       (Protocol.get_fg_root
         (Internal.NamedRecoveryRead.voteDutyRead S rho w
@@ -674,7 +674,7 @@ theorem nextVoteDutyAnchor_compatible_of_honestPreviousHead_after_SG_healing_nam
   have hround : S.hc.round_of (s + 1) = k + 1 := hkEq.symm
   apply voterAnchorAt_compatible_of_previousSGHistory_voteHorizon
     S adm hbelow hhor
-  · simpa only [hround] using Nat.succ_pos k
+  · simpa only [hround] using! Nat.succ_pos k
   · simpa only [hround, Nat.add_sub_cancel] using hhistory
   · simpa only [hround, Nat.add_sub_cancel] using hsgPost
   · exact hw
@@ -817,7 +817,7 @@ theorem genuineConfirmationWith_preceq_laterVoterHeads_after_GST
       simpa only [Internal.NamedRecoveryRead.voteDutyRead,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom,
-        Protocol.NamedStore.setClock, Run.storeBeforeTime] using hrootPre
+        Protocol.NamedStore.setClock, Run.storeBeforeTime] using! hrootPre
     have hrootCompat : Block.compatible
         (Protocol.get_fg_root
           (Internal.NamedRecoveryRead.voteDutyRead S rho w
@@ -831,11 +831,11 @@ theorem genuineConfirmationWith_preceq_laterVoterHeads_after_GST
           (Protocol.get_fg_root
             (Internal.NamedRecoveryRead.voteDutyRead S rho w
               (s + 1)).st.core.toHealing.toFG) by
-      simpa only [Block.compatible, Bool.or_eq_true] using hrootCompat) with
+      simpa only [Block.compatible, Bool.or_eq_true] using! hrootCompat) with
       hrootB | hBroot
     · rcases (show Block.Preceq (voterAnchorAt S rho w (s + 1)) B ∨
           Block.Preceq B (voterAnchorAt S rho w (s + 1)) by
-        simpa only [Block.compatible, Bool.or_eq_true] using hanchorCompat) with
+        simpa only [Block.compatible, Bool.or_eq_true] using! hanchorCompat) with
         hanchorB | hBanchor
       · have hrootBare : Block.Preceq
             (Protocol.get_fg_root
@@ -844,7 +844,7 @@ theorem genuineConfirmationWith_preceq_laterVoterHeads_after_GST
             NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom,
             Protocol.NamedStore.setClock, Proofs.Optimistic.voteDutyStore,
-            Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using hrootB
+            Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using! hrootB
         have hprocessed :=
           Protocol.voterProcessedTarget_of_genuineConfirmation_after_gst
             S adm hv hw hpostProposal hhor hgenuine' hrootBare
@@ -857,7 +857,7 @@ theorem genuineConfirmationWith_preceq_laterVoterHeads_after_GST
                 Protocol.NamedStore.setClock, Proofs.Optimistic.voteDutyStore,
                 Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore,
                 Proofs.Optimistic.toHealing_slot, Proofs.Optimistic.voteDutyStore_slot,
-                Proofs.Optimistic.slotOf_vote_time] using hprocessed) with
+                Proofs.Optimistic.slotOf_vote_time] using! hprocessed) with
           hcandidate | hBroot'
         · have hadoption := nextVoteAdoption_of_recovery_after_gst
             S adm hv hw hpostProposal hhor hrootBare hanchorB hcandidate

@@ -106,8 +106,8 @@ theorem derive_named_anchors_preceq (E : Env V) (cfg : HeightConfig) (B : NamedB
       Block.Preceq (derive_named E cfg B).J B.erase := by
   have h := chainOrder_derive_named E cfg B
   refine ⟨?_, ?_⟩
-  · simpa only [derive_named_latest] using h.finalized_preceq_latest
-  · simpa only [derive_named_latest] using
+  · simpa only [derive_named_latest] using! h.finalized_preceq_latest
+  · simpa only [derive_named_latest] using!
       Block.preceq_trans h.justified_preceq_target h.target_preceq_latest
 
 omit [Fintype V] in

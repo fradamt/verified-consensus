@@ -201,7 +201,7 @@ theorem MovingFrontierChainStateN.voteFrontier_sub_one_le_endpointAtProposal_nam
       Protocol.action_time_lt_proposal_of_lt_vote S hq)
       hcursor hv hE hErun
   simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
-    NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using hfloor
+    NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using! hfloor
 
 private theorem movingFrontierChainStateN_transfer_gateOnRoot_preceq_of_boundary
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)
@@ -224,7 +224,8 @@ private theorem movingFrontierChainStateN_transfer_gateOnRoot_preceq_of_boundary
   have hrootEq : Protocol.get_fg_root st.core.toHealing.toFG = J.erase := by
     calc
       Protocol.get_fg_root st.core.toHealing.toFG = st.core.J := by
-        simp only [Protocol.get_fg_root, Protocol.Store.toHealing, if_pos hgate]
+        simp only [Protocol.get_fg_root]
+        exact ite_eq_left hgate
       _ = J.erase := hJerase.symm
   rw [hrootEq]
   by_cases hz : st.core.h_j = 0
@@ -246,7 +247,7 @@ private theorem movingFrontierChainStateN_transfer_gateOnRoot_preceq_of_boundary
         have hlt : j < strictEventIndex rho t1 := by
           rw [← h.historyStart]
           exact hj0
-        simpa only [Event.time] using
+        simpa only [Event.time] using!
           time_lt_of_index_lt_strictEventIndex S
             adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hlt hjevent
       have hJn0 : Block.Preceq J.erase (End n0) :=
@@ -308,7 +309,7 @@ theorem MovingFrontierChainStateN.voteRoot_preceq_endpointAtProposal_named
   · obtain ⟨C, hCbody, hJ, hhj⟩ :=
       Proofs.Bridges.storeJustificationOnChain_stateBeforeTime S rho
         (Protocol.vote_time S.E s) v
-    have hCbody' : C ∈ pre.bodies := by simpa only [pre] using hCbody
+    have hCbody' : C ∈ pre.bodies := by simpa only [pre] using! hCbody
     have hJpre : (Protocol.derive_named S.E S.cfg C).J = pre.core.J := by
       simpa only [pre, Run.storeBeforeTime] using hJ
     have hhjpre : (Protocol.derive_named S.E S.cfg C).h_j =
@@ -335,7 +336,7 @@ theorem MovingFrontierChainStateN.voteRoot_preceq_endpointAtProposal_named
       rw [← storeBeforeTime_eq_stateBefore_strictEventIndex
         S adm.toNamedAdmissibleCore.toNamedScheduleWellFormed v
         (Protocol.vote_time S.E s)]
-      simpa only [pre] using hJbody
+      simpa only [pre] using! hJbody
     have hJrun : RunBlock S rho J :=
       Proofs.Bridges.runBlock_of_stateBefore_mem S hv hJbodyN
     have hrow : pre.core.h_j ≠ 0 →
@@ -392,11 +393,11 @@ theorem MovingFrontierChainStateN.voteRoot_preceq_endpointAtProposal_named
         hfloorM hgate hrow
     simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      pre, hE] using hgateRoot
+      pre, hE] using! hgateRoot
   · obtain ⟨C, hCbody, hCF, _hCheight⟩ :=
       Proofs.Bridges.storeFinalizationOnChain_stateBeforeTime S rho
         (Protocol.vote_time S.E s) v
-    have hCbody' : C ∈ pre.bodies := by simpa only [pre] using hCbody
+    have hCbody' : C ∈ pre.bodies := by simpa only [pre] using! hCbody
     have hCbodyN : C ∈
         (rho.stateBefore S (strictEventIndex rho
           (Protocol.vote_time S.E s)) v).st.bodies := by
@@ -430,16 +431,16 @@ theorem MovingFrontierChainStateN.voteRoot_preceq_endpointAtProposal_named
     have hFEnd : Block.Preceq pre.core.F E.erase := by
       have hpre := NamedFinalizationBridge.finalized_preceq_of_height_lt
         S rho E C hsb adm.toNamedRootCollisionFree hErun hCrun hcrossed
-      simpa only [hCF] using hpre
+      simpa only [hCF] using! hpre
     have hroot : Block.Preceq
         (Protocol.get_fg_root pre.core.toHealing.toFG) E.erase := by
       change (if pre.core.h_max = pre.core.h_j + 1 then pre.core.J else pre.core.F) ⪯
         E.erase
-      rw [if_neg hgate]
+      rw [ite_eq_right hgate]
       exact hFEnd
     simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      pre, hE] using hroot
+      pre, hE] using! hroot
 
 
 /-
@@ -699,7 +700,7 @@ theorem MovingFrontierChainStateN.root_preceq_endpointAtProposal_beforeVote
     have hji : j < i :=
       movingEventIndex_lt_of_eventTime_lt S
         adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hjevent hevent (by
-          simpa only [Event.time, hshape.2] using htaProposal)
+          simpa only [Event.time, hshape.2] using! htaProposal)
     refine ⟨j, hji, ?_, ?_⟩
     · simpa only [hshape.2] using hjevent
     · simpa only [hshape.2] using hja
@@ -720,7 +721,7 @@ theorem MovingFrontierChainStateN.root_preceq_endpointAtProposal_beforeVote
         (Protocol.vote_time S.E s)) w).st.core.h_max =
         (voteDutyRead S rho w s).st.core.h_max := by
     simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       congrArg (fun x : Protocol.NamedStore V => x.core.h_max)
         (storeBeforeTime_eq_stateBefore_strictEventIndex S
           adm.toNamedAdmissibleCore.toNamedScheduleWellFormed w
@@ -828,7 +829,7 @@ theorem MovingFrontierChainStateN.root_preceq_endpointAtProposal_beforeVote
         (Protocol.get_fg_root st.core.toHealing.toFG) E.erase := by
       change (if st.core.h_max = st.core.h_j + 1 then st.core.J else st.core.F) ⪯
         E.erase
-      rw [if_neg hgate]
+      rw [ite_eq_right hgate]
       exact hFEnd
     simpa only [st, hE] using hroot
 
@@ -845,7 +846,7 @@ private theorem movingFrontierChainStateN_transfer_votePathAt_of_candidate
   have hCraw : C ∈ Proofs.Optimistic.voter_candidate_tree S.E duty.toHealing := by
     simpa only [voterCandidateTreeAt, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock, duty, voteDutyStore] using hC
+      Protocol.NamedStore.setClock, duty, voteDutyStore] using! hC
   have hCfull : C ∈ Protocol.get_filtered_block_tree duty.toHealing.toFG :=
     frozenVoterCandidateTree_subset_filtered S.E duty.toHealing hCraw
   have hCT : C ∈ duty.T :=
@@ -853,7 +854,7 @@ private theorem movingFrontierChainStateN_transfer_votePathAt_of_candidate
   have hpc : ParentClosed duty := by
     simpa only [duty, voteDutyStore, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock] using
+      Protocol.NamedStore.setClock] using!
       Proofs.NamedStoreBridge.parentClosed_stateBeforeTime S rho
         (Protocol.vote_time S.E (s + 1)) w
   have hFJ : Block.Preceq duty.F duty.J := by
@@ -868,7 +869,7 @@ private theorem movingFrontierChainStateN_transfer_votePathAt_of_candidate
     simpa only [duty, voteDutyStore, voterAnchorAt, Internal.PhaseGrades.nodeAnchor,
       Internal.PhaseGrades.nodeRead,
       Internal.NamedRecoveryRead.voteDutyRead, NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       fg_root_preceq_get_sg_root_with_frame
         (Internal.NamedRecoveryRead.voteDutyRead S rho w (s + 1)).cache S.E S.hc
         duty.toHealing (S.hc.round_of duty.toHealing.s)
@@ -878,10 +879,8 @@ private theorem movingFrontierChainStateN_transfer_votePathAt_of_candidate
   have hCprocessed : C ∈ Protocol.voter_processed_block_tree S.E
       duty.toHealing.toFG.toSG.toGoldfishStore duty.toHealing.s := by
     have hCdata := hCraw
-    simp only [Proofs.Optimistic.voter_candidate_tree, Protocol.get_filtered_block_tree_from,
-      Protocol.viable_tree, Protocol.finalized_descendants,
-      Finset.mem_filter] at hCdata
-    exact hCdata.1.1.1
+    exact Finset.mem_of_mem_filter _
+      (Finset.mem_of_mem_filter _ (Finset.mem_of_mem_filter _ hCdata))
   have hDfull : D ∈ Protocol.get_filtered_block_tree duty.toHealing.toFG := by
     apply Proofs.Records.mem_filtered_of_preceq (st := duty.toHealing.toFG)
       hFJ hCfull hDT hDC
@@ -891,23 +890,23 @@ private theorem movingFrontierChainStateN_transfer_votePathAt_of_candidate
     have hDprocessed' := WeakGoldfish.ancestorProcessed_of_voterProcessed
       (S := S) (rho := rho) (w := w) (s := s) (B := C)
       (adm := adm.toNamedAdmissibleCore) hw hCprocessed D hDC
-    simpa only [duty] using hDprocessed'
+    simpa only [duty] using! hDprocessed'
   have hCdata := hCraw
   have hDdata := hDfull
   simp only [Proofs.Optimistic.voter_candidate_tree, Protocol.get_filtered_block_tree,
-    Protocol.get_filtered_block_tree_from,
-    Protocol.viable_tree, Protocol.finalized_descendants,
-    Protocol.viable, Finset.mem_filter, decide_eq_true_eq] at hCdata hDdata
+    Protocol.get_filtered_block_tree_from, Protocol.viable_tree, Protocol.finalized_descendants,
+    Finset.mem_filter] at hCdata hDdata
+  simp only [Protocol.viable, decide_eq_true_eq] at hCdata hDdata
   obtain ⟨W, hWprocessed, hCW, hheight⟩ := hCdata.1.2
   have hDcandidate' : D ∈ Proofs.Optimistic.voter_candidate_tree S.E duty.toHealing := by
     simp only [Proofs.Optimistic.voter_candidate_tree, Protocol.get_filtered_block_tree_from,
-      Protocol.viable_tree, Protocol.finalized_descendants,
-      Protocol.viable, Finset.mem_filter, decide_eq_true_eq]
+      Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
     exact ⟨⟨⟨hDprocessed, hDdata.1.1.2⟩, W, hWprocessed,
       Block.preceq_trans hDC hCW, hheight⟩, hDdata.2⟩
   simpa only [voterCandidateTreeAt, Internal.NamedRecoveryRead.voteDutyRead,
     NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
-    Protocol.NamedStore.setClock, duty, voteDutyStore] using hDcandidate'
+    Protocol.NamedStore.setClock, duty, voteDutyStore] using! hDcandidate'
 
 
 theorem MovingFrontierChainStateN.voteInputsAtVote_of_proposalEvent_named
@@ -949,7 +948,7 @@ theorem MovingFrontierChainStateN.voteInputsAtVote_of_proposalEvent_named
         (Proofs.Optimistic.voteDutyStore S rho w (s + 1)).toHealing.toFG) (End i) := by
     simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using
+      Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using!
       hrootPrepared
   have hpositive : 0 < ((S.E.committee s) ∩ rho.honest).card := by
     have hcc := hcom s
@@ -970,7 +969,7 @@ theorem MovingFrontierChainStateN.voteInputsAtVote_of_proposalEvent_named
     simp only [Protocol.voter_processed_block_tree, Finset.mem_filter] at hdata
     simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using
+      Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using!
       hdata.1
   have hmemPre : End i ∈
       (rho.stateBeforeTime S (Protocol.vote_time S.E (s + 1)) w).st.core.T := by
@@ -1031,9 +1030,10 @@ theorem MovingFrontierChainStateN.voteInputsAtVote_of_proposalEvent_named
         (voteDutyRead S rho w (s + 1)).st.core.toHealing.toFG := by
     have hV : End i ∈ Protocol.V_tree
         (voteDutyRead S rho w (s + 1)).st.core.toHealing.toFG := by
-      simp only [Protocol.V_tree, Protocol.viable_tree,
-        Protocol.finalized_descendants, Protocol.viable,
-        Finset.mem_filter, decide_eq_true_eq, Protocol.Store.toHealing]
+      simp only [Protocol.V_tree, Protocol.viable_tree, Protocol.finalized_descendants,
+        Finset.mem_filter]
+      simp only [Protocol.viable, decide_eq_true_eq]
+      simp only [Protocol.Store.toHealing]
       exact ⟨⟨hmemTarget, hFEnd⟩, End i, hmemTarget,
         Block.preceq_self _, hfloor⟩
     exact Proofs.Records.mem_filtered_of_mem_V_tree hV hrootPrepared
@@ -1045,11 +1045,11 @@ theorem MovingFrontierChainStateN.voteInputsAtVote_of_proposalEvent_named
     simpa only [voterCandidateTreeAt, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
       Protocol.NamedStore.setClock, Proofs.Optimistic.voteDutyStore,
-      Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using
+      Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using!
       (namedAncestorCandidate_of_processedDescendant_and_hMax
         (S := S) (rho := rho) (w := w) (s := s) (C := End i) (H := E)
-        adm hw (by simpa only [hE] using hprocessedEnd) hErun
-          (by simpa only [hE] using (Block.preceq_self (End i))) hEndFiltered hmax)
+        adm hw (by simpa only [hE] using! hprocessedEnd) hErun
+          (by simpa only [hE] using! (Block.preceq_self (End i))) hEndFiltered hmax)
   have hpath := movingFrontierChainStateN_transfer_votePathAt_of_candidate
     S adm hw hcandidate
   have htargetRoundPos : 0 < S.hc.round_of (s + 1) := by
@@ -1152,7 +1152,7 @@ theorem MovingFrontierChainStateN.voteInputsAtVote_of_proposalEvent_named_of_cei
         (Proofs.Optimistic.voteDutyStore S rho w (s + 1)).toHealing.toFG) (End i) := by
     simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using
+      Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using!
       hrootPrepared
   have hpositive : 0 < ((S.E.committee s) ∩ rho.honest).card := by
     have hcc := hcom s
@@ -1173,7 +1173,7 @@ theorem MovingFrontierChainStateN.voteInputsAtVote_of_proposalEvent_named_of_cei
     simp only [Protocol.voter_processed_block_tree, Finset.mem_filter] at hdata
     simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using
+      Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using!
       hdata.1
   have hmemPre : End i ∈
       (rho.stateBeforeTime S (Protocol.vote_time S.E (s + 1)) w).st.core.T := by
@@ -1234,9 +1234,10 @@ theorem MovingFrontierChainStateN.voteInputsAtVote_of_proposalEvent_named_of_cei
         (voteDutyRead S rho w (s + 1)).st.core.toHealing.toFG := by
     have hV : End i ∈ Protocol.V_tree
         (voteDutyRead S rho w (s + 1)).st.core.toHealing.toFG := by
-      simp only [Protocol.V_tree, Protocol.viable_tree,
-        Protocol.finalized_descendants, Protocol.viable,
-        Finset.mem_filter, decide_eq_true_eq, Protocol.Store.toHealing]
+      simp only [Protocol.V_tree, Protocol.viable_tree, Protocol.finalized_descendants,
+        Finset.mem_filter]
+      simp only [Protocol.viable, decide_eq_true_eq]
+      simp only [Protocol.Store.toHealing]
       exact ⟨⟨hmemTarget, hFEnd⟩, End i, hmemTarget,
         Block.preceq_self _, hfloor⟩
     exact Proofs.Records.mem_filtered_of_mem_V_tree hV hrootPrepared
@@ -1248,11 +1249,11 @@ theorem MovingFrontierChainStateN.voteInputsAtVote_of_proposalEvent_named_of_cei
     simpa only [voterCandidateTreeAt, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
       Protocol.NamedStore.setClock, Proofs.Optimistic.voteDutyStore,
-      Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using
+      Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using!
       (namedAncestorCandidate_of_processedDescendant_and_hMax
         (S := S) (rho := rho) (w := w) (s := s) (C := End i) (H := E)
-        adm hw (by simpa only [hE] using hprocessedEnd) hErun
-          (by simpa only [hE] using (Block.preceq_self (End i))) hEndFiltered hmax)
+        adm hw (by simpa only [hE] using! hprocessedEnd) hErun
+          (by simpa only [hE] using! (Block.preceq_self (End i))) hEndFiltered hmax)
   have hpath := movingFrontierChainStateN_transfer_votePathAt_of_candidate
     S adm hw hcandidate
   have hvoteHor : Protocol.vote_time S.E (s + 1) ≤ rho.horizon := by
@@ -1358,9 +1359,10 @@ theorem MovingFrontierChainState.voteInputsAtVote_of_proposalEvent
   have hEndFilteredPre: End i ∈
       Protocol.get_filtered_block_tree pre.toHealing.toFG:= by
     have hV: End i ∈ Protocol.V_tree pre.toHealing.toFG:= by
-      simp only [Protocol.V_tree, Protocol.viable_tree,
-        Protocol.finalized_descendants, Protocol.viable,
-        Finset.mem_filter, decide_eq_true_eq, Protocol.Store.toHealing]
+      simp only [Protocol.V_tree, Protocol.viable_tree, Protocol.finalized_descendants,
+        Finset.mem_filter]
+      simp only [Protocol.viable, decide_eq_true_eq]
+      simp only [Protocol.Store.toHealing]
       exact ⟨⟨hmemPre, hFEnd⟩, End i, hmemPre,
         Block.preceq_self _, hfloor⟩
     exact Proofs.Records.mem_filtered_of_mem_V_tree hV
@@ -1555,7 +1557,7 @@ theorem MovingFrontierChainStateN.proposalAnchor_preceq_endpointAtProposal_named
         (S.hc.round_of (proposerReadAt S rho s).st.core.s)) (End i) := by
   have hrootState := h.root_preceq_endpointAtProposal_beforeVote
     S adm hfb hevent hevent
-      (by simpa only [Event.time] using
+      (by simpa only [Event.time] using!
         (Protocol.proposal_time_lt_vote_time S.E s))
       hprop h.start_le hE hErun
   have hstate := Proofs.Optimistic.stateBefore_tick_eq_stateBeforeTime S
@@ -1565,7 +1567,7 @@ theorem MovingFrontierChainStateN.proposalAnchor_preceq_endpointAtProposal_named
         (proposerReadAt S rho s).st.core.toHealing.toFG) (End i) := by
     rw [hstate] at hrootState
     simpa only [proposerReadAt, NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       hrootState
   have hroundPos : 0 < S.hc.round_of s := by
     rw [hround]
@@ -1929,9 +1931,10 @@ theorem MovingFrontierChainState.frozenProposalSuffixCoreInputs_of_proposalEvent
           (proposedParent_preceq_proposedBlock S rho (s + 1))))
   have hV: proposedBlock S rho (s + 1) ∈
       Protocol.V_tree targetPre.toHealing.toFG:= by
-    simp only [Protocol.V_tree, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, decide_eq_true_eq, Protocol.Store.toHealing]
+    simp only [Protocol.V_tree, Protocol.viable_tree, Protocol.finalized_descendants,
+      Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
+    simp only [Protocol.Store.toHealing]
     exact ⟨⟨hPpre, hFProposal⟩, proposedBlock S rho (s + 1), hPpre,
       Block.preceq_self _, hPheight⟩
   have hPfilteredPre: proposedBlock S rho (s + 1) ∈

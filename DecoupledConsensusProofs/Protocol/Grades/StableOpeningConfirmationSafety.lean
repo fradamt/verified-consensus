@@ -409,7 +409,7 @@ theorem stableAt_rawG2_viableDescendant_at_openingVote
   · simpa only [t, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock] using hrootCompat
+      Protocol.NamedStore.setClock] using! hrootCompat
   · simpa only [t, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,

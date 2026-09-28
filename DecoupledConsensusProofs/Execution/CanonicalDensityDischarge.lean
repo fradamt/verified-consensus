@@ -156,7 +156,7 @@ theorem exists_honestHeightRowAt_pred
   have hQmem' : Q ∈ (rho.storeBeforeTime S v (S.a k)).bodies := by
     simpa only [actionStoreAt, actionReadAt, NamedActionReads.actionReadAt,
       NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, Run.storeBeforeTime] using hQmem
+      NamedActionReads.preparedCache, Run.storeBeforeTime] using! hQmem
   have hcross : h < (Protocol.derive_named S.E S.cfg Q).h := by
     rw [hQheight]
     exact nat_lt_succ h

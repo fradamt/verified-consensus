@@ -139,7 +139,7 @@ theorem PrefixFGSelectorConeAt.sourceMem_at_action_k6free
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hactionPre
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hactionPre
   · have hselectedCfg : PhaseGrades.nodeQ2
         S (actionReadAt S rho a.val_index a.round) a.round = some Cfg.erase := by
       simpa only [hselected] using hQ
@@ -183,7 +183,7 @@ theorem PrefixFGSelectorConeAt.gateOff_at_read_beforeFirst
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
       NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using hsource
+      NamedRun.stateBeforeTime] using! hsource
   have heqAction := congrFun (stateBeforeTime_eq_stateBefore_strictEventIndex
     S adm.toNamedScheduleWellFormed (S.a a.round)) w
   have heqRead := congrFun (stateBeforeTime_eq_stateBefore_strictEventIndex
@@ -422,7 +422,7 @@ theorem PrefixFGSelectorConeAt.sourceMem_at_action_of_frameN_k6free
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hactionPre
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hactionPre
   · have hselectedCfg : PhaseGrades.nodeQ2
         S (actionReadAt S rho a.val_index a.round) a.round = some Cfg.erase := by
       simpa only [hselected] using hQ
@@ -473,7 +473,7 @@ theorem PrefixFGSelectorConeAt.ready_of_postGSTStart
   have hhor : S.a a.round ≤ rho.horizon := by
     have hin := (adm.in_horizon (Event.tick a.val_index ta)
       (List.mem_of_getElem? hseed.exactTick)).2
-    simpa only [Event.time, hseed.actionTime_eq] using hin
+    simpa only [Event.time, hseed.actionTime_eq] using! hin
   have hround : r0 ≤ a.round := by
     by_contra hnot
     have htimeLt : ta < S.a r0 := by
@@ -669,7 +669,7 @@ theorem PrefixFGSelectorConeAt.checkpointFiltered_at_read_beforeFirst
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
       NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using hsource
+      NamedRun.stateBeforeTime] using! hsource
   have heqAction := congrFun (stateBeforeTime_eq_stateBefore_strictEventIndex
     S adm.toNamedScheduleWellFormed (S.a a.round)) w
   have heqRead := congrFun (stateBeforeTime_eq_stateBefore_strictEventIndex
@@ -771,7 +771,7 @@ theorem PrefixFGSelectorConeAt.checkpointFiltered_at_read_beforeFirst_k6free
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
       NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using hsource
+      NamedRun.stateBeforeTime] using! hsource
   have heqAction := congrFun (stateBeforeTime_eq_stateBefore_strictEventIndex
     S adm.toNamedScheduleWellFormed (S.a a.round)) w
   have heqRead := congrFun (stateBeforeTime_eq_stateBefore_strictEventIndex
@@ -888,14 +888,14 @@ theorem PrefixFGSelectorConeAt.checkpointVoteStep_beforeFirst
     have hmax : (voteDutyRead S rho w (s + 1)).st.core.h_max = blocked + 1 := by
       simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using
+        Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using!
         (hreads w hw).1
     have hroot : Block.Preceq
         (Protocol.get_fg_root
           (voteDutyRead S rho w (s + 1)).st.core.toHealing.toFG) T := by
       simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using
+        Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using!
         (hreads w hw).2.1
     have hpositive : 0 < ((S.E.committee s) ∩ rho.honest).card := by
       have hc := hcom s
@@ -911,7 +911,7 @@ theorem PrefixFGSelectorConeAt.checkpointVoteStep_beforeFirst
           (Proofs.Optimistic.voteDutyStore S rho w (s + 1)).toHealing.toFG) T := by
       simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using hroot
+        Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using! hroot
     have hprocessed := honestHead_voterProcessed_at_nextDuty_of_postHealingCone
       S adm hpost hhor hvotes hXhead hw hrootDuty
     obtain ⟨K', hK'X, hK'erase⟩ :=
@@ -933,7 +933,7 @@ theorem PrefixFGSelectorConeAt.checkpointVoteStep_beforeFirst
       have hmem := (Finset.mem_filter.mp hprocessed).1
       simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using hmem
+        Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using! hmem
     have hstored := WeakJoint.storedHeight_of_runBlock_mem_voteDutyRead
       S adm hw hXrun hXmem
     have hband : (voteDutyRead S rho w (s + 1)).st.core.h_max - 1 ≤
@@ -999,7 +999,7 @@ theorem PrefixFGSelectorConeAt.checkpointFiltered_at_read_of_frame
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
       NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using hsource
+      NamedRun.stateBeforeTime] using! hsource
   have heqAction := congrFun (stateBeforeTime_eq_stateBefore_strictEventIndex
     S adm.toNamedScheduleWellFormed (S.a a.round)) w
   have heqRead := congrFun (stateBeforeTime_eq_stateBefore_strictEventIndex
@@ -1092,9 +1092,10 @@ theorem PrefixFGSelectorConeAt.checkpointFiltered_at_read_of_frame
     S adm hfrontier hw (Nat.le_refl _) hKraw hKheight
   have hV : K.erase ∈ Protocol.V_tree
       (rho.stateBefore S (strictEventIndex rho read) w).st.core.toHealing.toFG := by
-    simp only [Protocol.V_tree, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, Protocol.Store.toHealing, decide_eq_true_eq]
+    simp only [Protocol.V_tree, Protocol.viable_tree, Protocol.finalized_descendants,
+      Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
+    simp only [Protocol.Store.toHealing]
     refine ⟨⟨hKraw, hFK⟩, K.erase, hKraw, Block.preceq_self _, ?_⟩
     have hmaxCore :
         (rho.stateBefore S (strictEventIndex rho read) w).st.core.h_max = blocked + 1 := hmax
@@ -1188,14 +1189,14 @@ theorem PrefixFGSelectorConeAt.checkpointVoteStep_of_frame
     have hmax : (voteDutyRead S rho w (s + 1)).st.core.h_max = blocked + 1 := by
       simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using
+        Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using!
         (hreads w hw).1
     have hroot : Block.Preceq
         (Protocol.get_fg_root
           (voteDutyRead S rho w (s + 1)).st.core.toHealing.toFG) T := by
       simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using
+        Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using!
         (hreads w hw).2.1
     have hpositive : 0 < ((S.E.committee s) ∩ rho.honest).card := by
       have hc := hcom s
@@ -1211,7 +1212,7 @@ theorem PrefixFGSelectorConeAt.checkpointVoteStep_of_frame
           (Proofs.Optimistic.voteDutyStore S rho w (s + 1)).toHealing.toFG) T := by
       simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using hroot
+        Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using! hroot
     have hprocessed := honestHead_voterProcessed_at_nextDuty_of_postHealingCone
       S adm hpost hhor hvotes hXhead hw hrootDuty
     obtain ⟨K', hK'X, hK'erase⟩ :=
@@ -1233,7 +1234,7 @@ theorem PrefixFGSelectorConeAt.checkpointVoteStep_of_frame
       have hmem := (Finset.mem_filter.mp hprocessed).1
       simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using hmem
+        Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using! hmem
     have hstored := WeakJoint.storedHeight_of_runBlock_mem_voteDutyRead
       S adm hw hXrun hXmem
     have hband : (voteDutyRead S rho w (s + 1)).st.core.h_max - 1 ≤
@@ -1392,9 +1393,10 @@ theorem PrefixFGSelectorConeAt.checkpointFiltered_at_read_of_frame
     S adm hfrontier hw (Nat.le_refl _) hKraw hKheight
   have hV: K.erase ∈ Protocol.V_tree
       (rho.stateBefore S (strictEventIndex rho read) w).st.core.toHealing.toFG:= by
-    simp only [Protocol.V_tree, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, Protocol.Store.toHealing, decide_eq_true_eq]
+    simp only [Protocol.V_tree, Protocol.viable_tree, Protocol.finalized_descendants,
+      Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
+    simp only [Protocol.Store.toHealing]
     refine ⟨⟨hKraw, hFK⟩, K.erase, hKraw, Block.preceq_self _, ?_⟩
     rw [hmax, hKheight]
     exact Nat.sub_le _ _

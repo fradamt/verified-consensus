@@ -426,7 +426,7 @@ theorem stableOutput_sourceBefore_at
         split_ifs at hPG with hcase
         · exact hPG
         · exact Block.preceq_trans hPG (by
-            simpa only [Protocol.Store.toHealing] using hFJ)
+            simpa only [Protocol.Store.toHealing] using! hFJ)
       have hidx := strict_read_eq_index S rho sorted time'
       have hi'n : (rho.events.filter (fun e => decide (e.time < time'))).length ≤
           boundaryIdx rho b0 := strict_length_le_boundary rho htb0

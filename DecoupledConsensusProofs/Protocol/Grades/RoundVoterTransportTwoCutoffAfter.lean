@@ -390,7 +390,6 @@ theorem honestRoundVote_interpreted_at_reader_of_twoCutoff_compatible_after
   obtain ⟨D, hD, hDerase⟩ := Finset.mem_image.mp hHmem
   have hDsource : D ∈
       (NamedRun.stateBeforeTime S rho (S.a k) u).st.bodies := by
-    change D ∈ (NamedRun.stateBeforeTime S rho (S.a k) u).st.bodies
     exact hD
   have hDrun : NamedRun.blockInRun S rho D :=
     held_blockInRun S rho core.toNamedScheduleWellFormed

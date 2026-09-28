@@ -128,7 +128,7 @@ theorem secondSlotCone_of_clearFGSource
         (Block.preceq_trans hclear (by rw [hHxErase]; exact hDx)) hHxBand
       exact ⟨by simpa only [voteDutyStore, voteStore, tickStore] using (hframeV1 w hw).2,
         by simpa only [voteDutyStore, voteStore, tickStore] using (hframeV1 w hw).1,
-        by simpa only [voteDutyStore, voteStore, tickStore] using hcmp⟩
+        by simpa only [voteDutyStore, voteStore, tickStore] using! hcmp⟩
     exact baseCone_succ_of_genuineSupporter_rootComparable S adm hcom hfb hv
       hpostProp (hconf1.trans hhor) hgen hclear hCrun hframe1 hsupp hanchor
   · rw [← hRlive] at hclear
@@ -138,7 +138,7 @@ theorem secondSlotCone_of_clearFGSource
       have h := fgRoot_eq_F_of_frame hfr.1 hfr.2
       rw [hReq, hSc]
       rw [hSc] at h
-      simpa only [confStore, tickStore] using h
+      simpa only [confStore, tickStore] using! h
     rw [← hR']
     exact hclear
 
@@ -269,7 +269,7 @@ theorem freshFGSource_boundaryCone
       hCrun (by rw [hCerase]; exact Block.preceq_self C) hCband
     exact ⟨by simpa only [voteDutyStore, voteStore, tickStore] using hfr.2,
       by simpa only [voteDutyStore, voteStore, tickStore] using hfr.1,
-      by simpa only [voteDutyStore, voteStore, tickStore] using hcmp⟩
+      by simpa only [voteDutyStore, voteStore, tickStore] using! hcmp⟩
   have hanchor : ∀ d : Slot, S.hc.opening_slot c + 1 < d →
       d ≤ seedRoundLastSlot S c → ∀ w ∈ rho.honest,
       Block.compatible (voterAnchorAt S rho w d) C = true := by

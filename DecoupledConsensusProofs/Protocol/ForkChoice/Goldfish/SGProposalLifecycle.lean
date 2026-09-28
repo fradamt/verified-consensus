@@ -186,7 +186,7 @@ theorem NamedSGProposalLifecycleInputs.anchorCone
   simpa only [proposerReadAt, NamedActionReads.confirmationReadAt,
     NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
     Protocol.NamedStore.setClock, storeGrade, phaseGrade,
-    Protocol.HealingStore.gradeView] using h.proposalAnchorG1
+    Protocol.HealingStore.gradeView] using! h.proposalAnchorG1
 
 /-- Direct projection of the live-G1 parent disposition. -/
 theorem NamedSGProposalLifecycleInputs.liveG1_preceq_proposedParent
@@ -232,11 +232,10 @@ private theorem namedLifecycle_voterCandidateTree_subset_filtered
   have hB' : B ∈ Proofs.Optimistic.voter_candidate_tree E st.toHealing := by
     simpa only [Proofs.Optimistic.voter_candidate_tree_eq_protocol_voter_filtered_block_tree]
       using hB
-  simp only [Proofs.Optimistic.voter_candidate_tree,
-    Protocol.get_filtered_block_tree,
-    Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
-    Protocol.finalized_descendants, Protocol.viable,
-    Finset.mem_filter, decide_eq_true_eq] at hB' ⊢
+  simp only [Proofs.Optimistic.voter_candidate_tree, Protocol.get_filtered_block_tree,
+    Protocol.get_filtered_block_tree_from, Protocol.viable_tree, Protocol.finalized_descendants,
+    Finset.mem_filter] at hB' ⊢
+  simp only [Protocol.viable, decide_eq_true_eq] at hB' ⊢
   obtain ⟨⟨⟨hBprocessed, hFB⟩, W, hWprocessed, hBW, hheight⟩,
     hroot⟩ := hB'
   have hBT : B ∈ st.T := by
@@ -537,7 +536,7 @@ theorem NamedSGOpeningFrozenVoteAt.scoreEq_core
         simpa only [source, proposalDutyRead, proposerReadAt,
           NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom,
-          Protocol.NamedStore.setClock] using hHsource
+          Protocol.NamedStore.setClock] using! hHsource
       obtain ⟨HN, hHNbody, hHNerase⟩ :=
         Proofs.NamedStoreBridge.exists_named_of_mem_stateBeforeTime S rho
           (Protocol.proposal_time S.E (s + 1))
@@ -547,11 +546,9 @@ theorem NamedSGOpeningFrozenVoteAt.scoreEq_core
           Finset.mem_of_mem_erase hCtarget
         have hCfiltered := namedLifecycle_voterCandidateTree_subset_filtered
           S.E target.st.core hCfull
-        simp only [Protocol.get_filtered_block_tree,
-          Protocol.get_filtered_block_tree_from,
-          Protocol.viable_tree, Protocol.finalized_descendants,
-          Protocol.viable, Finset.mem_filter,
-          decide_eq_true_eq] at hCfiltered
+        simp only [Protocol.get_filtered_block_tree, Protocol.get_filtered_block_tree_from,
+          Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter] at hCfiltered
+        simp only [Protocol.viable, decide_eq_true_eq] at hCfiltered
         obtain ⟨⟨⟨_, hFC⟩, _, _, _, _⟩, _⟩ := hCfiltered
         exact hFC
       have hFH : Block.Preceq target.st.core.F H :=
@@ -616,7 +613,7 @@ theorem NamedSGOpeningFrozenVoteAt.scoreEq_core
               simpa only [target, voteDutyRead,
                 NamedActionReads.confirmationReadAt,
                 NamedActionReads.confirmationReadFrom,
-                Protocol.NamedStore.setClock, Run.storeBeforeTime, hn] using hD
+                Protocol.NamedStore.setClock, Run.storeBeforeTime, hn] using! hD
             exact Proofs.Optimistic.carried_support_subset_of_mem_T_core
               S adm v n hDprefix x hx)) hu
       change u ∈ Protocol.voter_support_view S.E
@@ -633,7 +630,7 @@ theorem NamedSGOpeningFrozenVoteAt.scoreEq_core
             simpa only [target, voteDutyRead,
               NamedActionReads.confirmationReadAt,
               NamedActionReads.confirmationReadFrom,
-              Protocol.NamedStore.setClock] using hKtarget
+              Protocol.NamedStore.setClock] using! hKtarget
           obtain ⟨KN, hKNbody, hKNerase⟩ :=
             Proofs.NamedStoreBridge.exists_named_of_mem_stateBeforeTime S rho
               (Protocol.vote_time S.E (s + 1)) v hKpre
@@ -646,12 +643,12 @@ theorem NamedSGOpeningFrozenVoteAt.scoreEq_core
               have hvoteStamp := (Finset.mem_filter.mp hpool).2
               exact Protocol.HonestWeightMajority.stampedBefore_block_of_resolution
                 hfindTarget (by
-                  simpa only [target, htargetSlot, Nat.add_sub_cancel] using
+                  simpa only [target, htargetSlot, Nat.add_sub_cancel] using!
                     hvoteStamp)
             simpa only [target, voteDutyRead,
               NamedActionReads.confirmationReadAt,
               NamedActionReads.confirmationReadFrom,
-              Protocol.NamedStore.setClock, hKNerase] using hstampK
+              Protocol.NamedStore.setClock, hKNerase] using! hstampK
           have hKNfreeze := lifecycle_body_held_at_public_cut_core
             S adm hv (Protocol.publicTime_view_freeze S s) hKNbody hstamp
           have hFC : Block.Preceq source.st.core.F C := by
@@ -706,7 +703,7 @@ theorem NamedSGOpeningFrozenVoteAt.scoreEq_core
             · rw [Protocol.proposedBlock_gf_votes
                 S rho (s + 1) h.proposal] at huList
               simpa only [proposalInputAt, Protocol.proposal_input_with,
-                Protocol.with_proposal_input] using huList
+                Protocol.with_proposal_input] using! huList
             · unfold Protocol.resolved
               have hfindSource' : Block.find?
                   (proposerReadAt S rho (s + 1)).st.core.toHealing.T
@@ -729,7 +726,7 @@ theorem NamedSGOpeningFrozenVoteAt.scoreEq_core
           simpa only [target, voteDutyRead,
             NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom,
-            Protocol.NamedStore.setClock, Run.storeBeforeTime, hn] using hD.1
+            Protocol.NamedStore.setClock, Run.storeBeforeTime, hn] using! hD.1
         have hDeq : D = P.erase := unique_slot_block_in_store_core
           S adm (Nat.succ_pos s) h.proposerHonest
           hDprefix hPprefix (by simpa only [htargetSlot] using hD.2)
@@ -747,7 +744,7 @@ theorem NamedSGOpeningFrozenVoteAt.scoreEq_core
             S rho (s + 1) h.proposal] at huList
           exact of_decide_eq_true (by
             simpa only [source, proposalDutyRead, Protocol.Store.toHealing]
-              using (List.mem_filter.mp huList).2)
+              using! (List.mem_filter.mp huList).2)
         obtain ⟨H, hfindSource⟩ : ∃ H, Block.find? source.st.core.T u.head = some H := by
           cases hfind : Block.find? source.st.core.T u.head with
           | none => simp [Protocol.resolved, hfind] at hresolvedSource
@@ -759,11 +756,11 @@ theorem NamedSGOpeningFrozenVoteAt.scoreEq_core
           (by simpa only [source, proposalDutyRead, proposerReadAt,
             NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom,
-            Protocol.NamedStore.setClock] using hfindSource)
+            Protocol.NamedStore.setClock] using! hfindSource)
           (by simpa only [target, voteDutyRead,
             NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom,
-            Protocol.NamedStore.setClock] using hfindTarget)
+            Protocol.NamedStore.setClock] using! hfindTarget)
         have hHslot : H.slot ≤ u.slot := by
           simpa only [← hHK] using hCK.1
         have hHC : C.preceq H = true := by
@@ -822,7 +819,7 @@ theorem NamedSGOpeningFrozenVoteAt.voteStoreExtends_core
     simpa only [proposerReadAt, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
       NamedActionReads.preparedCache, Protocol.NamedStore.setClock,
-      storeGrade, phaseGrade, Protocol.HealingStore.gradeView] using
+      storeGrade, phaseGrade, Protocol.HealingStore.gradeView] using!
         h.proposalAnchorG1
   have hpivotParent : Block.Preceq A (proposedParent S rho (s + 1)) :=
     h.liveG1Parent (S.E.proposer (s + 1)) h.proposerHonest A hG1
@@ -919,7 +916,7 @@ theorem NamedSGProposalLifecycleInputs.genuineConfirmation
       (confirmationLate S.E read.st.core (s + 1)) := by
     have hvalid' : Protocol.VoteSetValid S.E (s + 1)
         (confLate S.E (Proofs.Optimistic.confStore S rho v (s + 1)) (s + 1)) := by
-      simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using
+      simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using!
         voteSetValid_confLate_stateBeforeTime S
           adm.toNamedAdmissibleCore.toNamedScheduleWellFormed v
           (Protocol.confirmation_time S.E (s + 1)) (s + 1)
@@ -938,19 +935,19 @@ theorem NamedSGProposalLifecycleInputs.genuineConfirmation
       (confAnchorWith contract S.E S.hc
         (Proofs.Optimistic.confStore S rho v (s + 1))) P.erase := by
     simpa only [contract, read, namedConfirmationAnchor,
-      Proofs.Optimistic.confStore_eq_confirmationInputRead] using hlocal.anchor
+      Proofs.Optimistic.confStore_eq_confirmationInputRead] using! hlocal.anchor
   obtain ⟨hwalk, helig⟩ := confWalkWith_eq_of_support contract S.E S.hc
     (Proofs.Optimistic.confStore S rho v (s + 1)) (s + 1) rho.honest P.erase
     (by simpa only [read, Proofs.Optimistic.confStore_eq_confirmationInputRead,
-      confirmationVotes, confVotes] using hsupport)
-    (by simpa only [confirmationLate, confLate] using hvalid)
+      confirmationVotes, confVotes] using! hsupport)
+    (by simpa only [confirmationLate, confLate] using! hvalid)
     hanchor
     (by simpa only [contract, read, namedConfirmationAnchor,
-      Proofs.Optimistic.confStore_eq_confirmationInputRead] using hpath)
+      Proofs.Optimistic.confStore_eq_confirmationInputRead] using! hpath)
   have hwrite : (Protocol.update_confirmation_with contract S.E S.hc
       (Proofs.Optimistic.confStore S rho v (s + 1)) (s + 1)).live_confirmed =
       P.erase := by
-    rw [update_confirmation_with_live_confirmed, hwalk, if_pos helig]
+    rw [update_confirmation_with_live_confirmed, hwalk, ite_eq_left helig]
   have hrecord := Proofs.Optimistic.live_confirmed_eq_update S
     adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hv (s + 1)
     (by
@@ -962,13 +959,13 @@ theorem NamedSGProposalLifecycleInputs.genuineConfirmation
       (rho.storeAt S v (Protocol.confirmation_time S.E (s + 1))).live_confirmed =
         P.erase := by
     rw [hrecord]
-    simpa only [contract, read] using hwrite
+    simpa only [contract, read] using! hwrite
   refine ⟨?_, hrecordP⟩
   unfold GenuineConfirmationAt
   refine ⟨?_, ?_⟩
   · rw [hrecordP]
     simpa only [namedConfirmationWalk, read, contract,
-      Proofs.Optimistic.confStore_eq_confirmationInputRead] using hwalk.symm
+      Proofs.Optimistic.confStore_eq_confirmationInputRead] using! hwalk.symm
   · change confEligible S.E (Proofs.Optimistic.confStore S rho v (s + 1))
       (s + 1) (confWalkWith contract S.E S.hc
         (Proofs.Optimistic.confStore S rho v (s + 1)) (s + 1)) = true
@@ -1103,7 +1100,7 @@ theorem NamedSGProposalLifecycleInputs.actionCarriersCover
     · exact h.actionBatchAligned v hv
     · exact Block.preceq_self _
     · rfl
-    · simpa only [nodeAnchor, nodeRead] using h.actionRootPreceq v hv
+    · simpa only [nodeAnchor, nodeRead] using! h.actionRootPreceq v hv
     · exact hclear v hv
   rw [heq]
   exact Block.preceq_self _

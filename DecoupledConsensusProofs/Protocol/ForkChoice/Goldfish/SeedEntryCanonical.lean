@@ -87,21 +87,20 @@ private theorem actionCarrierFrontierWitness'
         RunBlock S rho W ∧
           M - 1 ≤ (Protocol.derive_named S.E S.cfg W).h := by
   have hfiltered := actionSGBlockAt_mem_filtered_actionStore S adm v r
-  simp only [Protocol.get_filtered_block_tree,
-    Protocol.get_filtered_block_tree_from,
-    Protocol.viable_tree, Protocol.finalized_descendants,
-    Protocol.viable, Finset.mem_filter, decide_eq_true_eq,
-    Protocol.Store.toHealing] at hfiltered
+  simp only [Protocol.get_filtered_block_tree, Protocol.get_filtered_block_tree_from,
+    Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter] at hfiltered
+  simp only [Protocol.viable, decide_eq_true_eq] at hfiltered
+  simp only [Protocol.Store.toHealing] at hfiltered
   obtain ⟨⟨⟨-, -⟩, W, hWT, hcarrierW, hheight⟩, -⟩ := hfiltered
   have hmax : (actionStoreAt S rho v r).st.core.h_max = M := by
     rw [actionStoreAt_eq_update_confirmation_confStore]
     simp only [Protocol.update_confirmation_with]
-    simpa only [Run.storeBeforeTime] using hfrontier
+    simpa only [Run.storeBeforeTime] using! hfrontier
   rw [hmax] at hheight
   have hWTpre : W ∈ (rho.storeBeforeTime S v (S.a r)).core.T := by
     have hWT' := hWT
     rw [actionStoreAt_eq_update_confirmation_confStore] at hWT'
-    simpa only [Protocol.update_confirmation_with] using hWT'
+    simpa only [Protocol.update_confirmation_with] using! hWT'
   obtain ⟨D, hDbody, hDerase⟩ :=
     Proofs.NamedStoreBridge.exists_named_of_mem_stateBeforeTime S rho (S.a r) v hWTpre
   have hDrun : RunBlock S rho D := by
@@ -113,7 +112,7 @@ private theorem actionCarrierFrontierWitness'
   have hsig : (actionStoreAt S rho v r).st.core.σ D.erase =
       Protocol.derive_named S.E S.cfg D := by
     rw [actionStoreAt_eq_update_confirmation_confStore]
-    simpa only [Protocol.update_confirmation_with, hDerase] using
+    simpa only [Protocol.update_confirmation_with, hDerase] using!
       (Proofs.NamedStoreBridge.derivedView_stateBeforeTime S rho (S.a r) v D hDbody)
   refine ⟨D, ?_, ?_, hDrun, ?_⟩
   · rw [hDerase]
@@ -223,7 +222,7 @@ private theorem votePathAt_of_candidate'
   have hCraw : C ∈ voter_candidate_tree S.E duty.toHealing := by
     simpa only [voterCandidateTreeAt, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock, duty, voteDutyStore] using hC
+      Protocol.NamedStore.setClock, duty, voteDutyStore] using! hC
   have hCfull : C ∈ Protocol.get_filtered_block_tree duty.toHealing.toFG :=
     frozenVoterCandidateTree_subset_filtered S.E duty.toHealing hCraw
   have hCT : C ∈ duty.T :=
@@ -231,13 +230,13 @@ private theorem votePathAt_of_candidate'
   have hpc : ParentClosed duty := by
     simpa only [duty, voteDutyStore, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock] using
+      Protocol.NamedStore.setClock] using!
       Proofs.NamedStoreBridge.parentClosed_stateBeforeTime S rho
         (Protocol.vote_time S.E (s + 1)) w
   have hFJ : Block.Preceq duty.F duty.J := by
     simpa only [duty, voteDutyStore, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock] using
+      Protocol.NamedStore.setClock] using!
       Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime S rho
         (Protocol.vote_time S.E (s + 1)) w
   have hrootAnchor : Block.Preceq
@@ -246,7 +245,7 @@ private theorem votePathAt_of_candidate'
     simpa only [duty, voteDutyStore, voterAnchorAt, Internal.PhaseGrades.nodeAnchor,
       Internal.PhaseGrades.nodeRead,
       Internal.NamedRecoveryRead.voteDutyRead, NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       fg_root_preceq_get_sg_root_with_frame
         (Internal.NamedRecoveryRead.voteDutyRead S rho w (s + 1)).cache S.E S.hc
         duty.toHealing (S.hc.round_of duty.toHealing.s)
@@ -273,19 +272,19 @@ private theorem votePathAt_of_candidate'
   have hCdata := hCraw
   have hDdata := hDfull
   simp only [voter_candidate_tree, Protocol.get_filtered_block_tree,
-    Protocol.get_filtered_block_tree_from,
-    Protocol.viable_tree, Protocol.finalized_descendants,
-    Protocol.viable, Finset.mem_filter, decide_eq_true_eq] at hCdata hDdata
+    Protocol.get_filtered_block_tree_from, Protocol.viable_tree, Protocol.finalized_descendants,
+    Finset.mem_filter] at hCdata hDdata
+  simp only [Protocol.viable, decide_eq_true_eq] at hCdata hDdata
   obtain ⟨W, hWprocessed, hCW, hheight⟩ := hCdata.1.2
   have hDcandidate' : D ∈ voter_candidate_tree S.E duty.toHealing := by
-    simp only [voter_candidate_tree, Protocol.get_filtered_block_tree_from,
-      Protocol.viable_tree, Protocol.finalized_descendants,
-      Protocol.viable, Finset.mem_filter, decide_eq_true_eq]
+    simp only [voter_candidate_tree, Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
+      Protocol.finalized_descendants, Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
     exact ⟨⟨⟨hDprocessed, hDdata.1.1.2⟩, W, hWprocessed,
       Block.preceq_trans hDC hCW, hheight⟩, hDdata.2⟩
   simpa only [voterCandidateTreeAt, Internal.NamedRecoveryRead.voteDutyRead,
     NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
-    Protocol.NamedStore.setClock, duty, voteDutyStore] using hDcandidate'
+    Protocol.NamedStore.setClock, duty, voteDutyStore] using! hDcandidate'
 
 /-- The vote-duty frame with a comparable root. -/
 def VoteDutyFrameAt' (S : Setup V) (rho : Run V) (M : Height) (d : Slot)
@@ -361,7 +360,7 @@ theorem coneAndThin_succ'
         simpa only [voterCandidateTreeAt, Internal.NamedRecoveryRead.voteDutyRead,
           NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-          voteDutyStore] using hfacts.1
+          voteDutyStore] using! hfacts.1
       exact ⟨hrootC, hcandidate, votePathAt_of_candidate' S adm hw hcandidate⟩
     · exact Or.inr hCroot
   have hhead : ∀ w ∈ rho.honest, Block.Preceq C (voterHeadAt S rho w (s + 1)) :=
@@ -711,7 +710,7 @@ theorem secondSlotCone_of_grade2'
         Internal.NamedRecoveryRead.voteDutyRead,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom,
-        Protocol.NamedStore.setClock] using hactiveDuty
+        Protocol.NamedStore.setClock] using! hactiveDuty
     exact preceq_voterHeadAt_of_nodeQ2_activeAtDutyRead S adm hsb hcPos
       (Nat.le_succ _) hround1 hnextOpening hvote1Hor hready.1 hready.2 hv hw hQ
       hactiveRead
@@ -928,7 +927,7 @@ theorem seedBoundaryAdoption_of_discharge
     refine ⟨?_, ?_, ?_⟩
     · simpa only [voteDutyStore, voteStore, tickStore] using h.2
     · simpa only [voteDutyStore, voteStore, tickStore] using h.1
-    · simpa only [voteDutyStore, voteStore, tickStore] using hcmp
+    · simpa only [voteDutyStore, voteStore, tickStore] using! hcmp
   have hanchorDuty : ∀ d : Slot, o + 1 < d → d ≤ o' - 1 → ∀ w ∈ rho.honest,
       Block.compatible (voterAnchorAt S rho w d) D = true := by
     intro d hlo hhi w hw
@@ -1311,7 +1310,7 @@ theorem secondSlotCone_of_clear'
       refine ⟨?_, ?_, ?_⟩
       · simpa only [voteDutyStore, voteStore, tickStore] using (hframeV1 w hw).2
       · simpa only [voteDutyStore, voteStore, tickStore] using (hframeV1 w hw).1
-      · simpa only [voteDutyStore, voteStore, tickStore] using hcmp
+      · simpa only [voteDutyStore, voteStore, tickStore] using! hcmp
     exact baseCone_succ_of_genuineSupporter_rootComparable S adm hcom hfb hv
       hpostProp (hconf1.trans hhor) hgen hclear hTrun hframe1 hsupp hanchor
   · -- the live confirmation is the root: the target is below the finalized root
@@ -1322,7 +1321,7 @@ theorem secondSlotCone_of_clear'
       have h := fgRoot_eq_F_of_frame hfr.1 hfr.2
       rw [hReq, hSc]
       rw [hSc] at h
-      simpa only [confStore, tickStore] using h
+      simpa only [confStore, tickStore] using! h
     rw [← hR']
     exact hclear
 

@@ -274,7 +274,7 @@ theorem finalized_included (S : Setup V) :
   have hdueTime : S.a (S.hc.round_of s + 1 + finalityDeadline S gap extra) ≤
       (legacyInterface S).proposalTime s + (legacyConstants S).finalityDeadline gap extra := by
     have h := finality_deadline_time_bound S s (finalityDeadline S gap extra)
-    simpa [legacyConstants, ourConstants, add_assoc] using h
+    simpa [legacyConstants, ourConstants, add_assoc] using! h
   have hdueHorizon : S.a (S.hc.round_of s + 1 + finalityDeadline S gap extra) ≤
       rho.horizon := by
     exact hdueTime.trans hdeadline
@@ -384,7 +384,7 @@ private theorem stableOutput_eq_latest (S : Setup V) (rho : Run V) (v : V) (t : 
   change Block.preceq (rho.storeAt S v t).F
       (rho.storeAt S v t).latest_stable = true at h
   unfold stableOutputAt Protocol.get_stable
-  rw [if_pos h]
+  rw [ite_eq_left h]
 
 private theorem stableOutput_eq_finalized (S : Setup V) (rho : Run V) (v : V) (t : Time)
     (h : ¬ Block.Preceq (rho.storeAt S v t).F
@@ -393,7 +393,7 @@ private theorem stableOutput_eq_finalized (S : Setup V) (rho : Run V) (v : V) (t
   change ¬ Block.preceq (rho.storeAt S v t).F
       (rho.storeAt S v t).latest_stable = true at h
   unfold stableOutputAt Protocol.get_stable
-  rw [if_neg h]
+  rw [ite_eq_right h]
 
 private theorem stable_safe_of_canonical (S : Setup V) {rho : Run V} {t₀ : Time}
     (hcanon : StableRecordCanonicalFrom S rho t₀)
@@ -766,7 +766,7 @@ private theorem proposal_time_le_of_mem_storeAt
   · subst D
     simp only [NamedBlock.erase] at hDe
     subst C
-    simpa [Protocol.proposal_time, Env.t, slotStart] using ht
+    simpa [Protocol.proposal_time, Env.t, slotStart, Block.slot] using ht
   · obtain ⟨_, e, he, _, het⟩ := hacc.1
     have htime : time ≤ t := by
       rw [← het]
@@ -1219,9 +1219,9 @@ theorem available_stableIncluded (S : Setup V) :
     hsleep hrecovered s hs hprop hconfirmedHorizon
   have hspos : 0 < s := positive_slot_of_positive_proposal_time S hproposalPos
   have hconfHor : Protocol.confirmation_time S.E s ≤ rho.horizon := by
-    simpa [legacyConstants, ourConstants] using hconfirmedHorizon
+    simpa [legacyConstants, ourConstants] using! hconfirmedHorizon
   have hread := honestProposalReadSafety_of_available S hsleep hrecovered
-    hspos (by simpa [legacyInterface] using hs) hconfHor hprop
+    hspos (by simpa [legacyInterface] using! hs) hconfHor hprop
   obtain ⟨B', hB'after, _hB'strict, hB'In⟩ :=
     hstable ((legacyInterface S).proposalTime s + (legacyConstants S).confirmationDelay)
       (hs.le.trans (le_add_of_nonneg_right hconfirmationDnonneg))
@@ -1234,7 +1234,7 @@ theorem available_stableIncluded (S : Setup V) :
       (legacyInterface S).proposalTime s + (legacyConstants S).confirmationDelay +
         (legacyConstants S).stableGrowthDelay gap := by
     exact add_nonneg
-      (add_nonneg (by simpa [legacyInterface] using
+      (add_nonneg (by simpa [legacyInterface] using!
         (Proofs.Optimistic.proposal_time_nonneg S.E s)) hconfirmationDnonneg)
       hstableDnonneg
   have hB'pre : Block.Preceq B'.erase
@@ -1299,7 +1299,7 @@ theorem available_stableIncluded (S : Setup V) :
       (readAt S rho (legacyInterface S).stable v
         ((legacyInterface S).proposalTime s + (legacyConstants S).confirmationDelay +
           (legacyConstants S).stableGrowthDelay gap)) := hB'In v hv
-  simpa [stableInclusionDelay, legacyConstants, ourConstants, add_assoc] using
+  simpa [stableInclusionDelay, legacyConstants, ourConstants, add_assoc] using!
     Block.preceq_trans hBB' hB'InAt
 
 /-- The weak genesis package behind the public sleepy regime. -/

@@ -80,20 +80,20 @@ theorem lowFGRoot_preceq_of_frontier_gap_of_finalizedRootsBelow
       (Protocol.get_fg_root (rho.storeBeforeTime S v time).toHealing.toFG) P := by
   let st := rho.storeBeforeTime S v time
   have hcoh : Proofs.NamedStore.Coherent S.E S.cfg st := by
-    simpa only [st] using
+    simpa only [st] using!
       (Proofs.NamedRuntime.stateBeforeTime_invariants S rho time v).1.1.1
   have hpc := hcoh.2.2.1
   by_cases hgate : st.core.h_max = st.core.h_j + 1
   · have hroot : Protocol.get_fg_root st.toHealing.toFG = st.core.J := by
       change (if st.core.h_max = st.core.h_j + 1 then st.core.J else st.core.F) =
         st.core.J
-      exact if_pos hgate
+      exact ite_eq_left hgate
     obtain ⟨J, hJ, hJJ, hJh⟩ :=
       Proofs.Bridges.storeJustificationOnChain_stateBeforeTime S rho time v
     have hJJ' : (derive_named S.E S.cfg J).J = st.core.J := by
-      simpa only [st] using hJJ
+      simpa only [st] using! hJJ
     have hJh' : (derive_named S.E S.cfg J).h_j = st.core.h_j := by
-      simpa only [st] using hJh
+      simpa only [st] using! hJh
     rcases NamedCheckpointHeights.justified_ancestor_height S.E S.cfg J with
       hz | ⟨K, hKJ, hKerase, hKheight⟩
     · have hgen : (derive_named S.E S.cfg J).J = Block.genesis :=
@@ -123,11 +123,11 @@ theorem lowFGRoot_preceq_of_frontier_gap_of_finalizedRootsBelow
   · have hroot : Protocol.get_fg_root st.toHealing.toFG = st.core.F := by
       change (if st.core.h_max = st.core.h_j + 1 then st.core.J else st.core.F) =
         st.core.F
-      exact if_neg hgate
+      exact ite_eq_right hgate
     obtain ⟨F, hF, hFF, hFh⟩ :=
       Proofs.Bridges.storeFinalizationOnChain_stateBeforeTime S rho time v
     have hFF' : (derive_named S.E S.cfg F).F = st.core.F := by
-      simpa only [st] using hFF
+      simpa only [st] using! hFF
     rcases NamedCheckpointHeights.finalized_ancestor_height S.E S.cfg F with
       hz | ⟨K, hKF, hKerase, hKheight⟩
     · have hgen : (derive_named S.E S.cfg F).F = Block.genesis :=

@@ -154,7 +154,7 @@ theorem canonicalTargetHistoryAt_of_heightHistory
         simpa only [actionStoreAt, actionReadAt,
           NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
           NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-          NamedRun.stateBeforeTime] using hQbody
+          NamedRun.stateBeforeTime] using! hQbody
       obtain ⟨N, hN, -⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix S rho
         adm.toNamedAdmissibleCore.toNamedScheduleWellFormed.sorted (S.a a.round)
       have hQrun : RunBlock S rho Q' := by

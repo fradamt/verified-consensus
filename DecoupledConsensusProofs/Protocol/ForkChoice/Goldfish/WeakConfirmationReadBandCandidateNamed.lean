@@ -102,7 +102,7 @@ theorem proposedBlock_confirmationBandAndCandidate_of_gstZero_of_pins
               NamedActionReads.confirmationReadAt,
               NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
               Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-              Proofs.Optimistic.tickStore] using hcandidate)
+              Proofs.Optimistic.tickStore] using! hcandidate)
       exact (Finset.mem_filter.mp hprocessed).1
     · obtain ⟨d, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (Nat.ne_of_gt hs)
       have hd : 1 ≤ d := Nat.one_le_iff_ne_zero.mpr (by
@@ -117,7 +117,7 @@ theorem proposedBlock_confirmationBandAndCandidate_of_gstZero_of_pins
   obtain ⟨B', hB'body, hB'erase⟩ :=
     Proofs.NamedStoreBridge.exists_named_of_mem_stateBeforeTime S rho
       (Protocol.confirmation_time S.E s) v (by
-        simpa only [conf, Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using hBconf)
+        simpa only [conf, Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using! hBconf)
   obtain ⟨n, hn, -⟩ := Proofs.Bridges.stateBeforeTime_eq_stateBefore
     S h.core.toNamedScheduleWellFormed (Protocol.confirmation_time S.E s)
   have hB'prefix : B' ∈ (rho.stateBefore S n v).st.bodies := by
@@ -135,7 +135,7 @@ theorem proposedBlock_confirmationBandAndCandidate_of_gstZero_of_pins
     rw [← hB'eq]
     exact hB'body
   have hBview : conf.σ B.erase = Protocol.derive_named S.E S.cfg B := by
-    simpa only [conf, Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using
+    simpa only [conf, Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using!
       Proofs.NamedStoreBridge.derivedView_stateBeforeTime S rho
         (Protocol.confirmation_time S.E s) v B hBbody
   have hband : conf.h_max - 1 ≤
@@ -188,22 +188,21 @@ theorem proposedBlock_confirmationBandAndCandidate_of_gstZero_of_pins
   have hroot : Block.Preceq
       (Protocol.get_fg_root conf.toHealing.toFG) B.erase :=
     Block.preceq_trans (by
-      simpa only [conf, Proofs.Optimistic.confStore_eq_confirmationInputRead] using
+      simpa only [conf, Proofs.Optimistic.confStore_eq_confirmationInputRead] using!
         fg_root_preceq_get_sg_root_with_frame
           (Internal.NamedRecoveryRead.confirmationInputRead S rho v s).cache
           S.E S.hc conf.toHealing (S.hc.round_of conf.s)) hanchor
   have hFJ : Block.Preceq conf.F conf.J := by
-    simpa only [conf, Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using
+    simpa only [conf, Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using!
       Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime
         S rho (Protocol.confirmation_time S.E s) v
   have hFB : Block.Preceq conf.F B.erase :=
     Block.preceq_trans
       (Proofs.Records.preceq_get_fg_root_of_F (st := conf.toHealing.toFG) hFJ) hroot
   have hcandidate : B.erase ∈ confTree conf := by
-    simp only [confTree, Protocol.get_filtered_block_tree,
-      Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, decide_eq_true_eq]
+    simp only [confTree, Protocol.get_filtered_block_tree, Protocol.get_filtered_block_tree_from,
+      Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
     exact ⟨⟨⟨hBconf, hFB⟩, B.erase, hBconf, Block.preceq_self _,
       by
         change conf.h_max - 1 ≤ (conf.σ B.erase).h

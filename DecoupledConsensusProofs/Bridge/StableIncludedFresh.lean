@@ -84,7 +84,7 @@ theorem stableIncludedFresh_slow_concrete (S : Setup V) :
   intro rho t₀ h
   have hs := sleepyRegime_of_generic S rho t₀ h.toSleepyRegime
   have hr := recoveredBy_of_generic S rho t₀ h.start
-  simpa [stableInclusionDelay_eq_constant] using
+  simpa [stableInclusionDelay_eq_constant] using!
     included_of_named S (available_stableIncluded_any S rho t₀ hs hr)
 
 theorem storeGrade_g2_of_relativeCarrierWindow_and_voterCover
@@ -288,7 +288,7 @@ theorem localG2Cover_of_freshVoterCover
   have hmemVote : actionSGBlockAt S rho u q ∈
       (readAt S rho (domain S.E S.hc (q + 1) .g2) w).st.core.T := by
     exact Proofs.Records.mem_of_bind_find? (o := some (actionSGBlockAt S rho u q).root)
-      (by simpa only [relativePhaseRead] using hyfind)
+      (by simpa only [relativePhaseRead] using! hyfind)
   have hpc := (parentClosed_iff (readAt S rho
       (domain S.E S.hc (q + 1) .g2) w).st.core).mp
     (Proofs.NamedStoreBridge.parentClosed_stateBeforeTime S rho
@@ -815,7 +815,7 @@ theorem available_stableIncluded_fresh (S : Setup V) :
   have hwriteTime : S.a d ≤ T :=
     fastDuty_before_inclusionDeadline S s
   have hhor : S.a d ≤ rho.horizon :=
-    hwriteTime.trans (by simpa only [T, legacyInterface] using hdeadline)
+    hwriteTime.trans (by simpa only [T, legacyInterface] using! hdeadline)
   have hqhor : S.a q ≤ rho.horizon :=
     (Assembly.a_mono S (Nat.le_add_right q _)).trans hhor
   have hconfHor : Protocol.confirmation_time S.E s ≤ rho.horizon :=
@@ -823,7 +823,7 @@ theorem available_stableIncluded_fresh (S : Setup V) :
   have hconfirmedHor : (legacyInterface S).proposalTime s +
       (legacyConstants S).confirmationDelay ≤ rho.horizon := by
     simpa [legacyInterface, legacyConstants, Statements.ourConstants,
-      Protocol.confirmation_time, Protocol.proposal_time] using hconfHor
+      Protocol.confirmation_time, Protocol.proposal_time] using! hconfHor
   obtain ⟨B, hHon, _⟩ := available_confirmedIncluded S rho t₀
     hsleep hrecovered s hs hprop hconfirmedHor
   have hB : proposedBlockAt S rho s = some B := hHon.2
@@ -841,7 +841,7 @@ theorem available_stableIncluded_fresh (S : Setup V) :
     have hpropTime : Protocol.proposal_time S.E s ≤ S.a q :=
       (Protocol.proposal_time_le_confirmation_time S.E s).trans hconfq
     have hqdTime : S.a q ≤ S.a d := Assembly.a_mono S (Nat.le_succ q)
-    exact (le_of_lt (by simpa only [legacyInterface] using hs)).trans
+    exact (le_of_lt (by simpa only [legacyInterface] using! hs)).trans
       (hpropTime.trans hqdTime)
   have hfreshD : Generic.FreshMajority (E S) rho.honest (C S) (S.a d) :=
     hfresh (S.a d) ht₀ hlag (by rw [hlagEq]; exact hqhor)
@@ -870,7 +870,7 @@ theorem available_stableIncluded_fresh (S : Setup V) :
             (W4StableWrite.dutyTime_mono S hqd))
       have hret := W4StableWrite.stable_retained_of_duty_from S hcanon
         hduty0 hwrite hdutyToT
-        (by simpa only [T, legacyInterface] using hdeadline) v hv
+        (by simpa only [T, legacyInterface] using! hdeadline) v hv
       simpa [T, legacyInterface, Statements.«instance», Internal.readAt,
         Internal.stableOutputAt] using hret.2
   | @recovered source tPrefix gap extra hrec hcont hslash =>
@@ -888,7 +888,7 @@ theorem available_stableIncluded_fresh (S : Setup V) :
         simpa [legacyConstants, Statements.ourConstants, recoveryRound, hsum]
       have hstarts : S.hc.opening_slot m < s :=
         fresh_opening_before_boundary S hmhi
-          (by simpa [hrecover, legacyInterface] using hs)
+          (by simpa [hrecover, legacyInterface] using! hs)
       have hwrite := stableWrite_anySlot_fresh_afterGST S hweak.core
         hweak.committees hboot hawake hfinality hphase hstarts
         hprop hB hsq hconfq hhor hforming
@@ -907,7 +907,7 @@ theorem available_stableIncluded_fresh (S : Setup V) :
             (W4StableWrite.dutyTime_mono S hqd))
       have hret := W4StableWrite.stable_retained_of_duty_from S hcanon
         hdutyStart hwrite hdutyToT
-        (by simpa only [T, legacyInterface] using hdeadline) v hv
+        (by simpa only [T, legacyInterface] using! hdeadline) v hv
       simpa [T, legacyInterface, Statements.«instance», Internal.readAt,
         Internal.stableOutputAt] using hret.2
 

@@ -223,7 +223,7 @@ private theorem proposedParent_eq_genesis_one_named
     proposedParent S rho 1 = Block.genesis := by
   apply block_eq_genesis_of_mem_before_proposal_one_named S adm
   simpa only [proposerReadAt, NamedActionReads.confirmationReadAt,
-    NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+    NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       proposedParent_mem S rho 1
 
 private theorem mem_voteRead_one_eq_genesis_or_proposal
@@ -239,7 +239,7 @@ private theorem mem_voteRead_one_eq_genesis_or_proposal
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
       Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore] using hC
+      Proofs.Optimistic.tickStore] using! hC
   have hslotLe := block_slot_le_of_mem_voteStore_core S adm hCstore
   obtain ⟨n, hn, -⟩ := Proofs.Bridges.stateBeforeTime_eq_stateBefore
     S adm.toNamedScheduleWellFormed (Protocol.vote_time S.E 1)
@@ -327,13 +327,13 @@ theorem honestVoteStoresExtend_one_of_gstZero_named
       hvoteHor hB hv
     simpa only [st, read, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using hrootB
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using! hrootB
   have hBT : B.erase ∈ st.T := by
     have hmem := (admittedBefore_mem_and_stamp_at S
       h.core.toNamedScheduleWellFormed hadmit (le_refl _)).1
     simpa only [st, read, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using hmem
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using! hmem
   have hprocessed : B.erase ∈ Protocol.voter_processed_block_tree S.E
       st.toHealing.toFG.toSG.toGoldfishStore st.s := by
     simp only [Protocol.voter_processed_block_tree, Finset.mem_filter]
@@ -423,9 +423,9 @@ theorem honestVoteStoresExtend_one_of_gstZero_named
     change B.erase ∈ Protocol.get_filtered_block_tree_from
       st.toHealing.toFG
       (Protocol.voter_processed_block_tree S.E st.toHealing.toFG.toSG.toGoldfishStore st.s)
-    simp only [Protocol.get_filtered_block_tree_from,
-      Protocol.viable_tree, Protocol.finalized_descendants,
-      Protocol.viable, Finset.mem_filter, decide_eq_true_eq]
+    simp only [Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
+      Protocol.finalized_descendants, Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
     exact ⟨⟨⟨hprocessed, hFB⟩, B.erase, hprocessed,
       Block.preceq_self _, hfrontier⟩, hrootB⟩
   have hall : ∀ C ∈ tree₀, C = (Block.genesis : Block V) := by
@@ -460,7 +460,7 @@ theorem honestVoteStoresExtend_one_of_gstZero_named
     · exact hparent
     · exact hslotErase.trans (by
         symm
-        simpa only [st, read] using Proofs.Optimistic.voteDutyRead_slot S rho v 1)
+        simpa only [st, read] using! Proofs.Optimistic.voteDutyRead_slot S rho v 1)
     · exact hnotin
     · intro C hC hCparent
       rw [hparentGenesis, hall C hC] at hCparent
@@ -498,7 +498,7 @@ theorem honestVoteStoresExtend_one_of_gstZero_named
           NamedActionReads.confirmationReadFrom,
           Protocol.NamedStore.setClock,
           Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-          Proofs.Optimistic.tickStore] using hX
+          Proofs.Optimistic.tickStore] using! hX
       exact voter_candidate_tree_terminal_of_preceq_core
         S h.core hslotErase hXtree hBX
 

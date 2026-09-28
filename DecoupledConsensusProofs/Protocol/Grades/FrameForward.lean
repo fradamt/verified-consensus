@@ -78,7 +78,7 @@ private theorem retained_prefix (g F B : Block V) (hBF : Block.compatible B F = 
           · subst B
             exact False.elim (hGF hBF)
           · exact hBp
-        simpa only [clipGrade, hGF, Bool.eq_false_iff.mpr hGF, ↓reduceIte] using ih hBp
+        simpa only [clipGrade, hGF, Bool.eq_false_iff.mpr hGF, ↓reduceIte] using! ih hBp
 
 omit [Fintype V] in
 private theorem compatible_ancestors {A B C D : Block V}
@@ -149,10 +149,10 @@ private theorem cacheAtRound_align (c : Cache V) (q r : Round)
     (hlow : c.round ≤ q) (hhigh : q ≤ r) :
     cacheAtRound (alignRound c q) r = cacheAtRound c r := by
   by_cases h1 : q = c.round
-  · rw [show alignRound c q = c by unfold alignRound; rw [if_pos h1]]
+  · rw [show alignRound c q = c by unfold alignRound; rw [ite_eq_left h1]]
   · by_cases h2 : q = c.round + 1
     · rw [show alignRound c q = ⟨q, c.next, pendingFrame⟩ by
-        unfold alignRound; rw [if_neg h1, if_pos h2]]
+        unfold alignRound; rw [ite_eq_right h1, ite_eq_left h2]]
       subst h2
       by_cases hr : r = c.round + 1
       · subst hr
@@ -160,7 +160,7 @@ private theorem cacheAtRound_align (c : Cache V) (q r : Round)
       · have h3 : ¬ r = c.round := round_succ_ne hhigh
         simp [cacheAtRound, hr, h3]
     · rw [show alignRound c q = ⟨q, pendingFrame, pendingFrame⟩ by
-        unfold alignRound; rw [if_neg h1, if_neg h2]]
+        unfold alignRound; rw [ite_eq_right h1, ite_eq_right h2]]
       obtain ⟨h3, h4⟩ := round_gap hlow hhigh h1 h2
       simp [cacheAtRound, h3, h4]
 
@@ -169,14 +169,14 @@ omit [DecidableEq V] [Fintype V] in
 private theorem cacheAtRound_align_self (c : Cache V) (r : Round) :
     cacheAtRound (alignRound c r) r = cacheAtRound c r := by
   by_cases h1 : r = c.round
-  · rw [show alignRound c r = c by unfold alignRound; rw [if_pos h1]]
+  · rw [show alignRound c r = c by unfold alignRound; rw [ite_eq_left h1]]
   · by_cases h2 : r = c.round + 1
     · rw [show alignRound c r = ⟨r, c.next, pendingFrame⟩ by
-        unfold alignRound; rw [if_neg h1, if_pos h2]]
+        unfold alignRound; rw [ite_eq_right h1, ite_eq_left h2]]
       subst h2
       simp [cacheAtRound]
     · rw [show alignRound c r = ⟨r, pendingFrame, pendingFrame⟩ by
-        unfold alignRound; rw [if_neg h1, if_neg h2]]
+        unfold alignRound; rw [ite_eq_right h1, ite_eq_right h2]]
       simp [cacheAtRound, h1, h2]
 
 private theorem complete_one_other (E : Env V) (hc : Protocol.HealConfig)

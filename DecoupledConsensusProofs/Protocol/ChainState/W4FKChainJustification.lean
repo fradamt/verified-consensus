@@ -170,8 +170,7 @@ theorem namedTargetReady_of_covered
   have hquorum :
       (fold_rows (TimeoutBinding.targeted V) sigma B.erase
         B.attestations).targetQuorum E = true := by
-    simpa only [ChainState.targetQuorum, ChainState.Q_target,
-      Electorate.quorumCheck, decide_eq_true_eq] using hQ
+    exact decide_eq_true hQ
   simp only [Protocol.targetReady, Bool.and_eq_true]
   refine ⟨?_, hquorum⟩
   rw [w4fkRows_nj, hnj]
@@ -202,7 +201,7 @@ theorem namedJustifiedAt_of_targetQuorumCoveredByChild
               (NamedBlock.node p s root gv gsv ats proposer).attestations)) = true := by
         unfold Protocol.afterFin
         split
-        · simpa only [Protocol.targetReady] using htarget
+        · simpa only [Protocol.targetReady] using! htarget
         · exact htarget
       have hderive : derive_named E cfg (.node p s root gv gsv ats proposer) =
           Protocol.process_height_events E cfg
@@ -210,13 +209,13 @@ theorem namedJustifiedAt_of_targetQuorumCoveredByChild
               (NamedBlock.node p s root gv gsv ats proposer).erase
               (NamedBlock.node p s root gv gsv ats proposer).attestations) := rfl
       refine ⟨⟨?_, ?_⟩, ?_⟩
-      · rw [hderive, Protocol.process_height_events_eq, if_pos htargetAfter,
+      · rw [hderive, Protocol.process_height_events_eq, ite_eq_left htargetAfter,
           Protocol.advance_height_J, Protocol.afterFin_T_h, w4fkRows_T_h]
         rfl
-      · rw [hderive, Protocol.process_height_events_eq, if_pos htargetAfter,
+      · rw [hderive, Protocol.process_height_events_eq, ite_eq_left htargetAfter,
           Protocol.advance_height_h_j, Protocol.afterFin_h, w4fkRows_h]
         rfl
-      · rw [hderive, Protocol.process_height_events_eq, if_pos htargetAfter,
+      · rw [hderive, Protocol.process_height_events_eq, ite_eq_left htargetAfter,
           Protocol.advance_height_h, Protocol.afterFin_h, w4fkRows_h]
         rfl
 
@@ -292,12 +291,12 @@ private theorem w4fkNamedNj_eq_node_of_same_height
   split_ifs with htarget hprogress
   · exfalso
     have hh' := hh
-    rw [hderive, Protocol.process_height_events_eq, if_pos htarget,
+    rw [hderive, Protocol.process_height_events_eq, ite_eq_left htarget,
       Protocol.advance_height_h, Protocol.afterFin_h, w4fkRows_h] at hh'
     exact (Nat.ne_of_lt (Nat.lt_succ_self _)) hh'.symm
   · exfalso
     have hh' := hh
-    rw [hderive, Protocol.process_height_events_eq, if_neg htarget, if_pos hprogress,
+    rw [hderive, Protocol.process_height_events_eq, ite_eq_right htarget, ite_eq_left hprogress,
       Protocol.advance_height_h, Protocol.afterFin_h, w4fkRows_h] at hh'
     exact (Nat.ne_of_lt (Nat.lt_succ_self _)) hh'.symm
   · rw [Protocol.afterFin_nj, w4fkRows_nj]

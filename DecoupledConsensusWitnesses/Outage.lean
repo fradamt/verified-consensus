@@ -268,7 +268,7 @@ theorem proposal_root_of_output
       rcases (by
         simpa [Protocol.NamedActions.proposal_with, Protocol.with_proposal_input] using hroot) with
         ⟨a, ha, hax⟩
-      simpa using hax.symm
+      simpa using! hax.symm
 
 theorem emitted_block_root_local {B : NamedBlock (Fin 2)} {t : Time}
     (h : NamedRun.emits S rho 0 (.block B) t) :
@@ -1440,7 +1440,7 @@ theorem first_block_emits :
   have heq : B = stableCandidate :=
     Option.some.inj (hB.symm.trans stableCandidate_spec)
   subst B
-  simpa [E] using hem
+  simpa [E] using! hem
 
 theorem stable_candidate_slot : stableCandidate.slot = 1 :=
   DecoupledConsensusModel.Proofs.Optimistic.proposedBlockAt_slot S rho 1 stableCandidate_spec
@@ -1462,7 +1462,7 @@ theorem protected_block_non_genesis : protectedBlock ≠ (Block.genesis : Block 
   intro h
   have hslot : stableCandidate.slot = 0 := by
     have h' := congrArg Block.slot h
-    simpa only [protectedBlock, Proofs.NamedWire.erase_slot] using h'
+    simpa only [protectedBlock, Proofs.NamedWire.erase_slot] using! h'
   have hone : stableCandidate.slot = 1 := stable_candidate_slot
   exact Nat.noConfusion (hslot.symm.trans hone)
 
@@ -1481,7 +1481,7 @@ theorem stable_tick_emission {i : Nat}
       [.attest (Proofs.HealingSurface.actionAttestationAt S rho 0 stableRound)] := by
   have h := Proofs.NamedActionSources.action_emission S rho schedule_well_formed
     i 0 stableRound hi
-  simpa [node, stableRound] using h
+  simpa [node, stableRound] using! h
 
 theorem emitted_block_is_stable {B : NamedBlock (Fin 2)} {t : Time}
     (h : NamedRun.emits S rho 0 (.block B) t) : B = stableCandidate := by
@@ -1519,7 +1519,7 @@ theorem state_block_simple {t : Time} {B : Block (Fin 2)}
         (by change (0 : Fin 2) ∈ ({0} : Finset (Fin 2)); simp) n hD)
   rcases run_block_simple hDrun with hgen | hstable
   · left
-    simpa [hgen] using hDErase.symm
+    simpa [hgen] using! hDErase.symm
   · right
     simpa [hstable] using hDErase.symm
 
@@ -1619,7 +1619,7 @@ theorem relative_carrier_window :
   have hKsource : K ∈
       (NamedRun.stateBeforeTime S rho (S.a 1) 0).st.bodies := by
     rw [← hstate]
-    simpa [NamedActionReads.actionReadFrom] using hKstaged
+    simpa [NamedActionReads.actionReadFrom] using! hKstaged
   have htime : S.a 1 ≤ DecoupledConsensusModel.Protocol.domain S.E S.hc 2 .g2 := by
     norm_num [Setup.a, Protocol.HealConfig.a, Protocol.HealConfig.opening_slot,
       DecoupledConsensusModel.Protocol.domain, DecoupledConsensusModel.Protocol.opening, DecoupledConsensusModel.Protocol.Phase.domainOffset,
@@ -1672,7 +1672,7 @@ theorem relative_carrier_window :
   let H := Proofs.HealingSurface.actionSGBlockAt S rho 0 1
   have hHsourceCore : H ∈
       (NamedRun.stateBeforeTime S rho (S.a 1) 0).st.core.T := by
-    simpa only [H] using
+    simpa only [H] using!
       (Proofs.HealingSurface.actionSGBlockAt_mem_storeBeforeTime S rho 0 1)
   obtain ⟨D, hDsource, hDErase⟩ :=
     Proofs.NamedStoreBridge.exists_named_of_mem_stateBeforeTime S rho
@@ -1822,7 +1822,7 @@ theorem asynchrony_resilience_activated :
       Protocol.HealConfig.opening_slot, slotStart, DecoupledConsensusModel.Protocol.early,
       DecoupledConsensusModel.Protocol.opening, DecoupledConsensusModel.Protocol.Phase.earlyOffset,
       Protocol.proposal_time, Env.t, Env.slotOf, slotOfTime,
-      Protocol.HealConfig.round_of, S, E, hc, cfg] <;> decide +kernel
+      Protocol.HealConfig.round_of, S, E, hc, cfg]
   have hpre : Block.Preceq protectedBlock
       (Generic.readAt (DecoupledConsensusModel.Execution.spec S) rho
         (fun n => Protocol.get_stable n.st.core) 0 (S.a stableRound)) := by

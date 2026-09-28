@@ -108,11 +108,8 @@ theorem voteDutyHead_runBlock_and_emits
     dsimp only [tree]
     rw [← Proofs.Optimistic.voter_candidate_tree_eq_protocol_voter_filtered_block_tree]
     intro C hC
-    simp only [Proofs.Optimistic.voter_candidate_tree,
-      Protocol.get_filtered_block_tree_from,
-      Protocol.viable_tree, Protocol.finalized_descendants,
-      Protocol.voter_processed_block_tree, Finset.mem_filter] at hC
-    exact hC.1.1.1.1
+    exact Finset.mem_of_mem_filter _ (Finset.mem_of_mem_filter _
+      (Finset.mem_of_mem_filter _ (Finset.mem_of_mem_filter _ hC)))
   have hanchor : Protocol.get_sg_root_with gc S.E S.hc n.st.core.toHealing
       (S.hc.round_of n.st.core.s) ∈ n.st.core.T :=
     Proofs.NamedConfirmationMembership.runtime_anchor_mem n.cache
@@ -129,7 +126,7 @@ theorem voteDutyHead_runBlock_and_emits
       some ⟨(S.node w).val_index, n.st.core.s, head.root⟩ := by
     simp only [Protocol.NamedDuties.goldfish_vote_with,
       Protocol.goldfish_vote_with]
-    rw [if_pos hcommittee']
+    rw [ite_eq_left hcommittee']
     rfl
   have ho : Object.gfVote ⟨(S.node w).val_index, n.st.core.s, head.root⟩ ∈
       (on_tick_emit S w pre t).2 :=
@@ -449,7 +446,7 @@ theorem movingSlotPreEntryN_confRoot_preceq_prev_core
       hstartTime hE hErun
   rw [← hprev, ← hE]
   simpa only [confRoot, Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore,
-    Run.storeBeforeTime] using hrootRaw
+    Run.storeBeforeTime] using! hrootRaw
 
 /-- The frontier band at the slot-`(c+1)` vote read, N history, on the named
 derivation of the endpoint witness. -/
@@ -584,7 +581,7 @@ theorem movingSlotPreEntryN_voterAnchorAt_preceq_prev_core
         (Proofs.Optimistic.voteDutyStore S rho w (c + 1)).toHealing.toFG)
       (EndAt k) := by
     simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore, Run.storeBeforeTime] using hrootRaw
+      Proofs.Optimistic.tickStore, Run.storeBeforeTime] using! hrootRaw
   have hread : S.hc.Γ_0 S.E.Δ (r + 1) ≤ Protocol.vote_time S.E (c + 1) :=
     Γ_0_le_vote_time_of_round_eq S hround
   have hbefore : S.a r < Protocol.vote_time S.E (c + 1) :=
@@ -657,12 +654,12 @@ theorem MovingSlotEntryStateN.windowVotesCone
         (Proofs.Optimistic.voteDutyStore S rho w (c + 1)).toHealing.toFG)
       E0.erase := by
     simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore, Run.storeBeforeTime] using hrootRaw
+      Proofs.Optimistic.tickStore, Run.storeBeforeTime] using! hrootRaw
   have hrootNext : Block.Preceq
       (Protocol.get_fg_root
         (Proofs.Optimistic.voteDutyStore S rho w (c + 1)).toHealing.toFG) Next := by
     exact Block.preceq_trans hroot (by
-      simpa only [hE0, hprev] using hPrevNext)
+      simpa only [hE0, hprev] using! hPrevNext)
   have hgenuine' : GenuineConfirmation (contract :=
       NamedProfile.gradeContract (confirmationInputRead S rho v c).cache)
       S.E S.hc (Proofs.Optimistic.confStore S rho v c) c Next := by
@@ -677,7 +674,7 @@ theorem MovingSlotEntryStateN.windowVotesCone
     simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
       Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore] using hprocessedOld
+      Proofs.Optimistic.tickStore] using! hprocessedOld
   have htime : Protocol.vote_time S.E (c + 1) ≤
       Protocol.confirmation_time S.E c := by
     rw [← Protocol.vote_time_succ_add_delta_eq_confirmation_time S.E c]
@@ -765,7 +762,7 @@ theorem MovingSlotEntryStateN.windowVotesCone
           adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hj ht1
       exact Block.preceq_trans ((hpre.sgCarriers j hn0j hji) hu hj hout)
         (by
-          simpa only [hE0] using
+          simpa only [hE0] using!
             (hendpointMono (a := j + 1) (b := k)
               (hn0j.trans (Nat.le_succ j))
               (Nat.succ_le_iff.mpr hji) (Nat.le_refl k)))
@@ -776,7 +773,7 @@ theorem MovingSlotEntryStateN.windowVotesCone
   have hanchorEnd : Block.Preceq
       (voterAnchorAt S rho w (c + 1)) End :=
     Block.preceq_trans hanchor (by
-      simpa only [hE0, hprev] using hentry.prevLe)
+      simpa only [hE0, hprev] using! hentry.prevLe)
   have hbandN :
       (voteDutyRead S rho w (c + 1)).st.core.h_max - 1 ≤
         ((voteDutyRead S rho w (c + 1)).st.core.σ N.erase).h := by

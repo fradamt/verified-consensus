@@ -88,7 +88,7 @@ private theorem liveConfirmed_preceq_genesis_before_first_confirmation_named
       exact hcut
     have hbefore : time ≤ t := by
       have hmem := filter_true_of_index_lt S sch _ (downward_le t) hi he
-      simpa only [decide_eq_true_eq, Event.time] using hmem
+      simpa only [decide_eq_true_eq, Event.time] using! hmem
     have hzero : Protocol.confirmation_time S.E 0 ≤
         Protocol.confirmation_time S.E q := by
       rw [Protocol.confirmation_time_eq_support_cutoff_succ,
@@ -116,7 +116,7 @@ theorem liveConfirmed_mono_of_weakGenesis_named
   have hbase : Block.Preceq (rho.storeAt S v t).live_confirmed
       (rho.stateBefore S m v).st.live_confirmed := by
     simpa only [Run.storeAt, stateAt_eq_take S h.core.toNamedScheduleWellFormed,
-      m] using Block.preceq_self (rho.storeAt S v t).live_confirmed
+      m] using! Block.preceq_self (rho.storeAt S v t).live_confirmed
   have hmn : m ≤ n := filter_le_length_mono rho htt'
   have hfold := WeakRecords.preceq_liveField_at_prefix_of_suffixSelections_named
     S rho v (rho.storeAt S v t).live_confirmed hbase n hmn
@@ -127,11 +127,11 @@ theorem liveConfirmed_mono_of_weakGenesis_named
     have hafter : t < Protocol.confirmation_time S.E q := by
       have hfalse := filter_false_of_index_ge
         S h.core.toNamedScheduleWellFormed _ (downward_le t) hmi hqevent
-      simpa only [decide_eq_false_iff_not, not_le, Event.time] using hfalse
+      simpa only [decide_eq_false_iff_not, not_le, Event.time] using! hfalse
     have hbefore : Protocol.confirmation_time S.E q ≤ t' := by
       have htrue := filter_true_of_index_lt
         S h.core.toNamedScheduleWellFormed _ (downward_le t') hin hqevent
-      simpa only [decide_eq_true_eq, Event.time] using htrue
+      simpa only [decide_eq_true_eq, Event.time] using! htrue
     rw [← hqC]
     cases q with
     | zero =>

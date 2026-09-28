@@ -88,7 +88,7 @@ theorem G1_reflects_after_cutoff
     have huv : u.val_index = x := (Finset.mem_filter.mp hu).2
     have huLater : u ∈
         (rho.storeBeforeTime S v later).toHealing.sg_votes (q - 1) := by
-      simpa only [laterView, Protocol.round_batch, if_neg hq,
+      simpa only [laterView, Protocol.round_batch, ite_eq_right hq,
         Protocol.HealingStore.gradeView, Protocol.Store.toHealing] using
         (Finset.mem_filter.mp hu).1
     have hutLater : occurrenceBefore
@@ -166,7 +166,7 @@ theorem G1_reflects_after_cutoff
         (Protocol.round_batch source q) x := by
       apply Finset.mem_filter.mpr
       refine ⟨?_, huv⟩
-      simpa only [source, Protocol.round_batch, if_neg hq,
+      simpa only [source, Protocol.round_batch, ite_eq_right hq,
         Protocol.HealingStore.gradeView, Protocol.Store.toHealing] using huEarly.1
     have hearlySelected := GradeDeliveryRun.summary_support_or_equivocation_of_vote
       source q x B (S.hc.Γ_0 S.E.Δ q) hsourceRounds huEarlyBatch

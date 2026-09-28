@@ -232,21 +232,21 @@ theorem height_pair_timeout_cases {Λ : Record}
       rw [hf] at hp
       simp only [Protocol.height_pair] at hp
       by_cases htimeout : Λ.timeout h_c = true
-      · rw [if_pos htimeout] at hp
+      · rw [ite_eq_left htimeout] at hp
         have hhc : h_c = h := by
           simpa only [HeightPair.timeout.injEq] using hp
         subst hhc
         rw [hpre] at htimeout
         exact absurd htimeout (by simp)
-      · rw [if_neg htimeout] at hp
+      · rw [ite_eq_right htimeout] at hp
         cases hlock : Protocol.own_lock Λ h_c fp with
         | some locked =>
             rw [hlock] at hp
             dsimp only at hp
             by_cases hleq : locked = T_c
-            · rw [if_pos hleq] at hp
+            · rw [ite_eq_left hleq] at hp
               simp only [reduceCtorEq] at hp
-            · rw [if_neg hleq] at hp
+            · rw [ite_eq_right hleq] at hp
               simp only [reduceCtorEq] at hp
         | none =>
             rw [hlock] at hp
@@ -256,9 +256,9 @@ theorem height_pair_timeout_cases {Λ : Record}
                 rw [htar] at hp
                 dsimp only at hp
                 by_cases hreq : recorded = T_c
-                · rw [if_pos hreq] at hp
+                · rw [ite_eq_left hreq] at hp
                   simp only [reduceCtorEq] at hp
-                · rw [if_neg hreq] at hp
+                · rw [ite_eq_right hreq] at hp
                   have hhc : h_c = h := by
                     simpa only [HeightPair.timeout.injEq] using hp
                   subst hhc
@@ -267,12 +267,12 @@ theorem height_pair_timeout_cases {Λ : Record}
                 rw [htar] at hp
                 dsimp only at hp
                 by_cases hnu : nu = true
-                · rw [if_pos hnu] at hp
+                · rw [ite_eq_left hnu] at hp
                   have hhc : h_c = h := by
                     simpa only [HeightPair.timeout.injEq] using hp
                   subst hhc
                   exact ⟨T_c, nu, rfl, Or.inl hnu⟩
-                · rw [if_neg hnu] at hp
+                · rw [ite_eq_right hnu] at hp
                   simp only [reduceCtorEq] at hp
 
 

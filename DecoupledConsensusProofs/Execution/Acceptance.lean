@@ -53,8 +53,9 @@ theorem genesis_or_acceptsAt_of_processed (S : Setup V) (rho : Run V) (v : V) :
       | block B =>
           simp only [Object.processed, NamedReceipt.processed, Run.stateBefore,
             Proofs.NamedRuntime.stateBefore_zero, NamedWorld.init, NamedNode.initial,
-            Protocol.NamedStore.initial, decide_eq_true_eq] at hprocessed
-          exact Or.inl (congrArg Object.block (Finset.mem_singleton.mp hprocessed))
+            Protocol.NamedStore.initial] at hprocessed
+          exact Or.inl (congrArg Object.block
+            (Finset.mem_singleton.mp (of_decide_eq_true hprocessed)))
       | gfVote u =>
           simp [Object.processed, NamedReceipt.processed, Run.stateBefore,
             Proofs.NamedRuntime.stateBefore_zero, NamedWorld.init, NamedNode.initial,

@@ -46,7 +46,7 @@ theorem voteDuty_parentClosed_agrees_rootInjective
   have hcoh : Proofs.NamedStore.Coherent S.E S.cfg read.st := by
     simpa only [read, voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      Run.storeBeforeTime] using
+      Run.storeBeforeTime] using!
       (Proofs.NamedRuntime.stateBeforeTime_invariants S rho
         (Protocol.vote_time S.E d) w).1.1.1
   have hinj : RootInjectiveBelow (read.st.bodies.image NamedBlock.erase) := by
@@ -67,7 +67,7 @@ theorem voteDuty_parentClosed_agrees_rootInjective
   refine ⟨hcoh.2.2.1, hcoh.2.2.2.2, ?_⟩
   have htree : (voteDutyRead S rho w d).st.core.T =
       (voteDutyRead S rho w d).st.bodies.image NamedBlock.erase := by
-    simpa only [read] using hcoh.1
+    simpa only [read] using! hcoh.1
   rw [htree]
   exact hinj
 
@@ -91,26 +91,24 @@ theorem namedFrozenCandidate_child_towards_witness
     simpa only [duty, voteDutyStore, voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      Run.storeBeforeTime] using
+      Run.storeBeforeTime] using!
       Proofs.NamedStoreBridge.parentClosed_stateBeforeTime S rho
         (Protocol.vote_time S.E (s + 1)) w
   have hHfull : H ∈ Protocol.get_filtered_block_tree duty.toHealing.toFG := by
     have hdata := hHcandidate
     simp only [voterCandidateTreeAt, Protocol.voter_filtered_block_tree,
-      Protocol.get_filtered_block_tree,
-      Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Protocol.voter_processed_block_tree, Finset.mem_filter,
-      decide_eq_true_eq] at hdata ⊢
+      Protocol.get_filtered_block_tree, Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
+      Protocol.finalized_descendants, Finset.mem_filter] at hdata ⊢
+    simp only [Protocol.viable, decide_eq_true_eq] at hdata ⊢
+    simp only [Protocol.voter_processed_block_tree, Finset.mem_filter] at hdata ⊢
     obtain ⟨⟨⟨hHprocessed, hFH⟩, Z, hZprocessed, hHZ, hZheight⟩,
       hrootH⟩ := hdata
     exact ⟨⟨⟨hHprocessed.1, hFH⟩, Z,
       hZprocessed.1, hHZ, hZheight⟩, hrootH⟩
   have hHdata := hHfull
-  simp only [Protocol.get_filtered_block_tree,
-    Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
-    Protocol.finalized_descendants, Protocol.viable,
-    Finset.mem_filter, decide_eq_true_eq] at hHdata
+  simp only [Protocol.get_filtered_block_tree, Protocol.get_filtered_block_tree_from,
+    Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter] at hHdata
+  simp only [Protocol.viable, decide_eq_true_eq] at hHdata
   have hWT : W ∈ duty.T := by
     have hdata := hWprocessed
     simp only [Protocol.voter_processed_block_tree, Finset.mem_filter] at hdata
@@ -124,13 +122,13 @@ theorem namedFrozenCandidate_child_towards_witness
     Block.preceq_trans hHdata.2 hHD
   have hDprocessed : D ∈ Protocol.voter_processed_block_tree S.E
       duty.toHealing.toFG.toSG.toGoldfishStore duty.toHealing.s := by
-    simpa only [duty] using
+    simpa only [duty] using!
       WeakGoldfish.ancestorProcessed_of_voterProcessed
         S adm.toNamedAdmissibleCore hw hWprocessed D hDW
   simp only [voterCandidateTreeAt, Protocol.voter_filtered_block_tree,
-    Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
-    Protocol.finalized_descendants, Protocol.viable,
-    Finset.mem_filter, decide_eq_true_eq]
+    Protocol.get_filtered_block_tree_from, Protocol.viable_tree, Protocol.finalized_descendants,
+    Finset.mem_filter]
+  simp only [Protocol.viable, decide_eq_true_eq]
   exact ⟨⟨⟨hDprocessed, hFD⟩, W, hWprocessed, hDW, hWheight⟩, hrootD⟩
 
 /-- A named processed descendant at the frontier makes every filtered
@@ -154,7 +152,7 @@ theorem namedAncestorCandidate_of_processedDescendant_and_hMax_core
     have hdata := hHprocessed
     simp only [Protocol.voter_processed_block_tree, Finset.mem_filter] at hdata
     simpa only [time, voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore] using hdata.1
+      Proofs.Optimistic.tickStore] using! hdata.1
   obtain ⟨Hn, hHnbody, hHnerase⟩ :=
     Proofs.NamedStoreBridge.exists_named_of_mem_stateBeforeTime S rho time w hHT
   have hHnrun : RunBlock S rho Hn := by
@@ -181,7 +179,7 @@ theorem namedAncestorCandidate_of_processedDescendant_and_hMax_core
     have hsigma' : (voteDutyStore S rho w (s + 1)).σ H.erase =
         derive_named S.E S.cfg H := by
       simpa only [time, voteDutyStore, Proofs.Optimistic.voteStore,
-        Proofs.Optimistic.tickStore] using hsigma
+        Proofs.Optimistic.tickStore] using! hsigma
     rw [hsigma']
     exact hbound
   have hCprocessed : C ∈ Protocol.voter_processed_block_tree S.E
@@ -190,11 +188,10 @@ theorem namedAncestorCandidate_of_processedDescendant_and_hMax_core
     WeakGoldfish.ancestorProcessed_of_voterProcessed S
       adm hw hHprocessed C hCH
   have hdata := hCfiltered
-  simp only [Proofs.Optimistic.voter_candidate_tree,
-    Protocol.get_filtered_block_tree,
-    Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
-    Protocol.finalized_descendants, Protocol.viable,
-    Finset.mem_filter, decide_eq_true_eq] at hdata ⊢
+  simp only [Proofs.Optimistic.voter_candidate_tree, Protocol.get_filtered_block_tree,
+    Protocol.get_filtered_block_tree_from, Protocol.viable_tree, Protocol.finalized_descendants,
+    Finset.mem_filter] at hdata ⊢
+  simp only [Protocol.viable, decide_eq_true_eq] at hdata ⊢
   obtain ⟨⟨⟨hCT, hFC⟩, _, _, _, _⟩, hrootC⟩ := hdata
   exact ⟨⟨⟨hCprocessed, hFC⟩, H.erase, hHprocessed, hCH, hheight⟩, hrootC⟩
 
@@ -258,7 +255,7 @@ theorem voteDutyHead_height_ge_frontier_sub_one_of_candidate
     (Proofs.NamedRuntime.stateBeforeTime_invariants S rho
       (Protocol.vote_time S.E (s + 1)) w).1
   have hinv : Proofs.NamedConfirmationMembership.Invariant S.E S.cfg read.st := by
-    simpa only [read, voteDutyRead, NamedActionReads.confirmationReadAt] using
+    simpa only [read, voteDutyRead, NamedActionReads.confirmationReadAt] using!
       Proofs.NamedConfirmationMembership.invariant_clock S.E S.cfg _ _ hinvPre
   have hroot : Protocol.get_fg_root duty.toHealing.toFG ∈ duty.T :=
     Proofs.NamedStoreRoots.fg_root_mem read.st hinv.1.2
@@ -325,14 +322,14 @@ theorem voteDutyHead_height_ge_frontier_sub_one_of_candidate
     · have hHC : H = C := hHA'.trans hACeq
       have hCdata := hinputs.candidate
       simp only [voterCandidateTreeAt, Protocol.voter_filtered_block_tree,
-        Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
-        Protocol.finalized_descendants, Protocol.viable,
-        Finset.mem_filter, decide_eq_true_eq] at hCdata
+        Protocol.get_filtered_block_tree_from, Protocol.viable_tree, Protocol.finalized_descendants,
+        Finset.mem_filter] at hCdata
+      simp only [Protocol.viable, decide_eq_true_eq] at hCdata
       obtain ⟨⟨⟨-, -⟩, W, hWprocessed, hCW, hWheight⟩, -⟩ := hCdata
       exact stopContradiction C W hHC.symm
         (by simpa only [tree] using hinputs.candidate)
         (by simpa only [duty, read, voteDutyStore] using hWprocessed)
-        hCW (by simpa only [duty, read, voteDutyStore] using hWheight)
+        hCW (by simpa only [duty, read, voteDutyStore] using! hWheight)
     · obtain ⟨D, hDparent, hDC⟩ := exists_child_towards C hAC hACeq
       have hAD : Block.Preceq A D := preceq_of_parent? hDparent
       have hDneA : D ≠ A := by
@@ -367,7 +364,7 @@ theorem voteDutyHead_height_ge_frontier_sub_one_of_candidate
     obtain ⟨⟨⟨-, -⟩, W, hWprocessed, hHW, hWheight⟩, -⟩ := hHdata
     exact stopContradiction H W rfl hHtree'
       (by simpa only [duty, read, voteDutyStore] using hWprocessed)
-      hHW (by simpa only [duty, read, voteDutyStore] using hWheight)
+      hHW (by simpa only [duty, read, voteDutyStore] using! hWheight)
 
 
 

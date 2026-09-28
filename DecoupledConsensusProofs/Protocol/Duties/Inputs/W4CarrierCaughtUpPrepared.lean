@@ -231,7 +231,7 @@ theorem w4_caughtUp_finalityPairTarget_of_previousHistory
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using hDbody
+      NamedRun.stateBeforeTime] using! hDbody
   obtain ⟨i, hi, -⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix S rho
     adm.toNamedAdmissibleCore.toNamedScheduleWellFormed.sorted (S.a b.round)
   have hDrun : RunBlock S rho D := by
@@ -290,7 +290,7 @@ theorem w4_caughtUp_lockAlignment_of_previousHistory
       exact hv
     exact w4_caughtUp_finalityPairTarget_of_previousHistory S adm hbelow
       hhistPrev hPrevHeight habove haHonest
-      (by simpa only [(Proofs.Optimistic.emits_attest_shape S haEmit).1] using haEmit)
+      (by simpa only [(Proofs.Optimistic.emits_attest_shape S haEmit).1] using! haEmit)
       (le_of_lt (hbefore i _ hi hevent)) hpair
   · intro p hfp hpHeight
     have haEmit := honest_emits_exact_actionAttestationAt S adm hv m hhor hpost
@@ -320,7 +320,7 @@ private theorem w4cu_actionBodyRun
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using hD
+      NamedRun.stateBeforeTime] using! hD
   obtain ⟨i, hi, -⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix S rho
     adm.toNamedAdmissibleCore.toNamedScheduleWellFormed.sorted (S.a r)
   have hDi : D ∈ (rho.stateBefore S i v).st.bodies := by
@@ -349,13 +349,13 @@ private theorem w4cu_fgSource_mem_actionStore
     exact Proofs.NamedConfirmationMembership.invariant_clock S.E S.cfg _ (S.a r)
       (Proofs.NamedRuntime.stateBeforeTime_invariants S rho (S.a r) v).1
   have hround : S.hc.round_of n.st.core.s = r := by
-    simpa only [n] using actionStoreAt_round S rho v r
+    simpa only [n] using! actionStoreAt_round S rho v r
   change Protocol.fg_source_with (NamedProfile.gradeContract n.cache) S.E S.hc
     n.st.core.toHealing (S.hc.round_of n.st.core.s)
     (Protocol.grade2_block_with (NamedProfile.gradeContract n.cache) S.E S.hc
       n.st.core.toHealing (S.hc.round_of n.st.core.s)) = some Q at hsource
   rw [hround] at hsource
-  simpa only [n] using
+  simpa only [n] using!
     (NamedActionSources.frame_fg_source_mem S n.cache n.st r hinv hsource)
 
 private theorem w4cu_exactActionRow_mem_namedProcessed
@@ -372,7 +372,7 @@ private theorem w4cu_exactActionRow_mem_namedProcessed
     simpa only [st, proposerReadAt,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using!
         (Proofs.NamedRuntime.stateBeforeTime_invariants S rho
           (Protocol.proposal_time S.E s)
           (S.E.proposer s)).1.1.1.2.2.2.1
@@ -384,7 +384,7 @@ private theorem w4cu_exactActionRow_mem_namedProcessed
     simpa only [st, Protocol.proposerDutyStore, proposerReadAt,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using!
         hprocessed
   obtain ⟨b, hb, hberase⟩ := List.mem_map.mp hmemMap
   have hbFlat := hb
@@ -394,7 +394,7 @@ private theorem w4cu_exactActionRow_mem_namedProcessed
     simpa only [st, proposerReadAt,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using!
         Proofs.NamedStoreBridge.sgRowRounds_stateBeforeTime S rho
           (Protocol.proposal_time S.E s) (S.E.proposer s)
   have hbr : b.round = k := hrounds k b hbk
@@ -410,7 +410,7 @@ private theorem w4cu_exactActionRow_mem_namedProcessed
     simpa only [st, proposerReadAt,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hbOwn
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hbOwn
   have hbval : b.val_index = a.val_index :=
     congrArg CombinedAttestation.val_index hberase
   have hbHon : b.val_index ∈ rho.honest := by
@@ -552,7 +552,7 @@ theorem w4_caughtUp_targetRows_of_source
       Protocol.derive_named S.E S.cfg Pprev := by
     simpa only [ast, hCeq] using hCderive
   have hround : S.hc.round_of ast.st.core.s = r - 1 := by
-    simpa only [ast] using actionStoreAt_round S rho v (r - 1)
+    simpa only [ast] using! actionStoreAt_round S rho v (r - 1)
   have hsourceRound :
       Protocol.fg_source_with (NamedProfile.gradeContract ast.cache)
         S.E S.hc ast.st.core.toHealing
@@ -575,8 +575,8 @@ theorem w4_caughtUp_targetRows_of_source
     (NamedProfile.gradeContract ast.cache) S.E S.hc (S.node v)
     ast.st.core.toHealing Lambda hsourceRound hQheight hQtarget hQnj
     (by simpa only [hParentHeight] using hrecord v hv)
-    (by simpa only [ast, Lambda, hParentHeight, hPrevTarget] using haligned v hv)
-  simpa only [actionAttestationAt, ast, Lambda] using hpair
+    (by simpa only [ast, Lambda, hParentHeight, hPrevTarget] using! haligned v hv)
+  simpa only [actionAttestationAt, ast, Lambda] using! hpair
 
 #print axioms w4_caughtUp_targetRows_of_source
 

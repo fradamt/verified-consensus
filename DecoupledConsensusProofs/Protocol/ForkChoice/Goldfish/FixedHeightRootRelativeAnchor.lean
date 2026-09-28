@@ -38,18 +38,18 @@ private theorem relAnchor_cacheAtRound_align_self
   by_cases h1 : r = c.round
   · rw [show DecoupledConsensusModel.Protocol.alignRound c r = c by
       unfold DecoupledConsensusModel.Protocol.alignRound
-      rw [if_pos h1]]
+      rw [ite_eq_left h1]]
   · by_cases h2 : r = c.round + 1
     · rw [show DecoupledConsensusModel.Protocol.alignRound c r =
         ⟨r, c.next, DecoupledConsensusModel.Protocol.pendingFrame⟩ by
         unfold DecoupledConsensusModel.Protocol.alignRound
-        rw [if_neg h1, if_pos h2]]
+        rw [ite_eq_right h1, ite_eq_left h2]]
       subst h2
       simp [DecoupledConsensusModel.Protocol.cacheAtRound]
     · rw [show DecoupledConsensusModel.Protocol.alignRound c r =
         ⟨r, DecoupledConsensusModel.Protocol.pendingFrame, DecoupledConsensusModel.Protocol.pendingFrame⟩ by
         unfold DecoupledConsensusModel.Protocol.alignRound
-        rw [if_neg h1, if_neg h2]]
+        rw [ite_eq_right h1, ite_eq_right h2]]
       simp [DecoupledConsensusModel.Protocol.cacheAtRound, h1, h2]
 
 private theorem relAnchor_clip_grade_compatible (g F : Block V) :
@@ -517,13 +517,13 @@ theorem fixedHeightJustificationRootOpeningParentRun_of_fixedRootLock_relative
   have hrootC : Block.Preceq
       (Protocol.get_fg_root pre.toHealing.toFG) C := by
     rw [htarget.rootAtProposal, htarget.targetErase]
-    exact Block.preceq_trans (by simpa only [fixed] using hJA) hAC
+    exact Block.preceq_trans (by simpa only [fixed] using! hJA) hAC
   have hAfilteredSource : A ∈
       Protocol.get_filtered_block_tree source.toHealing.toFG := by
     simpa only [source, Protocol.proposerDutyStore, Proofs.Optimistic.tickStore,
       proposerReadAt, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      Protocol.NamedStore.toHealing] using hAfiltered
+      Protocol.NamedStore.toHealing] using! hAfiltered
   have hdata : FixedRootPreparedParentCandidate
       S rho H q w read A target C C vC fixed pre source :=
     { targetErase := htarget.targetErase

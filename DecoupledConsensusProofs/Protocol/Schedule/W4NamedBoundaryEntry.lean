@@ -189,7 +189,7 @@ theorem w4NamedBoundaryPreEntryN_byzantine
   · simpa only [Nat.add_assoc] using
       w4d1_support_cutoff_le_proposal_time_two S.E
         (S.hc.opening_slot q + 1)
-  · simpa only [Nat.add_sub_cancel] using hcone
+  · simpa only [Nat.add_sub_cancel] using! hcone
 
 /-- Named vote inputs from a carrier ceiling at the base cutoff. The
 initial cutoff need not precede the previous round's action. -/
@@ -218,7 +218,7 @@ theorem MovingSlotPreEntryN.voteInputs_of_ceiling
         (Proofs.Optimistic.voteDutyStore S rho w (c + 1)).toHealing.toFG)
         Prev := by
     simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore, Run.storeBeforeTime] using hrootRaw
+      Proofs.Optimistic.tickStore, Run.storeBeforeTime] using! hrootRaw
   have hcutHor : Protocol.support_cutoff S.E c ≤ rho.horizon :=
     (support_cutoff_le_confirmation_time S.E c).trans hslotHor
   have hvoteHorSucc : Protocol.vote_time S.E (c + 1) ≤
@@ -273,7 +273,7 @@ theorem MovingSlotPreEntryN.voteInputs_of_ceiling
       (Proofs.Optimistic.voteDutyStore S rho w (c + 1)).toHealing.toFG := by
     rw [← hE]
     simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore, Run.storeBeforeTime] using hfilteredRaw
+      Proofs.Optimistic.tickStore, Run.storeBeforeTime] using! hfilteredRaw
   have hanchorP :=
     w4cx_movingSlotPreEntryN_voterAnchorAt_preceq_prev_of_ceiling
       S adm hcom hfb hentry hround hupper hpostAction hcut hpostVote
@@ -282,7 +282,7 @@ theorem MovingSlotPreEntryN.voteInputs_of_ceiling
     Block.compatible_of_preceq_common hanchorP
       (Block.preceq_self Prev)⟩
   · simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore, Run.storeBeforeTime] using hroot
+      Proofs.Optimistic.tickStore, Run.storeBeforeTime] using! hroot
   · exact namedAncestorCandidate_of_processedDescendant_and_hMax_core
       S adm.toNamedAdmissibleCore hw hprocessed hXrun hPrevX hfiltered hmax
   · intro D hAD _hAne hDPrev _hDne
@@ -303,7 +303,7 @@ theorem MovingSlotPreEntryN.voteInputs_of_ceiling
             (Protocol.vote_time S.E (c + 1))).toHealing.toFG) D := by
       refine Block.preceq_trans ?_ hAD
       simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-        Proofs.Optimistic.tickStore, Run.storeBeforeTime] using
+        Proofs.Optimistic.tickStore, Run.storeBeforeTime] using!
         hrootAnchor
     have hpc : ParentClosed (rho.storeBeforeTime S w
         (Protocol.vote_time S.E (c + 1))).core := by
@@ -326,7 +326,7 @@ theorem MovingSlotPreEntryN.voteInputs_of_ceiling
         (Proofs.Optimistic.voteDutyStore S rho w (c + 1)).toHealing.toFG := by
       rw [← hDnerase]
       simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-        Proofs.Optimistic.tickStore, Run.storeBeforeTime] using hDfilteredRaw
+        Proofs.Optimistic.tickStore, Run.storeBeforeTime] using! hDfilteredRaw
     exact namedAncestorCandidate_of_processedDescendant_and_hMax_core
       S adm.toNamedAdmissibleCore hw hprocessed hXrun
       (Block.preceq_trans hDPrev hPrevX) hDfiltered hmax
@@ -403,7 +403,7 @@ theorem w4MovingSlotFoldAtN_boundary_byzantine
   have hR0pos : 0 < R0 := by
     simpa only [R0, o] using hbaseTiming.1
   have hround : S.hc.round_of (o + 3) = r0 + 1 := by
-    simpa only [R0, r0] using (Nat.succ_pred_eq_of_pos hR0pos).symm
+    simpa only [R0, r0] using! (Nat.succ_pred_eq_of_pos hR0pos).symm
   have hR0q1 : R0 ≤ q + 1 := by
     have hRpos : 0 < S.hc.R :=
       lt_of_lt_of_le Nat.zero_lt_two S.hc.R_ge_two
@@ -478,7 +478,7 @@ theorem w4MovingSlotFoldAtN_boundary_byzantine
     have hslot : o + 2 ≤ o + 3 := Nat.le_succ _
     exact (Int.add_le_add_right
       (Protocol.proposal_time_mono S.E hslot) _).trans
-        (by simpa only [o] using hbaseTiming.2.2)
+        (by simpa only [o] using! hbaseTiming.2.2)
   have hupper : ∀ u ∈ rho.honest,
       Block.Preceq (actionSGBlockAt S rho u r0) D.erase :=
     hboundary.carrierCeiling r0 (by simpa only [o] using hround)

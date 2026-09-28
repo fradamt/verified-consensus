@@ -176,8 +176,8 @@ theorem roundBatch_card_le_one_stateBeforeTime
     obtain ⟨huBatch, huv⟩ := Finset.mem_filter.mp hu
     obtain ⟨hzBatch, hzv⟩ := Finset.mem_filter.mp hz
     apply honest_sgVote_unique_stateBeforeTime S adm hv
-    · simpa only [Protocol.round_batch, hr, Protocol.HealingStore.gradeView] using huBatch
-    · simpa only [Protocol.round_batch, hr, Protocol.HealingStore.gradeView] using hzBatch
+    · simpa only [Protocol.round_batch, hr, Protocol.HealingStore.gradeView] using! huBatch
+    · simpa only [Protocol.round_batch, hr, Protocol.HealingStore.gradeView] using! hzBatch
     · exact huv
     · exact hzv
 

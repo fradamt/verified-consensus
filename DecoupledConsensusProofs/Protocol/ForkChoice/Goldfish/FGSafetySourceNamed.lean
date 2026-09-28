@@ -56,7 +56,7 @@ private theorem runBlock_of_action_body
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hD
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hD
   obtain ⟨j, hj, _⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix S rho
     adm.toNamedScheduleWellFormed.sorted (S.a r)
   have hDj : D ∈ (rho.stateBefore S j v).st.bodies := by
@@ -111,7 +111,7 @@ private theorem NamedHeightRegimeRun.sourceMem_at_read
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hsource
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hsource
   have heqSource := congrFun
     (stateBeforeTime_eq_stateBefore_strictEventIndex
       S adm.toNamedScheduleWellFormed (S.a a.round)) w
@@ -182,7 +182,7 @@ theorem honestHeightRow_gradeRoundReady (adm : Admissible S rho)
   have hbtime := (Proofs.Optimistic.emits_attest_shape S hemit).2
   have hhor : S.a b.round ≤ rho.horizon := by
     obtain ⟨j, hevent, -⟩ := hemit
-    simpa only [Event.time, hbtime] using
+    simpa only [Event.time, hbtime] using!
       (adm.in_horizon _ (List.mem_of_getElem? hevent)).2
   have haround : r0 ≤ a.round := by
     by_contra hnot
@@ -239,7 +239,7 @@ theorem honestFGSource_preceq_of_previousHead (adm : Admissible S rho)
   have hCT : Block.Preceq C.erase T.erase := by
     rcases (show Block.Preceq C.erase T.erase ∨
         Block.Preceq T.erase C.erase by
-      simpa only [Block.compatible, Bool.or_eq_true] using hcompat) with hCT | hTC
+      simpa only [Block.compatible, Bool.or_eq_true] using! hcompat) with hCT | hTC
     · exact hCT
     · obtain ⟨hTrun, hTheight⟩ := hreg.checkpoint_runBlock adm
       have hTCnamed : NamedBlock.Preceq T C :=
@@ -417,7 +417,7 @@ theorem honestFGSource_preceq_of_actionSGBlock (adm : Admissible S rho)
     rcases (show Block.Preceq C.erase T.erase ∨
         Block.Preceq T.erase C.erase by
       rw [hCerased]
-      simpa only [Block.compatible, Bool.or_eq_true] using hSG) with hCT | hTC
+      simpa only [Block.compatible, Bool.or_eq_true] using! hSG) with hCT | hTC
     · exact hCT
     · obtain ⟨hTrun, hTheight⟩ := hreg.checkpoint_runBlock adm
       have hTCnamed : NamedBlock.Preceq T C :=
@@ -624,7 +624,7 @@ theorem filteredMem_or_preceq_root_of_actionSGBlock_of_relay
   rcases (show Block.Preceq
       (Protocol.get_fg_root st.toHealing.toFG) C ∨
       Block.Preceq C (Protocol.get_fg_root st.toHealing.toFG) by
-    simpa only [Block.compatible, Bool.or_eq_true] using hcompat) with
+    simpa only [Block.compatible, Bool.or_eq_true] using! hcompat) with
     hroot | hroot
   · left
     obtain ⟨i, a, ta, Cfg0, T, hreg, ha⟩ :=
@@ -757,10 +757,9 @@ theorem filteredMem_or_preceq_root_of_actionSGBlock_of_relay
             simpa only [st, Run.storeBeforeTime] using hview,
             hYheight, heq]
     apply Proofs.Records.mem_filtered_of_mem_V_tree ?_ hroot
-    change C ∈ Protocol.V_tree st.toHealing.toFG
-    simp only [Protocol.V_tree, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, decide_eq_true_eq]
+    simp only [Protocol.V_tree, Protocol.viable_tree, Protocol.finalized_descendants,
+      Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
     exact ⟨⟨hCmem, hFC⟩, hwitness⟩
   · exact Or.inr hroot
 
@@ -796,7 +795,7 @@ theorem filteredMem_or_preceq_root_of_actionSGBlock
   rcases (show Block.Preceq
       (Protocol.get_fg_root st.toHealing.toFG) C ∨
       Block.Preceq C (Protocol.get_fg_root st.toHealing.toFG) by
-    simpa only [Block.compatible, Bool.or_eq_true] using hcompat) with
+    simpa only [Block.compatible, Bool.or_eq_true] using! hcompat) with
     hroot | hroot
   · left
     obtain ⟨i, a, ta, Cfg0, T, hreg, ha⟩ :=
@@ -927,10 +926,9 @@ theorem filteredMem_or_preceq_root_of_actionSGBlock
             simpa only [st, Run.storeBeforeTime] using hview,
             hYheight, heq]
     apply Proofs.Records.mem_filtered_of_mem_V_tree ?_ hroot
-    change C ∈ Protocol.V_tree st.toHealing.toFG
-    simp only [Protocol.V_tree, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, decide_eq_true_eq]
+    simp only [Protocol.V_tree, Protocol.viable_tree, Protocol.finalized_descendants,
+      Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
     exact ⟨⟨hCmem, hFC⟩, hwitness⟩
   · exact Or.inr hroot
 
@@ -977,7 +975,7 @@ theorem honestFGSource_preceq_of_actionSGBlock_ancestor
       Block.Preceq T.erase C.erase := by
     rcases (show Block.Preceq (actionSGBlockAt S rho v c) T.erase ∨
         Block.Preceq T.erase (actionSGBlockAt S rho v c) by
-      simpa only [Block.compatible, Bool.or_eq_true] using hSG) with hST | hTS
+      simpa only [Block.compatible, Bool.or_eq_true] using! hSG) with hST | hTS
     · exact Or.inl (Block.preceq_trans hCle hST)
     · exact Block.preceq_linear hCle hTS
   have hCT : Block.Preceq C.erase T.erase := by
@@ -1187,7 +1185,7 @@ theorem filteredMem_or_preceq_root_of_actionSGBlock_ancestor_of_relay
         (actionSGBlockAt S rho v c) ∨
       Block.Preceq (actionSGBlockAt S rho v c)
         (Protocol.get_fg_root st.toHealing.toFG) := by
-    simpa only [Block.compatible, Bool.or_eq_true] using hcompatVote
+    simpa only [Block.compatible, Bool.or_eq_true] using! hcompatVote
   have hrootCases : Block.Preceq
         (Protocol.get_fg_root st.toHealing.toFG) C.erase ∨
       Block.Preceq C.erase
@@ -1304,10 +1302,9 @@ theorem filteredMem_or_preceq_root_of_actionSGBlock_ancestor_of_relay
             simpa only [st, Run.storeBeforeTime] using hview,
             hYheight, heq]
     apply Proofs.Records.mem_filtered_of_mem_V_tree ?_ hroot
-    change C.erase ∈ Protocol.V_tree st.toHealing.toFG
-    simp only [Protocol.V_tree, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, decide_eq_true_eq]
+    simp only [Protocol.V_tree, Protocol.viable_tree, Protocol.finalized_descendants,
+      Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
     exact ⟨⟨hCmem, hFC⟩, hwitness⟩
   · exact Or.inr hroot
 
@@ -1342,7 +1339,7 @@ theorem filteredMem_or_preceq_root_of_actionSGBlock_ancestor
         (actionSGBlockAt S rho v c) ∨
       Block.Preceq (actionSGBlockAt S rho v c)
         (Protocol.get_fg_root st.toHealing.toFG) := by
-    simpa only [Block.compatible, Bool.or_eq_true] using hcompatVote
+    simpa only [Block.compatible, Bool.or_eq_true] using! hcompatVote
   have hrootCases : Block.Preceq
         (Protocol.get_fg_root st.toHealing.toFG) C.erase ∨
       Block.Preceq C.erase
@@ -1457,10 +1454,9 @@ theorem filteredMem_or_preceq_root_of_actionSGBlock_ancestor
             simpa only [st, Run.storeBeforeTime] using hview,
             hYheight, heq]
     apply Proofs.Records.mem_filtered_of_mem_V_tree ?_ hroot
-    change C.erase ∈ Protocol.V_tree st.toHealing.toFG
-    simp only [Protocol.V_tree, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, decide_eq_true_eq]
+    simp only [Protocol.V_tree, Protocol.viable_tree, Protocol.finalized_descendants,
+      Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
     exact ⟨⟨hCmem, hFC⟩, hwitness⟩
   · exact Or.inr hroot
 
@@ -1510,7 +1506,7 @@ private theorem storeGrade_mem_domainTree_source
       | some H =>
           have hQH : Block.Preceq Q H := by
             simpa [DecoupledConsensusModel.Protocol.localCovers,
-              Protocol.head_covers, hkey, hfind] using hcov
+              Protocol.head_covers, hkey, hfind] using! hcov
           have hHT : H ∈ n.st.core.T := Proofs.HealingLemmas.find?_mem hfind
           have hpc := Proofs.NamedStoreBridge.parentClosed_stateBeforeTime
             S rho (DecoupledConsensusModel.Protocol.domain S.E S.hc r p) w

@@ -81,7 +81,7 @@ private theorem honestHeadsAvailableBefore_of_actionStorePostHealingCone
   have hXtime : X ∈
       (rho.storeBeforeTime S x (Protocol.vote_time S.E q)).T := by
     simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using hXmem
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using! hXmem
   have hXn : X ∈ (rho.stateBefore S n x).st.core.T := by
     rw [← hn]
     exact hXtime

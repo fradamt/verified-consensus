@@ -67,7 +67,7 @@ private theorem fixedRoot_selectedQ2_body_at_capture
     Proofs.NamedStoreBridge.exists_named_of_mem_stateBeforeTime S rho (S.a r) p (by
       simpa only [actionStoreAt, actionReadAt, NamedActionReads.actionReadAt,
         NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
-        NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hQaction)
+        NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hQaction)
   have hQnRun := fixedRoot_runBlock_of_body_at_read S adm hp hQnAction
   let i := strictEventIndex rho (S.a r)
   have hread := stateBeforeTime_eq_stateBefore_strictEventIndex
@@ -86,7 +86,7 @@ private theorem fixedRoot_selectedQ2_body_at_capture
       (NamedActionReads.actionReadFrom S
         (NamedRun.stateBefore S rho i p) r).st.core.toHealing r =
         some Qn.erase := by
-    simpa only [i, hQnErase] using hselected0
+    simpa only [i, hQnErase] using! hselected0
   obtain ⟨j, raw, -, hj, hfreeze, hQraw⟩ :=
     contractQ2_capture_at_action_index S rho i p r hselected'
   have hrawTree : raw ∈ (rho.stateBefore S j p).st.core.T :=
@@ -143,7 +143,7 @@ private theorem fixedRoot_selectedQ2_preceq_voterHead_of_rawDomain
     NamedOutageClosure.q10_freeze_of_graded S.E
       domainRead.st.core.toHealing.gradeView domainRead.st.core.F
       S.hc.η_SG r (NamedOutageClosure.q10_early_le_late S r .g1)
-      (by simpa only [domainRead] using hQdomain) hgrade'
+      (by simpa only [domainRead] using! hQdomain) hgrade'
   have hQread' : Q ∈ Protocol.get_filtered_block_tree
       before.st.core.toHealing.toFG := by
     simpa only [before, t, PhaseGrades.filteredTree,
@@ -164,7 +164,7 @@ private theorem fixedRoot_selectedQ2_preceq_voterHead_of_rawDomain
         some ((PhaseGrades.storeRoot S.E S.hc domainRead.st r .g1).map
           (fun X => DecoupledConsensusModel.Protocol.clipGrade X before.st.core.F)) := by
     simpa only [before, domainRead, PhaseGrades.storeRoot,
-      PhaseGrades.phaseRoot] using hframe
+      PhaseGrades.phaseRoot] using! hframe
   have hbase :
       (DecoupledConsensusModel.Protocol.readFrame before.cache
         before.st.core.toHealing r).g1 =
@@ -193,7 +193,7 @@ private theorem fixedRoot_selectedQ2_preceq_voterHead_of_rawDomain
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
       Protocol.NamedStore.setClock, PhaseGrades.filteredTree,
-      PhaseGrades.readAt] using hQread
+      PhaseGrades.readAt] using! hQread
   have hanchorQ : Block.Preceq Q (voterAnchorAt S rho w s) := by
     change Block.Preceq Q
       (DecoupledConsensusModel.Protocol.anchor S.E S.hc n.st.core.toHealing
@@ -305,7 +305,7 @@ theorem honestVotesCone_of_selectedActionG2_exactFGRoot_heightCap
       simpa only [Internal.NamedRecoveryRead.voteDutyRead,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-        using hvoteRoot w hw
+        using! hvoteRoot w hw
     rw [hrootStrict] at hFroot
     exact hFroot
   have hFg1J : Block.Preceq
@@ -324,7 +324,7 @@ theorem honestVotesCone_of_selectedActionG2_exactFGRoot_heightCap
       (DecoupledConsensusModel.Protocol.domain S.E S.hc r .g2)
       (DecoupledConsensusModel.Protocol.domain S.E S.hc r .g1)
       (DecoupledConsensusModel.Protocol.domain S.E S.hc r .g1) hQsource hdeadline
-      (le_refl _) hdomainHor (by simpa only [hQnErase] using hFg1Q)
+      (le_refl _) hdomainHor (by simpa only [hQnErase] using! hFg1Q)
   have hforward : ∀ sender x root H,
       x ∈ DecoupledConsensusModel.Protocol.interpretedInputs
         (PhaseGrades.readAt S rho
@@ -342,7 +342,7 @@ theorem honestVotesCone_of_selectedActionG2_exactFGRoot_heightCap
       Block.Preceq (PhaseGrades.readAt S rho
         (DecoupledConsensusModel.Protocol.domain S.E S.hc r .g1) w).st.core.F H := by
     intro sender x root H _ hcover hconf hfind
-    exact Block.preceq_trans (by simpa only [PhaseGrades.readAt] using hFg1Q) (by
+    exact Block.preceq_trans (by simpa only [PhaseGrades.readAt] using! hFg1Q) (by
       unfold DecoupledConsensusModel.Protocol.localCovers at hcover
       unfold Protocol.head_covers at hcover
       simp only [Protocol.HealingStore.gradeView, Protocol.Store.toHealing, hconf]
@@ -363,7 +363,7 @@ theorem honestVotesCone_of_selectedActionG2_exactFGRoot_heightCap
       (DecoupledConsensusModel.Protocol.domain S.E S.hc r .g2)
       (DecoupledConsensusModel.Protocol.domain S.E S.hc r .g1)
       (Protocol.vote_time S.E s) hQsource hdeadline hread.le hdomainHor
-      (by simpa only [hQnErase] using Block.preceq_trans hFvoteJ hJQ)
+      (by simpa only [hQnErase] using! Block.preceq_trans hFvoteJ hJQ)
   obtain ⟨Jn, hJnQ, hJnErase⟩ :=
     Proofs.NamedAncestry.erased_ancestor_lift Qn (by simpa only [hQnErase] using hJQ)
   have hJnRun := Proofs.NamedRuntime.blockInRun_of_ancestor S rho hQnRun hJnQ
@@ -380,14 +380,14 @@ theorem honestVotesCone_of_selectedActionG2_exactFGRoot_heightCap
     · simpa only [Internal.NamedRecoveryRead.voteDutyRead,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-        using hvoteRoot w hw
+        using! hvoteRoot w hw
     · exact hJQ
     · exact (by
         have hcap := hvoteCap w hw
         simpa only [Internal.NamedRecoveryRead.voteDutyRead,
           NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-          using hcap.trans (Nat.add_le_add_right hheight 1))
+          using! hcap.trans (Nat.add_le_add_right hheight 1))
   have hQhead := fixedRoot_selectedQ2_preceq_voterHead_of_rawDomain
     S adm.toNamedAdmissibleCore hr hu hw hQ hround hread hnext hdomainHor
       (by
@@ -533,7 +533,7 @@ theorem fixedRoot_activeVoterAnchor_g1_data
         some ((PhaseGrades.storeRoot S.E S.hc domainRead.st r .g1).map
           (fun X => DecoupledConsensusModel.Protocol.clipGrade X before.st.core.F)) := by
     simpa only [before, domainRead, PhaseGrades.storeRoot,
-      PhaseGrades.phaseRoot, PhaseGrades.readAt] using hbase
+      PhaseGrades.phaseRoot, PhaseGrades.readAt] using! hbase
   have hprepared := NamedOutageClosure.frame_phase_prepared_eq
     S rho w r .g1 t hround' _ hbase'
   have hreadFrame :
@@ -542,7 +542,7 @@ theorem fixedRoot_activeVoterAnchor_g1_data
           (fun X => DecoupledConsensusModel.Protocol.clipGrade X read.st.core.F)) := by
     simpa only [read, before, t, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom] using hprepared
+      NamedActionReads.confirmationReadFrom] using! hprepared
   cases hstore : PhaseGrades.storeRoot S.E S.hc domainRead.st r .g1 with
   | none =>
       simp only [hstore, Option.map_none] at hreadFrame
@@ -602,7 +602,7 @@ private theorem fixedRoot_g0_compatible_clearSource
       simp only [DecoupledConsensusModel.Protocol.early, DecoupledConsensusModel.Protocol.late,
       DecoupledConsensusModel.Protocol.Phase.earlyOffset, DecoupledConsensusModel.Protocol.Phase.lateOffset]
       exact le_rfl)
-    hLtree (by simpa only [PhaseGrades.storeGrade] using hLgrade)
+    hLtree (by simpa only [PhaseGrades.storeGrade] using! hLgrade)
   have hactionFrame := actionFrame_g0 S adm.toNamedAdmissibleCore
     hu hr hactionHor
   have hframe :
@@ -716,8 +716,8 @@ theorem voterAnchorAt_compatible_actionSGBlockAt
       simpa only [actionStoreAt, actionReadAt,
         NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
         NamedActionReads.confirmationReadFrom,
-        NamedActionReads.preparedCache] using hactionRoot
-    simpa only [hroot] using hFroot
+        NamedActionReads.preparedCache] using! hactionRoot
+    simpa only [hroot] using! hFroot
   have hFActionL : Block.Preceq
       (rho.storeBeforeTime S u (S.a r)).core.F L :=
     Block.preceq_trans hFActionJ hJL
@@ -735,13 +735,13 @@ theorem voterAnchorAt_compatible_actionSGBlockAt
       (DecoupledConsensusModel.Protocol.domain S.E S.hc r .g1)
       (DecoupledConsensusModel.Protocol.domain S.E S.hc r .g0)
       (DecoupledConsensusModel.Protocol.domain S.E S.hc r .g0) hLnG1 hdeadline
-      (le_refl _) ready.2 (by simpa only [hLnErase] using hF0L)
+      (le_refl _) ready.2 (by simpa only [hLnErase] using! hF0L)
   have hLnAction := NamedHealthyHeadReady.healthy_head_body_at_read_after_gst
     S rho adm.toNamedAdmissibleCore w hw u hu Ln
       (DecoupledConsensusModel.Protocol.domain S.E S.hc r .g1)
       (DecoupledConsensusModel.Protocol.domain S.E S.hc r .g0) (S.a r) hLnG1
       hdeadline hdomainAction ready.2
-      (by simpa only [hLnErase] using hFActionL)
+      (by simpa only [hLnErase] using! hFActionL)
   obtain ⟨Jn, hJnLn, hJnErase⟩ := Proofs.NamedAncestry.erased_ancestor_lift Ln
     (by simpa only [hLnErase] using hJL)
   have hJnRun := Proofs.NamedRuntime.blockInRun_of_ancestor S rho hLnRun hJnLn
@@ -758,18 +758,18 @@ theorem voterAnchorAt_compatible_actionSGBlockAt
         simpa only [actionStoreAt, actionReadAt,
           NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
           NamedActionReads.confirmationReadFrom,
-          NamedActionReads.preparedCache] using hactionRoot) hJL (by
+          NamedActionReads.preparedCache] using! hactionRoot) hJL (by
         have hcap := hactionCap
         simpa only [actionStoreAt, actionReadAt,
           NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
           NamedActionReads.confirmationReadFrom,
-          NamedActionReads.preparedCache] using
+          NamedActionReads.preparedCache] using!
             hcap.trans (Nat.add_le_add_right hheight 1))
     simpa only [Internal.NamedRecoveryRead.actionDutyRead, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
       NamedActionReads.preparedCache, PhaseGrades.filteredTree,
-      PhaseGrades.readAt] using hfiltered
+      PhaseGrades.readAt] using! hfiltered
   have hforward : ∀ sender x key Head,
       x ∈ DecoupledConsensusModel.Protocol.interpretedInputs
         (PhaseGrades.readAt S rho
@@ -911,7 +911,7 @@ theorem fixedRoot_targetCandidateAndPath
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
       Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore] using hdata.1
+      Proofs.Optimistic.tickStore] using! hdata.1
   obtain ⟨T', hT', hT'erase⟩ :=
     Proofs.NamedStoreBridge.exists_named_of_mem_stateBeforeTime S rho
       (Protocol.vote_time S.E d) w (by
@@ -925,7 +925,7 @@ theorem fixedRoot_targetCandidateAndPath
     adm hT'run hTrun (hT'erase.trans rfl)
   have hTbody : T ∈ (rho.storeBeforeTime S w
       (Protocol.vote_time S.E d)).bodies := by
-    simpa only [hT'eq] using hT'
+    simpa only [hT'eq] using! hT'
   have hview := Proofs.NamedStoreBridge.derivedView_stateBeforeTime
     S rho (Protocol.vote_time S.E d) w T hTbody
   have hstored : (read.st.core.σ T.erase).h =
@@ -954,12 +954,12 @@ theorem fixedRoot_targetCandidateAndPath
     · simpa only [read, Internal.NamedRecoveryRead.voteDutyRead,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom,
-        Protocol.NamedStore.setClock] using hroot
+        Protocol.NamedStore.setClock] using! hroot
     · exact hJT
     · simpa only [read, Internal.NamedRecoveryRead.voteDutyRead,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom,
-        Protocol.NamedStore.setClock] using
+        Protocol.NamedStore.setClock] using!
           hcap.trans (Nat.add_le_add_right hheightJT 1)
   have hcandidate : T.erase ∈ voterCandidateTreeAt S rho w d := by
     apply Protocol.voterCandidate_of_processed_self_and_filtered
@@ -968,7 +968,7 @@ theorem fixedRoot_targetCandidateAndPath
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom,
         Protocol.NamedStore.setClock, Proofs.Optimistic.voteDutyStore,
-        Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using hprocessed
+        Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using! hprocessed
     · exact hheight
     · exact hfiltered
   refine ⟨hcandidate, ?_⟩
@@ -997,28 +997,28 @@ theorem fixedRoot_targetCandidateAndPath
           simpa only [read, Internal.NamedRecoveryRead.voteDutyRead,
             NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom,
-            Protocol.NamedStore.setClock] using
+            Protocol.NamedStore.setClock] using!
               (Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime
                 S rho (Protocol.vote_time S.E d) w))) hrootD
   change D ∈ Protocol.get_filtered_block_tree_from
     read.st.core.toHealing.toFG
     (Protocol.voter_processed_block_tree S.E
       read.st.core.toHealing.toFG.toSG.toGoldfishStore read.st.core.s)
-  simp only [Protocol.get_filtered_block_tree_from,
-    Protocol.viable_tree, Protocol.finalized_descendants,
-    Protocol.viable, Finset.mem_filter, decide_eq_true_eq]
+  simp only [Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
+    Protocol.finalized_descendants, Finset.mem_filter]
+  simp only [Protocol.viable, decide_eq_true_eq]
   exact ⟨⟨⟨by
     simpa only [read, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
       Protocol.NamedStore.setClock, Proofs.Optimistic.voteDutyStore,
-      Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using hDprocessed, hFD⟩,
+      Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using! hDprocessed, hFD⟩,
     T.erase, by
       simpa only [read, Internal.NamedRecoveryRead.voteDutyRead,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom,
         Protocol.NamedStore.setClock, Proofs.Optimistic.voteDutyStore,
-        Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using hprocessed,
+        Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using! hprocessed,
       hDT, hheight⟩, hrootD⟩
 
 private theorem fixedRoot_preceq_voterHeadAt_of_adoption
@@ -1042,7 +1042,7 @@ private theorem fixedRoot_preceq_voterHeadAt_of_adoption
       (NamedProfile.gradeContract read.cache) S.E S.hc st.toHealing
       tree votes support (st.s - 1))
   rw [Proofs.Optimistic.get_head_in_tree_split_with, hprev]
-  simpa only [Protocol.Store.toHealing, read, st] using
+  simpa only [Protocol.Store.toHealing, read, st] using!
     (Protocol.goldfish_fork_choice_captures_of_confirmation
       S.E st.σ st.h_max source.T st.T tree st.s
       (confEarly S.E source s) (confLate S.E source s)
@@ -1124,7 +1124,7 @@ theorem honestVotesCone_succ_of_ancestorGenuineConfirmation_exactFGRoot_heightCa
       simpa only [source, Internal.NamedRecoveryRead.voteDutyRead,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-        using hvoteRoot w hw
+        using! hvoteRoot w hw
     rw [hroot]
     exact Block.preceq_trans hJT hTC
   have hgenuine' : GenuineConfirmation (contract := contract) S.E S.hc
@@ -1173,7 +1173,7 @@ theorem honestVotesCone_succ_of_ancestorGenuineConfirmation_exactFGRoot_heightCa
               (Internal.NamedRecoveryRead.voteDutyRead S rho w
                 (source + 1)).st.core.s)) T.erase := by
         simpa only [voterAnchorAt, PhaseGrades.nodeAnchor,
-          PhaseGrades.nodeRead] using hanchorT
+          PhaseGrades.nodeRead] using! hanchorT
       have hadopt := nextVoteAdoption_of_frozenCandidateAtRead
         S adm hu hpost hsourceHor hw hcandidate hanchor'
       exact fixedRoot_preceq_voterHeadAt_of_adoption S
@@ -1210,7 +1210,7 @@ private theorem fixedRoot_preparedVoteViewValid
   simpa only [read, t, Internal.NamedRecoveryRead.voteDutyRead,
     NamedActionReads.confirmationReadAt,
     NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock, hn]
-    using hvalid
+    using! hvalid
 
 private theorem fixedRoot_goldfishConeStep
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)
@@ -1238,7 +1238,7 @@ private theorem fixedRoot_goldfishConeStep
     simpa only [st, read, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-      using hresolve0
+      using! hresolve0
   have hbase := Protocol.canonicalSuffixConeSupportVoterView
     S adm hcom hs hpost hcutHor hnames hw
       (Proofs.Optimistic.support_cutoff_le_vote_time_succ S.E s)
@@ -1250,7 +1250,7 @@ private theorem fixedRoot_goldfishConeStep
   have hcone : Proofs.Optimistic.ConeSupport S.E st.T votes support votes
       (st.s - 1) rho.honest (fun X => Block.Preceq C X) := by
     simpa only [st, read, votes, support, hslot,
-      Protocol.Store.toHealing] using hbase
+      Protocol.Store.toHealing] using! hbase
   have hmajority : Protocol.voters_count S.E votes (st.s - 1) <
       2 * (Protocol.goldfishSupporters S.E st.T votes support (st.s - 1) C).card :=
     Protocol.supporterMajority_of_cone S.E hcone hvalid
@@ -1270,7 +1270,7 @@ private theorem fixedRoot_goldfishConeStep
     (Protocol.get_head_in_tree_with_layer
       (NamedProfile.gradeContract read.cache) S.E S.hc st.toHealing
       tree votes support (st.s - 1))
-  simpa only [get_head_in_tree_eq_voterHeadAt_of_anchor, read, st] using hhead
+  simpa only [get_head_in_tree_eq_voterHeadAt_of_anchor, read, st] using! hhead
 
 /-- The genuine-clear cone persists through every supplied interior slot under
 the exact named root and one-step height caps. -/
@@ -1363,7 +1363,7 @@ theorem
           simpa only [Internal.NamedRecoveryRead.voteDutyRead,
             NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom,
-            Protocol.NamedStore.setClock] using hroot
+            Protocol.NamedStore.setClock] using! hroot
         rw [hroot']
         exact Block.preceq_trans hJT hTC
       have hpostSource : S.E.t_GST ≤ Protocol.proposal_time S.E
@@ -1408,7 +1408,7 @@ private theorem fixedRoot_namedGrade_processedAtAction
     have hfiltered := (hforms v hv).1
     have htree := Proofs.Records.get_filtered_block_tree_subset _ hfiltered
     simpa only [PhaseGrades.filteredTree, PhaseGrades.readAt,
-      Run.storeBeforeTime] using htree
+      Run.storeBeforeTime] using! htree
   rw [storeBeforeTime_eq_storeAt_sub_one_recovery] at hsource ⊢
   apply StoreFinality.stateAt_T_subset
     S adm.toNamedAdmissibleCore.toNamedScheduleWellFormed v
@@ -1455,7 +1455,7 @@ theorem sgTargetConeCanonicality_of_gradeFormsAt_exactFGRoot_heightCap
   have hJ'eq : J' = J := fixedRoot_runBlock_unique_of_erase_eq
     adm hJ'run hJrun (hJ'erase.trans rfl)
   have hJbody : J ∈ (rho.storeBeforeTime S v (S.a r)).bodies := by
-    simpa only [hJ'eq] using hJ'body
+    simpa only [hJ'eq] using! hJ'body
   have hJactive : J.erase ∈ PhaseGrades.filteredTree
       (actionReadAt S rho v r) := by
     have hfiltered := mem_filtered_of_mem_tree_of_exactFGRoot_heightCap
@@ -1464,7 +1464,7 @@ theorem sgTargetConeCanonicality_of_gradeFormsAt_exactFGRoot_heightCap
     simpa only [PhaseGrades.filteredTree, PhaseGrades.readAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache] using hfiltered
+      NamedActionReads.preparedCache] using! hfiltered
   obtain ⟨Q, hQ, hJQ⟩ := namedGradeFormsAt_preceq_actionQ2
     S adm.toNamedAdmissibleCore hr hactionHor hforms hv hJactive
   have htargetRaw : actionSGBlockAt S rho v r ∈
@@ -1482,7 +1482,7 @@ theorem sgTargetConeCanonicality_of_gradeFormsAt_exactFGRoot_heightCap
     simpa only [actionReadAt, NamedActionReads.actionReadAt,
       NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache] using hTbody
+      NamedActionReads.preparedCache] using! hTbody
   have hQT : Block.Preceq Q T.erase := by
     rw [hTerase]
     exact preceq_actionSGBlockAt_of_actionQ2 S adm.toNamedAdmissibleCore hv

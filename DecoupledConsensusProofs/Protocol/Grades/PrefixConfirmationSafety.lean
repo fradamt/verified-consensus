@@ -190,7 +190,7 @@ theorem stableRaw_preceq_prefixHistory
       hDKroot
   have hKe : K.erase = actionSGBlockAt S rho u k := by
     rw [← hDK, hDerase]
-  exact Block.preceq_trans (by simpa only [hKe] using hrawCarrier)
+  exact Block.preceq_trans (by simpa only [hKe] using! hrawCarrier)
     (Proofs.NamedWire.erase_preceq hKC)
 
 #print axioms stableRaw_preceq_prefixHistory
@@ -444,7 +444,7 @@ private theorem prefixPreparedFrame_g2_round_zero_no_root
             before.st.core.toHealing (a.round + 1) (S.a 0) a.next }) 0)).g2 =
       some (some root) at hroot
   rw [prefixCacheAtRound_clip_local] at hroot
-  simp only [ha, DecoupledConsensusModel.Protocol.cacheAtRound, if_pos] at hroot
+  simp only [ha, DecoupledConsensusModel.Protocol.cacheAtRound, ite_eq_left] at hroot
   have htime' : S.a 0 ≠ domain S.E S.hc a.round .g2 := by
     simpa [ha] using htime
   have hcomp := prefixCompleteFrame_g2_eq S.E S.hc
@@ -474,7 +474,7 @@ private theorem prefixPreparedFrame_g2_round_zero_no_root
       (DecoupledConsensusModel.Protocol.cacheAtRound before.cache 0)).g2 ≠
         some (some root) at hraw'
     have hc0' : 0 = before.cache.round := hc0.symm
-    simp only [DecoupledConsensusModel.Protocol.cacheAtRound, if_pos hc0'] at hraw'
+    simp only [DecoupledConsensusModel.Protocol.cacheAtRound, ite_eq_left hc0'] at hraw'
     change DecoupledConsensusModel.Protocol.clipResult before.st.core.toHealing.F
         before.cache.current.g2 ≠ some (some root) at hraw'
     exact hraw' hroot
@@ -544,7 +544,7 @@ theorem stagedRead_g2_round_zero_no_root
             before.st.core.toHealing (a.round + 1) t a.next }) 0)).g2 =
       some (some root) at hroot
   rw [prefixCacheAtRound_clip_local] at hroot
-  simp only [ha, DecoupledConsensusModel.Protocol.cacheAtRound, if_pos] at hroot
+  simp only [ha, DecoupledConsensusModel.Protocol.cacheAtRound, ite_eq_left] at hroot
   have htime' : t ≠ domain S.E S.hc a.round .g2 := by
     simpa [ha] using htime
   have hcomp := prefixCompleteFrame_g2_eq S.E S.hc
@@ -574,7 +574,7 @@ theorem stagedRead_g2_round_zero_no_root
       (DecoupledConsensusModel.Protocol.cacheAtRound before.cache 0)).g2 ≠
         some (some root) at hraw'
     have hc0' : 0 = before.cache.round := hc0.symm
-    simp only [DecoupledConsensusModel.Protocol.cacheAtRound, if_pos hc0'] at hraw'
+    simp only [DecoupledConsensusModel.Protocol.cacheAtRound, ite_eq_left hc0'] at hraw'
     change DecoupledConsensusModel.Protocol.clipResult before.st.core.toHealing.F
         before.cache.current.g2 ≠ some (some root) at hraw'
     exact hraw' hroot
@@ -620,7 +620,7 @@ theorem stableAt_round_pos
                   NamedActionReads.confirmationReadAt,
                   NamedActionReads.confirmationReadFrom,
                   NamedActionReads.preparedCache,
-                  Protocol.NamedDuties.update_confirmation_with] using hframe
+                  Protocol.NamedDuties.update_confirmation_with] using! hframe
               exact False.elim
                 (prefixActionRead_g2_round_zero_no_root S core v hframeAction)
 

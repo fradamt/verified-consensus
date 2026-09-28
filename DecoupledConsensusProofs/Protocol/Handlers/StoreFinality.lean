@@ -100,7 +100,7 @@ theorem finalityHeightsOrdered_of_state_facts (E : Env V) (cfg : HeightConfig)
   · simp [FinalityHeightsOrdered, Protocol.Store.finalized_height, hF]
   · have hheight : (derived_state E cfg st.F).h ≤ st.h_j :=
       (finalized_height_le_justification E cfg st hpre hjust).resolve_left hF
-    rw [FinalityHeightsOrdered, Protocol.Store.finalized_height, if_neg hF,
+    rw [FinalityHeightsOrdered, Protocol.Store.finalized_height, ite_eq_right hF,
       hagree st.F hFmem]
     exact hheight
 
@@ -123,7 +123,7 @@ theorem offered_justification_le_update_finality (E : Env V)
       have hwrite : (Protocol.update_finality st σ).h_j = σ.h_j := by
         unfold Protocol.update_finality
         dsimp only
-        rw [if_pos hguard]
+        rw [ite_eq_left hguard]
         split_ifs <;> rfl
       rw [hwrite]
     · have hle : σ.h_j ≤ st.h_j :=

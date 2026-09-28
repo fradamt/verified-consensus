@@ -29,7 +29,7 @@ theorem on_block_using_F (E : Env V) (st : Protocol.Store V) (B : Block V)
        have h := update_finality_F
          (B.gf_votes.foldl (Protocol.on_goldfish_vote_checked E) stored)
          ((B.gf_votes.foldl (Protocol.on_goldfish_vote_checked E) stored).σ B)
-       simpa only [foldl_on_goldfish_vote_checked_F E] using h)
+       simpa only [foldl_on_goldfish_vote_checked_F E] using! h)
 
 private theorem checked_using_F (E : Env V) (hc : Protocol.HealConfig)
     (st : Protocol.Store V) (B : Block V)
@@ -48,11 +48,11 @@ theorem process_block_core_F (E : Env V) (hc : Protocol.HealConfig)
     Block.Preceq st.core.F
       (Protocol.NamedStore.process_block_core E hc cfg st B).core.F := by
   by_cases hp : B.parent ∈ st.bodies
-  · simp only [Protocol.NamedStore.process_block_core, if_neg (not_not_intro hp),
+  · simp only [Protocol.NamedStore.process_block_core, ite_eq_right (not_not_intro hp),
       NamedStore.commit_core]
     exact checked_using_F E hc st.core B.erase
       (fun parentState => Protocol.named_transition E cfg parentState B)
-  · simp only [Protocol.NamedStore.process_block_core, if_pos hp]
+  · simp only [Protocol.NamedStore.process_block_core, ite_eq_left hp]
     exact Block.preceq_self _
 
 omit [Fintype V] in

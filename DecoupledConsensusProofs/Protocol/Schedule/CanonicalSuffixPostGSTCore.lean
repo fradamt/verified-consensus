@@ -71,7 +71,7 @@ private theorem canonicalSuffix_core_new_body (S : Setup V) (st : Protocol.Named
   by_cases hp : B.parent ∉ st.bodies
   · simp only [hp] at hpost ⊢
     exact False.elim (hnew hpost)
-  · rw [if_neg hp] at hpost ⊢
+  · rw [ite_eq_right hp] at hpost ⊢
     let after := Protocol.on_block_checked_using
       (fun current => Protocol.on_block_using S.E current B.erase
         (fun parentState => Protocol.named_transition S.E S.cfg parentState B))
@@ -154,7 +154,7 @@ theorem canonicalSuffixGfVotePooledBeforeFreeze_core
     obtain ⟨i, hi, hmem, c, hc, hle⟩ :=
       Proofs.Optimistic.mem_pool_of_emits_core S adm hs hemitVote hus hval
     refine ⟨i, _, hi, ?_, hmem, c, hc, ?_⟩
-    · simpa only [ht'vote] using hlt
+    · simpa only [ht'vote] using! hlt
     · refine lt_of_le_of_lt hle ?_
       rw [← Proofs.Optimistic.vote_time_add_delta]
       exact_mod_cast (show Protocol.vote_time S.E s <
@@ -190,8 +190,8 @@ theorem canonicalSuffixGfVotePooledBeforeFreeze_core
       rw [Proofs.NamedRuntime.stateBefore_deliver S rho hdeliver]
       show Protocol.on_goldfish_vote_checked S.E _ u = _
       unfold Protocol.on_goldfish_vote_checked
-      rw [if_neg (not_not.mpr hcommittee)]
-    refine ⟨j, _, hdeliver, by simpa [Event.time] using hlt, ?_, c, ?_, ?_⟩
+      rw [ite_eq_right (not_not.mpr hcommittee)]
+    refine ⟨j, _, hdeliver, by simpa [Event.time] using! hlt, ?_, c, ?_, ?_⟩
     · show u ∈ (NamedRun.stateBefore S rho (j + 1) w).st.core.gf_votes s
       rw [hstep]
       simpa only [hus] using hmem
@@ -199,7 +199,7 @@ theorem canonicalSuffixGfVotePooledBeforeFreeze_core
       rw [hstep]
       exact hc
     · have hup : (NamedRun.stateBefore S rho j w).st.core.t ≤ t' := by
-        simpa [Event.time] using
+        simpa [Event.time] using!
           Protocol.store_time_le_event_time S adm.toNamedScheduleWellFormed hdeliver w
       exact lt_of_le_of_lt hle (WithBot.coe_lt_coe.mpr (lt_of_le_of_lt hup hlt))
   · obtain ⟨hblock, hnew, hcore, huindex⟩ := hcall
@@ -234,7 +234,7 @@ theorem canonicalSuffixGfVotePooledBeforeFreeze_core
             (adm.in_horizon _ (List.mem_of_getElem? hdeliver)).2)
       have hclockUp : before.core.t ≤ t' := by
         rw [hbefore]
-        simpa [Event.time] using
+        simpa [Event.time] using!
           Protocol.store_time_le_event_time S adm.toNamedScheduleWellFormed hdeliver w
       have hslot : before.core.s = s := by
         have hsc := Proofs.NamedStoreBridge.slotOfClock_stateBefore S rho j w
@@ -319,7 +319,7 @@ theorem canonicalSuffixGfVotePooledBeforeFreeze_core
         have hrawStamps := Protocol.poolStamps_stateBefore
           S adm.toNamedScheduleWellFormed w j
         have htle : (NamedRun.stateBefore S rho j w).st.core.t ≤ t' := by
-          simpa [Event.time] using
+          simpa [Event.time] using!
             Protocol.store_time_le_event_time S adm.toNamedScheduleWellFormed htick w
         exact (Protocol.poolStep_tickStore _ _ _ htle hrawStamps).2
       have huPool : u ∈ before.core.gf_votes (before.core.s - 1) := by

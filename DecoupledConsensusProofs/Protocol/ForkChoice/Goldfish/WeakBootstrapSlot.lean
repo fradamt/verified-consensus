@@ -57,13 +57,13 @@ theorem batchCompatibleAt_of_historyCutEmissions
       simpa only [Internal.NamedRecoveryRead.voteDutyRead,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom,
-        Protocol.NamedStore.setClock] using huk) (hraw.2.1 ▸ hv)
+        Protocol.NamedStore.setClock] using! huk) (hraw.2.1 ▸ hv)
   have hfind' : Block.find?
       (rho.storeBeforeTime S w (Protocol.vote_time S.E d)).T head.root = some head := by
     simpa only [Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock] using hfind
+      Protocol.NamedStore.setClock] using! hfind
   simp only [Proofs.HealingLemmas.rootCompatible, hconfirmed, hfind'] at hroot
   simpa only [Block.compatible, Bool.or_comm] using hroot
 
@@ -322,7 +322,7 @@ theorem protectedVoteSlots_of_historyCut_of_delivery_v2
                 (rho.storeBeforeTime S w
                   (Protocol.vote_time S.E (d + 1))).toHealing.toFG) P := by
             simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-              Proofs.Optimistic.tickStore, Protocol.NamedStore.setClock] using hRP
+              Proofs.Optimistic.tickStore, Protocol.NamedStore.setClock] using! hRP
           simp only [Block.compatible, Bool.or_eq_true]
           exact Or.inr (Block.preceq_trans hRP' hPB)
         have hlegacyD : ∀ w ∈ rho.honest, ∀ {C : NamedBlock V},
@@ -369,7 +369,7 @@ theorem protectedVoteSlots_of_historyCut_of_delivery_v2
           simpa only [Internal.NamedRecoveryRead.voteDutyRead,
             NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom,
-            Protocol.NamedStore.setClock] using hroot
+            Protocol.NamedStore.setClock] using! hroot
         have hfrontierB : ∀ z ∈ rho.honest, ∀ {C : NamedBlock V}, C.erase = B →
             (Protocol.derive_named S.E S.cfg C).h <
               (Internal.NamedRecoveryRead.voteDutyRead S rho z
@@ -392,7 +392,7 @@ theorem protectedVoteSlots_of_historyCut_of_delivery_v2
               haold hselected
             have htarget := Proofs.Optimistic.derive_named_T_h_preceq S.E S.cfg K
             have hcases : NamedBlock.Preceq C K ∨ NamedBlock.Preceq K C := by
-              simpa only [NamedBlock.compatible, Bool.or_eq_true] using hnamed
+              simpa only [NamedBlock.compatible, Bool.or_eq_true] using! hnamed
             rcases hcases with hCK | hKC
             · exact Block.compatible_of_preceq_common
                 (Proofs.NamedWire.erase_preceq hCK) htarget
@@ -460,7 +460,7 @@ theorem protectedVoteSlots_of_historyCut_of_delivery_v2
                     (rho.storeBeforeTime S u
                       (Protocol.vote_time S.E (d + 1))).toHealing.toFG) P := by
                 simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-                  Proofs.Optimistic.tickStore, Protocol.NamedStore.setClock] using hRP
+                  Proofs.Optimistic.tickStore, Protocol.NamedStore.setClock] using! hRP
               simp only [Block.compatible, Bool.or_eq_true]
               exact Or.inr (Block.preceq_trans hRP' (hprev.1.heads x hx))
             have hrootD : ∀ u ∈ rho.honest, Block.compatible
@@ -474,7 +474,7 @@ theorem protectedVoteSlots_of_historyCut_of_delivery_v2
               simpa only [Internal.NamedRecoveryRead.voteDutyRead,
                 NamedActionReads.confirmationReadAt,
                 NamedActionReads.confirmationReadFrom,
-                Protocol.NamedStore.setClock] using hroot
+                Protocol.NamedStore.setClock] using! hroot
             have hvoteCap : Protocol.vote_time S.E (d + 1) ≤ cap := by
               apply le_trans ?_ (hconfCap d hdlast)
               rw [← vote_time_succ_add_delta_eq_confirmation_time S.E d]
@@ -564,7 +564,7 @@ theorem protectedVoteSlots_of_historyCut_of_delivery_v2
       by_cases hqd' : q < d
       · have hBold := hprev.2 q hq hqd' w hw B hB
         have hordered : Block.Preceq P B ∨ Block.Preceq B P := by
-          simpa only [Block.compatible, Bool.or_eq_true] using
+          simpa only [Block.compatible, Bool.or_eq_true] using!
             Block.compatible_of_preceq_common (hprev.1.heads x hx)
               (hBold.heads x hx)
         rcases hordered with hPB | hBP
@@ -579,7 +579,7 @@ theorem protectedVoteSlots_of_historyCut_of_delivery_v2
               (hconfHor d hdlast) hB
         obtain ⟨hyCommittee, hBhead⟩ := hBhead
         have hordered : Block.Preceq P B ∨ Block.Preceq B P := by
-          simpa only [Block.compatible, Bool.or_eq_true] using
+          simpa only [Block.compatible, Bool.or_eq_true] using!
             Block.compatible_of_preceq_common (hprev.1.heads y hy) hBhead
         rcases hordered with hPB | hBP
         · let D := voterHeadAt S rho y d
@@ -665,7 +665,7 @@ theorem protectedVoteSlots_of_historyCut_of_delivery_v2
                   (rho.storeBeforeTime S z
                     (Protocol.vote_time S.E (d + 1))).toHealing.toFG) P := by
               simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-                Proofs.Optimistic.tickStore, Protocol.NamedStore.setClock] using hRP
+                Proofs.Optimistic.tickStore, Protocol.NamedStore.setClock] using! hRP
             simp only [Block.compatible, Bool.or_eq_true]
             exact Or.inr (Block.preceq_trans hRP' hPB)
           have hrootB : ∀ z ∈ rho.honest, Block.compatible
@@ -678,7 +678,7 @@ theorem protectedVoteSlots_of_historyCut_of_delivery_v2
               (B := B) hfg (hrootCompatB z hz)
             simpa only [Internal.NamedRecoveryRead.voteDutyRead,
               NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
-              Protocol.NamedStore.setClock] using hroot
+              Protocol.NamedStore.setClock] using! hroot
           have hanchorB : ∀ z ∈ rho.honest,
               Block.compatible (voterAnchorAt S rho z (d + 1)) B = true := by
             intro z hz
@@ -733,7 +733,7 @@ theorem protectedVoteSlots_of_historyCut_of_delivery_v2
                       (rho.storeBeforeTime S u
                         (Protocol.vote_time S.E (d + 1))).toHealing.toFG) P := by
                   simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-                    Proofs.Optimistic.tickStore, Protocol.NamedStore.setClock] using hRP
+                    Proofs.Optimistic.tickStore, Protocol.NamedStore.setClock] using! hRP
                 simp only [Block.compatible, Bool.or_eq_true]
                 exact Or.inr (Block.preceq_trans hRP' (hprev.1.heads y hy))
               have hrootD : ∀ u ∈ rho.honest, Block.compatible
@@ -747,7 +747,7 @@ theorem protectedVoteSlots_of_historyCut_of_delivery_v2
                 simpa only [Internal.NamedRecoveryRead.voteDutyRead,
                   NamedActionReads.confirmationReadAt,
                   NamedActionReads.confirmationReadFrom,
-                  Protocol.NamedStore.setClock] using hroot
+                  Protocol.NamedStore.setClock] using! hroot
               have hvoteCap : Protocol.vote_time S.E (d + 1) ≤ cap := by
                 apply le_trans ?_ (hconfCap d hdlast)
                 rw [← vote_time_succ_add_delta_eq_confirmation_time S.E d]
@@ -849,7 +849,7 @@ theorem protectedVoteSlots_of_historyCut_of_delivery_v2
                 hrow haold hselected
               have htarget := Proofs.Optimistic.derive_named_T_h_preceq S.E S.cfg K
               have hcases : NamedBlock.Preceq C K ∨ NamedBlock.Preceq K C := by
-                simpa only [NamedBlock.compatible, Bool.or_eq_true] using hnamed
+                simpa only [NamedBlock.compatible, Bool.or_eq_true] using! hnamed
               rcases hcases with hCK | hKC
               · exact Block.compatible_of_preceq_common
                   (Proofs.NamedWire.erase_preceq hCK) htarget
@@ -1068,7 +1068,7 @@ theorem protectedVoteSlots_of_historyCut_v2_w
                 (rho.storeBeforeTime S w
                   (Protocol.vote_time S.E (d + 1))).toHealing.toFG) P := by
             simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-              Proofs.Optimistic.tickStore, Protocol.NamedStore.setClock] using hRP
+              Proofs.Optimistic.tickStore, Protocol.NamedStore.setClock] using! hRP
           simp only [Block.compatible, Bool.or_eq_true]
           exact Or.inr (Block.preceq_trans hRP' hPB)
         have hlegacyD : ∀ w ∈ rho.honest, ∀ {C : NamedBlock V},
@@ -1115,7 +1115,7 @@ theorem protectedVoteSlots_of_historyCut_v2_w
           simpa only [Internal.NamedRecoveryRead.voteDutyRead,
             NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom,
-            Protocol.NamedStore.setClock] using hroot
+            Protocol.NamedStore.setClock] using! hroot
         have hfrontierB : ∀ z ∈ rho.honest, ∀ {C : NamedBlock V}, C.erase = B →
             (Protocol.derive_named S.E S.cfg C).h <
               (Internal.NamedRecoveryRead.voteDutyRead S rho z
@@ -1138,7 +1138,7 @@ theorem protectedVoteSlots_of_historyCut_v2_w
               haold hselected
             have htarget := Proofs.Optimistic.derive_named_T_h_preceq S.E S.cfg K
             have hcases : NamedBlock.Preceq C K ∨ NamedBlock.Preceq K C := by
-              simpa only [NamedBlock.compatible, Bool.or_eq_true] using hnamed
+              simpa only [NamedBlock.compatible, Bool.or_eq_true] using! hnamed
             rcases hcases with hCK | hKC
             · exact Block.compatible_of_preceq_common
                 (Proofs.NamedWire.erase_preceq hCK) htarget
@@ -1206,7 +1206,7 @@ theorem protectedVoteSlots_of_historyCut_v2_w
                     (rho.storeBeforeTime S u
                       (Protocol.vote_time S.E (d + 1))).toHealing.toFG) P := by
                 simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-                  Proofs.Optimistic.tickStore, Protocol.NamedStore.setClock] using hRP
+                  Proofs.Optimistic.tickStore, Protocol.NamedStore.setClock] using! hRP
               simp only [Block.compatible, Bool.or_eq_true]
               exact Or.inr (Block.preceq_trans hRP' (hprev.1.heads x hx))
             have hrootD : ∀ u ∈ rho.honest, Block.compatible
@@ -1220,7 +1220,7 @@ theorem protectedVoteSlots_of_historyCut_v2_w
               simpa only [Internal.NamedRecoveryRead.voteDutyRead,
                 NamedActionReads.confirmationReadAt,
                 NamedActionReads.confirmationReadFrom,
-                Protocol.NamedStore.setClock] using hroot
+                Protocol.NamedStore.setClock] using! hroot
             have hvoteCap : Protocol.vote_time S.E (d + 1) ≤ cap := by
               apply le_trans ?_ (hconfCap d hdlast)
               rw [← vote_time_succ_add_delta_eq_confirmation_time S.E d]
@@ -1309,7 +1309,7 @@ theorem protectedVoteSlots_of_historyCut_v2_w
       by_cases hqd' : q < d
       · have hBold := hprev.2 q hq hqd' w hw B hB
         have hordered : Block.Preceq P B ∨ Block.Preceq B P := by
-          simpa only [Block.compatible, Bool.or_eq_true] using
+          simpa only [Block.compatible, Bool.or_eq_true] using!
             Block.compatible_of_preceq_common (hprev.1.heads x hx)
               (hBold.heads x hx)
         rcases hordered with hPB | hBP
@@ -1323,7 +1323,7 @@ theorem protectedVoteSlots_of_historyCut_v2_w
             S adm hcom (v := w) hw hdpos hpostVote (hconfHor d hdlast) hB
         obtain ⟨hyCommittee, hBhead⟩ := hBhead
         have hordered : Block.Preceq P B ∨ Block.Preceq B P := by
-          simpa only [Block.compatible, Bool.or_eq_true] using
+          simpa only [Block.compatible, Bool.or_eq_true] using!
             Block.compatible_of_preceq_common (hprev.1.heads y hy) hBhead
         rcases hordered with hPB | hBP
         · let D := voterHeadAt S rho y d
@@ -1409,7 +1409,7 @@ theorem protectedVoteSlots_of_historyCut_v2_w
                   (rho.storeBeforeTime S z
                     (Protocol.vote_time S.E (d + 1))).toHealing.toFG) P := by
               simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-                Proofs.Optimistic.tickStore, Protocol.NamedStore.setClock] using hRP
+                Proofs.Optimistic.tickStore, Protocol.NamedStore.setClock] using! hRP
             simp only [Block.compatible, Bool.or_eq_true]
             exact Or.inr (Block.preceq_trans hRP' hPB)
           have hrootB : ∀ z ∈ rho.honest, Block.compatible
@@ -1422,7 +1422,7 @@ theorem protectedVoteSlots_of_historyCut_v2_w
               (B := B) hfg (hrootCompatB z hz)
             simpa only [Internal.NamedRecoveryRead.voteDutyRead,
               NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
-              Protocol.NamedStore.setClock] using hroot
+              Protocol.NamedStore.setClock] using! hroot
           have hanchorB : ∀ z ∈ rho.honest,
               Block.compatible (voterAnchorAt S rho z (d + 1)) B = true := by
             intro z hz
@@ -1477,7 +1477,7 @@ theorem protectedVoteSlots_of_historyCut_v2_w
                       (rho.storeBeforeTime S u
                         (Protocol.vote_time S.E (d + 1))).toHealing.toFG) P := by
                   simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-                    Proofs.Optimistic.tickStore, Protocol.NamedStore.setClock] using hRP
+                    Proofs.Optimistic.tickStore, Protocol.NamedStore.setClock] using! hRP
                 simp only [Block.compatible, Bool.or_eq_true]
                 exact Or.inr (Block.preceq_trans hRP' (hprev.1.heads y hy))
               have hrootD : ∀ u ∈ rho.honest, Block.compatible
@@ -1491,7 +1491,7 @@ theorem protectedVoteSlots_of_historyCut_v2_w
                 simpa only [Internal.NamedRecoveryRead.voteDutyRead,
                   NamedActionReads.confirmationReadAt,
                   NamedActionReads.confirmationReadFrom,
-                  Protocol.NamedStore.setClock] using hroot
+                  Protocol.NamedStore.setClock] using! hroot
               have hvoteCap : Protocol.vote_time S.E (d + 1) ≤ cap := by
                 apply le_trans ?_ (hconfCap d hdlast)
                 rw [← vote_time_succ_add_delta_eq_confirmation_time S.E d]
@@ -1593,7 +1593,7 @@ theorem protectedVoteSlots_of_historyCut_v2_w
                 hrow haold hselected
               have htarget := Proofs.Optimistic.derive_named_T_h_preceq S.E S.cfg K
               have hcases : NamedBlock.Preceq C K ∨ NamedBlock.Preceq K C := by
-                simpa only [NamedBlock.compatible, Bool.or_eq_true] using hnamed
+                simpa only [NamedBlock.compatible, Bool.or_eq_true] using! hnamed
               rcases hcases with hCK | hKC
               · exact Block.compatible_of_preceq_common
                   (Proofs.NamedWire.erase_preceq hCK) htarget

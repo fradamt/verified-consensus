@@ -68,7 +68,7 @@ theorem stableAt_finalized_below_raw_at_reader
         (Proofs.HealingSurface.actionReadAt S rho v s).cache
         (Proofs.HealingSurface.actionReadAt S rho v s).st.core.toHealing s) = some G := hG
   unfold DecoupledConsensusModel.Protocol.grade2Block at hG'
-  rw [if_pos (Proofs.HealingSurface.actionFrame_allClosed
+  rw [ite_eq_left (Proofs.HealingSurface.actionFrame_allClosed
     S hexec.core hv hs has)] at hG'
   obtain ⟨root, -, hactive⟩ := Option.bind_eq_some_iff.mp hG'
   have hGmem : G ∈ Protocol.get_filtered_block_tree

@@ -303,7 +303,7 @@ theorem handoverHeights_of_carrier_named_of_pins
     simpa only [r0] using Nat.le_add_right D (2 * L)
   have hDm : D < m := Nat.lt_of_le_of_lt hDr0 hr0m
   have hDtwoM : D + 2 < m := by
-    have hLpos : 1 ≤ L := by simpa only [L] using progressLag'_pos gap
+    have hLpos : 1 ≤ L := by simpa only [L] using! progressLag'_pos gap
     have h2L : 2 ≤ 2 * L := by
       simpa only [Nat.mul_one] using Nat.mul_le_mul_left 2 hLpos
     exact Nat.lt_of_le_of_lt (by
@@ -364,7 +364,7 @@ theorem handoverHeights_of_carrier_named_of_pins
       honestHMaxAt S rho (S.a r0) := by
     have h := honestHMaxAt_gt_after_twoProgress S adm hcom hbelow hrec
       hdelay hpost (r := r0) (show D + 2 * L ≤ r0 by rfl) hr0Hor
-    simpa only [Nat.add_assoc] using h
+    simpa only [Nat.add_assoc] using! h
   have hr0Post : S.E.t_GST ≤ S.a r0 :=
     hpost.trans (Assembly.a_mono S
       ((Nat.le_succ rGST).trans

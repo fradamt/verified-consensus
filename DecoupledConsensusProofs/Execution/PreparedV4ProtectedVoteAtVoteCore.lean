@@ -62,7 +62,7 @@ private theorem postCut_protectedVoteSlot_succ_at_vote_of_inputs
         Block.Preceq B
           (Protocol.get_fg_root
             (voteDutyRead S rho w (s + 1)).st.core.toHealing.toFG) := by
-      simpa only [Block.compatible, Bool.or_eq_true] using hroots w hw
+      simpa only [Block.compatible, Bool.or_eq_true] using! hroots w hw
     rcases hcases with hroot | habove
     · obtain ⟨D, hBD, hprocessed, hband⟩ :=
         Protocol.coneBandDescendant_of_frontierWitnesses_at_vote_core
@@ -87,7 +87,7 @@ private theorem postCut_protectedVoteSlot_succ_at_vote_of_inputs
         simpa only [st, read, voteDutyRead,
           NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-          using hresolve0
+          using! hresolve0
       have hbase := canonicalSuffixConeSupportVoterView_core
         S adm hcom hs hpost hcutHor hB.cone hw
           (support_cutoff_le_vote_time_succ S.E s)
@@ -98,7 +98,7 @@ private theorem postCut_protectedVoteSlot_succ_at_vote_of_inputs
       have hcone : ConeSupport S.E st.T votes support votes (st.s - 1)
           rho.honest (fun X => Block.Preceq B X) := by
         simpa only [st, read, votes, support, hslot,
-          Protocol.Store.toHealing] using hbase
+          Protocol.Store.toHealing] using! hbase
       have hvalid := Protocol.voteDutyRead_voteViewValid_core
         S adm w (s + 1)
       have hmajor : Protocol.voters_count S.E votes (st.s - 1) <
@@ -122,7 +122,7 @@ private theorem postCut_protectedVoteSlot_succ_at_vote_of_inputs
           (NamedProfile.gradeContract read.cache) S.E S.hc st.toHealing
           tree votes support (st.s - 1))
       simpa only [get_head_in_tree_eq_voterHeadAt_of_anchor,
-        read, st, tree] using hhead
+        read, st, tree] using! hhead
     · exact Block.preceq_trans habove
         (fgRoot_preceq_voterHeadAt S rho w (s + 1))
   refine ⟨hheads, ?_⟩
@@ -324,7 +324,7 @@ theorem SettledBootstrapPreparedV4.protectedVoteSlot_succ_at_vote_core
       (cut := base + S.hc.η_SG) (B := B) hfgB (hrootCompatB u hu)
     simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-      using hroot
+      using! hroot
   have hfrontierB : ∀ u ∈ rho.honest, ∀ {C : NamedBlock V}, C.erase = B →
       (Protocol.derive_named S.E S.cfg C).h <
         (voteDutyRead S rho u (s + 1)).st.core.h_max - 1 →
@@ -416,7 +416,7 @@ theorem SettledBootstrapPreparedV4.protectedVoteSlot_succ_at_vote_core
             exact Or.inr (Block.preceq_trans hRP (hprev.1.heads x hx)))
         simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-          using hroot
+          using! hroot
       have hwindowStart : base ≤ S.hc.round_of (s + 1) - S.hc.η_SG :=
         hspan.trans (Nat.sub_le_sub_right hgap _)
       have hcapEarly : DecoupledConsensusModel.Protocol.early S.E S.hc

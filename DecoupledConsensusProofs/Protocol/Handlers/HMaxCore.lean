@@ -122,7 +122,7 @@ private theorem treeHeightsLeHMax_on_block_using
           have hSigma : unpacked.σ B = state := by
             simp only [unpacked, stored,
               (coreEq_foldl_on_goldfish_vote_checked E B.gf_votes stored).σ_eq,
-              if_pos]
+              ite_eq_left]
           have hMax : unpacked.h_max = st.h_max := by
             simp only [unpacked, stored, foldl_on_goldfish_vote_checked_h_max]
           rw [hSigma, hMax]
@@ -137,7 +137,7 @@ private theorem treeHeightsLeHMax_on_block_using
           have hSigma : unpacked.σ C = st.σ C := by
             simp only [unpacked, stored,
               (coreEq_foldl_on_goldfish_vote_checked E B.gf_votes stored).σ_eq,
-              if_neg hCBne]
+              ite_eq_right hCBne]
           have hMax : unpacked.h_max = st.h_max := by
             simp only [unpacked, stored, foldl_on_goldfish_vote_checked_h_max]
           rw [hSigma, hMax]
@@ -403,7 +403,7 @@ private theorem on_block_using_h_max_le_succ
         have hSigma : unpacked.σ B = state := by
           simp only [unpacked, stored,
             (coreEq_foldl_on_goldfish_vote_checked E B.gf_votes stored).σ_eq,
-            if_pos]
+            ite_eq_left]
         have hMax : unpacked.h_max = st.h_max := by
           simp only [unpacked, stored, foldl_on_goldfish_vote_checked_h_max]
         rw [hon, update_finality_h_max_eq, hSigma, hMax]

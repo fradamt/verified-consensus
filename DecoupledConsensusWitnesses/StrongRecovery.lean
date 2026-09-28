@@ -366,7 +366,7 @@ theorem event_at_tick {i : Nat} {e : Event (Fin 2)}
     ∃ k : Nat, e = Event.tick 0 (k : Time) := by
   have hm : e ∈ run.events := List.mem_of_getElem? he
   have hm' : e ∈ tickEvents 0 (trace.eventCount + 1) := by
-    simpa [run, rho] using hm
+    simpa [run, rho] using! hm
   exact tickEvents_is_tick 0 (trace.eventCount + 1) e hm'
 
 theorem tickEvents_pairwise (start count : Nat) :
@@ -427,7 +427,7 @@ theorem scheduleWellFormed_count (N : Nat) : ScheduleWellFormed S (rho N) where
     intro e he
     obtain ⟨k, hk⟩ := tickEvents_is_tick 0 (N + 1) e he
     have he_k : Event.tick 0 (k : Time) ∈ tickEvents 0 (N + 1) := by
-      simpa [hk] using he
+      simpa [hk] using! he
     have hlt := tickEvents_time_lt 0 (N + 1)
       (Event.tick 0 (k : Time)) he_k
     have hkN : k ≤ N := by
@@ -453,7 +453,7 @@ theorem scheduleWellFormed_count (N : Nat) : ScheduleWellFormed S (rho N) where
     obtain ⟨k, hk⟩ := tickEvents_is_tick 0 (N + 1)
       (Event.tick v t) hmem
     have hm : t = (k : Time) := by
-      simpa using congrArg NamedEvent.time hk
+      simpa using! congrArg NamedEvent.time hk
     refine ⟨k, ?_⟩
     rw [hm]
     norm_num [S, E]
@@ -471,7 +471,7 @@ theorem scheduleWellFormed_count (N : Nat) : ScheduleWellFormed S (rho N) where
     have hmem : Event.tick 0 (k : Time) ∈
         tickEvents 0 (N + 1) :=
       tickEvents_mem_zero N k hkN
-    simpa [rho, ht'] using hmem
+    simpa [rho, ht'] using! hmem
 
 theorem run_eq_rho_eventCount : run = rho trace.eventCount := by
   rfl
@@ -502,7 +502,7 @@ theorem source_continuation_agrees :
       intro e he
       obtain ⟨k, rfl⟩ := tickEvents_is_tick (eventCount + 1) 3 e he
       have hge : (eventCount + 1 : Time) ≤ (k : Time) := by
-        simpa only [NamedEvent.time] using
+        simpa only [NamedEvent.time] using!
           (tickEvents_time_ge (eventCount + 1) 3
             (Event.tick 0 (k : Time)) he)
       have hnot : ¬ (k : Time) < (eventCount : Time) := by
@@ -970,11 +970,11 @@ theorem originState_tick {i k : Nat}
       · exact Or.inl hgen
       · exact Or.inr (emitBefore_mono (Nat.le_succ _) horigin)
     · have hnew := Proofs.Bridges.on_tick_emit_T_mem S 0 n (k : Time) (by
-        simpa only [Execution.NamedNode.tick, n, c, gc, out] using hB')
+        simpa only [Execution.NamedNode.tick, n, c, gc, out] using! hB')
       rcases hnew with hold | hem
       · exact False.elim (hpre hold)
       · exact Or.inr ⟨i, Nat.lt_succ_self i, (k : Time), he,
-          emit_out (by simpa only [Execution.NamedNode.tick, n, c, gc, out] using hem)⟩
+          emit_out (by simpa only [Execution.NamedNode.tick, n, c, gc, out] using! hem)⟩
   · intro B hB u hu
     have hB' : B ∈ out.1.bodies := by
       rw [hout]
@@ -983,12 +983,12 @@ theorem originState_tick {i k : Nat}
     · exact emitBefore_mono (Nat.le_succ _)
         (hstate.body_gf B hpre u hu)
     · have hnew := Proofs.Bridges.on_tick_emit_T_mem S 0 n (k : Time) (by
-        simpa only [Execution.NamedNode.tick, n, c, gc, out] using hB')
+        simpa only [Execution.NamedNode.tick, n, c, gc, out] using! hB')
       rcases hnew with hold | hem
       · exact False.elim (hpre hold)
       · exact emitBefore_mono (Nat.le_succ _)
           (emitted_block_gf_origin (i := i) (t := (k : Time))
-            (by simpa only [Execution.NamedNode.tick, n, c, gc, out] using hem)
+            (by simpa only [Execution.NamedNode.tick, n, c, gc, out] using! hem)
             hstate hu)
   · intro B hB a ha
     have hB' : B ∈ out.1.bodies := by
@@ -998,12 +998,12 @@ theorem originState_tick {i k : Nat}
     · exact emitBefore_mono (Nat.le_succ _)
         (hstate.body_row B hpre a ha)
     · have hnew := Proofs.Bridges.on_tick_emit_T_mem S 0 n (k : Time) (by
-        simpa only [Execution.NamedNode.tick, n, c, gc, out] using hB')
+        simpa only [Execution.NamedNode.tick, n, c, gc, out] using! hB')
       rcases hnew with hold | hem
       · exact False.elim (hpre hold)
       · exact emitBefore_mono (Nat.le_succ _)
           (emitted_block_row_origin (i := i) (t := (k : Time))
-            (by simpa only [Execution.NamedNode.tick, n, c, gc, out] using hem)
+            (by simpa only [Execution.NamedNode.tick, n, c, gc, out] using! hem)
             hstate ha)
   · intro k' u hu
     have hstamps : Protocol.PoolStamps
@@ -1033,13 +1033,13 @@ theorem originState_tick {i k : Nat}
           (emitted_block_gf_origin (i := i) (t := (k : Time)) hblock' hstate
           (by
             have hcall := Proofs.NamedReceiptCallsBase.blockCallAt_self S run he
-              (by simpa only [out] using hblock)
+              (by simpa only [out] using! hblock)
             have horigin := Proofs.NamedReceiptCallsGF.block_with_new_vote_origin
               S run i 0 B
               (NamedActionReads.confirmationReadFrom S n (k : Time)).st
               hcall u (by
                 simpa [NamedActionReads.confirmationReadFrom,
-                  Protocol.NamedStore.setClock, n] using hheld) hpost
+                  Protocol.NamedStore.setClock, n] using! hheld) hpost
             obtain ⟨j, hj⟩ := horigin
             exact List.mem_of_getElem? hj.2.2.2))
   · intro k' a ha
@@ -1063,13 +1063,13 @@ theorem originState_tick {i k : Nat}
           (emitted_block_row_origin (i := i) (t := (k : Time)) hblock' hstate
           (by
             have hcall := Proofs.NamedReceiptCallsBase.blockCallAt_self S run he
-              (by simpa only [out] using hblock)
+              (by simpa only [out] using! hblock)
             have horigin := Proofs.NamedReceiptCallsF1.block_full_marker_origin
               S run i 0 B
               (NamedActionReads.confirmationReadFrom S n (k : Time)).st a hcall
               (by simpa [NamedActionReads.confirmationReadFrom,
                 Protocol.NamedStore.setClock, n] using hheld) (by
-                simpa [NamedReceipt.process, n] using hpost)
+                simpa [NamedReceipt.process, n] using! hpost)
             obtain ⟨j, hj, -, -⟩ := horigin
             exact List.mem_of_getElem? hj.2.2.2))
 
@@ -1228,7 +1228,7 @@ theorem emits_only_zero {v : Fin 2} {o : Object (Fin 2)} {t : Time}
     (h : NamedRun.emits S run v o t) : v = 0 := by
   obtain ⟨i, hi, -⟩ := h
   obtain ⟨k, hk⟩ := event_at_tick hi
-  simpa using congrArg NamedEvent.node hk
+  simpa using! congrArg NamedEvent.node hk
 
 theorem row_origin_of_scope {a : NamedAttestation (Fin 2)}
     (ha : NamedRun.attestationInRun S run a) :
@@ -1411,7 +1411,7 @@ end Trace
 
 theorem strongRecoveryPrefix : Statements.StrongRecoveryPrefix S sourceRun
     rGST gap extra prefixEnd := by
-  letI : TickTrace := sourceTrace
+  let : TickTrace := sourceTrace
   refine {
     execution := admissibleCore
     synchrony := synchrony
@@ -1435,7 +1435,7 @@ theorem generic_recovery_regime :
       (Statements.Instantiation.interface S)
       (Statements.Instantiation.constants S)
       sourceRun (S.a rGST) gap := by
-  letI : TickTrace := sourceTrace
+  let : TickTrace := sourceTrace
   have hround : Statements.Instantiation.roundAt S (S.a rGST) = rGST := by
     apply Nat.le_antisymm
     · by_contra hnot
@@ -1471,9 +1471,9 @@ theorem generic_recovery_regime :
       simpa [Statements.Instantiation.env, S] using generic_proposer_recurrence
     horizon := ?_ }
   · intro s
-    simpa [Statements.Instantiation.interface, Statements.instance] using honestCommittees s
+    simpa [Statements.Instantiation.interface, Statements.instance] using! honestCommittees s
   · simpa [Statements.Instantiation.env, Statements.Generic.BelowOneThird,
-      Execution.BelowOneThird] using belowOneThird
+      Execution.BelowOneThird] using! belowOneThird
   · intro v hv t ht hhor
     rfl
   · change sourceRun.horizon =
@@ -1490,7 +1490,7 @@ theorem generic_recovery_regime :
 
 theorem weakContinuation : Statements.WeakContinuation S sourceRun continuationRun
     (prefixEnd + gap) := by
-  letI : TickTrace := continuationTrace
+  let : TickTrace := continuationTrace
   refine {
     execution := admissibleCore
     synchrony := synchrony
@@ -1521,7 +1521,7 @@ theorem boundedSafety_activated :
 theorem vote_safety_after_recovery_activated :
     ∃ cutScale, 0 < cutScale ∧
       Statements.WeakVoteContinuation S sourceRun rGST gap cutScale := by
-  letI : TickTrace := sourceTrace
+  let : TickTrace := sourceTrace
   obtain ⟨cutScale, hpos, hsafe⟩ :=
     Proofs.voteSafety S extra timeoutDelayBound gap
   exact ⟨cutScale, hpos,
@@ -1548,7 +1548,7 @@ theorem honestProposalConfirmation_activated :
 theorem availableChainGrowth_activated :
     ∃ m, prefixEnd ≤ m ∧ m ≤ prefixEnd + gap ∧ prefixEnd + gap ≤ m + gap ∧
       AvailableChainGrowthFrom S continuationRun (S.hc.opening_slot m) gap := by
-  letI : TickTrace := continuationTrace
+  let : TickTrace := continuationTrace
   obtain ⟨m, hm₁, hm₂, hm₃, hgrowth⟩ :=
     (Proofs.availableChainGrowth S).afterGST sourceRun rGST gap extra prefixEnd
       strongRecoveryPrefix
@@ -1559,7 +1559,7 @@ theorem stableRecordGrowth_activated :
     ∃ m, prefixEnd ≤ m ∧ m ≤ prefixEnd + gap ∧
       StableRecordGrowthFrom S continuationRun (S.hc.opening_slot m)
         (gap + S.hc.η_SG - 1) := by
-  letI : TickTrace := continuationTrace
+  let : TickTrace := continuationTrace
   obtain ⟨m, hm₁, hm₂, hgrowth⟩ :=
     (Proofs.stableRecordGrowth S).afterGST sourceRun rGST gap extra prefixEnd
       strongRecoveryPrefix
@@ -1588,7 +1588,7 @@ theorem exactHorizon : sourceRun.horizon = S.a (prefixEnd + gap) := by
   exact horizonTime_coe
 
 theorem strongRecoveryPrimitiveFacts : StrongRecoveryPrimitiveFacts := by
-  letI : TickTrace := sourceTrace
+  let : TickTrace := sourceTrace
   exact {
     schedule := scheduleWellFormed
     delivery := deliveryWellFormed

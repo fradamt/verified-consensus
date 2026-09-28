@@ -80,7 +80,7 @@ theorem exists_actionSource_of_namedGradeFormsAt (S : Setup V)
   have hQmem' : Q ∈ (rho.storeBeforeTime S v (S.a r)).core.T := by
     simpa only [actionReadAt, NamedActionReads.actionReadAt,
       NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hQmem
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hQmem
   obtain ⟨D, hDerase, hDrun⟩ :=
     Proofs.NamedStoreBridge.runBlock_of_mem_core_T_stateBeforeTime S
       core.toNamedScheduleWellFormed hv (S.a r) hQmem'

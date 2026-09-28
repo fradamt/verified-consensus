@@ -306,7 +306,7 @@ theorem heightRegimeFrame_of_recovery
     intro hgate
     apply hne
     exact (Nat.add_right_cancel (hmax.symm.trans hgate)).symm
-  simp only [Protocol.get_fg_root, Protocol.Store.toHealing, if_neg hgate]
+  simp only [Protocol.get_fg_root, Protocol.Store.toHealing, ite_eq_right hgate]
   obtain ⟨D, hD, hErase⟩ :=
     Proofs.NamedStoreBridge.exists_named_of_mem_stateBefore S rho n v hQ
   have hDview := Proofs.NamedStoreBridge.derivedView_stateBefore S rho n v D hD
@@ -354,7 +354,7 @@ theorem FinalityFloorAt.finalizedPreceq_at_delivery
         (t := Gamma) (j := i) (e := Event.deliver reader (Object.block X) t)
         (Nat.le_of_not_gt hnot) hevent
     have hGammaLeT : Gamma ≤ t := by
-      simpa only [Event.time] using hGammaLe
+      simpa only [Event.time] using! hGammaLe
     exact (not_le_of_gt ht) hGammaLeT
   exact h reader hreader i (hiGamma.trans_le hGammaPrefix).le P hPrun hPheight hTP
 

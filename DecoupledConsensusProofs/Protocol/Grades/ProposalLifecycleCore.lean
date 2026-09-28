@@ -217,7 +217,8 @@ theorem genuineConfirmation_of_dutyExecution
       (confAnchorWith
         (NamedProfile.gradeContract (confirmationInputRead S rho v s).cache)
         S.E S.hc (Proofs.Optimistic.confStore S rho v s)) = true := by
-    simp only [confEligible, decide_eq_true_eq, confCount, confScore]
+    simp only [confEligible, decide_eq_true_eq]
+    simp only [confCount, confScore]
     exact hsupport.eligible hN (hexec.validLate v hv) (hexec.anchor v hv)
   have hwalkEligible : confEligible S.E
       (Proofs.Optimistic.confStore S rho v s) s

@@ -56,16 +56,16 @@ private theorem new_body_guards (E : Env V) (hc : Protocol.HealConfig)
   rw [on_block_with_bodies] at hpost
   unfold Protocol.NamedStore.process_block_core at hpost
   by_cases hp : B.parent ∈ st.bodies
-  · simp only [hp, not_true_eq_false, if_false] at hpost
+  · simp only [hp, not_true_eq_false, ite_false] at hpost
     by_cases ha : Protocol.carried_attestations_admissible hc B.erase = true
-    · simp only [Protocol.on_block_checked_using, ha, if_true] at hpost
+    · simp only [Protocol.on_block_checked_using, ha, ite_true] at hpost
       by_cases hfirst : st.core.s < B.erase.slot ∨ B.erase ∈ st.core.T ∨
           B.erase.parent ∉ st.core.T
-      · simp only [Protocol.on_block_using, hfirst, if_true,
+      · simp only [Protocol.on_block_using, hfirst, ite_true,
           commitBlock_self_bodies] at hpost
         exact False.elim (hpre hpost)
       · by_cases hfinal : (!Block.preceq st.core.F B.erase) = true
-        · simp only [Protocol.on_block_using, hfirst, if_false, hfinal, if_true,
+        · simp only [Protocol.on_block_using, hfirst, ite_false, hfinal, ite_true,
             commitBlock_self_bodies] at hpost
           exact False.elim (hpre hpost)
         · have hfinalFalse : (!Block.preceq st.core.F B.erase) = false :=
@@ -84,7 +84,7 @@ private theorem new_body_guards (E : Env V) (hc : Protocol.HealConfig)
     · have haf : Protocol.carried_attestations_admissible hc B.erase = false :=
         Bool.eq_false_of_not_eq_true ha
       simp only [Protocol.on_block_checked_using, haf, Bool.false_eq_true,
-        if_false, commitBlock_self_bodies] at hpost
+        ite_false, commitBlock_self_bodies] at hpost
       exact False.elim (hpre hpost)
   · simp only [hp] at hpost
     exact False.elim (hpre hpost)
@@ -146,7 +146,7 @@ private theorem emitted_block_due (gc : Protocol.GradeContract V)
   by_contra hnot
   rw [NamedTick.tick_computed_duties] at hB
   dsimp only at hB
-  simp only [if_neg hnot] at hB
+  simp only [ite_eq_right hnot] at hB
   split_ifs at hB <;>
     simp only [List.mem_append, List.mem_map, List.mem_cons, List.not_mem_nil,
       reduceCtorEq, or_false, and_false, exists_false] at hB
@@ -184,7 +184,7 @@ private theorem accepted_block_call_guards (S : Setup V) (rho : NamedRun V)
     have hpost0 : B ∈ (Protocol.NamedAdmission.on_block_with .alsoCarried
         S.E S.hc S.cfg st0 B).bodies := by
       rw [hstage] at hpost
-      simp only [if_pos hdue] at hpost
+      simp only [ite_eq_left hdue] at hpost
       rw [heqStore] at hpost
       exact hpost
     exact ⟨st0, Proofs.NamedReceiptCallsBase.blockCallAt_self S rho htick hB,
@@ -366,9 +366,9 @@ private theorem handler_inserts (S : Setup V) (st : Protocol.NamedStore V)
       Proofs.update_finality_T, Proofs.foldl_on_goldfish_vote_checked_T S.E]
   rw [on_block_with_bodies]
   unfold Protocol.NamedStore.process_block_core
-  rw [if_neg (not_not.mpr hp)]
+  rw [ite_eq_right (not_not.mpr hp)]
   unfold Protocol.NamedStore.commitBlock
-  rw [if_pos ⟨hfresh, hafter⟩]
+  rw [ite_eq_left ⟨hfresh, hafter⟩]
   exact Finset.mem_insert_self _ _
 
 private theorem proposal_of_result (gc : Protocol.GradeContract V) (S : Setup V)
@@ -433,7 +433,7 @@ theorem handled_block_held_of_finalized_prefix (S : Setup V) (rho : NamedRun V)
     change B ∈ (Protocol.NamedTick.tick (DecoupledConsensusModel.Protocol.frameContract c)
       S.E S.hc S.cfg (S.node receiver) n.st n.record t).1.bodies
     rw [tick_bodies_eq_proposal_stage]
-    simp only [if_pos hdue]
+    simp only [ite_eq_left hdue]
     rw [heqStore]
     exact hnew
   · have ht : t = td := handle_time_of_event S rho hcall hdeliver

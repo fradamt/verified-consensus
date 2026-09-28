@@ -252,7 +252,7 @@ omit [Fintype V] in
 `grade2_block = ⊥`. -/
 theorem deepest?_empty : Block.deepest? (∅ : Finset (Block V)) = none := by
   unfold Block.deepest? pickUnique?
-  rw [dif_neg]
+  rw [dite_eq_right]
   rintro ⟨a, ⟨ha, -⟩, -⟩
   simp at ha
 

@@ -26,10 +26,10 @@ theorem derived_target_height (E : Env V) (cfg : HeightConfig) :
       rw [derived_state_node, process_height_events_eq]
       split_ifs with ht hp
       · rw [advance_height_T_h, advance_height_h, afterFin_L, afterFin_h, foldBlock_L]
-        rw [derived_state_node, process_height_events_eq, if_pos ht,
+        rw [derived_state_node, process_height_events_eq, ite_eq_left ht,
           advance_height_h, afterFin_h]
       · rw [advance_height_T_h, advance_height_h, afterFin_L, afterFin_h, foldBlock_L]
-        rw [derived_state_node, process_height_events_eq, if_neg ht, if_pos hp,
+        rw [derived_state_node, process_height_events_eq, ite_eq_right ht, ite_eq_left hp,
           advance_height_h, afterFin_h]
       · rw [afterFin_T_h, afterFin_h, foldBlock_T_h, foldBlock_h]
         exact ih

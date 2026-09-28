@@ -166,7 +166,7 @@ theorem previousActionVote_mem_interpretedInputs_actionRead_of_fixedRoot
       (rho.storeBeforeTime S u (S.a (q - 1))).bodies := by
     simpa only [actionStoreAt, actionReadAt, NamedActionReads.actionReadAt,
       NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hWbody
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hWbody
   have hcarrierFiltered : actionSGBlockAt S rho u (q - 1) ∈
       Protocol.get_filtered_block_tree
         (actionStoreAt S rho u (q - 1)).toHealing.toFG :=
@@ -356,7 +356,7 @@ theorem previousActionVote_mem_interpretedInputs_actionRead_of_gateOff
       (rho.storeBeforeTime S u (S.a (q - 1))).bodies := by
     simpa only [actionStoreAt, actionReadAt, NamedActionReads.actionReadAt,
       NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hWbody
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hWbody
   have hWrun : RunBlock S rho W := by
     obtain ⟨n, hn, -⟩ := Proofs.Bridges.stateBeforeTime_eq_stateBefore S
       adm.toNamedAdmissibleCore.toNamedScheduleWellFormed (S.a (q - 1))
@@ -380,7 +380,8 @@ theorem previousActionVote_mem_interpretedInputs_actionRead_of_gateOff
   have hrootF : Protocol.get_fg_root
       (rho.storeBeforeTime S v (S.a q)).toHealing.toFG =
       (rho.storeBeforeTime S v (S.a q)).F := by
-    simp only [Protocol.get_fg_root, Protocol.Store.toHealing, if_neg hgate]
+    simp only [Protocol.get_fg_root]
+    exact ite_eq_right hgate
   have hFfrontier : Block.Preceq
       (rho.storeBeforeTime S v (S.a q)).F W.erase := by
     rw [← hrootF]

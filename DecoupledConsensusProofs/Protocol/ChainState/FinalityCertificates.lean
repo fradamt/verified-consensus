@@ -191,12 +191,12 @@ private theorem certificate_step (E : Env V) (cfg : HeightConfig)
     obtain ⟨a, ha, hv, hp⟩ := h signer hs
     refine ⟨a, ha, hv, ?_⟩
     rw [Protocol.process_height_events_h_F, Protocol.process_height_events_F,
-      Protocol.afterFin_h_F, Protocol.afterFin_F, if_pos hf, if_pos hf]
+      Protocol.afterFin_h_F, Protocol.afterFin_F, ite_eq_left hf, ite_eq_left hf]
     exact hp
   · left
     constructor
-    · rw [Protocol.process_height_events_F, Protocol.afterFin_F, if_neg hf]
-    · rw [Protocol.process_height_events_h_F, Protocol.afterFin_h_F, if_neg hf]
+    · rw [Protocol.process_height_events_F, Protocol.afterFin_F, ite_eq_right hf]
+    · rw [Protocol.process_height_events_h_F, Protocol.afterFin_h_F, ite_eq_right hf]
 
 theorem finalized_zero_is_genesis (E : Env V) (cfg : HeightConfig) (D : NamedBlock V)
     (hz : (derive_named E cfg D).h_F = 0) :

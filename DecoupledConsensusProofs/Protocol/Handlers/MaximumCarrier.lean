@@ -84,7 +84,7 @@ private theorem raw_block_maximum (E : Env V) (st : Protocol.Store V) (B : Block
          obtain ⟨D, hD, hDh⟩ := h
          have hDB : D ≠ B := by intro heq; subst D; exact hFresh hD
          exact ⟨D, Finset.mem_insert_of_mem hD,
-           by simpa [stored, if_neg hDB] using hDh⟩
+           by simpa [stored, ite_eq_right hDB] using hDh⟩
        have fields := gf_fold_fields E stored B.gf_votes
        change CoreMaximum (Protocol.update_finality unpacked (unpacked.σ B))
        have hsigma : unpacked.σ B = sigma := by

@@ -91,10 +91,10 @@ theorem clearTarget_eq_fgRoot_and_selectedG2_of_selectedG2
   have hQA' : Block.Preceq Q (PhaseGrades.nodeAnchor S n r) := by
     simpa only [Internal.NamedJointOutage.checkpoint, n,
       PhaseGrades.nodeAnchor, PhaseGrades.nodeRead,
-      actionRead_readFrame_eq_checkpoint S rho u r] using hQA
+      actionRead_readFrame_eq_checkpoint S rho u r] using! hQA
   have hAT : Block.Preceq (PhaseGrades.nodeAnchor S n r) T := by
     have hmem := Finset.mem_filter.mp (Proofs.Engine.deepest?_mem hclear)
-    simpa only [Option.elim_some] using hmem.2.1
+    simpa only [Option.elim_some] using! hmem.2.1
   have hrootEq : Protocol.get_fg_root n.st.core.toHealing.toFG =
       Protocol.get_fg_root
         (Proofs.Optimistic.confStore S rho u
@@ -108,7 +108,7 @@ theorem clearTarget_eq_fgRoot_and_selectedG2_of_selectedG2
     exact hrootQ
   have hTR : Block.Preceq T R := by
     rw [hRlive]
-    simpa only [n] using Proofs.Engine.deepest_clear_preceq hclear
+    simpa only [n] using! Proofs.Engine.deepest_clear_preceq hclear
   have hRT : Block.Preceq R T :=
     Block.preceq_trans hRQ (Block.preceq_trans hQA' hAT)
   refine ⟨Block.preceq_antisymm hTR hRT, ?_⟩

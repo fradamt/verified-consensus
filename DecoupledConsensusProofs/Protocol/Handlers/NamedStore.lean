@@ -175,13 +175,13 @@ theorem coherent_process_block (E : Env V) (hc : Protocol.HealConfig) (cfg : Hei
       rw [derive_named_of_not_genesis E cfg B hne]
       exact hstate
     change Coherent E cfg (if B.parent ∉ st.bodies then st else commitBlock st after B)
-    rw [if_neg (not_not.mpr hp)]
+    rw [ite_eq_right (not_not.mpr hp)]
     exact ⟨commit_tree_view st after B hTree hCases,
       commit_erasure_unique st after B hTree hUnique,
       commit_parent_closed st after B hParent hp,
       commit_pool_view st after B hPool hVotes,
       commit_derived_view E cfg st after B hDerived hOld hNew⟩
-  · simpa only [process_block_core, if_pos hp] using h
+  · simpa only [process_block_core, ite_eq_left hp] using h
 
 
 /-- An existing erasure never replaces the retained named metadata. -/

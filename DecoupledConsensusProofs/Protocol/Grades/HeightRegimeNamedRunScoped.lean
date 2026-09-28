@@ -107,7 +107,7 @@ private theorem actionBody_runBlock
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hD
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hD
   obtain ⟨j, hj, _⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix S rho
     adm.toNamedScheduleWellFormed.sorted (S.a r)
   have hDj : D ∈ (rho.stateBefore S j v).st.bodies := by
@@ -164,7 +164,7 @@ theorem round_succ_le_of_higherBlock
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hBmem
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hBmem
   have heq := congrFun (stateBeforeTime_eq_stateBefore_strictEventIndex
     S adm.toNamedScheduleWellFormed (S.a r)) p
   rw [heq] at hBpre

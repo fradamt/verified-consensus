@@ -54,7 +54,7 @@ private theorem movingDispatch_confAnchorWith_preceq_of_genuine
     Block.Preceq (Protocol.confAnchorWith contract E hc st) D := by
   have hwalk : Protocol.confWalkWith contract E hc st s = D := by
     have hselected := hD.selected
-    rw [Protocol.update_confirmation_with_live_confirmed, if_pos hD.genuine]
+    rw [Protocol.update_confirmation_with_live_confirmed, ite_eq_left hD.genuine]
       at hselected
     exact hselected
   have hfloor : Block.Preceq
@@ -117,7 +117,7 @@ theorem movingEventFacts_action_of_previousCarrierCeiling_named
   have hstate := Proofs.Optimistic.stateBefore_tick_eq_stateBeforeTime
     S adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hi
   have hqHor : S.a q ≤ rho.horizon := by
-    simpa only [Event.time] using
+    simpa only [Event.time] using!
       (adm.toNamedAdmissibleCore.toNamedScheduleWellFormed.in_horizon
         (Event.tick v (S.a q)) (List.mem_of_getElem? hi)).2
   have hDlive : (actionReadAt S rho v q).st.core.live_confirmed = D := by
@@ -135,12 +135,12 @@ theorem movingEventFacts_action_of_previousCarrierCeiling_named
   let st := n.st.core.toHealing
   let grades := DecoupledConsensusModel.Protocol.frameGradeRead n.cache S.E S.hc st q
   have hround : S.hc.round_of st.s = q := by
-    simpa only [st, n] using actionStoreAt_round S rho v q
+    simpa only [st, n] using! actionStoreAt_round S rho v q
   have hround' : S.hc.round_of
       (actionReadAt S rho v q).st.core.s = q := by
-    simpa only [n, st] using hround
+    simpa only [n, st] using! hround
   have hanchorGrades : Block.Preceq grades.anchor D := by
-    simpa only [grades, n, PhaseGrades.nodeAnchor, PhaseGrades.nodeRead] using hanchorD
+    simpa only [grades, n, PhaseGrades.nodeAnchor, PhaseGrades.nodeRead] using! hanchorD
   have hfgAnchor : Block.Preceq
       (Protocol.get_fg_root st.toFG) grades.anchor := by
     dsimp only [grades, DecoupledConsensusModel.Protocol.frameGradeRead,
@@ -166,19 +166,19 @@ theorem movingEventFacts_action_of_previousCarrierCeiling_named
                     Protocol.get_filtered_block_tree st.toFG :=
                   (Finset.mem_filter.mp hmem).1
                 have hrootA := Proofs.Records.preceq_get_fg_root_of_mem_filtered hAfilter
-                simpa only [hframe, hactive, Option.getD_some] using hrootA
+                simpa only [hframe, hactive, Option.getD_some] using! hrootA
   have hsgRootD : Block.Preceq
       (Protocol.get_sg_root_with
         (NamedProfile.gradeContract n.cache) S.E S.hc st q) D := by
     simpa only [grades, n, DecoupledConsensusModel.Protocol.frameGradeRead,
-      PhaseGrades.nodeAnchor, PhaseGrades.nodeRead] using hanchorD
+      PhaseGrades.nodeAnchor, PhaseGrades.nodeRead] using! hanchorD
   have hQNext : ∀ Q : Block V,
       Protocol.grade2_block_with (NamedProfile.gradeContract n.cache)
         S.E S.hc st q = some Q → Block.Preceq Q Next := by
     intro Q hQ
     have hQanchor : Block.Preceq Q grades.anchor := by
       exact actionQ2_preceq_actionAnchor S adm.toNamedAdmissibleCore hv hq hqHor
-        (by simpa only [grades, n, hround] using hQ)
+        (by simpa only [grades, n, hround] using! hQ)
     exact Block.preceq_trans hQanchor
       (Block.preceq_trans hanchorGrades hDNext)
   have hcarrierNext : Block.Preceq (actionSGBlockAt S rho v q) Next := by
@@ -195,13 +195,13 @@ theorem movingEventFacts_action_of_previousCarrierCeiling_named
         st.live_confirmed grades.clear with
     | some X =>
         have hliveNext : Block.Preceq st.live_confirmed Next := by
-          simpa only [n, st] using hDliveNext
+          simpa only [n, st] using! hDliveNext
         exact Block.preceq_trans (Proofs.Engine.deepest_clear_preceq hclear) hliveNext
     | none =>
         cases hq2 : grades.Q2 with
         | some Q =>
             simp only [hclear, hq2]
-            exact hQNext Q (by simpa only [hround] using hq2)
+            exact hQNext Q (by simpa only [hround] using! hq2)
         | none =>
             by_cases hraw : grades.rawG2
             · simp only [hclear, hq2, hraw, ↓reduceIte]

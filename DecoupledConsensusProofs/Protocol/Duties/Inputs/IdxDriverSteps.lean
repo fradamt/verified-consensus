@@ -230,7 +230,7 @@ theorem jointHistoryIdx_step_deliver
 omit [DecidableEq V] [Fintype V] in
 private theorem index_of_eq {α : Type} (l : List α) (hnd : l.Nodup) {i j : Nat} {e : α}
     (hi : l[i]? = some e) (hj : l[j]? = some e) : i = j :=
-  (List.getElem?_inj (List.getElem?_eq_some_iff.mp hi).1 hnd).mp (hi.trans hj.symm)
+  (List.Nodup.getElem?_inj (List.getElem?_eq_some_iff.mp hi).1 hnd).mp (hi.trans hj.symm)
 
 omit [DecidableEq V] [Fintype V] in
 private theorem finality_pair_fields (L : Protocol.Record) (h_j : Height) (J : BlockId)

@@ -125,12 +125,13 @@ private theorem proposerOk_process_block_core (E : Env V) (hc : Protocol.HealCon
     (h : ProposerOk E st.core) :
     ProposerOk E (Protocol.NamedStore.process_block_core E hc cfg st B).core := by
   by_cases hp : B.parent ∈ st.bodies
-  · rw [Protocol.NamedStore.process_block_core, if_neg (not_not.mpr hp), NamedStore.commit_core]
+  · rw [Protocol.NamedStore.process_block_core, ite_eq_right (not_not.mpr hp),
+      NamedStore.commit_core]
     dsimp only [Protocol.on_block_checked_using]
     split_ifs
     · exact proposerOk_on_block_using E st.core B.erase _ h
     · exact h
-  · simpa only [Protocol.NamedStore.process_block_core, if_pos hp] using h
+  · simpa only [Protocol.NamedStore.process_block_core, ite_eq_left hp] using h
 
 private theorem proposerOk_admit_row (E : Env V) (hc : Protocol.HealConfig)
     (st : Protocol.NamedStore V) (a : NamedAttestation V) (h : ProposerOk E st.core) :

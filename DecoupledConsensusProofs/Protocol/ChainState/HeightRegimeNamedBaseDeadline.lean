@@ -138,7 +138,7 @@ private theorem namedFinalization_selfTarget_deadline
         split_ifs <;> rfl
       by_cases hfinal : finalityReady E folded = true
       · simp only [Protocol.afterFin_F, Protocol.afterFin_h_F,
-          if_pos hfinal] at hafterF hafterH
+          ite_eq_left hfinal] at hafterF hafterH
         have hparentPos : 0 < (derive_named E cfg parent).h_j := by
           rw [← fold_h_j_deadline]
           rw [hafterH]
@@ -165,7 +165,7 @@ private theorem namedFinalization_selfTarget_deadline
             _ = (derive_named E cfg
                 (.node parent slot root votes support rows proposer)).h_F := rfl
       · simp only [Protocol.afterFin_F, Protocol.afterFin_h_F,
-          if_neg hfinal] at hafterF hafterH
+          ite_eq_right hfinal] at hafterF hafterH
         have hparentPos : 0 < (derive_named E cfg parent).h_F := by
           rw [← fold_h_F_deadline]
           rw [hafterH]
@@ -203,7 +203,7 @@ private theorem namedEntries_eq_of_compatible_deadline
     (hcompat : Block.compatible A.erase B.erase = true) : A = B := by
   have hlinear : Block.Preceq A.erase B.erase ∨
       Block.Preceq B.erase A.erase := by
-    simpa only [Block.compatible, Bool.or_eq_true] using hcompat
+    simpa only [Block.compatible, Bool.or_eq_true] using! hcompat
   rcases hlinear with hAB | hBA
   · have hABn := Protocol.namedPreceq_of_runBlock_erase_preceq
       adm hArun hBrun hAB
@@ -362,12 +362,12 @@ private theorem namedHeightRegimeFrame_of_finalizedRun
         hCrun hBFrun hFrun hFpre hFerase
         (hFheight.trans hBFheight.symm) hFself
         (hjeq.trans hBFheight.symm)
-      simp only [Protocol.get_fg_root, Protocol.Store.toHealing,
-        if_pos hgate]
+      rw [show Protocol.get_fg_root (rho.stateBefore S n v).st.core.toHealing.toFG =
+          (rho.stateBefore S n v).st.core.J from ite_eq_left hgate]
       rw [← hCJ, hJF]
       exact Proofs.NamedWire.erase_preceq hFQ
-    · simp only [Protocol.get_fg_root, Protocol.Store.toHealing,
-        if_neg hgate]
+    · rw [show Protocol.get_fg_root (rho.stateBefore S n v).st.core.toHealing.toFG =
+          (rho.stateBefore S n v).st.core.F from ite_eq_right hgate]
       exact Block.preceq_trans (hFT v hv n hn)
         (Proofs.NamedWire.erase_preceq hFQ)
   · intro p hp r _hr _hhor B hBmem hsource hBheight
@@ -376,7 +376,7 @@ private theorem namedHeightRegimeFrame_of_finalizedRun
         simpa only [actionStoreAt, actionReadAt,
           NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
           NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-          NamedRun.stateBeforeTime] using hBmem
+          NamedRun.stateBeforeTime] using! hBmem
       obtain ⟨i, hi, _⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix S rho
         adm.toNamedScheduleWellFormed.sorted (S.a r)
       have hBi : B ∈ (rho.stateBefore S i p).st.bodies := by
@@ -448,8 +448,7 @@ private theorem namedHeightRegimeBaseRun_of_finalized
       have hCrun : RunBlock S rho C :=
         Proofs.Bridges.runBlock_of_stateBefore_mem S hw hCmem
       have hRJ : R.erase = (derive_named S.E S.cfg C).J := by
-        simpa only [Protocol.get_fg_root, Protocol.Store.toHealing,
-          if_pos hgate, hCJ] using hroot.symm
+        simpa only [hCJ] using! (hroot.symm.trans (ite_eq_left hgate))
       have hJpos : 0 < (derive_named S.E S.cfg C).h_j := by
         by_contra hz
         have hz' : (derive_named S.E S.cfg C).h_j = 0 := Nat.eq_zero_of_not_pos hz
@@ -508,8 +507,7 @@ private theorem namedHeightRegimeBaseRun_of_finalized
       have hCrun : RunBlock S rho C :=
         Proofs.Bridges.runBlock_of_stateBefore_mem S hw hCmem
       have hRFraw : R.erase = (derive_named S.E S.cfg C).F := by
-        simpa only [Protocol.get_fg_root, Protocol.Store.toHealing,
-          if_neg hgate, hCF] using hroot.symm
+        simpa only [hCF] using! (hroot.symm.trans (ite_eq_right hgate))
       have hCpos : 0 < (derive_named S.E S.cfg C).h_F := by
         by_contra hz
         have hz' : (derive_named S.E S.cfg C).h_F = 0 := Nat.eq_zero_of_not_pos hz

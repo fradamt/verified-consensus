@@ -83,12 +83,12 @@ theorem recoverySuccessorTimeout_has_witness_record
     simpa only [ast, actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using hmem
+      NamedRun.stateBeforeTime] using! hmem
   have hσ : ast.st.core.σ B.erase = derive_named S.E S.cfg B := by
     simpa only [ast, actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using
+      NamedRun.stateBeforeTime] using!
       (Proofs.NamedStoreBridge.derivedView_stateBeforeTime S rho
         (S.a a.round) a.val_index B hBpre)
   have hnj : (ast.st.core.σ B.erase).nj = false := by
@@ -115,7 +115,7 @@ theorem recoverySuccessorTimeout_has_witness_record
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
       NamedRun.stateBeforeTime, NamedAttestation.erase, NamedHeightPair.erase,
-      actionSource] using herase
+      actionSource] using! herase
   have hsourceAst :
       Protocol.fg_source_with (NamedProfile.gradeContract ast.cache)
           S.E S.hc ast.st.core.toHealing (S.hc.round_of ast.s)
@@ -124,7 +124,7 @@ theorem recoverySuccessorTimeout_has_witness_record
     simpa only [actionFGSource, ast, actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using hsource
+      NamedRun.stateBeforeTime] using! hsource
   have hpure : height_pair Lambda
       (some (blocked + 1, (ast.st.core.σ B.erase).T_h.root, false)) fp =
         HeightPair.timeout (blocked + 1) := by

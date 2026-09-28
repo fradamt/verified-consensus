@@ -96,7 +96,7 @@ theorem intrinsic_conflicting_carrier_band
   rcases hSigned with ⟨_, _, _, hSourceHeld, _, hEntrySource, _, hEntryHeight, _⟩
   have hPEntry : NamedBlock.Preceq P entry := by
     rcases (show NamedBlock.Preceq P entry ∨ NamedBlock.Preceq entry P by
-      simpa only [NamedBlock.compatible, Bool.or_eq_true] using hEntryCompatible) with
+      simpa only [NamedBlock.compatible, Bool.or_eq_true] using! hEntryCompatible) with
       hAbove | hAncestor
     · exact hAbove
     · have hle := Proofs.NamedEntryHeight.derive_height_mono S.E S.cfg hAncestor

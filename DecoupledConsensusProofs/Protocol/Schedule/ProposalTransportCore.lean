@@ -50,7 +50,7 @@ theorem delivery_store_slot_before_freeze
   have hclock : Protocol.proposal_time S.E s ≤ (rho.stateBefore S i w).st.t :=
     tick_le_store_time S adm.toNamedScheduleWellFormed hi htick hlo
   have hup : (rho.stateBefore S i w).st.t ≤ t := by
-    simpa [Event.time] using
+    simpa [Event.time] using!
       store_time_le_event_time S adm.toNamedScheduleWellFormed hi w
   have hslot := Proofs.NamedStoreBridge.slotOfClock_stateBefore S rho i w
   unfold Proofs.Optimistic.SlotOfClock at hslot

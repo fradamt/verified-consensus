@@ -211,7 +211,7 @@ theorem carrierOpening_mem_actionBodies
       (S.hc.opening_slot r) hspos hround.carrier.1 hpropHor hP0
   have hk : S.hc.round_of
       (actionReadAt S rho v r).st.core.toHealing.s = r := by
-    simpa only [actionReadAt] using Proofs.HealingLemmas.round_of_slotOf_a S r
+    simpa only [actionReadAt] using! Proofs.HealingLemmas.round_of_slotOf_a S r
   have hsource : PhaseGrades.nodeFGSource S (actionReadAt S rho v r) r =
       some P0.erase := by
     have h0 := hround.openingSource v hv P0 hP0
@@ -257,7 +257,7 @@ theorem carrierRows_exactTargets_named
       (Protocol.grade2_block_with (NamedProfile.gradeContract ast.cache) S.E S.hc
         ast.st.core.toHealing (S.hc.round_of ast.st.core.toHealing.s)) =
       some P0.erase := by
-    simpa only [actionFGSource, ast] using hround.openingSource v hv P0 hP0
+    simpa only [actionFGSource, ast] using! hround.openingSource v hv P0 hP0
   have hbody : P0 ∈ ast.st.bodies :=
     carrierOpening_mem_actionBodies S adm hround hP0 hv
   have hagree : Internal.NamedDerivedStateAgrees S.E S.cfg ast.st :=
@@ -275,8 +275,8 @@ theorem carrierRows_exactTargets_named
     (by rw [show (ast.st.core.toHealing.σ P0.erase) =
         ast.st.core.σ P0.erase from rfl, hsigma]; exact hnj)
     (by simpa only [Lambda] using hrecord)
-    (by simpa only [ast, Lambda, actionAttestationAt] using hlockAligned v hv)
-  simpa only [actionAttestationAt, ast, Lambda] using hpair
+    (by simpa only [ast, Lambda, actionAttestationAt] using! hlockAligned v hv)
+  simpa only [actionAttestationAt, ast, Lambda] using! hpair
 
 
 
@@ -568,7 +568,7 @@ private theorem w4_slotVoteCone_of_heads
   obtain ⟨X, hXhead, hXrun, hXemit⟩ :=
     voteDutyHead_runBlock_and_emits S adm hs hhor hw hcommittee
   refine ⟨X, ?_, hXrun, hXemit⟩
-  simpa only [hXhead, Protocol.voteDutyHead, hheads w hw] using
+  simpa only [hXhead, Protocol.voteDutyHead, hheads w hw] using!
     Block.preceq_self P.erase
 
 /-- The round-`r` action read sits at the support cutoff of the carrier's

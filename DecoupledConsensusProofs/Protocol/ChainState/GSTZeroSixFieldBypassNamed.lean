@@ -48,7 +48,7 @@ theorem latestConfirmedAt_preceq_laterVoteDutyHead_of_gstZero
     S h.core.toNamedScheduleWellFormed t
   have hbound := latestConfirmed_preceq_laterVoteDutyHead_of_gstZero
     S h hzero hv n
-  simpa only [Run.storeAt, hn] using hbound
+  simpa only [Run.storeAt, hn] using! hbound
 
 #print axioms latestConfirmedAt_preceq_laterVoteDutyHead_of_gstZero
 
@@ -186,7 +186,7 @@ theorem liveConfirmedSelection_preceq_voteDutyHead_of_weakGenesis_named
   · exact ((protectedVoteSlots_of_gstZero_v2
       S h.core h.committees h.gstZero h.windows hhor d hd hupper).2
         q hqd w hw _ ⟨rfl, hg⟩).heads x hx
-  · rw [update_confirmation_with_live_confirmed, if_neg hg]
+  · rw [update_confirmation_with_live_confirmed, ite_eq_right hg]
     have hmajority := honestWeightMajority_of_finiteWindows S h.windows hhor
     have hroot : Block.Preceq
         (Protocol.get_fg_root
@@ -205,7 +205,7 @@ theorem liveConfirmedSelection_preceq_voteDutyHead_of_weakGenesis_named
         exact ((actionSources_preceq_voteDutyHead_of_gstZero
           S h.core h.committees h.gstZero h.windows hhor hd hupper hx
             a.round hat).2 a.val_index ha).2 _ hT
-    simpa only [contract, confRoot, confStore, tickStore] using hroot
+    simpa only [contract, confRoot, confStore, tickStore] using! hroot
 
 #print axioms liveConfirmedSelection_preceq_voteDutyHead_of_weakGenesis_named
 
@@ -338,11 +338,11 @@ theorem confirmationFields_at_read_preceq_voteDutyHead_of_weakGenesis_named
         by_cases helig : confirmationEligible S.E read.st.core q
             (namedConfirmationWalk S read q) = true
         · have hnone : (none : Option (Block V)) = some C := by
-            simpa only [helig, if_pos] using hsgRead
+            simpa only [helig, ite_eq_left] using hsgRead
           contradiction
         · have hselect : DecoupledConsensusModel.Protocol.frameSGCandidate read.cache
               S.E S.hc read.st.core.toHealing q = some C := by
-            simpa only [helig, if_neg] using hsgRead
+            simpa only [helig, ite_eq_right] using! hsgRead
           have hselect' : ((DecoupledConsensusModel.Protocol.readFrame read.cache
               read.st.core.toHealing (S.hc.round_of read.st.core.s)).g2.bind id).bind
                 (activePrefix
@@ -394,7 +394,7 @@ theorem confirmationFields_at_read_preceq_voteDutyHead_of_weakGenesis_named
             some (rho.stateBefore S n v).st.latest_confirmed at hG
         rw [hstate, htimeq] at hG
         simpa only [NamedRecoveryRead.confirmationInputRead,
-          NamedActionReads.confirmationReadAt] using hG
+          NamedActionReads.confirmationReadAt] using! hG
       exact Block.preceq_trans
         (preparedStableRoot_preceq_confWalk_of_gstZero_clean
           S h hv
@@ -431,7 +431,7 @@ theorem confirmationFields_at_read_preceq_voteDutyHead_of_weakGenesis_named
     rw [hstate, htimeq, slotOf_confirmation_time, Nat.add_sub_cancel]
     simpa only [
       NamedRecoveryRead.confirmationInputRead,
-      NamedActionReads.confirmationReadAt, confStore, tickStore] using hbound
+      NamedActionReads.confirmationReadAt, confStore, tickStore] using! hbound
   have hlive := stateBefore_live_preceq_of_priorSelections
     S rho v (voterHeadAt S rho x d) n hprior
   have hread : NamedRun.readAt S rho t v =
@@ -496,7 +496,7 @@ theorem finalizedAt_preceq_laterVoteDutyHead_of_gstZero
         (rho.storeBeforeTime S v (t + 1)).toHealing.toFG) :=
     Proofs.Records.preceq_get_fg_root_of_F (st :=
       (rho.storeBeforeTime S v (t + 1)).toHealing.toFG) (by
-        simpa only [Protocol.Store.toHealing] using hFJ)
+        simpa only [Protocol.Store.toHealing] using! hFJ)
   have hstore : rho.storeAt S v t = rho.storeBeforeTime S v (t + 1) := by
     have hbool (a b : Int) : decide (a ≤ b) = decide (a < b + 1) := by
       simp only [Int.lt_add_one_iff]
@@ -524,7 +524,7 @@ theorem finalizedAt_preceq_laterVoteDutyHead_of_gstZero
       obtain ⟨i, hi, _⟩ := hemit
       have htimeHor := (h.core.toNamedScheduleWellFormed.in_horizon _
         (List.mem_of_getElem? hi)).2
-      simpa only [NamedEvent.time, htime] using htimeHor
+      simpa only [NamedEvent.time, htime] using! htimeHor
     refine ⟨S.hc.opening_slot a.round, hsourceHor, ?_⟩
     intro last hlast hlastHor x hx
     have hat : S.a a.round < Protocol.vote_time S.E ((last + 1) + 1) :=

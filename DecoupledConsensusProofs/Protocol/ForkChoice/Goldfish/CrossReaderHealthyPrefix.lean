@@ -184,7 +184,7 @@ private theorem healthy_absorb_finality_step (U afterJ : Protocol.Store V)
   have hprec : Block.prec U.F sigma.F = true := by
     change (!decide (U.F = sigma.F) && Block.preceq U.F sigma.F) = true
     rw [show decide (U.F = sigma.F) = false by simp [hne]]
-    simpa only [Bool.not_false, Bool.true_and] using hUF
+    simpa only [Bool.not_false, Bool.true_and] using! hUF
   have hguard :
       (Block.prec afterJ.F sigma.F &&
         Block.preceq sigma.F afterJ.J &&
@@ -193,7 +193,7 @@ private theorem healthy_absorb_finality_step (U afterJ : Protocol.Store V)
     rw [hF, hsigma, hT, hmax]
     simp only [Bool.and_eq_true, decide_eq_true_eq]
     exact ⟨⟨hprec, hJ⟩, hviable⟩
-  rw [if_pos hguard]
+  rw [ite_eq_left hguard]
   exact Block.preceq_self _
 
 private theorem healthy_fresh_receipt_absorbs_finality
@@ -228,7 +228,7 @@ private theorem healthy_fresh_receipt_absorbs_finality
           (Execution.NamedReceiptCalls.postCore S before B).core =
             before.core := by
         simp only [Execution.NamedReceiptCalls.postCore,
-          Protocol.NamedStore.process_block_core, if_pos hn]
+          Protocol.NamedStore.process_block_core, ite_eq_left hn]
       exact hnew (hsame ▸ hpost)
     have hAheld : A ∈ before.bodies :=
       NamedOutageHistory.ViabilityHistoryTime.ancestor_body_mem
@@ -256,10 +256,10 @@ private theorem healthy_fresh_receipt_absorbs_finality
       · refine ⟨?_, ?_, ?_, ?_⟩
         · intro D hD
           exact Proofs.Bridges.runBlock_of_stateBefore_mem S htarget hD
-        · simpa only [Protocol.NamedStore.setClock] using
+        · simpa only [Protocol.NamedStore.setClock] using!
             (NamedJustificationBound.noHighJustifications_stateBefore
               S rho i target)
-        · simpa only [Protocol.NamedStore.setClock] using
+        · simpa only [Protocol.NamedStore.setClock] using!
             (Proofs.Bridges.namedProvenance_stateBefore S rho i target)
         · simpa only [Protocol.NamedStore.setClock] using
             (Proofs.NamedStoreBridge.maximum_carrier_stateBefore S rho i target)
@@ -326,23 +326,22 @@ private theorem healthy_fresh_receipt_absorbs_finality
       · have horder :=
           NamedDerivationGeometry.chainOrder_derive_named S.E S.cfg B
         have hFJ := horder.finalized_preceq_justified
-        simpa only [afterJ, hg, if_true] using hFJ
+        simpa only [afterJ, hg, ite_true] using! hFJ
       · have hgFalse :
             (Block.preceq afterMax.F sigma.J &&
               decide (Protocol.HeightId.mk afterMax.h_j afterMax.J.root <
                 Protocol.HeightId.mk sigma.h_j sigma.J.root)) = false :=
           Bool.eq_false_of_not_eq_true hg
         have hafter : afterJ.J = afterMax.J := by
-          simp only [afterJ, hgFalse, Bool.false_eq_true, if_false]
+          simp only [afterJ, hgFalse, Bool.false_eq_true, ite_false]
         rw [hafter]
         change Block.Preceq sigma.F U.J
         rw [hUJ]
         exact hupgrade
     have hviable : sigma.F ∈ Protocol.viable_tree U.σ U.F
         (max U.h_max sigma.h) U.T := by
-      simp only [Protocol.viable_tree,
-        Protocol.finalized_descendants, Protocol.viable,
-        Finset.mem_filter, decide_eq_true_eq]
+      simp only [Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter]
+      simp only [Protocol.viable, decide_eq_true_eq]
       refine ⟨⟨hFmemU, hfloorU⟩, ?_⟩
       by_cases hlow : max U.h_max sigma.h - 1 ≤ sigma.h
       · refine ⟨B.erase, ?_, ?_, ?_⟩
@@ -393,7 +392,7 @@ private theorem healthy_fresh_receipt_absorbs_finality
               Protocol.named_transition S.E S.cfg
                 (before.core.σ B.erase.parent) B
             else before.core.σ M.erase).h
-          rw [if_neg hMne, hco.2.2.2.2 M hMheld, hMheight, ← hUmax,
+          rw [ite_eq_right hMne, hco.2.2.2.2 M hMheld, hMheight, ← hUmax,
             hmaxEq]
           exact Nat.sub_le _ _
     have hviableAfter : sigma.F ∈
@@ -673,7 +672,7 @@ theorem crossReaderBodyReadyGuard_of_finalizedBelow_and_healthyPrefix
             S rho core.toNamedScheduleWellFormed
             (NamedOutageHistory.GuardedHelpers.early_g2_public S r hr)
             hHbody
-          simpa only [hHnErase] using hstamp
+          simpa only [hHnErase] using! hstamp
         have hdeadline : early S.E S.hc r .g2 + S.E.Δ ≤
             early S.E S.hc r .g1 := by
           exact (healthy_early_g2_add_delta_eq_g1 S r).le
@@ -732,7 +731,7 @@ theorem crossReaderBodyReadyGuard_of_finalizedBelow_and_healthyPrefix
           apply NamedPublicCutBody.body_mem_stateBeforeTime_of_public_stampedBefore
             S rho core.toNamedScheduleWellFormed
             (NamedOutageClosure.q10_late_g1_public S r hr) hHbody
-          simpa only [hHnErase] using hstamp
+          simpa only [hHnErase] using! hstamp
         have hdeadline : late S.E S.hc r .g1 + S.E.Δ ≤
             late S.E S.hc r .g2 := by
           exact (healthy_late_g1_add_delta_eq_g2 S r).le

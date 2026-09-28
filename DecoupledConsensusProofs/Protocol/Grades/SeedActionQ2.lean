@@ -134,7 +134,7 @@ theorem namedG1At_of_nodeQ2
       (DecoupledConsensusModel.Protocol.readFrame (actionReadAt S rho v q).cache
         (actionReadAt S rho v q).st.core.toHealing q) = some Q := hQ
   unfold DecoupledConsensusModel.Protocol.grade2Block at hQ'
-  rw [if_pos (actionFrame_allClosed S core hv hq hhor),
+  rw [ite_eq_left (actionFrame_allClosed S core hv hq hhor),
     actionFrame_g2 S core hv hq hhor, Option.bind_some, id_eq] at hQ'
   obtain ⟨g2c, hg2c, hact⟩ := Option.bind_eq_some_iff.mp hQ'
   obtain ⟨raw, hfz, hclip⟩ := Option.map_eq_some_iff.mp hg2c

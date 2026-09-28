@@ -113,7 +113,7 @@ theorem PrefixFGSelectorConeAt.actionHorizon
     S.a a.round ≤ rho.horizon := by
   have h := (adm.in_horizon (Event.tick a.val_index ta)
     (List.mem_of_getElem? hseed.exactTick)).2
-  simpa only [Event.time, hseed.actionTime_eq] using h
+  simpa only [Event.time, hseed.actionTime_eq] using! h
 
 #print axioms PrefixFGSelectorConeAt.actionPrefix_lt
 #print axioms PrefixFGSelectorConeAt.actionHorizon

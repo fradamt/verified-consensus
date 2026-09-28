@@ -63,7 +63,7 @@ theorem sameRoundSourceQ2Retained_of_namedFrame
     simpa only [filteredTree, PhaseGrades.readAt, voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, Protocol.NamedStore.setClock] using
+      NamedActionReads.preparedCache, Protocol.NamedStore.setClock] using!
       hinputs.openingTarget w hw
   have hPrevQ : NamedBlock.Preceq Prev Q :=
     hframe.sourceAbove p hp r hactionPrefix hactionHor Q hQmem hsource
@@ -81,7 +81,7 @@ theorem sameRoundSourceQ2Retained_of_namedFrame
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hbodies.1
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hbodies.1
   have heq := congrFun (stateBeforeTime_eq_stateBefore_strictEventIndex
     S adm.toNamedScheduleWellFormed (S.a r)) w
   have hbody' := hbody
@@ -96,7 +96,7 @@ theorem sameRoundSourceQ2Retained_of_namedFrame
     simpa only [filteredTree, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hpre
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hpre
   exact ⟨hG1, hG0, haction⟩
 
 omit [Fintype V] in
@@ -179,7 +179,7 @@ private theorem g0Grade_compatible_clearSource_pointwise
     (readAt S rho (domain S.E S.hc r .g0) w).st.core.F
     S.hc.η_SG r (e := early S.E S.hc r .g0) (l := late S.E S.hc r .g0)
     (by simp only [early, late, Phase.earlyOffset, Phase.lateOffset]; exact le_rfl)
-    hQtree (by simpa only [storeGrade] using hQgrade)
+    hQtree (by simpa only [storeGrade] using! hQgrade)
   have hactionFrame := actionFrame_g0 S adm.toNamedAdmissibleCore
     hw hr hactionHor
   have hframe :
@@ -359,8 +359,8 @@ theorem actionFGSources_compatible_sameRound_pointwise
         (readAt S rho (domain S.E S.hc r .g0) w).st.core.toHealing.gradeView
         (readAt S rho (domain S.E S.hc r .g0) w).st.core.F
         S.hc.η_SG r le_rfl
-        (by simpa only [storeGrade, phaseGrade] using hQpG0)
-        (by simpa only [storeGrade, phaseGrade] using hQwG0)
+        (by simpa only [storeGrade, phaseGrade] using! hQpG0)
+        (by simpa only [storeGrade, phaseGrade] using! hQwG0)
 
 /-- Same-height named FG sources at honest actions are compatible from the
 fully named regime frame. The frame supplies retention only for a source when

@@ -51,7 +51,7 @@ theorem tick_at_action (S : Setup V) (v : V) (before : NamedNodeState V) (r : Ro
   change (Protocol.NamedTick.tick (NamedProfile.gradeContract (preparedCache S before (S.a r)))
     S.E S.hc S.cfg (S.node v) before.st before.record (S.a r)).2.2 = _
   rw [NamedTick.tick_computed_duties]
-  simp only [if_neg hp, if_neg hv, if_pos (And.intro hpos hs), List.nil_append]
+  simp only [ite_eq_right hp, ite_eq_right hv, ite_eq_left (And.intro hpos hs), List.nil_append]
   have hround : S.hc.round_of (Protocol.NamedDuties.update_confirmation_with
       (NamedProfile.gradeContract (preparedCache S before (S.a r))) S.E S.hc
       (Protocol.NamedStore.setClock S.E before.st (S.a r)) (S.E.slotOf (S.a r) - 1)).core.s = r :=
@@ -137,12 +137,12 @@ theorem action_run_emission (S : Setup V) (rho : Run V) :
   · rintro ⟨i, hi, hrow⟩
     rw [action_emission S rho hs i v r hi] at hrow
     by_cases hawake : (S.node v).awake r = true
-    · simp only [if_pos hawake, List.mem_singleton, NamedObject.attest.injEq] at hrow
+    · simp only [ite_eq_left hawake, List.mem_singleton, NamedObject.attest.injEq] at hrow
       exact ⟨⟨i, hi⟩, hawake, hrow⟩
-    · simp only [if_neg hawake, List.not_mem_nil] at hrow
+    · simp only [ite_eq_right hawake, List.not_mem_nil] at hrow
   · rintro ⟨⟨i, hi⟩, hawake, rfl⟩
     refine ⟨i, hi, ?_⟩
-    rw [action_emission S rho hs i v r hi, if_pos hawake]
+    rw [action_emission S rho hs i v r hi, ite_eq_left hawake]
     exact List.mem_singleton_self _
 
 /-- Q3b with only the schedule facts read by the action-emission proof. -/
@@ -171,12 +171,12 @@ theorem action_run_emission_of_sorted_nodup (S : Setup V) (rho : Run V)
   · rintro ⟨i, hi, hrow⟩
     rw [action_emission_of_sorted_nodup S rho sorted nodup i v r hi] at hrow
     by_cases hawake : (S.node v).awake r = true
-    · simp only [if_pos hawake, List.mem_singleton, NamedObject.attest.injEq] at hrow
+    · simp only [ite_eq_left hawake, List.mem_singleton, NamedObject.attest.injEq] at hrow
       exact ⟨⟨i, hi⟩, hawake, hrow⟩
-    · simp only [if_neg hawake, List.not_mem_nil] at hrow
+    · simp only [ite_eq_right hawake, List.not_mem_nil] at hrow
   · rintro ⟨⟨i, hi⟩, hawake, rfl⟩
     refine ⟨i, hi, ?_⟩
-    rw [action_emission_of_sorted_nodup S rho sorted nodup i v r hi, if_pos hawake]
+    rw [action_emission_of_sorted_nodup S rho sorted nodup i v r hi, ite_eq_left hawake]
     exact List.mem_singleton_self _
 
 /-- Q5: nonempty named height pairs identify their actual FG source. -/

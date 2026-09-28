@@ -127,7 +127,7 @@ private theorem mutual_fg_compatibility
   have h := fg_compatible_at_read_of_entry S rho b0 b1 s r Pn hexec
     hslash hmargin hsleep hscope hno hentry hheld0 w hw u hb0 hu
   simpa only [NamedActionReads.confirmationReadAt,
-    NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using h
+    NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using! h
 
 /-- A G2-domain interval straddles the bounded outage cap. -/
 theorem outageCap_g2_straddle_exists
@@ -318,7 +318,7 @@ theorem outageMutualState_seed_at_cap_of_clauses
           S rho stop w
         have hFroot := Proofs.Records.preceq_get_fg_root_of_F
           (st := (NamedRun.stateBeforeTime S rho stop w).st.core.toHealing.toFG)
-          (by simpa only [Protocol.Store.toHealing] using hFJ)
+          (by simpa only [Protocol.Store.toHealing] using! hFJ)
         have hroot' : Block.Preceq Pn.erase
             (Protocol.get_fg_root
               (NamedRun.stateBeforeTime S rho stop w).st.core.toHealing.toFG) := by
@@ -518,7 +518,7 @@ private theorem mutual_stable_at_next_g2
         S rho stop w
       have hFroot := Proofs.Records.preceq_get_fg_root_of_F
         (st := (NamedRun.stateBeforeTime S rho stop w).st.core.toHealing.toFG)
-        (by simpa only [Protocol.Store.toHealing] using hFJ)
+        (by simpa only [Protocol.Store.toHealing] using! hFJ)
       have hroot' : Block.Preceq P
           (Protocol.get_fg_root
             (NamedRun.stateBeforeTime S rho stop w).st.core.toHealing.toFG) := by

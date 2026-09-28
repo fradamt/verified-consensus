@@ -33,7 +33,7 @@ theorem on_tick_emit_latest_of_ne
       S.E S.hc S.cfg (S.node v) n.st n.record t).1.latest_confirmed =
       n.st.latest_confirmed
   simp only [Protocol.NamedTick.tick, Protocol.TickScheduler.runWith,
-    Protocol.NamedTick.namedOps, if_neg h]
+    Protocol.NamedTick.namedOps, ite_eq_right h]
   split_ifs <;>
     simp only [Protocol.attest_with_latest,
       Protocol.propose_block_with_latest,
@@ -110,7 +110,7 @@ theorem named_confirmation_latest_cases (S : Setup V) (nd : NamedNodeState V) (s
               | some candidate =>
                   Protocol.advance_confirmed nd.st.core.latest_confirmed candidate
               | none => nd.st.core.latest_confirmed) = true := hfirst
-    rw [if_pos hfirst']
+    rw [ite_eq_left hfirst']
   have hcases : ∃ select, (NamedProfile.gradeContract nd.cache).confirmationSG =
         Protocol.ConfirmationSGCandidate.optional select := by
     cases h : (NamedProfile.gradeContract nd.cache).confirmationSG with
@@ -369,7 +369,7 @@ theorem stateBefore_latest_confirmed_origin (S : Setup V) (rho : Run V) (v : V) 
                         t = Protocol.support_cutoff S.E (S.E.slotOf t)) := by
                       intro hc
                       exact hcase ⟨t, hn, hc.1, hc.2⟩
-                    simpa only [NamedWorld.step, Function.update_self] using
+                    simpa only [NamedWorld.step, Function.update_self] using!
                       on_tick_emit_latest_of_ne S v
                         (rho.stateBefore S n v) t hbranch
                   · simp only [NamedWorld.step, Function.update_of_ne (Ne.symm hu)]

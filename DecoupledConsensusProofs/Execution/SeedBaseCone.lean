@@ -59,7 +59,7 @@ theorem voteDutyHead_mem_voteDutyStore
       (Protocol.vote_time S.E s) v).1
   have hinv : Proofs.NamedConfirmationMembership.Invariant S.E S.cfg read.st := by
     simpa only [read, Internal.NamedRecoveryRead.voteDutyRead,
-      NamedActionReads.confirmationReadAt] using
+      NamedActionReads.confirmationReadAt] using!
       Proofs.NamedConfirmationMembership.invariant_clock S.E S.cfg _ _ hinvPre
   have hroot : Protocol.get_fg_root st.toHealing.toFG ∈ st.T :=
     Proofs.NamedStoreRoots.fg_root_mem read.st hinv.1.2
@@ -136,7 +136,7 @@ private theorem finalized_preceq_at_delivery_local
   have hroot' : Block.Preceq
       (Protocol.get_fg_root pre.toHealing.toFG) B := by
     simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore, pre, Gamma] using hroot
+      Proofs.Optimistic.tickStore, pre, Gamma] using! hroot
   exact Block.preceq_trans hmono (Block.preceq_trans hFroot hroot')
 
 /-- An honest slot-`s` vote head above the next duty's own fork-choice root is
@@ -201,7 +201,7 @@ private theorem voteHeadVisible_at_nextDuty
             (rho.storeBeforeTime S w (Protocol.vote_time S.E (s + 1))).toHealing.toFG)
             B := by
         simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-          Proofs.Optimistic.tickStore] using hroot
+          Proofs.Optimistic.tickStore] using! hroot
       exact Block.preceq_trans
         (finalized_preceq_at_prefix_of_storeBeforeRoot_preceq
           S rho adm.toNamedAdmissibleCore.toNamedScheduleWellFormed.sorted
@@ -281,7 +281,7 @@ private theorem honestVoteWitness_of_nextVoteAdoption
         (NamedProfile.gradeContract read.cache) S.E S.hc st.toHealing
         tree votes support (st.s - 1))
     rw [Proofs.Optimistic.get_head_in_tree_split_with, hprev]
-    simpa only [Protocol.Store.toHealing, read, st] using
+    simpa only [Protocol.Store.toHealing, read, st] using!
       (Protocol.goldfish_fork_choice_captures_of_confirmation
         S.E st.σ st.h_max source.T st.T tree st.s
         (confEarly S.E source s) (confLate S.E source s)
@@ -298,7 +298,7 @@ private theorem honestVoteWitness_of_nextVoteAdoption
             (voterHeadAt S rho w (s + 1)).root⟩ := by
     simp only [Protocol.NamedDuties.goldfish_vote_with,
       Protocol.goldfish_vote_with]
-    rw [if_pos]
+    rw [ite_eq_left]
     · rfl
     · rw [S.node_val_index, hslot]
       exact hwcommittee
@@ -388,11 +388,11 @@ private theorem baseConeVoteWitness_of_supporter
     · simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
         Proofs.Optimistic.tickStore] using hgate
     · simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-        Proofs.Optimistic.tickStore] using hrootT
+        Proofs.Optimistic.tickStore] using! hrootT
   have hTfiltered : T ∈ Protocol.get_filtered_block_tree
       (Proofs.Optimistic.voteDutyStore S rho w (s + 1)).toHealing.toFG := by
     simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore] using hTfilteredPre
+      Proofs.Optimistic.tickStore] using! hTfilteredPre
   have hmax : (Proofs.Optimistic.voteDutyStore S rho w (s + 1)).h_max ≤
       (Protocol.derive_named S.E S.cfg Hn).h + 1 := by
     rw [hfrontier]
@@ -410,7 +410,7 @@ private theorem baseConeVoteWitness_of_supporter
     · rw [hXerase]
       exact Block.preceq_trans hbelow
         (voterAnchorAt_preceq_voterHeadAt S rho w (s + 1))
-    · simpa only [hXerase] using
+    · simpa only [hXerase] using!
         seedVoteDutyHead_emits S adm hw (Nat.succ_pos s) hwcommittee hread
   · exact honestVoteWitness_of_nextVoteAdoption S rho
       (Proofs.Optimistic.confStore S rho v s) s T heligible hw hwcommittee hd
@@ -467,12 +467,12 @@ theorem baseCone_succ_of_genuineSupporter_rootComparable (S : Setup V) {rho : Ru
         Proofs.Optimistic.tickStore, Internal.NamedRecoveryRead.voteDutyRead,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom,
-        Protocol.NamedStore.setClock, Run.storeBeforeTime] using hcase2
+        Protocol.NamedStore.setClock, Run.storeBeforeTime] using! hcase2
     obtain ⟨X, hXerase, hXrun⟩ := seedVoteDutyHead_runBlock S adm hw (s + 1)
     refine ⟨X, ?_, hXrun, ?_⟩
     · rw [hXerase]
       exact hTX
-    · simpa only [hXerase] using
+    · simpa only [hXerase] using!
         seedVoteDutyHead_emits S adm hw (Nat.succ_pos s) hwcommittee hread
 
 

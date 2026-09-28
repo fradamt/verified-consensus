@@ -126,7 +126,7 @@ theorem honest_awake_emits (S : Setup V) (rho : NamedRun V)
       (Execution.NamedNode.tick S w (NamedRun.stateBefore S rho i w) (S.a k)).2 := rfl
   rw [hemit, OutageInputs.tick_at_action S w (NamedRun.stateBefore S rho i w) k]
   dsimp only
-  simp only [if_pos hawake, List.mem_singleton]
+  simp only [ite_eq_left hawake, List.mem_singleton]
 
 /-! ## 4. B5 provenance
 

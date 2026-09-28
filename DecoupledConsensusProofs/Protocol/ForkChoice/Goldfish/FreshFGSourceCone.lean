@@ -60,15 +60,15 @@ private theorem freshFGSource_mem_filtered_actionStore
           have hCL : Block.Preceq C
               (actionStoreAt S rho v r).live_confirmed :=
             Proofs.Engine.mem_chain_of_preceq (List.mem_toFinset.mp hchain)
-          have hQC' : Block.Preceq Q C := by simpa using hQC
+          have hQC' : Block.Preceq Q C := by simpa using! hQC
           have hLmem := liveConfirmed_mem_filtered_actionStore S adm v r
           have hQmem' := hQmem
           have hLmem' := hLmem
-          simp only [Protocol.get_filtered_block_tree,
-            Protocol.get_filtered_block_tree_from,
+          simp only [Protocol.get_filtered_block_tree, Protocol.get_filtered_block_tree_from,
             Protocol.viable_tree, Protocol.finalized_descendants,
-            Protocol.viable, Finset.mem_filter, Protocol.Store.toHealing,
-            decide_eq_true_eq] at hQmem' hLmem' ⊢
+            Finset.mem_filter] at hQmem' hLmem' ⊢
+          simp only [Protocol.viable, decide_eq_true_eq] at hQmem' hLmem' ⊢
+          simp only [Protocol.Store.toHealing] at hQmem' hLmem' ⊢
           obtain ⟨⟨⟨-, hFQ⟩, -⟩, hrootQ⟩ := hQmem'
           obtain ⟨⟨⟨hLT, -⟩, W, hWT, hLW, hWh⟩, -⟩ := hLmem'
           have hpc : ParentClosed (actionStoreAt S rho v r).st.core := by
@@ -76,7 +76,7 @@ private theorem freshFGSource_mem_filtered_actionStore
               S rho (S.a r) v
             have hT : (actionStoreAt S rho v r).st.core.T =
                 (rho.storeBeforeTime S v (S.a r)).core.T := rfl
-            simpa only [ParentClosed, Protocol.GoldfishStore.parent_closed, hT] using hpcPre
+            simpa only [ParentClosed, Protocol.GoldfishStore.parent_closed, hT] using! hpcPre
           refine ⟨⟨⟨?_, ?_⟩, W, hWT,
             Block.preceq_trans hCL hLW, hWh⟩, ?_⟩
           · exact Proofs.Records.mem_of_preceq hpc.2 C _ hLT hCL
@@ -96,7 +96,7 @@ theorem freshFGSource_namedSource_witness
       (freshFGSource_mem_filtered_actionStore S adm v r hsource)
   have hmemPre : C ∈ (rho.storeBeforeTime S v (S.a r)).core.T := by
     simpa only [actionStoreAt_eq_update_confirmation_confStore,
-      Protocol.update_confirmation_with, Run.storeBeforeTime] using hmem
+      Protocol.update_confirmation_with, Run.storeBeforeTime] using! hmem
   obtain ⟨Cn, hbodyPre, hCerase⟩ :=
     Proofs.NamedStoreBridge.exists_named_of_mem_stateBeforeTime S rho (S.a r) v hmemPre
   have hCrun : RunBlock S rho Cn := by
@@ -109,7 +109,7 @@ theorem freshFGSource_namedSource_witness
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using hbodyPre
+      NamedRun.stateBeforeTime] using! hbodyPre
   exact ⟨Cn, hbody, hCerase, hCrun⟩
 
 private theorem freshFGSource_frontierWitness
@@ -121,27 +121,26 @@ private theorem freshFGSource_frontierWitness
       W ∈ (actionStoreAt S rho v r).st.bodies ∧ Block.Preceq C W.erase ∧
         M - 1 ≤ (Protocol.derive_named S.E S.cfg W).h := by
   have hfiltered := freshFGSource_mem_filtered_actionStore S adm v r hsource
-  simp only [Protocol.get_filtered_block_tree,
-    Protocol.get_filtered_block_tree_from,
-    Protocol.viable_tree, Protocol.finalized_descendants,
-    Protocol.viable, Finset.mem_filter, decide_eq_true_eq,
-    Protocol.Store.toHealing] at hfiltered
+  simp only [Protocol.get_filtered_block_tree, Protocol.get_filtered_block_tree_from,
+    Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter] at hfiltered
+  simp only [Protocol.viable, decide_eq_true_eq] at hfiltered
+  simp only [Protocol.Store.toHealing] at hfiltered
   obtain ⟨⟨⟨-, -⟩, W, hWT, hCW, hheight⟩, -⟩ := hfiltered
   have hmax : (actionStoreAt S rho v r).st.core.h_max = M := by
     rw [actionStoreAt_eq_update_confirmation_confStore]
     simp only [Protocol.update_confirmation_with]
-    simpa only [Run.storeBeforeTime] using hfrontier
+    simpa only [Run.storeBeforeTime] using! hfrontier
   rw [hmax] at hheight
   have hWTpre : W ∈ (rho.storeBeforeTime S v (S.a r)).core.T := by
     have hWT' := hWT
     rw [actionStoreAt_eq_update_confirmation_confStore] at hWT'
-    simpa only [Protocol.update_confirmation_with] using hWT'
+    simpa only [Protocol.update_confirmation_with] using! hWT'
   obtain ⟨D, hDbody, hDerase⟩ :=
     Proofs.NamedStoreBridge.exists_named_of_mem_stateBeforeTime S rho (S.a r) v hWTpre
   have hsig : (actionStoreAt S rho v r).st.core.σ D.erase =
       Protocol.derive_named S.E S.cfg D := by
     rw [actionStoreAt_eq_update_confirmation_confStore]
-    simpa only [Protocol.update_confirmation_with, hDerase] using
+    simpa only [Protocol.update_confirmation_with, hDerase] using!
       (Proofs.NamedStoreBridge.derivedView_stateBeforeTime S rho (S.a r) v D hDbody)
   refine ⟨D, hDbody, ?_, ?_⟩
   · simpa only [hDerase] using hCW
@@ -262,7 +261,7 @@ theorem preparedAnchor_compatible_freshFGSource_of_gateOff_relative
                   NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
                   NamedActionReads.confirmationReadFrom,
                   NamedActionReads.preparedCache, NamedRun.stateBeforeTime,
-                  Run.storeBeforeTime] using hWbody
+                  Run.storeBeforeTime] using! hWbody
               have hWrun : RunBlock S rho W := by
                 obtain ⟨n, hn, -⟩ := Proofs.Bridges.stateBeforeTime_eq_stateBefore
                   S adm.toNamedScheduleWellFormed (S.a c)
@@ -333,7 +332,7 @@ theorem preparedAnchor_compatible_freshFGSource_of_gateOff_relative
                   NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
                   NamedActionReads.confirmationReadFrom,
                   NamedActionReads.preparedCache, NamedRun.stateBeforeTime,
-                  Run.storeBeforeTime] using hWbody
+                  Run.storeBeforeTime] using! hWbody
               have hWrun : RunBlock S rho W := by
                 obtain ⟨n, hn, -⟩ := Proofs.Bridges.stateBeforeTime_eq_stateBefore
                   S adm.toNamedScheduleWellFormed (S.a c)

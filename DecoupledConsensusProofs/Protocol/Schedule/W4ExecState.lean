@@ -88,7 +88,7 @@ theorem w4cx_movingSlotPreEntryN_voterAnchorAt_preceq_prev_of_voteHorizon
         (Proofs.Optimistic.voteDutyStore S rho w (c + 1)).toHealing.toFG)
       (EndAt k) := by
     simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore, Run.storeBeforeTime] using hrootRaw
+      Proofs.Optimistic.tickStore, Run.storeBeforeTime] using! hrootRaw
   have hread : S.hc.Γ_0 S.E.Δ (r + 1) ≤ Protocol.vote_time S.E (c + 1) :=
     Γ_0_le_vote_time_of_round_eq S hround
   have hbefore : S.a r < Protocol.vote_time S.E (c + 1) :=
@@ -147,7 +147,7 @@ theorem w4cx_movingSlotPreEntryN_voterAnchorAt_preceq_prev_of_ceiling
         (Proofs.Optimistic.voteDutyStore S rho w (c + 1)).toHealing.toFG)
       E0.erase := by
     simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore, Run.storeBeforeTime] using hrootRaw
+      Proofs.Optimistic.tickStore, Run.storeBeforeTime] using! hrootRaw
   have hupperK : ∀ u ∈ rho.honest,
       Block.Preceq (actionSGBlockAt S rho u r) E0.erase := by
     intro u hu

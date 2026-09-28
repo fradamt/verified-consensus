@@ -85,7 +85,7 @@ theorem actionFGSource_rawG1_at_read_after_cutoff
       have hQ' : Protocol.grade2_block_with
           (NamedProfile.gradeContract (actionStoreAt S rho p r).cache)
           S.E S.hc (actionStoreAt S rho p r).st.core.toHealing r = none := by
-        simpa only [PhaseGrades.nodeQ2, PhaseGrades.nodeRead] using hQ
+        simpa only [PhaseGrades.nodeQ2, PhaseGrades.nodeRead] using! hQ
       rw [hQ'] at hsource'
       simp only [Protocol.fg_source_with] at hsource'
       cases hsource'

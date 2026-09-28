@@ -124,7 +124,7 @@ theorem honestSupport_confVotes_after_gst_of_names
     exact Protocol.canonicalSuffixHonestVoteCounted
       S adm hs hpost hhor v hv u hus huHon hemit harr
   simpa only [Proofs.Optimistic.confStore_eq_confirmationInputRead, confVotes,
-    confirmationVotes, confLate, confirmationLate] using hsupport
+    confirmationVotes, confLate, confirmationLate] using! hsupport
 
 /-- One honest post-GST proposal is written exactly to every honest reader's
 `live_confirmed` field once proposal-to-voter transfer and the three local
@@ -164,7 +164,7 @@ theorem proposedBlock_liveConfirmed_after_gst_of_localReads
       (confirmationLate S.E (confirmationInputRead S rho v s).st.core s) := by
     have hvalid' : Protocol.VoteSetValid S.E s
         (confLate S.E (Proofs.Optimistic.confStore S rho v s) s) := by
-      simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using
+      simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using!
         voteSetValid_confLate_stateBeforeTime S
           adm.toNamedAdmissibleCore.toNamedScheduleWellFormed v
           (Protocol.confirmation_time S.E s) s
@@ -183,7 +183,7 @@ theorem proposedBlock_liveConfirmed_after_gst_of_localReads
     simpa only [Proofs.Optimistic.confStore_eq_confirmationInputRead] using hpath'
   rw [Proofs.Optimistic.live_confirmed_eq_update
     S adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hv s hhor]
-  simpa only [Proofs.Optimistic.confStore_eq_confirmationInputRead] using
+  simpa only [Proofs.Optimistic.confStore_eq_confirmationInputRead] using!
     (live_confirmed_eq_with
       (NamedProfile.gradeContract (confirmationInputRead S rho v s).cache)
       S.E S.hc (confirmationInputRead S rho v s).st.core s rho.honest B.erase
@@ -237,7 +237,7 @@ theorem openingProposal_liveConfirmed_actionStore_after_gst_of_localReads
   rw [hslot]
   simpa only [Proofs.Optimistic.confStore, Run.storeBeforeTime,
     NamedRecoveryRead.confirmationInputRead,
-    NamedActionReads.confirmationReadAt, hconf] using hbridge.symm
+    NamedActionReads.confirmationReadAt, hconf] using! hbridge.symm
 
 #print axioms find?_eq_some_confStore_of_candidate
 #print axioms honestSupport_confVotes_after_gst_of_names

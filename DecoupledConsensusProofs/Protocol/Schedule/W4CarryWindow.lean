@@ -258,7 +258,7 @@ private theorem round_of_lt_of_lt_opening
   have hRpos : 0 < hc.R := lt_of_lt_of_le Nat.zero_lt_two hc.R_ge_two
   simp only [Protocol.HealConfig.round_of]
   rw [Nat.div_lt_iff_lt_mul hRpos]
-  simpa only [Nat.mul_comm] using h
+  simpa only [Nat.mul_comm] using! h
 
 private theorem nat_pred_le_pred {a b : Nat} (h : a ≤ b) : a - 1 ≤ b - 1 :=
   Nat.sub_le_sub_right h 1
@@ -419,7 +419,7 @@ theorem ceilingActionTiming
   refine ⟨hrpos, ?_, ?_, ?_⟩
   · simpa only [hrpred] using hpostQ
   · exact (gammaNegOne_le_action S r).trans (hr.le.trans hslotHor)
-  · simpa only [hrpred] using fun u hu =>
+  · simpa only [hrpred] using! fun u hu =>
       Block.preceq_trans (hcarrierQ u hu) hDPrev
 
 theorem ordinaryWindowData
@@ -655,7 +655,6 @@ theorem MovingSlotFoldAtN.complete_through_window
         · intro u _hu hevent _heq
           have hmem := List.mem_of_getElem? hevent
           have hhor := (adm.in_horizon _ hmem).2
-          simp only [Event.time] at hhor
           exact absurd hhor (not_le_of_gt hfuture)
         · exact hjlen.trans_le
             (hlenFuture.trans (strictEventIndex_le_inclusiveEventIndex rho _)))

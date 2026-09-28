@@ -33,7 +33,7 @@ theorem on_tick_emit_stable_of_ne
       S.E S.hc S.cfg (S.node v) n.st n.record t).1.latest_stable =
       n.st.latest_stable
   simp only [Protocol.NamedTick.tick, Protocol.TickScheduler.runWith,
-    Protocol.NamedTick.namedOps, if_neg h]
+    Protocol.NamedTick.namedOps, ite_eq_right h]
   split_ifs <;>
     simp only [NamedOutageClosure.attest_with_stable,
       NamedOutageClosure.propose_block_with_stable,
@@ -56,7 +56,7 @@ theorem on_tick_emit_confirmation_stable (S : Setup V) (v : V)
   simp only [NamedNode.tick, NamedProfile.tick, Protocol.NamedTick.tick,
     Protocol.TickScheduler.runWith, Protocol.NamedTick.namedOps, hslot,
     support_cutoff_ne_proposal_time S.E s, support_cutoff_ne_vote_time S.E s,
-    hs, and_true, and_false, false_and, if_true, if_false,
+    hs, and_true, and_false, false_and, ite_true, ite_false,
     NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
     Protocol.NamedStore.setClock]
   split
@@ -158,7 +158,7 @@ theorem stateBefore_latest_stable_rootOrigin (S : Setup V) (rho : Run V) (v : V)
                       dsimp only
                       have hrootAt : StableRootAt S rho v n G := by
                         refine ⟨t, hn, hpos, ht, ?_⟩
-                        simpa only [nd, root, NamedProfile.gradeContract] using hroot
+                        simpa only [nd, root, NamedProfile.gradeContract] using! hroot
                       rcases Proofs.ConfirmationPolicy.advance_eq_old_or_candidate
                           (rho.stateBefore S n v).st.latest_stable G with hkeep | hnew
                       · rw [hkeep]
@@ -270,7 +270,7 @@ theorem stateBefore_latest_stable_rootOrigin_after_prefix
                         dsimp only
                         have hrootAt : StableRootAt S rho v n G := by
                           refine ⟨t, hn, hpos, ht, ?_⟩
-                          simpa only [nd, root, NamedProfile.gradeContract] using hroot
+                          simpa only [nd, root, NamedProfile.gradeContract] using! hroot
                         rcases Proofs.ConfirmationPolicy.advance_eq_old_or_candidate
                             (rho.stateBefore S n v).st.latest_stable G with hkeep | hnew
                         · rw [hkeep]

@@ -61,9 +61,9 @@ theorem w4MovingSlotFoldAtN_step_of_mixed_named
     if d ≤ c + 1 then F d else Next
   have hlow : ∀ d : Slot, d ≤ c + 1 → F' d = F d := by
     intro d hd
-    simp only [F', if_pos hd]
+    simp only [F', ite_eq_left hd]
   have hhigh : F' (c + 1 + 1) = Next := by
-    simp only [F', if_neg (w4nms_nat_not_succ_succ_le c)]
+    simp only [F', ite_eq_right (w4nms_nat_not_succ_succ_le c)]
   have hendNext : Block.Preceq End Next := hfrontier.oldPreceq
   have hprevNext : Block.Preceq (F (c + 1)) Next :=
     Block.preceq_trans hfold.entry.prevLe hendNext
@@ -73,13 +73,13 @@ theorem w4MovingSlotFoldAtN_step_of_mixed_named
     by_cases hec : e ≤ c + 1
     · rw [hlow d (hde.trans hec), hlow e hec]
       exact hfold.mono d e hd hde hec
-    · simp only [F', if_neg hec]
+    · simp only [F', ite_eq_right hec]
       by_cases hdle : d ≤ c + 1
-      · simp only [F', if_pos hdle]
+      · simp only [F', ite_eq_left hdle]
         exact Block.preceq_trans
           (hfold.mono d (c + 1) hd hdle (Nat.le_refl _)) hprevNext
       · simp only [F'] at *
-        rw [if_neg hdle]
+        rw [ite_eq_right hdle]
         exact Block.preceq_self Next
   have habsorbed : ∀ d : Slot, s0 ≤ d → d < c + 1 + 1 →
       S.E.proposer d ∈ rho.honest →
@@ -115,7 +115,7 @@ theorem w4MovingSlotFoldAtN_step_of_mixed_named
         hfb hdata.pos hround hupper hpostAction hcut hdata.postVote
         hdata.slotHor hu
       refine ⟨hout.1, ?_⟩
-      simp only [F', if_neg (Nat.not_succ_le_self (d + 1))]
+      simp only [F', ite_eq_right (Nat.not_succ_le_self (d + 1))]
       exact hfrontier.genuinePreceq u hu _ hout.1
   have hconfAbove : ∀ d : Slot, s0 ≤ d → d + 1 < c + 1 + 1 →
       ∀ u ∈ rho.honest,
@@ -130,7 +130,7 @@ theorem w4MovingSlotFoldAtN_step_of_mixed_named
           (Nat.le_of_succ_le_succ (Nat.le_of_lt_succ hdlt))
           (Nat.le_of_succ_le_succ hge)
       subst hdeq
-      simp only [F', if_pos (Nat.le_refl (d + 1))]
+      simp only [F', ite_eq_left (Nat.le_refl (d + 1))]
       exact (hfold.entry.confOutcome_atPrev_of_ceiling_named S adm hcom hfb
         hdata.pos hround hupper hpostAction hcut hdata.postVote hdata.slotHor
         hu).2

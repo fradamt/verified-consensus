@@ -66,7 +66,7 @@ private theorem preparedV4_genuineWith_of_genuineAt_latest
       (rho.storeAt S v
         (Protocol.confirmation_time S.E q)).live_confirmed := by
   constructor
-  · simpa only [Proofs.Optimistic.confStore_eq_confirmationInputRead] using
+  · simpa only [Proofs.Optimistic.confStore_eq_confirmationInputRead] using!
       (live_confirmed_eq_update S sch hv q hqhor).symm
   · exact hg.2
 
@@ -132,7 +132,7 @@ theorem SettledBootstrapPreparedV4.latest_has_voteHead_bound_core_of_pins
       (Protocol.confirmation_time S.E start)).latest_confirmed = P.erase
     rw [latest_confirmed_eq_update
       S adm.toNamedScheduleWellFormed hv start hstartHor]
-    simpa only [Proofs.Optimistic.confStore_eq_confirmationInputRead] using
+    simpa only [Proofs.Optimistic.confStore_eq_confirmationInputRead] using!
       hlatest v hv
   have hstable : Block.Preceq
       (rho.stateBefore S m v).st.core.latest_stable P.erase := by
@@ -211,7 +211,7 @@ theorem SettledBootstrapPreparedV4.latest_has_voteHead_bound_core_of_pins
         simpa only [Internal.NamedRecoveryRead.confirmationInputRead,
           NamedActionReads.confirmationReadAt] using hg.2
       simp only [userSGCandidateAtIndex, hstate, slotOf_confirmation_time,
-        Nat.add_sub_cancel, hcontract, helig, if_pos] at hsg
+        Nat.add_sub_cancel, hcontract, helig, ite_eq_left] at hsg
       contradiction
   · obtain ⟨time, hievent, hqpos, hqtime, hGval⟩ := hroot
     have hstateEq : rho.stateBefore S i v =

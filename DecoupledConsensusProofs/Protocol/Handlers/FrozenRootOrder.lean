@@ -316,7 +316,7 @@ theorem justifiedRoot_mem_filtered (S : Setup V) (rho : NamedRun V) (t : Time) (
         (NamedRun.stateBeforeTime S rho t v).st.core.J else
         (NamedRun.stateBeforeTime S rho t v).st.core.F) =
       (NamedRun.stateBeforeTime S rho t v).st.core.J
-    rw [if_pos hgate]
+    rw [ite_eq_left hgate]
   exact Proofs.Records.mem_filtered_of_mem_V_tree
     (by rw [hroot]; exact justifiedRoot_viable_of_state S rho t v hgate)
     (Block.preceq_self _)

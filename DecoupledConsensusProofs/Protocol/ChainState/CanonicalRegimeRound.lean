@@ -308,7 +308,7 @@ theorem CanonicalRegimeRoundAt.exists_commonG2Floor
     obtain ⟨u, hu, hue, -, hfind, -⟩ := h.batchComplete w0 hw0 w hw
     have hhead := h.batchHeads w0 hw0 w hw u hu P hP
     rw [hue] at hhead
-    simpa only [actionSGVoteAt, Proofs.Optimistic.rootOnCan, hfind] using hhead
+    simpa only [actionSGVoteAt, Proofs.Optimistic.rootOnCan, hfind] using! hhead
   have hdepth : ∀ w ∈ rho.honest,
       C.depth ≤ (actionSGBlockAt S rho w (r - 1)).depth := by
     intro w hw
@@ -372,7 +372,7 @@ theorem batchHeads_of_batchFields
     Finset.card_le_one.mp hcard u hu vote hvote
   subst u
   rw [hvoteEq]
-  simpa only [actionSGVoteAt, Proofs.Optimistic.rootOnCan, hfind] using
+  simpa only [actionSGVoteAt, Proofs.Optimistic.rootOnCan, hfind] using!
     hcarriers w hw
 
 private theorem canonical_named_fold_nj (rows : List (NamedAttestation V))
@@ -423,7 +423,7 @@ private theorem canonical_named_nj_eq_node_of_same_height
       (Protocol.derive_named E cfg parent).h at hh'
     simp only [Protocol.named_transition,
       Protocol.transition_rows] at hh'
-    rw [Protocol.process_height_events_eq, if_pos htarget,
+    rw [Protocol.process_height_events_eq, ite_eq_left htarget,
       Protocol.advance_height_h, Protocol.afterFin_h] at hh'
     simp only [Protocol.fold_rows] at hh'
     rw [canonical_named_fold_h] at hh'
@@ -436,8 +436,8 @@ private theorem canonical_named_nj_eq_node_of_same_height
       (Protocol.derive_named E cfg parent).h at hh'
     simp only [Protocol.named_transition,
       Protocol.transition_rows] at hh'
-    rw [Protocol.process_height_events_eq, if_neg htarget,
-      if_pos hprogress, Protocol.advance_height_h, Protocol.afterFin_h] at hh'
+    rw [Protocol.process_height_events_eq, ite_eq_right htarget,
+      ite_eq_left hprogress, Protocol.advance_height_h, Protocol.afterFin_h] at hh'
     simp only [Protocol.fold_rows] at hh'
     rw [canonical_named_fold_h] at hh'
     exact (Nat.ne_of_lt (Nat.lt_succ_self _)) hh'.symm

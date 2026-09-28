@@ -73,11 +73,10 @@ private theorem voter_candidate_tree_subset_filtered
     Proofs.Optimistic.voter_candidate_tree E st ⊆
       Protocol.get_filtered_block_tree st.toFG := by
   intro B hB
-  simp only [Proofs.Optimistic.voter_candidate_tree,
-    Protocol.get_filtered_block_tree,
-    Protocol.get_filtered_block_tree_from,
-    Protocol.viable_tree, Protocol.finalized_descendants,
-    Protocol.viable, Finset.mem_filter, decide_eq_true_eq] at hB ⊢
+  simp only [Proofs.Optimistic.voter_candidate_tree, Protocol.get_filtered_block_tree,
+    Protocol.get_filtered_block_tree_from, Protocol.viable_tree, Protocol.finalized_descendants,
+    Finset.mem_filter] at hB ⊢
+  simp only [Protocol.viable, decide_eq_true_eq] at hB ⊢
   obtain ⟨⟨⟨hBprocessed, hFB⟩, W, hWprocessed, hBW, hheight⟩,
     hroot⟩ := hB
   have hBT : B ∈ st.T := by
@@ -141,7 +140,7 @@ private theorem named_rootInjectiveBelow_source_core
       simpa only [n, t, Proofs.HealingSurface.namedWalkSourceTree,
         Internal.NamedRecoveryRead.proposalDutyRead, Statements.Instantiation.proposerReadAt,
         NamedActionReads.confirmationReadAt,
-        NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+        NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
         (Proofs.Records.get_filtered_block_tree_subset _ hB)
     exact ⟨B, hBT, hAB⟩
   · obtain ⟨B, hB, hCB⟩ := hC
@@ -149,7 +148,7 @@ private theorem named_rootInjectiveBelow_source_core
       simpa only [n, t, Proofs.HealingSurface.namedWalkSourceTree,
         Internal.NamedRecoveryRead.proposalDutyRead, Statements.Instantiation.proposerReadAt,
         NamedActionReads.confirmationReadAt,
-        NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+        NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
         (Proofs.Records.get_filtered_block_tree_subset _ hB)
     exact ⟨B, hBT, hCB⟩
 
@@ -236,7 +235,7 @@ private theorem named_voter_path_of_candidate_core
       exact hP
     exact named_voter_candidate_tree_subset_filtered S.E st hPtree
   have hFJ : Block.Preceq st.F st.J := by
-    simpa only [st, read] using
+    simpa only [st, read] using!
       Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime S rho
         (Protocol.vote_time S.E s) v
   have hPmem : P.erase ∈ st.T :=
@@ -258,17 +257,16 @@ private theorem named_voter_path_of_candidate_core
     (st := st.toHealing.toFG) (show Block.preceq st.F st.J = true from hFJ)
     hPfull hCT hCP hroot
   have hPold : P.erase ∈ Proofs.Optimistic.voter_candidate_tree S.E st.toHealing := by
-    simpa only [Proofs.Optimistic.voter_candidate_tree_eq_protocol_voter_filtered_block_tree] using hP
+    simpa only [Proofs.Optimistic.voter_candidate_tree_eq_protocol_voter_filtered_block_tree] using! hP
   have hPdata := hPold
-  simp only [Proofs.Optimistic.voter_candidate_tree,
-    Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
-    Protocol.finalized_descendants, Protocol.voter_processed_block_tree,
-    Protocol.viable, Finset.mem_filter, decide_eq_true_eq] at hPdata
+  simp only [Proofs.Optimistic.voter_candidate_tree, Protocol.get_filtered_block_tree_from,
+    Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter] at hPdata
+  simp only [Protocol.viable, decide_eq_true_eq] at hPdata
+  simp only [Protocol.voter_processed_block_tree, Finset.mem_filter] at hPdata
   have hCdata := hCfull
-  simp only [Protocol.get_filtered_block_tree,
-    Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
-    Protocol.finalized_descendants, Protocol.viable,
-    Finset.mem_filter, decide_eq_true_eq] at hCdata
+  simp only [Protocol.get_filtered_block_tree, Protocol.get_filtered_block_tree_from,
+    Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter] at hCdata
+  simp only [Protocol.viable, decide_eq_true_eq] at hCdata
   obtain ⟨W, hWprocessed, hPW, hheight⟩ := hPdata.1.2
   have hCprocessed : C ∈ Protocol.voter_processed_block_tree S.E
       st.toHealing.toFG.toSG.toGoldfishStore st.s := by
@@ -283,12 +281,11 @@ private theorem named_voter_path_of_candidate_core
   change C ∈ Proofs.Optimistic.voter_candidate_tree S.E st.toHealing
   have hWprocessed' : W ∈ Protocol.voter_processed_block_tree S.E
       st.toHealing.toFG.toSG.toGoldfishStore st.s := by
-    simpa only [Protocol.voter_processed_block_tree, Finset.mem_filter] using
+    simpa only [Protocol.voter_processed_block_tree, Finset.mem_filter] using!
       hWprocessed
-  simp only [Proofs.Optimistic.voter_candidate_tree,
-    Protocol.get_filtered_block_tree_from,
-    Protocol.viable_tree, Protocol.finalized_descendants,
-    Protocol.viable, Finset.mem_filter, decide_eq_true_eq]
+  simp only [Proofs.Optimistic.voter_candidate_tree, Protocol.get_filtered_block_tree_from,
+    Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter]
+  simp only [Protocol.viable, decide_eq_true_eq]
   exact ⟨⟨⟨hCprocessed, hCdata.1.1.2⟩, W, hWprocessed',
     Block.preceq_trans hCP hPW, hheight⟩, hCdata.2⟩
 
@@ -345,7 +342,7 @@ theorem namedProposalWalkTransferred_of_frozenCompatiblePivot_core
     simpa only [Proofs.NamedWire.erase_parent_optional, hQ, Option.map_some, hQerase']
   have hcandidate' : P.erase ∈ Proofs.Optimistic.voter_candidate_tree S.E
       target.st.core.toHealing := by
-    simpa only [target, Proofs.HealingSurface.voterCandidateTreeAt] using hcandidate
+    simpa only [target, Proofs.HealingSurface.voterCandidateTreeAt] using! hcandidate
   have hsourceRoot := named_rootInjectiveBelow_source_core S adm hprop
   have htargetRoot := named_rootInjectiveBelow_target_core S adm (s := s) hv (P := P)
   have hsource : Protocol.ghost sourceAnchor
@@ -464,7 +461,7 @@ theorem namedProposalWalkTransferred_of_frozenCompatiblePivot_core
     dsimp only [Internal.voterHeadAt, target]
     simpa only [Proofs.Optimistic.get_head_in_tree_split_with,
       Proofs.HealingSurface.namedWalkTargetScore,
-      Proofs.HealingSurface.namedWalkTargetEligible, Protocol.Store.toHealing] using hhead
+      Proofs.HealingSurface.namedWalkTargetEligible, Protocol.Store.toHealing] using! hhead
 
 theorem namedProposalWalkTransferred_of_frozenCompatiblePivot
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)

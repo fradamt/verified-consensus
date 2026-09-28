@@ -191,7 +191,7 @@ private theorem actionSGVoteAt_interpreted_early_of_cleanActionRead
       (rho.stateBeforeTime S (domain S.E S.hc (r + 1) .g2) w).st.toHealing.sg_votes r := by
     exact Protocol.sgVote_mem_stateBeforeTime_of_post S sch hj' hDomain' hpool'
   have huD : actionSGVoteAt S rho v r ∈ gv.sg_votes r := by
-    simpa only [gv, n, relativeG2Read] using huPool
+    simpa only [gv, n, relativeG2Read] using! huPool
   have hstamp0 := GradeDeliveryRun.timestamp_sg_vote_before_of_mem_post_event
     S sch hj' hrow' hearlyEvent
   have hstamp1 : occurrenceBefore
@@ -297,7 +297,7 @@ private theorem actionSGVoteAt_interpreted_early_of_cleanActionRead
       (rho.storeBeforeTime S w (domain S.E S.hc (r + 1) .g2)).F C :=
     Block.preceq_trans hFP hCpre
   have huconf : (actionSGVoteAt S rho v r).confirmed = some C.root := by
-    simpa only [C] using (actionAttestationAt_shape S rho v r).2.2
+    simpa only [C] using! (actionAttestationAt_shape S rho v r).2.2
   have hfindGV : Block.find? gv.T C.root = some C := by
     simpa only [gv, n, relativeG2Read, Run.storeBeforeTime,
       Protocol.HealingStore.gradeView, Protocol.Store.toHealing] using hfind

@@ -131,7 +131,7 @@ theorem honestHeadsAvailableBefore_of_postHealingCone_at
       (rho.storeBeforeTime S x (Protocol.vote_time S.E s)).T := by
     simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-      using hmem
+      using! hmem
   rcases block_eq_genesis_or_acceptsBefore_of_mem_storeBeforeTime S
       adm.toNamedScheduleWellFormed x (Protocol.vote_time S.E s) hmemPre with
     hgenC | ⟨D, i, ta, hDeq, hacc, hta⟩

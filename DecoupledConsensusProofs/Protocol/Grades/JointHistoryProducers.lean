@@ -84,7 +84,7 @@ theorem honest_positive_of_gradeBool
         DecoupledConsensusModel.Protocol.opposing gv F etaSG r tearly tlate v B = true) :
     ∃ w ∈ Hon, DecoupledConsensusModel.Protocol.positive gv F etaSG r tearly tlate w B = true := by
   by_contra hn
-  push_neg at hn
+  push Not at hn
   have hlt : E.electorate.weightOf
         (Finset.univ.filter fun v =>
           DecoupledConsensusModel.Protocol.opposing gv F etaSG r tearly tlate v B = true) <
@@ -157,9 +157,9 @@ private theorem align_current (c : Cache V) (s : Round) :
     (alignRound c s).current = cacheAtRound c s ∧ (alignRound c s).round = s := by
   unfold alignRound
   split_ifs with hs hn
-  · exact ⟨by simp only [cacheAtRound, if_pos hs], hs.symm⟩
-  · exact ⟨by simp only [cacheAtRound, if_neg hs, if_pos hn], rfl⟩
-  · exact ⟨by simp only [cacheAtRound, if_neg hs, if_neg hn], rfl⟩
+  · exact ⟨by simp only [cacheAtRound, ite_eq_left hs], hs.symm⟩
+  · exact ⟨by simp only [cacheAtRound, ite_eq_right hs, ite_eq_left hn], rfl⟩
+  · exact ⟨by simp only [cacheAtRound, ite_eq_right hs, ite_eq_right hn], rfl⟩
 
 private theorem complete_one_other (E : Env V) (hc : Protocol.HealConfig)
     (st : Protocol.HealingStore V) (r : Round) (t : Time) (p q : Phase) (f : Frame V) (h : q ≠ p) :
@@ -181,7 +181,7 @@ private theorem complete_frame_g2 (E : Env V) (hc : Protocol.HealConfig)
   unfold completeOne
   split
   · rfl
-  · simp only [if_neg ht]
+  · simp only [ite_eq_right ht]
 
 /-- The G2 domain of a round is strictly before that round's action. -/
 theorem action_after_g2 (S : Setup V) (s : Round) : domain S.E S.hc s .g2 < S.a s := by
@@ -296,11 +296,11 @@ theorem supports_or_opposes {Key BT : Type*} [DecidableEq Key]
   · by_cases hclean : DecoupledConsensusModel.Protocol.CleanFrom tRaw u.round
     · by_cases hlate : ∀ x ∈ tLate, u.round < x.round → covers x.key b
       · exact Or.inl ⟨u, hu, hmax, hcov, hclean, hlate⟩
-      · push_neg at hlate
+      · push Not at hlate
         obtain ⟨x, hx, hxr, hxc⟩ := hlate
         exact Or.inr (Or.inl ⟨x, hx, fun w hw => le_of_lt (lt_of_le_of_lt (hmax w hw) hxr), hxc⟩)
     · unfold DecoupledConsensusModel.Protocol.CleanFrom at hclean
-      push_neg at hclean
+      push Not at hclean
       obtain ⟨x, hx, y, hy, hxr, hxy, hkey⟩ := hclean
       exact Or.inr (Or.inr ⟨x, hx, y, hy, fun w hw => (hmax w hw).trans hxr, hxy, hkey⟩)
   · exact Or.inr (Or.inl ⟨u, hsub hu, hmax, hcov⟩)

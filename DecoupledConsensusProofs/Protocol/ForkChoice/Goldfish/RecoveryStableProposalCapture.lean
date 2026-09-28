@@ -54,11 +54,10 @@ private theorem fixedHeight_voterCandidateTree_subset_filtered
   have hB' : B ∈ Proofs.Optimistic.voter_candidate_tree E st.toHealing := by
     simpa only [Proofs.Optimistic.voter_candidate_tree_eq_protocol_voter_filtered_block_tree]
       using hB
-  simp only [Proofs.Optimistic.voter_candidate_tree,
-    Protocol.get_filtered_block_tree,
-    Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
-    Protocol.finalized_descendants, Protocol.viable,
-    Finset.mem_filter, decide_eq_true_eq] at hB' ⊢
+  simp only [Proofs.Optimistic.voter_candidate_tree, Protocol.get_filtered_block_tree,
+    Protocol.get_filtered_block_tree_from, Protocol.viable_tree, Protocol.finalized_descendants,
+    Finset.mem_filter] at hB' ⊢
+  simp only [Protocol.viable, decide_eq_true_eq] at hB' ⊢
   obtain ⟨⟨⟨hBprocessed, hFB⟩, W, hWprocessed, hBW, hheight⟩,
     hroot⟩ := hB'
   have hBT : B ∈ st.T := by

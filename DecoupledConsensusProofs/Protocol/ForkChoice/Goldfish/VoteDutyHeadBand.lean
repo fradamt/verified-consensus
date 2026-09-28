@@ -149,7 +149,7 @@ private theorem voteDutyHead_band_core
     simpa only [duty, read, voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock] using
+      Protocol.NamedStore.setClock] using!
       named_fgRoot_mem_filtered_stateBeforeTime S rho
         (Protocol.vote_time S.E (s + 1)) w
   have hAfull : A ∈ Protocol.get_filtered_block_tree duty.toHealing.toFG :=
@@ -219,7 +219,7 @@ private theorem voteDutyHead_band_core
   · have hHA' : H = A := by simpa only [hHghost] using hHA
     obtain ⟨C, hAC, hCrun, hCprocessed, hmax⟩ := hdesc
     have hAcandidate : A ∈ tree := by
-      simpa only [tree, duty, read, voteDutyStore, voterCandidateTreeAt] using
+      simpa only [tree, duty, read, voteDutyStore, voterCandidateTreeAt] using!
         namedAncestorCandidate_of_processedDescendant_and_hMax S adm hw
           hCprocessed hCrun (by simpa only [A] using hAC)
           (by simpa only [duty, read, voteDutyStore] using hAfull) hmax
@@ -231,7 +231,7 @@ private theorem voteDutyHead_band_core
     obtain ⟨⟨⟨-, -⟩, W, hWprocessed, hAW, hWheight⟩, -⟩ := hHdata
     exact stopContradiction A W hHA'.symm hAcandidate
       (by simpa only [duty, read, voteDutyStore] using hWprocessed)
-      hAW (by simpa only [duty, read, voteDutyStore] using hWheight)
+      hAW (by simpa only [duty, read, voteDutyStore] using! hWheight)
   · have hHtree' : H ∈ tree := by simpa only [hHghost] using hHtree
     have hHdata := hHtree'
     simp only [tree, voterCandidateTreeAt, Protocol.voter_filtered_block_tree,
@@ -241,7 +241,7 @@ private theorem voteDutyHead_band_core
     obtain ⟨⟨⟨-, -⟩, W, hWprocessed, hHW, hWheight⟩, -⟩ := hHdata
     exact stopContradiction H W rfl hHtree'
       (by simpa only [duty, read, voteDutyStore] using hWprocessed)
-      hHW (by simpa only [duty, read, voteDutyStore] using hWheight)
+      hHW (by simpa only [duty, read, voteDutyStore] using! hWheight)
 
 /-- The vote-duty head reaches the local `h_max - 1` band whenever some
 processed (frozen-view) named run block below the voter's anchor already clears

@@ -96,7 +96,7 @@ theorem roots_goldfish_vote_with (gc : Protocol.GradeContract V) (E : Env V)
   · unfold Proofs.NamedStoreRoots.RootsInTree
     simpa only [(coreEq_on_goldfish_vote_checked E st.core _).F_eq,
       (coreEq_on_goldfish_vote_checked E st.core _).J_eq,
-      on_goldfish_vote_checked_T] using h
+      on_goldfish_vote_checked_T] using! h
   · exact h
 
 /-- Confirmation changes only confirmation fields, so it preserves the roots. -/

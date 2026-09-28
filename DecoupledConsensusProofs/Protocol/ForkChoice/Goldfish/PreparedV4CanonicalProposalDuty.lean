@@ -76,7 +76,7 @@ private theorem SettledBootstrapPreparedV4.proposedBlock_admittedBefore_vote_cor
       Block.Preceq R (voterHeadAt S rho x d) := by
     intro x hx
     simpa only [R, voteDutyRead, NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       SettledBootstrapPreparedV4.fgRootAtRead_preceq_voteDutyHead_core
         S adm hcom hboot hawake hfinality hconfHor hd hupper hread
           (le_refl _) hv hx
@@ -100,7 +100,7 @@ private theorem SettledBootstrapPreparedV4.proposedBlock_admittedBefore_vote_cor
   apply WeakGenesis.proposedBlock_admittedBefore_vote_of_fgRootRead_named_core
     S adm (Nat.zero_lt_succ d) hprop hpost hhor hB hv
   simpa only [R, voteDutyRead, NamedActionReads.confirmationReadAt,
-    NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+    NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       Block.preceq_trans hparent hparentBlock
 
 private theorem SettledBootstrapPreparedV4.proposedBlock_voterCandidate_core
@@ -146,7 +146,7 @@ private theorem SettledBootstrapPreparedV4.proposedBlock_voterCandidate_core
   have hBT : B.erase ∈ st.T := by
     simpa only [st, read, t, s, voteDutyRead,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using hBT0
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using! hBT0
   have hslot : st.s = s := by
     simpa only [st, read] using voteDutyRead_slot S rho v s
   have hprocessed : B.erase ∈ Protocol.voter_processed_block_tree S.E
@@ -158,13 +158,13 @@ private theorem SettledBootstrapPreparedV4.proposedBlock_voterCandidate_core
         Proofs.Optimistic.tickStore, st, read, t, s, voteDutyRead,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom,
-        Protocol.NamedStore.setClock] using hBT
+        Protocol.NamedStore.setClock] using! hBT
     · refine ⟨?_, ?_⟩
       · simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
           Proofs.Optimistic.tickStore, st, read, t, s, voteDutyRead,
           NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom,
-          Protocol.NamedStore.setClock] using hBT
+          Protocol.NamedStore.setClock] using! hBT
       · rw [Proofs.NamedWire.erase_slot, proposedBlockAt_slot S rho s hB,
           Proofs.Optimistic.toHealing_slot]
         exact (Proofs.Optimistic.voteDutyStore_slot S rho v s).symm
@@ -230,7 +230,7 @@ private theorem SettledBootstrapPreparedV4.proposedBlock_voterCandidate_core
           simpa only [st, read, t, voteDutyRead,
             NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-            using hlarge)
+            using! hlarge)
       have haTime : S.a a.round < Protocol.vote_time S.E s := by
         have htime : ta = S.a a.round := (emits_attest_shape S hemit).2
         rw [← htime]
@@ -242,7 +242,7 @@ private theorem SettledBootstrapPreparedV4.proposedBlock_voterCandidate_core
             simpa only [st, read, t, voteDutyRead,
               NamedActionReads.confirmationReadAt,
               NamedActionReads.confirmationReadFrom,
-              Protocol.NamedStore.setClock] using hbound
+              Protocol.NamedStore.setClock] using! hbound
           exact hbound'.trans (hboot.heightCap.trans hPheight)
         · have hKP := hboot.fgAll a ta _
               (Protocol.derive_named S.E S.cfg K).T_h
@@ -315,7 +315,7 @@ private theorem SettledBootstrapPreparedV4.proposedBlock_voterCandidate_core
     simpa only [R, st, read, t, s, voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      voteDutyHead] using
+      voteDutyHead] using!
       SettledBootstrapPreparedV4.fgRootAtRead_preceq_voteDutyHead_core
         S adm hcom hboot hawake hfinality hconfHor hd hupper hread
           (le_refl _) hv hx
@@ -333,7 +333,7 @@ private theorem SettledBootstrapPreparedV4.proposedBlock_voterCandidate_core
       hproposalHor hprop hprotectedR
   have hroot : Block.Preceq
       (Protocol.get_fg_root st.toHealing.toFG) B.erase := by
-    simpa only [R] using Block.preceq_trans hRparent hparentBlock
+    simpa only [R] using! Block.preceq_trans hRparent hparentBlock
   exact (WeakJoint.namedCandidatePath_of_processedBandDescendant_core
     S adm hv (s := d) (C := B.erase) (D := B.erase)
       (Block.preceq_self _) hprocessed
@@ -396,7 +396,7 @@ private theorem SettledBootstrapPreparedV4.preparedVoterAnchor_preceq_previousHe
       (voterHeadAt S rho x d) := by
     simpa only [read, t, s, voteDutyRead,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       SettledBootstrapPreparedV4.fgRootAtRead_preceq_voteDutyHead_core
         S adm hcom hboot hawake hfinality hhor hd hupper hread
           (le_refl _) hw hx
@@ -639,7 +639,7 @@ private theorem SettledBootstrapPreparedV4.exists_protectedProposalPivot_core
       intro x hx
       simpa only [R, s, tv, voteDutyRead,
         NamedActionReads.confirmationReadAt,
-        NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+        NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
         SettledBootstrapPreparedV4.fgRootAtRead_preceq_voteDutyHead_core
           S adm hcom hboot hawake hfinality hhor hd hupper hread
             (le_refl _) hw hx
@@ -674,7 +674,7 @@ private theorem SettledBootstrapPreparedV4.exists_protectedProposalPivot_core
     have hpc := Proofs.NamedStoreBridge.parentClosed_stateBeforeTime S rho time w
     have hAT : A.erase ∈ (rho.storeBeforeTime S w time).core.T :=
       Proofs.Records.mem_of_preceq ((parentClosed_iff _).mp hpc).2
-        A.erase X0.erase hX0T (by simpa only [hAerased] using hGX0)
+        A.erase X0.erase hX0T (by simpa only [hAerased] using! hGX0)
     obtain ⟨A', hA'body, hA'erase⟩ :=
       Proofs.NamedStoreBridge.exists_named_of_mem_stateBeforeTime S rho time w hAT
     obtain ⟨n, hn, -⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix S rho
@@ -696,14 +696,14 @@ private theorem SettledBootstrapPreparedV4.exists_protectedProposalPivot_core
   have hsourceBody : A ∈ source.st.bodies := by
     simpa only [source, proposerReadAt, tp, p, s,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       hsourceBody0
   have htargetBody0 := bodyAt v hv tv
     (by simpa only [tv, s] using support_cutoff_le_vote_time_succ S.E d)
   have htargetBody : A ∈ target.st.bodies := by
     simpa only [target, voteDutyRead, tv, s,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       htargetBody0
   have bandAt (w : V) (hw : w ∈ rho.honest) (time : Time)
       (htime : time ≤ tv) :
@@ -772,14 +772,14 @@ private theorem SettledBootstrapPreparedV4.exists_protectedProposalPivot_core
       (Protocol.derive_named S.E S.cfg A).h := by
     simpa only [source, proposerReadAt, tp, p, s,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       hsourceBand0
   have htargetBand0 := bandAt v hv tv (le_refl _)
   have htargetBand : target.st.core.h_max - 1 ≤
       (Protocol.derive_named S.E S.cfg A).h := by
     simpa only [target, voteDutyRead, tv, s,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       htargetBand0
   have hparent := SettledBootstrapPreparedV4.protected_preceq_proposedParent_core
     S adm hcom hboot hawake hfinality hhor hd hupper hproposalHor hprop hAprotected
@@ -960,7 +960,7 @@ theorem SettledBootstrapPreparedV4.canonicalProposalDuty_core
       Protocol.VoteSetValid S.E (d + 1)
         (confLate S.E (confStore S rho v (d + 1)) (d + 1)) := by
     intro v _
-    simpa only [confStore, Proofs.Optimistic.tickStore] using
+    simpa only [confStore, Proofs.Optimistic.tickStore] using!
       voteSetValid_confLate_stateBeforeTime S adm.toNamedScheduleWellFormed v
         (Protocol.confirmation_time S.E (d + 1)) (d + 1)
   have hcandidate : ∀ v ∈ rho.honest,
@@ -977,7 +977,7 @@ theorem SettledBootstrapPreparedV4.canonicalProposalDuty_core
     obtain ⟨B', hB'body, hB'erase⟩ :=
       Proofs.NamedStoreBridge.exists_named_of_mem_stateBeforeTime S rho
         (Protocol.confirmation_time S.E (d + 1)) v (by
-          simpa only [conf, confStore, Proofs.Optimistic.tickStore] using hBconf)
+          simpa only [conf, confStore, Proofs.Optimistic.tickStore] using! hBconf)
     obtain ⟨n, hn, -⟩ := Proofs.Bridges.stateBeforeTime_eq_stateBefore
       S adm.toNamedScheduleWellFormed
         (Protocol.confirmation_time S.E (d + 1))
@@ -996,7 +996,7 @@ theorem SettledBootstrapPreparedV4.canonicalProposalDuty_core
       rw [← hB'eq]
       exact hB'body
     have hBview : conf.σ B.erase = Protocol.derive_named S.E S.cfg B := by
-      simpa only [conf, confStore, Proofs.Optimistic.tickStore] using
+      simpa only [conf, confStore, Proofs.Optimistic.tickStore] using!
         Proofs.NamedStoreBridge.derivedView_stateBeforeTime S rho
           (Protocol.confirmation_time S.E (d + 1)) v B hBbody
     have hband := SettledBootstrapPreparedV4.confirmationReadBand_le_voterHeadHeight_core
@@ -1005,21 +1005,20 @@ theorem SettledBootstrapPreparedV4.canonicalProposalDuty_core
     have hroot : Block.Preceq
         (Protocol.get_fg_root conf.toHealing.toFG) B.erase :=
       Block.preceq_trans (by
-        simpa only [conf, Proofs.Optimistic.confStore_eq_confirmationInputRead] using
+        simpa only [conf, Proofs.Optimistic.confStore_eq_confirmationInputRead] using!
           fg_root_preceq_get_sg_root_with_frame
             (confirmationInputRead S rho v (d + 1)).cache
             S.E S.hc conf.toHealing (S.hc.round_of conf.s)) (hanchor v hv)
     have hFJ : Block.Preceq conf.F conf.J := by
-      simpa only [conf, confStore, Proofs.Optimistic.tickStore] using
+      simpa only [conf, confStore, Proofs.Optimistic.tickStore] using!
         Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime
           S rho (Protocol.confirmation_time S.E (d + 1)) v
     have hFB : Block.Preceq conf.F B.erase :=
       Block.preceq_trans
         (Proofs.Records.preceq_get_fg_root_of_F (st := conf.toHealing.toFG) hFJ) hroot
-    simp only [confTree, Protocol.get_filtered_block_tree,
-      Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, decide_eq_true_eq]
+    simp only [confTree, Protocol.get_filtered_block_tree, Protocol.get_filtered_block_tree_from,
+      Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
     exact ⟨⟨⟨hBconf, hFB⟩, B.erase, hBconf, Block.preceq_self _, by
       change conf.h_max - 1 ≤ (conf.σ B.erase).h
       rw [hBview]
@@ -1051,7 +1050,7 @@ theorem SettledBootstrapPreparedV4.canonicalProposalDuty_core
     have hroot : Block.Preceq
         (Protocol.get_fg_root conf.toHealing.toFG) B.erase :=
       Block.preceq_trans (by
-        simpa only [conf, Proofs.Optimistic.confStore_eq_confirmationInputRead] using
+        simpa only [conf, Proofs.Optimistic.confStore_eq_confirmationInputRead] using!
           fg_root_preceq_get_sg_root_with_frame
             (confirmationInputRead S rho v (d + 1)).cache
             S.E S.hc conf.toHealing (S.hc.round_of conf.s)) (hanchor v hv)

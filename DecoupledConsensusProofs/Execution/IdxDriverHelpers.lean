@@ -129,7 +129,7 @@ theorem time_le_of_lt_boundaryIdx (rho : NamedRun V)
     {i : Nat} {e : NamedEvent V} {t : Time} (he : rho.events[i]? = some e)
     (hi : i < boundaryIdx rho t) : e.time ≤ t := by
   by_contra hcon
-  push_neg at hcon
+  push Not at hcon
   obtain ⟨hiLen, hiGet⟩ := List.getElem?_eq_some_iff.mp he
   have hdropNil : (rho.events.drop i).filter (fun x => decide (x.time ≤ t)) = [] := by
     apply List.filter_eq_nil_iff.mpr

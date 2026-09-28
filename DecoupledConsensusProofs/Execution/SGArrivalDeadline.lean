@@ -208,7 +208,7 @@ private theorem honest_row_after_delayed_call
       dsimp only [Protocol.on_sg_vote]
       simp only [show a.erase.round = a.round from rfl,
         show a.erase.confirmed = a.confirmed from rfl]
-      rw [if_neg hguard]
+      rw [ite_eq_right hguard]
       simp [Protocol.Store.sg_pool]
     exact hpost a
       (NamedAdmission.admitted_original_row S.hc input a hpre hnew)

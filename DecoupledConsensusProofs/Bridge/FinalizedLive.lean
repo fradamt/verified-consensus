@@ -44,7 +44,7 @@ private theorem proposal_time_le_of_acceptsAt_block_finalizedLive
     have hshape := Proofs.HealingSurface.emits_block_shape S rho hemit
     have ht' : t' = t := by
       have heq : Event.tick v t' = e := Option.some.inj (htick.symm.trans he)
-      simpa [Event.time] using (congrArg Event.time heq).trans htime
+      simpa [Event.time] using! (congrArg Event.time heq).trans htime
     rw [Proofs.NamedWire.erase_slot]
     exact (hshape.2.1.symm.trans ht').le
   · obtain ⟨t', hdeliver⟩ := hdeliver
@@ -160,7 +160,7 @@ private theorem confirmed_read_mem_storeAt (S : Setup V) (rho : Run V)
       (fun n => Protocol.get_confirmed n.st.core) v t ∈
     (rho.storeAt S v t).core.T
   rw [readAt_eq S rho (fun st => Protocol.get_confirmed st) v t]
-  simpa [Internal.readAt] using
+  simpa [Internal.readAt] using!
     (show Internal.confirmedOutputAt S rho v t ∈ (rho.storeAt S v t).core.T from by
       have hinv := Proofs.NamedRuntime.readAt_invariants S rho t v
       have hF := hinv.1.1.2.1
@@ -182,7 +182,7 @@ private theorem stable_read_mem_storeAt (S : Setup V) (rho : Run V)
       (fun n => Protocol.get_stable n.st.core) v t ∈
     (rho.storeAt S v t).core.T
   rw [readAt_eq S rho (fun st => Protocol.get_stable st) v t]
-  simpa [Internal.readAt] using
+  simpa [Internal.readAt] using!
     (show Internal.stableOutputAt S rho v t ∈ (rho.storeAt S v t).core.T from by
       have hinv := Proofs.NamedRuntime.readAt_invariants S rho t v
       have hF := hinv.1.1.2.1
@@ -199,7 +199,7 @@ private theorem finalized_read_mem_storeAt (S : Setup V) (rho : Run V)
   change Generic.readAt (P S) rho (fun n => n.st.core.F) v t ∈
     (rho.storeAt S v t).core.T
   rw [readAt_eq S rho (fun st => st.F) v t]
-  simpa [Internal.readAt] using
+  simpa [Internal.readAt] using!
     Proofs.NamedStoreBridge.finalizedInTree_readAt S rho t v
 
 theorem noFutureRead_confirmed (S : Setup V) :
@@ -362,13 +362,13 @@ theorem finalized_growth (S : Setup V) :
     have hGST : (0 : Time) ≤ (E S).t_GST := (E S).t_GST_nonneg
     exact hGST.trans hregime.gst
   have hstartup : 0 ≤ (C S).finalityStartup gap := by
-    simpa [C, Statements.Instantiation.constants] using
+    simpa [C, Statements.Instantiation.constants] using!
       boundary_minus_a0_nonneg S
         (DecoupledConsensusModel.Statements.Instantiation.finalityStartup S gap S.extraRounds)
   have hdeadline : 0 ≤ (C S).finalityDeadline gap := by
     have hb := boundary_minus_a0_nonneg S
       (DecoupledConsensusModel.Statements.Instantiation.finalityDeadline S gap S.extraRounds)
-    simpa [C, Statements.Instantiation.constants] using
+    simpa [C, Statements.Instantiation.constants] using!
       (add_nonneg hb (by nlinarith [S.E.Δ_pos]))
   have hperiod : 0 < (C S).period := by
     simpa [C, Statements.Instantiation.constants] using concretePeriod_pos S
@@ -387,13 +387,13 @@ theorem finalized_growth (S : Setup V) :
   have hlegacyRegime := finalityRegime_of_generic S rho t₀ gap hregime
   have hlegacyHorizon :
       t₀ + (Statements.ourConstants S).finalityStartup gap S.extraRounds ≤ rho.horizon := by
-    simpa [C, Statements.Instantiation.constants, Statements.ourConstants] using hhorizon
+    simpa [C, Statements.Instantiation.constants, Statements.ourConstants] using! hhorizon
   have hlegacyIncluded := finalized_included S rho t₀ gap S.extraRounds
     hlegacyRegime hlegacyHorizon
   have hincl : Generic.IncludedFrom (P S) (I S) rho (I S).finalized
       (t₀ + (C S).finalityStartup gap)
       ((C S).finalityDeadline gap) := by
-    simpa [C, Statements.Instantiation.constants, Statements.ourConstants] using
+    simpa [C, Statements.Instantiation.constants, Statements.ourConstants] using!
       included_of_named S hlegacyIncluded
   exact growth_of_included S hmono hfuture hincl hregime.recurrence hstart
     (hregime.gst.trans (le_add_of_nonneg_right hstartup)) hdeadline

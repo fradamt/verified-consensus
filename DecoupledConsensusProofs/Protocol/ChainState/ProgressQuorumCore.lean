@@ -53,9 +53,9 @@ theorem advances_of_progress_quorum (E : Env V) (cfg : HeightConfig)
     exact Or.inr ⟨hslot, hq⟩
   rw [Protocol.process_height_events_eq]
   by_cases h1 : Protocol.targetReady E (Protocol.afterFin E σ) = true
-  · rw [if_pos h1, Protocol.advance_height_h]
+  · rw [ite_eq_left h1, Protocol.advance_height_h]
     exact congrArg (· + 1) (Protocol.afterFin_h E)
-  · rw [if_neg h1, if_pos hprog, Protocol.advance_height_h]
+  · rw [ite_eq_right h1, ite_eq_left hprog, Protocol.advance_height_h]
     exact congrArg (· + 1) (Protocol.afterFin_h E)
 
 

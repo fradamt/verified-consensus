@@ -221,7 +221,7 @@ private theorem preparedV4_actionAnchor_preceq_head
       (voterHeadAt S rho x q) := by
     simpa only [read, t, p, confirmationInputRead,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       preparedV4_actionReadFGRoot_preceq_head
         S adm hcom hboot hawake hfinality hhor hd hupper hreadMin
           hnextVote hv hx
@@ -251,7 +251,7 @@ private theorem preparedV4_actionAnchor_preceq_head
       S rho adm v hv r hr t hroundT hdomain htop hdomainHor
         (raw := raw) (by
           simpa only [read, confirmationInputRead,
-            NamedActionReads.confirmationReadAt, t, p] using hframeR)
+            NamedActionReads.confirmationReadAt, t, p] using! hframeR)
     have hpostEarly : S.E.t_GST ≤ early S.E S.hc r .g2 := by
       exact hboot.basePost.trans (Assembly.a_mono S hbasePred) |>.trans
         (le_add_of_nonneg_right S.E.Δ_pos.le) |>.trans
@@ -475,7 +475,7 @@ private theorem protectedBlock_preceq_defaultActionHead_core
   have hvalid0 := voteSetValid_pool_stateBeforeTime
     S adm.toNamedScheduleWellFormed v (S.a r) q
   have hvalid : Protocol.VoteSetValid S.E q raw := by
-    simpa only [ast, raw, actionStoreAt_pool S rho v r q] using hvalid0
+    simpa only [ast, raw, actionStoreAt_pool S rho v r q] using! hvalid0
   have hout : Block.Preceq B
       (Protocol.get_head_hc S.E S.hc ast.toHealing raw support q) := by
     rw [Proofs.Optimistic.get_head_split]
@@ -485,7 +485,7 @@ private theorem protectedBlock_preceq_defaultActionHead_core
         raw support q (ConeSupport.sub hcone)
         (supporterMajority_of_cone S.E hcone hvalid) hcompat hpath
   simpa only [actionHead, ast, raw, support,
-    Protocol.Store.toHealing, hslot] using hout
+    Protocol.Store.toHealing, hslot] using! hout
 private theorem defaultActionPath_to_ancestor_of_candidate_core
     (S : Setup V) {rho : Run V} (adm : AdmissibleCore S rho)
     {v : V} {r : Round} {B E : Block V}
@@ -507,7 +507,7 @@ private theorem defaultActionPath_to_ancestor_of_candidate_core
     Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime
       S rho (S.a r) v
   have hFJ : Block.Preceq ast.F ast.J := by
-    simpa only [ast, pre] using hFJpre
+    simpa only [ast, pre] using! hFJpre
   intro C hAC _ hCB
   have hET : E ∈ ast.T := Proofs.Records.get_filtered_block_tree_subset _ hE
   have hETpre : E ∈ pre.T := by
@@ -608,7 +608,7 @@ theorem SettledBootstrapPreparedV4.commonAncestor_preceq_actionHead_core
     have hroot := preparedV4_actionReadFGRoot_preceq_head
       S adm hcom hboot hawake hfinality hhor hd hupper'
         hreadMin hnextVote hv hx
-    simpa only [R, ast, pre] using hroot
+    simpa only [R, ast, pre] using! hroot
   have hnamesRoot : NamedHonestVotesCone S rho q
       (fun X => Block.Preceq R X) := by
     intro x hx hcommittee
@@ -744,7 +744,7 @@ theorem SettledBootstrapPreparedV4.commonAncestor_preceq_actionHead_core
   have hheight : pre.core.h_max - 1 ≤ (pre.core.σ X.erase).h := by
     have hviewHeight : (pre.core.σ X.erase).h =
         (Protocol.derive_named S.E S.cfg X).h := by
-      simpa only [pre] using congrArg (fun st => st.h) hview
+      simpa only [pre] using! congrArg (fun st => st.h) hview
     rw [hviewHeight]
     exact hbandPre
   have hrootX : Block.Preceq R X.erase := by
@@ -760,10 +760,9 @@ theorem SettledBootstrapPreparedV4.commonAncestor_preceq_actionHead_core
       Protocol.get_filtered_block_tree ast.toHealing.toFG := by
     rw [actionStoreAt_filteredTree S rho v r]
     change X.erase ∈ Protocol.get_filtered_block_tree pre.core.toHealing.toFG
-    simp only [Protocol.get_filtered_block_tree,
-      Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, decide_eq_true_eq]
+    simp only [Protocol.get_filtered_block_tree, Protocol.get_filtered_block_tree_from,
+      Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
     exact ⟨⟨⟨hXmemPre, hFX⟩, X.erase, hXmemPre,
       Block.preceq_self _, hheight⟩, hrootX⟩
   have hBX : Block.Preceq B X.erase := by
@@ -777,7 +776,7 @@ theorem SettledBootstrapPreparedV4.commonAncestor_preceq_actionHead_core
   apply protectedBlock_preceq_defaultActionHead_core
     S adm ha hcone
       (Block.compatible_of_preceq_common hdefaultAnchor' (by
-        simpa only [q, p] using hheads x hx))
+        simpa only [q, p] using! hheads x hx))
   intro _
   exact defaultActionPath_to_ancestor_of_candidate_core
     S adm hcandidate hBX
@@ -864,7 +863,7 @@ theorem SettledBootstrapPreparedV4.commonAncestor_preceq_actionHeadAt_core
     have hroot := preparedV4_actionReadFGRoot_preceq_head
       S adm hcom hboot hawake hfinality hhor hd hupper'
         hreadMin hnextVote hv hx
-    simpa only [R, ast, pre] using hroot
+    simpa only [R, ast, pre] using! hroot
   have hnamesRoot : NamedHonestVotesCone S rho q
       (fun X => Block.Preceq R X) := by
     intro x hx hcommittee
@@ -1000,7 +999,7 @@ theorem SettledBootstrapPreparedV4.commonAncestor_preceq_actionHeadAt_core
   have hheight : pre.core.h_max - 1 ≤ (pre.core.σ X.erase).h := by
     have hviewHeight : (pre.core.σ X.erase).h =
         (Protocol.derive_named S.E S.cfg X).h := by
-      simpa only [pre] using congrArg (fun st => st.h) hview
+      simpa only [pre] using! congrArg (fun st => st.h) hview
     rw [hviewHeight]
     exact hbandPre
   have hrootX : Block.Preceq R X.erase := by
@@ -1016,10 +1015,9 @@ theorem SettledBootstrapPreparedV4.commonAncestor_preceq_actionHeadAt_core
       Protocol.get_filtered_block_tree ast.toHealing.toFG := by
     rw [actionStoreAt_filteredTree S rho v r]
     change X.erase ∈ Protocol.get_filtered_block_tree pre.core.toHealing.toFG
-    simp only [Protocol.get_filtered_block_tree,
-      Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, decide_eq_true_eq]
+    simp only [Protocol.get_filtered_block_tree, Protocol.get_filtered_block_tree_from,
+      Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
     exact ⟨⟨⟨hXmemPre, hFX⟩, X.erase, hXmemPre,
       Block.preceq_self _, hheight⟩, hrootX⟩
   have hBX : Block.Preceq B X.erase := by
@@ -1027,8 +1025,8 @@ theorem SettledBootstrapPreparedV4.commonAncestor_preceq_actionHeadAt_core
   apply WeakAction.protectedBlock_preceq_actionHead_of_cone_compatible
     S adm ha hcone
       (Block.compatible_of_preceq_common (by
-        simpa only [q, p] using hsg x hx) (by
-        simpa only [q, p] using hheads x hx))
+        simpa only [q, p] using! hsg x hx) (by
+        simpa only [q, p] using! hheads x hx))
   intro _
   exact WeakAction.actionPath_to_ancestor_of_candidate
     S adm hcandidate hBX

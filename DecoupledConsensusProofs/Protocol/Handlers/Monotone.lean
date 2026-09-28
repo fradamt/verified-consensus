@@ -98,7 +98,7 @@ theorem preceq_floor {B old arm stable : Block V}
   · exact harm hcompat
   · exact hold
   · rcases (show Block.Preceq B stable ∨ Block.Preceq stable B by
-      simpa only [Block.compatible, Bool.or_eq_true] using hcompat) with hBs | hsB
+      simpa only [Block.compatible, Bool.or_eq_true] using! hcompat) with hBs | hsB
     · exact hBs
     · exact absurd (Block.preceq_trans hsB hold) h2
 
@@ -326,7 +326,7 @@ theorem tick_latest_preserves (gc : Protocol.GradeContract V) (E : Env V) (hc : 
     · refine named_update_confirmation_with_latest_preserves gc E hc st2 (s - 1)
         (by rw [h2, h1]; exact hold) ?_
       dsimp only [st3] at hcompat3
-      rwa [if_pos hif] at hcompat3
+      rwa [ite_eq_left hif] at hcompat3
     · rw [h2, h1]; exact hold
   split_ifs with hattest
   · rw [attest_with_latest]; exact hold3
@@ -544,7 +544,7 @@ theorem latest_prefix_preserved (S : Setup V) (rho : Run V) (v : V)
         unfold Run.stateBefore NamedRun.stateBefore
         rw [List.take_add_one, List.foldl_append]
         cases hn : rho.events[n]? with
-        | none => simpa using hprev
+        | none => simpa using! hprev
         | some e =>
             simp only [Option.toList, List.foldl_cons, List.foldl_nil]
             cases e with
@@ -555,13 +555,13 @@ theorem latest_prefix_preserved (S : Setup V) (rho : Run V) (v : V)
                   simpa only [Run.stateBefore, NamedRun.stateBefore, List.take_add_one, hn,
                     List.foldl_append, Option.toList, List.foldl_cons, List.foldl_nil] using
                     hcompat n t hmn (Nat.lt_succ_self n) hn
-                · simpa only [NamedWorld.step, Function.update_of_ne (Ne.symm huv)] using hprev
+                · simpa only [NamedWorld.step, Function.update_of_ne (Ne.symm huv)] using! hprev
             | deliver u o t =>
                 by_cases huv : u = v
                 · subst huv
                   simpa only [NamedWorld.step, Function.update_self, node_process_latest]
-                    using hprev
-                · simpa only [NamedWorld.step, Function.update_of_ne (Ne.symm huv)] using hprev
+                    using! hprev
+                · simpa only [NamedWorld.step, Function.update_of_ne (Ne.symm huv)] using! hprev
       · have heq : m = n + 1 := by omega
         subst m
         exact hold

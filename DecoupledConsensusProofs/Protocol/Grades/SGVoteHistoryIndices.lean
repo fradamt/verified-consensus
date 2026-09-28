@@ -269,7 +269,7 @@ theorem graded_root_below_of_positive_g1
       exact absurd hcov (by simp)
     | some head =>
       have hpreceq : Block.Preceq raw head := by
-        simpa only [Protocol.head_covers, hfind] using hcov
+        simpa only [Protocol.head_covers, hfind] using! hcov
       obtain ⟨K, hKrun, -, hKroot, hKC⟩ :=
         hsgv ii named.val_index (S.a named.round) named hhon hii hobj hiin key
           (hconfsame.trans hc)
@@ -484,7 +484,7 @@ theorem sg_vote_on_history
         · have hfgroot : Protocol.get_fg_root n.st.core.toHealing.toFG =
               n.st.core.toHealing.J := by
             unfold Protocol.get_fg_root
-            exact if_pos hmaxj
+            exact ite_eq_left hmaxj
           rw [hfgroot]
           obtain ⟨J, hJrun, hJbody, hJe, hJC⟩ :=
             HistoryProofs.justification_on_history_chain S rho core m C hhistory.1
@@ -493,16 +493,16 @@ theorem sg_vote_on_history
         · have hfgroot : Protocol.get_fg_root n.st.core.toHealing.toFG =
               n.st.core.toHealing.F := by
             unfold Protocol.get_fg_root
-            exact if_neg hmaxj
+            exact ite_eq_right hmaxj
           rw [hfgroot]
           obtain ⟨F, hFrun, hFmem, hFe, hFC⟩ := hhistory.1.2.2.2 i v hv him
           exact ⟨F, hFrun, hFmem, hFe, Or.inl hFC⟩
       by_cases hg2some : (frame.g2.bind id).isSome
       · -- Arm 3: the FG-root fallback.
-        rw [if_pos hg2some]
+        rw [ite_eq_left hg2some]
         exact hgetFgRoot
       · -- Arm 4: `key = A`, the raw anchor.
-        rw [if_neg hg2some, hA]
+        rw [ite_eq_right hg2some, hA]
         cases hg1 : frame.g1 with
         | none => exact hgetFgRoot
         | some g1opt =>

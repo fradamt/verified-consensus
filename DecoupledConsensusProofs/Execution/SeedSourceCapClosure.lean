@@ -155,14 +155,14 @@ private theorem seedSourceCap_active_nextOpeningProposal
     hCT hCerase hCrun hCband hM hmax hgate
   simpa only [proposerDutyStore, proposerReadAt,
     NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
-    Protocol.NamedStore.setClock] using hfiltered
+    Protocol.NamedStore.setClock] using! hfiltered
 
 omit [Fintype V] in
 private theorem seedSourceCap_compatible_ancestor_left {A K C : Block V}
     (hAK : Block.Preceq A K) (hKC : Block.compatible K C = true) :
     Block.compatible A C = true := by
   rcases (show Block.Preceq K C ∨ Block.Preceq C K by
-    simpa only [Block.compatible, Bool.or_eq_true] using hKC) with hKC | hCK
+    simpa only [Block.compatible, Bool.or_eq_true] using! hKC) with hKC | hCK
   · simpa only [Block.compatible, Bool.or_eq_true] using
       Or.inl (Block.preceq_trans hAK hKC)
   · exact Block.compatible_of_preceq_common hAK hCK
@@ -227,14 +227,14 @@ private theorem seedSourceCap_compatible_nextOpeningProposalAnchor
   have hrootC : Block.Preceq
       (Protocol.get_fg_root (proposerReadAt S rho o).st.core.toHealing.toFG) C := by
     simpa only [o, proposerReadAt, NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       (seedSourceCap_nextProposal_frame S adm hfb hc hframe hpost hhor
         hCerase hCrun hCband hprop).1
   rw [hroundSt]
   rcases proposalAnchor_cases S rho o with hfg | ⟨root, A, hframeA, hactive, hanchor⟩
   · rw [hroundSt] at hfg
     rw [hfg]
-    simpa only [Block.compatible, Bool.or_eq_true] using Or.inl hrootC
+    simpa only [Block.compatible, Bool.or_eq_true] using! Or.inl hrootC
   · have hanchor' : nodeAnchor S
         (Internal.NamedRecoveryRead.proposalDutyRead S rho o) (c + 1) = A := by
       simpa only [hroundSt] using hanchor

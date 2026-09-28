@@ -332,7 +332,7 @@ theorem prefixHeightCrossing_exactFGSelectorWitness
         (rho.stateBeforeTime S (S.a a.round) a.val_index).st.bodies := by
       simpa only [actionStoreAt, actionReadAt, NamedActionReads.actionReadAt,
         NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
-        NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hBmem
+        NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hBmem
     have hBAtI : B ∈ (rho.stateBefore S i a.val_index).st.bodies := by
       rw [hstate, hta]
       exact hBpre

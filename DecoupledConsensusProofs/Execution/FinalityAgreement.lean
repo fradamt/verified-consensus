@@ -46,7 +46,7 @@ theorem finalized_compatible
       have hDtoC := NamedFinalizationBridge.finalized_preceq_of_height_lt
         S rho C D hsb hroot hC hD hlt
       exact Block.preceq_linear hCanchor hDtoC
-  simpa only [Block.compatible, Bool.or_eq_true] using hlinear
+  simpa only [Block.compatible, Bool.or_eq_true] using! hlinear
 
 /-- Agreement at arbitrary honest event-prefix stores follows from their
 actual named finalization carriers. This includes distinct prefix indices. -/

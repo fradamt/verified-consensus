@@ -46,8 +46,8 @@ theorem liveConfirmed_preceq_at_confirmation_of_weakGenesis_named
         S.E S.hc
         (NamedRecoveryRead.confirmationInputRead S rho v s).st.core s) = true
     at helig
-  rw [update_confirmation_with_live_confirmed, if_pos helig]
-  simpa only [namedConfirmationWalk] using hwalk.1
+  rw [update_confirmation_with_live_confirmed, ite_eq_left helig]
+  simpa only [namedConfirmationWalk] using! hwalk.1
 
 #print axioms liveConfirmed_preceq_at_confirmation_of_weakGenesis_named
 

@@ -37,7 +37,7 @@ private theorem fold_clock_origin (S : Setup V) (events : List (NamedEvent V))
           by_cases hrv : reader = v
           · subst v
             simp
-          · simp only [if_neg hrv]
+          · simp only [ite_eq_right hrv]
             rcases ih with hzero | htick
             · exact Or.inl hzero
             · exact Or.inr (List.mem_append_left _ htick)
@@ -90,15 +90,14 @@ private theorem strict_clock_le (S : Setup V) (rho : NamedRun V)
     exact strict_clock_nonneg S rho sch cut w
   · have hfilter := List.mem_filter.mp htick
     have horiginal : NamedEvent.tick v clock ∈ rho.events := hfilter.1
-    have hbefore : clock < cut := by
-      simpa only [NamedEvent.time, decide_eq_true_eq] using hfilter.2
+    have hbefore : clock < cut := of_decide_eq_true hfilter.2
     have hpublic : PublicTime S clock := sch.tick_public v clock horiginal
     have hbounds := sch.in_horizon _ horiginal
     have hmatching : NamedEvent.tick w clock ∈ rho.events :=
       sch.tick_total w hw clock hpublic hbounds.1 hbounds.2
     have hmatchingFiltered : NamedEvent.tick w clock ∈
         rho.events.filter (fun e => decide (e.time < cut)) :=
-      List.mem_filter.mpr ⟨hmatching, by simpa only [NamedEvent.time, decide_eq_true_eq]⟩
+      List.mem_filter.mpr ⟨hmatching, decide_eq_true hbefore⟩
     exact tick_mem_le_strict_clock S rho sch hmatchingFiltered
 
 private theorem stateBefore_slot_clock (S : Setup V) (rho : NamedRun V)

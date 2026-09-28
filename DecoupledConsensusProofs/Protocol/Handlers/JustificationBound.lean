@@ -67,10 +67,10 @@ private theorem chainStatesOk_write_target {m : Block V → ChainState V} (B : B
     ChainStatesOk (fun C => if C = B then target else m C) := by
   intro C
   by_cases hC : C = B
-  · refine ⟨?_, ?_⟩ <;> simp only [if_pos hC]
+  · refine ⟨?_, ?_⟩ <;> simp only [ite_eq_left hC]
     · rw [hC, hL]; exact Block.preceq_self _
     · exact hfin
-  · refine ⟨?_, ?_⟩ <;> simp only [if_neg hC]
+  · refine ⟨?_, ?_⟩ <;> simp only [ite_eq_right hC]
     · exact (h C).1
     · exact (h C).2
 
@@ -98,20 +98,20 @@ private theorem raw_block_just (E : Env V) (st : Protocol.Store V) (B : Block V)
     (h : CoreJust st) : CoreJust (Protocol.on_block_using E st B build) := by
   by_cases hs : st.s < B.slot ∨ B ∈ st.T ∨ B.parent ∉ st.T
   · rw [show Protocol.on_block_using E st B build = st by
-      simp only [Protocol.on_block_using, if_pos hs]]
+      simp only [Protocol.on_block_using, ite_eq_left hs]]
     exact h
   by_cases hadm : (!Block.preceq st.F B) = true
   · rw [show Protocol.on_block_using E st B build = st by
-      simp only [Protocol.on_block_using, if_neg hs, if_pos hadm]]
+      simp only [Protocol.on_block_using, ite_eq_right hs, ite_eq_left hadm]]
     exact h
   by_cases hprop : B.proposer? ≠ some (E.proposer B.slot)
   · rw [show Protocol.on_block_using E st B build = st by
-      simp only [Protocol.on_block_using, if_neg hs, if_neg hadm, if_pos hprop]]
+      simp only [Protocol.on_block_using, ite_eq_right hs, ite_eq_right hadm, ite_eq_left hprop]]
     exact h
   by_cases hslot : ¬ (B.parent.slot < B.slot)
   · rw [show Protocol.on_block_using E st B build = st by
-      simp only [Protocol.on_block_using, if_neg hs, if_neg hadm, if_neg hprop,
-        if_pos hslot]]
+      simp only [Protocol.on_block_using, ite_eq_right hs, ite_eq_right hadm, ite_eq_right hprop,
+        ite_eq_left hslot]]
     exact h
   set stored : Protocol.Store V :=
       { st with
@@ -125,7 +125,7 @@ private theorem raw_block_just (E : Env V) (st : Protocol.Store V) (B : Block V)
   have hres : Protocol.on_block_using E st B build =
       Protocol.update_finality unpacked (unpacked.σ B) := by
     unfold Protocol.on_block_using
-    rw [if_neg hs, if_neg hadm, if_neg hprop, if_neg hslot]
+    rw [ite_eq_right hs, ite_eq_right hadm, ite_eq_right hprop, ite_eq_right hslot]
   have hmap : ChainStatesOk stored.σ := by
     rw [hstoredDef]
     exact chainStatesOk_write_target B _ hL
@@ -442,7 +442,7 @@ private theorem offered_le_update (S : Setup V) {st : Protocol.NamedStore V}
           (derive_named S.E S.cfg B)).h_j = (derive_named S.E S.cfg B).h_j := by
         unfold Protocol.update_finality
         dsimp only
-        rw [if_pos hguard]
+        rw [ite_eq_left hguard]
         split_ifs <;> rfl
       rw [hwrite]
     · exact le_trans (heightId_height_le_of_le (not_lt.mp hlex))
@@ -495,16 +495,17 @@ theorem raw_eq_or_accepted (E : Env V) (st : Protocol.Store V) (B : Block V)
         Protocol.on_block_using E st B build = Protocol.update_finality u (u.σ B) := by
   by_cases hs : st.s < B.slot ∨ B ∈ st.T ∨ B.parent ∉ st.T
   · left
-    simp only [Protocol.on_block_using, if_pos hs]
+    simp only [Protocol.on_block_using, ite_eq_left hs]
   by_cases hadm : (!Block.preceq st.F B) = true
   · left
-    simp only [Protocol.on_block_using, if_neg hs, if_pos hadm]
+    simp only [Protocol.on_block_using, ite_eq_right hs, ite_eq_left hadm]
   by_cases hprop : B.proposer? ≠ some (E.proposer B.slot)
   · left
-    simp only [Protocol.on_block_using, if_neg hs, if_neg hadm, if_pos hprop]
+    simp only [Protocol.on_block_using, ite_eq_right hs, ite_eq_right hadm, ite_eq_left hprop]
   by_cases hslot : ¬ (B.parent.slot < B.slot)
   · left
-    simp only [Protocol.on_block_using, if_neg hs, if_neg hadm, if_neg hprop, if_pos hslot]
+    simp only [Protocol.on_block_using, ite_eq_right hs, ite_eq_right hadm, ite_eq_right hprop,
+      ite_eq_left hslot]
   right
   refine ⟨B.gf_votes.foldl (Protocol.on_goldfish_vote_checked E)
       { st with
@@ -522,7 +523,7 @@ theorem raw_eq_or_accepted (E : Env V) (st : Protocol.Store V) (B : Block V)
   case hsig => exact (coreEq_foldl_on_goldfish_vote_checked E B.gf_votes _).σ_eq
   case hres =>
     unfold Protocol.on_block_using
-    rw [if_neg hs, if_neg hadm, if_neg hprop, if_neg hslot]
+    rw [ite_eq_right hs, ite_eq_right hadm, ite_eq_right hprop, ite_eq_right hslot]
 
 omit [Fintype V] in
 /-- The justification height written by `update_finality` reads only the
@@ -570,7 +571,7 @@ private theorem bundle_block_core (S : Setup V) (st : Protocol.NamedStore V)
               (fun parentState => named_transition S.E S.cfg parentState B))
             S.hc st.core B.erase) B := by
       dsimp only [Protocol.NamedStore.process_block_core]
-      rw [if_neg (not_not.mpr hpar)]
+      rw [ite_eq_right (not_not.mpr hpar)]
     rw [hred]
     by_cases hvalid : Protocol.carried_attestations_admissible S.hc B.erase = true
     · rw [show Protocol.on_block_checked_using
@@ -579,7 +580,7 @@ private theorem bundle_block_core (S : Setup V) (st : Protocol.NamedStore V)
             S.hc st.core B.erase =
           Protocol.on_block_using S.E st.core B.erase
             (fun parentState => named_transition S.E S.cfg parentState B) by
-        simp only [Protocol.on_block_checked_using, if_pos hvalid]]
+        simp only [Protocol.on_block_checked_using, ite_eq_left hvalid]]
       rcases raw_eq_or_accepted S.E st.core B.erase
         (fun parentState => named_transition S.E S.cfg parentState B) with hid | hacc
       · rw [hid]
@@ -605,7 +606,7 @@ private theorem bundle_block_core (S : Setup V) (st : Protocol.NamedStore V)
             (fun parentState => named_transition S.E S.cfg parentState B)) B).bodies =
           insert B st.bodies := by
         dsimp only [Protocol.NamedStore.commitBlock]
-        rw [if_pos hguard]
+        rw [ite_eq_left hguard]
       have hcore : (Protocol.NamedStore.commitBlock st
           (Protocol.on_block_using S.E st.core B.erase
             (fun parentState => named_transition S.E S.cfg parentState B)) B).core =
@@ -646,11 +647,11 @@ private theorem bundle_block_core (S : Setup V) (st : Protocol.NamedStore V)
             (fun current => Protocol.on_block_using S.E current B.erase
               (fun parentState => named_transition S.E S.cfg parentState B))
             S.hc st.core B.erase = st.core by
-        simp only [Protocol.on_block_checked_using, if_neg hvalid]]
+        simp only [Protocol.on_block_checked_using, ite_eq_right hvalid]]
       exact bundle_commit_same S st B h
   · have hred : Protocol.NamedStore.process_block_core S.E S.hc S.cfg st B = st := by
       dsimp only [Protocol.NamedStore.process_block_core]
-      rw [if_pos hpar]
+      rw [ite_eq_left hpar]
     rw [hred]
     exact h
 

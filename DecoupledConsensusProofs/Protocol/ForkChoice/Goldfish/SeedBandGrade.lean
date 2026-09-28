@@ -144,7 +144,7 @@ theorem seedG1_at_voteDuty_of_ownG2
       exact G1_reflects_after_cutoff S adm hv hcut hbefore hG1AtAction
     · exact G1_persists_from_opening S adm hv hafter hG1Action
   simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-    Proofs.Optimistic.tickStore, read] using hG1Read
+    Proofs.Optimistic.tickStore, read] using! hG1Read
 
 
 /-- A grade-1 block makes `Protocol.fresh_anchor` nonempty. Two grade-1
@@ -195,7 +195,7 @@ theorem seedFreshAnchor_isSome_of_bandGrade
       (by simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
         Proofs.Optimistic.tickStore] using hgate)
     simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore] using hfilt
+      Proofs.Optimistic.tickStore] using! hfilt
   exact seedFreshAnchor_isSome_of_G1 S.E hactive
     (seedG1_at_voteDuty_of_ownG2 S adm hw hQG2
       (seedRoundSlot_round_of S hlo hhi))
@@ -401,7 +401,7 @@ private theorem seedBandCover_namedGradeForms
       Protocol.get_filtered_block_tree (healStoreAt S rho w (q + 1)).toFG := by
     intro w hw
     have hmem : Qn.erase ∈ (healStoreAt S rho w (q + 1)).T := by
-      simpa only [healStoreAt] using hmemAt w hw (S.a (q + 1)) hrelayAction
+      simpa only [healStoreAt] using! hmemAt w hw (S.a (q + 1)) hrelayAction
     exact frontierBlock_filtered_at_healStoreAt_of_gateOff S adm hsb hw
       hhorAction hmem rfl hQrun hQband (hM1 w hw) (hframeAction w hw).1
       (hframeAction w hw).2
@@ -473,7 +473,7 @@ theorem seedBandGrade_of_bandCarrierCover
         ((Nat.le_add_left 2 (healStoreAt S rho w (q + 1)).h_j).trans
           (hframeAction w hw).2)
     have hmem : Qn.erase ∈ (healStoreAt S rho w (q + 1)).T := by
-      simpa only [healStoreAt] using hmemAt w hw (S.a (q + 1)) hrelayAction
+      simpa only [healStoreAt] using! hmemAt w hw (S.a (q + 1)) hrelayAction
     exact frontierBlock_filtered_at_healStoreAt_of_gateOff S adm hsb hw
       hhorAction hmem rfl hQrun hQband hM1 (hframeAction w hw).1
       (hframeAction w hw).2
@@ -502,7 +502,7 @@ theorem seedBandGrade_of_bandCarrierCover
   · have hactiveW : Qn.erase ∈ Protocol.get_filtered_block_tree
         (healStoreAt S rho w (q + 1)).toFG := by
       have hmem : Qn.erase ∈ (healStoreAt S rho w (q + 1)).T := by
-        simpa only [healStoreAt] using
+        simpa only [healStoreAt] using!
           hmemAt w hw (S.a (q + 1)) hrelayAction
       exact frontierBlock_filtered_at_healStoreAt_of_gateOff S adm hsb hw
         hhorAction hmem rfl hQrun hQband hM1 (hframeAction w hw).1
@@ -573,7 +573,7 @@ theorem seedBandCarrierCover_succ
   have hactiveW : Qn.erase ∈ Protocol.get_filtered_block_tree
       (healStoreAt S rho w (q + 1)).toFG := by
     have hmem : Qn.erase ∈ (healStoreAt S rho w (q + 1)).T := by
-      simpa only [healStoreAt] using hmemAt w hw (S.a (q + 1)) hrelayAction
+      simpa only [healStoreAt] using! hmemAt w hw (S.a (q + 1)) hrelayAction
     exact frontierBlock_filtered_at_healStoreAt_of_gateOff S adm hsb hw
       hhorAction hmem rfl hQrun hQband hM1 (hframeAction w hw).1
       (hframeAction w hw).2
@@ -623,8 +623,8 @@ theorem seedBandCarrierCover_through
       have h := hframe (S.a (n + 1))
         (Assembly.a_mono S (hn.trans (Nat.le_succ n)))
         (Assembly.a_mono S hhi) w hw
-      exact ⟨by simpa only [healStoreAt] using h.2,
-        by simpa only [healStoreAt] using h.1⟩
+      exact ⟨by simpa only [healStoreAt] using! h.2,
+        by simpa only [healStoreAt] using! h.1⟩
 
 
 /-! ## The cover as a common grade -/

@@ -109,7 +109,7 @@ private theorem honestSGVote_actionEmission_of_mem_storeBeforeTime_core
     exact List.mem_of_getElem? hi
   have hactionHor : S.a k ≤ rho.horizon := by
     have h := (adm.in_horizon (Event.tick v ta) hiMem).2
-    simpa only [Event.time, htime] using h
+    simpa only [Event.time, htime] using! h
   have hexact := honest_emits_exact_actionAttestationAt_of_awake S
     adm.toNamedScheduleWellFormed hv k
     (by simpa only [hrowRound] using Proofs.Optimistic.emits_attest_awake S hemitV)
@@ -143,9 +143,9 @@ private theorem roundBatch_card_le_one_stateBeforeTime_core
     obtain ⟨huBatch, huv⟩ := Finset.mem_filter.mp hu
     obtain ⟨hzBatch, hzv⟩ := Finset.mem_filter.mp hz
     have hu' : u ∈ (rho.storeBeforeTime S w t).core.toHealing.sg_votes (r - 1) := by
-      simpa only [Protocol.round_batch, hr, Protocol.HealingStore.gradeView] using huBatch
+      simpa only [Protocol.round_batch, hr, Protocol.HealingStore.gradeView] using! huBatch
     have hz' : z ∈ (rho.storeBeforeTime S w t).core.toHealing.sg_votes (r - 1) := by
-      simpa only [Protocol.round_batch, hr, Protocol.HealingStore.gradeView] using hzBatch
+      simpa only [Protocol.round_batch, hr, Protocol.HealingStore.gradeView] using! hzBatch
     obtain ⟨huEq, -⟩ := honestSGVote_actionEmission_of_mem_storeBeforeTime_core
       S adm hv rfl hu' huv
     obtain ⟨hzEq, -⟩ := honestSGVote_actionEmission_of_mem_storeBeforeTime_core
@@ -214,7 +214,7 @@ theorem rootOnCan_of_emittedSGHistory_at_read
           (Or.inr (Proofs.NamedAncestry.named_self Cn)) hroot
       have hXC : X = C := hXerase.symm.trans
         ((congrArg NamedBlock.erase hnamed).trans hCerase)
-      simpa only [rootOnCan, hfind, hXC] using hbelow
+      simpa only [rootOnCan, hfind, hXC] using! hbelow
 
 
 /-- Directed actual emissions align the reader's grade batch. -/
@@ -236,7 +236,7 @@ theorem batchAligned_at_read_of_emittedSGHistory
     have huv : u.val_index = v := (Finset.mem_filter.mp hu).2
     have hupool : u ∈ pre.toHealing.sg_votes r := by
       simpa only [Protocol.round_batch, Nat.succ_ne_zero, Nat.add_sub_cancel]
-        using (Finset.mem_filter.mp hu).1
+        using! (Finset.mem_filter.mp hu).1
     exact rootOnCan_of_emittedSGHistory_at_read S adm hw hhistory hstore hupool (huv ▸ hv)
 
 /-- Directed retained history bounds the SG root, including the round-zero root. -/

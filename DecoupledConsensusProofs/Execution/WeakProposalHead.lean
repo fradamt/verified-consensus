@@ -31,7 +31,7 @@ theorem protectedVoteSlot_of_coreHeads (S : Setup V) {rho : Run V}
   intro x hx hxc
   obtain ⟨X, hX, hXrun, hXemit⟩ := WeakGoldfish.voterHead_runBlock_and_emits
     S adm hx hd hxc hhor
-  exact ⟨X, by simpa only [hX] using hheads x hx, hXrun, hXemit⟩
+  exact ⟨X, by simpa only [hX] using! hheads x hx, hXrun, hXemit⟩
 
 #print axioms protectedVoteSlot_of_coreHeads
 

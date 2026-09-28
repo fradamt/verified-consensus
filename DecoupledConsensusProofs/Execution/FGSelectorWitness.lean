@@ -59,7 +59,7 @@ theorem honestEmittedHeightRow_exactFGSelectorWitness
     List.mem_of_getElem? hi
   have hactionHor : S.a a.round ≤ rho.horizon := by
     have hin := (adm.in_horizon (Event.tick a.val_index ta) hiMem).2
-    simpa only [Event.time, htime] using hin
+    simpa only [Event.time, htime] using! hin
   have haEq : a = actionAttestationAt S rho a.val_index a.round := by
     exact ((NamedActionSources.action_run_emission S rho
       adm.toNamedAdmissibleCore.toNamedScheduleWellFormed

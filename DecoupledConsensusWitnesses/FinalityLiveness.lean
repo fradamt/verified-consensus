@@ -603,7 +603,7 @@ theorem proposal_root_of_output
       rcases (by
         simpa [Protocol.NamedActions.proposal_with, Protocol.with_proposal_input] using hroot) with
         ⟨a, ha, hax⟩
-      simpa using hax.symm
+      simpa using! hax.symm
 
 theorem emitted_block_root_shape {v : Fin 2} {B : NamedBlock (Fin 2)} {t : Time}
     (hemit : NamedRun.emits S rho v (.block B) t) :
@@ -951,11 +951,11 @@ theorem originState_tick {i k : Nat}
       · exact Or.inl hgen
       · exact Or.inr (emitBefore_mono (Nat.le_succ _) horigin)
     · have hnew := Proofs.Bridges.on_tick_emit_T_mem S 0 n (k : Time) (by
-        simpa only [NamedNode.tick, n, c, gc, out] using hB')
+        simpa only [NamedNode.tick, n, c, gc, out] using! hB')
       rcases hnew with hold | hem
       · exact False.elim (hpre hold)
       · exact Or.inr ⟨i, Nat.lt_succ_self i, (k : Time), he,
-          emit_out (by simpa only [NamedNode.tick, n, c, gc, out] using hem)⟩
+          emit_out (by simpa only [NamedNode.tick, n, c, gc, out] using! hem)⟩
   · intro B hB u hu
     have hB' : B ∈ out.1.bodies := by
       rw [hout]
@@ -964,12 +964,12 @@ theorem originState_tick {i k : Nat}
     · exact emitBefore_mono (Nat.le_succ _)
         (hstate.body_gf B hpre u hu)
     · have hnew := Proofs.Bridges.on_tick_emit_T_mem S 0 n (k : Time) (by
-        simpa only [NamedNode.tick, n, c, gc, out] using hB')
+        simpa only [NamedNode.tick, n, c, gc, out] using! hB')
       rcases hnew with hold | hem
       · exact False.elim (hpre hold)
       · exact emitBefore_mono (Nat.le_succ _)
           (emitted_block_gf_origin (i := i) (t := (k : Time))
-          (by simpa only [NamedNode.tick, n, c, gc, out] using hem)
+          (by simpa only [NamedNode.tick, n, c, gc, out] using! hem)
           hstate hu)
   · intro B hB a ha
     have hB' : B ∈ out.1.bodies := by
@@ -979,12 +979,12 @@ theorem originState_tick {i k : Nat}
     · exact emitBefore_mono (Nat.le_succ _)
         (hstate.body_row B hpre a ha)
     · have hnew := Proofs.Bridges.on_tick_emit_T_mem S 0 n (k : Time) (by
-        simpa only [NamedNode.tick, n, c, gc, out] using hB')
+        simpa only [NamedNode.tick, n, c, gc, out] using! hB')
       rcases hnew with hold | hem
       · exact False.elim (hpre hold)
       · exact emitBefore_mono (Nat.le_succ _)
           (emitted_block_row_origin (i := i) (t := (k : Time))
-          (by simpa only [NamedNode.tick, n, c, gc, out] using hem)
+          (by simpa only [NamedNode.tick, n, c, gc, out] using! hem)
           hstate ha)
   · intro k' u hu
     have hstamps : Protocol.PoolStamps
@@ -1014,13 +1014,13 @@ theorem originState_tick {i k : Nat}
           (emitted_block_gf_origin (i := i) (t := (k : Time)) hblock' hstate
           (by
             have hcall := Proofs.NamedReceiptCallsBase.blockCallAt_self S rho he
-              (by simpa only [out] using hblock)
+              (by simpa only [out] using! hblock)
             have horigin := Proofs.NamedReceiptCallsGF.block_with_new_vote_origin
               S rho i 0 B
               (NamedActionReads.confirmationReadFrom S n (k : Time)).st
               hcall u (by
                 simpa [NamedActionReads.confirmationReadFrom,
-                  Protocol.NamedStore.setClock, n] using hpre) hpost
+                  Protocol.NamedStore.setClock, n] using! hpre) hpost
             obtain ⟨j, hj⟩ := horigin
             exact List.mem_of_getElem? hj.2.2.2))
   · intro k' a ha
@@ -1044,13 +1044,13 @@ theorem originState_tick {i k : Nat}
           (emitted_block_row_origin (i := i) (t := (k : Time)) hblock' hstate
           (by
             have hcall := Proofs.NamedReceiptCallsBase.blockCallAt_self S rho he
-              (by simpa only [out] using hblock)
+              (by simpa only [out] using! hblock)
             have horigin := Proofs.NamedReceiptCallsF1.block_full_marker_origin
               S rho i 0 B
               (NamedActionReads.confirmationReadFrom S n (k : Time)).st a hcall
               (by simpa [NamedActionReads.confirmationReadFrom,
                 Protocol.NamedStore.setClock, n] using hheld) (by
-                simpa [NamedReceipt.process, n] using hpost)
+                simpa [NamedReceipt.process, n] using! hpost)
             obtain ⟨j, hj, -, -⟩ := horigin
             exact List.mem_of_getElem? hj.2.2.2))
 
@@ -1353,7 +1353,7 @@ theorem generic_finality_regime :
     simpa [Statements.Instantiation.interface, Statements.instance] using
       honest_committee_majority s
   · simpa [Statements.Instantiation.env, Statements.Generic.BelowOneThird,
-      Execution.BelowOneThird] using below_one_third
+      Execution.BelowOneThird] using! below_one_third
   · intro v hv t ht hhor
     have hv0 : v = 0 := by
       change v ∈ ({0} : Finset (Fin 2)) at hv
@@ -1477,7 +1477,7 @@ theorem fresh_inclusion_activated : ∃ B : Block (Fin 2),
       Setup.a, Protocol.HealConfig.a, Protocol.HealConfig.opening_slot, slotStart]
   have hp : (Statements.Instantiation.interface S).proposer 1 ∈ rho.honest := by decide
   have hh : (36 : Time) ≤ rho.horizon := by decide
-  simpa only [ht, hd] using h (by rw [ht]; norm_num) hp (by rw [ht, hd]; exact hh)
+  simpa only [ht, hd] using! h (by rw [ht]; norm_num) hp (by rw [ht, hd]; exact hh)
 
 /-! ## Closed finality safety, instantiated on this run -/
 

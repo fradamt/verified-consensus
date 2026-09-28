@@ -164,7 +164,7 @@ theorem actionSGVote_mem_stamp_voteDuty
   have hpostRead := GradeDeliveryRun.projected_vote_mem_stamp_at_read
     S adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hj heCut hcutRead hu hut
   simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-    Proofs.Optimistic.tickStore] using hpostRead
+    Proofs.Optimistic.tickStore] using! hpostRead
 
 
 

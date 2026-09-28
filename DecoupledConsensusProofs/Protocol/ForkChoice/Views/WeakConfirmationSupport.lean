@@ -47,7 +47,7 @@ private theorem voterHead_emits_of_core
             (voterHeadAt S rho w d).root⟩ := by
     simp only [Protocol.NamedDuties.goldfish_vote_with,
       Protocol.goldfish_vote_with]
-    rw [if_pos]
+    rw [ite_eq_left]
     · rfl
     · rw [S.node_val_index, hslot]
       exact hwCommittee
@@ -77,7 +77,7 @@ private theorem voterHead_runBlock_of_core
     (Proofs.NamedRuntime.stateBeforeTime_invariants S rho
       (Protocol.vote_time S.E d) w).1
   have hinv : Proofs.NamedConfirmationMembership.Invariant S.E S.cfg read.st := by
-    simpa only [read, voteDutyRead, NamedActionReads.confirmationReadAt] using
+    simpa only [read, voteDutyRead, NamedActionReads.confirmationReadAt] using!
       Proofs.NamedConfirmationMembership.invariant_clock S.E S.cfg _ _ hinvPre
   have hroot : Protocol.get_fg_root st.toHealing.toFG ∈ st.T :=
     Proofs.NamedStoreRoots.fg_root_mem read.st hinv.1.2
@@ -141,7 +141,7 @@ private theorem genuineConfirmation_exists_honestVoteSupporter_of_receipts
     apply Finset.card_pos.mpr
     exact ⟨_, Finset.mem_filter.mpr ⟨hraw, rfl⟩⟩
   have hvalid : Protocol.VoteSetValid S.E s late := by
-    simpa only [late, source, confStore, tickStore] using
+    simpa only [late, source, confStore, tickStore] using!
       voteSetValid_confLate_stateBeforeTime S adm.toNamedScheduleWellFormed v
         (Protocol.confirmation_time S.E s) s
   have hsupportRep : supporters ⊆ participants :=
@@ -194,7 +194,7 @@ private theorem genuineConfirmation_exists_honestVoteSupporter_of_receipts
   obtain ⟨D, hDerase, hDrun⟩ :=
     Proofs.NamedStoreBridge.runBlock_of_mem_core_T_stateBeforeTime S
       adm.toNamedScheduleWellFormed hv (Protocol.confirmation_time S.E s) (by
-        simpa only [source, confStore, tickStore] using
+        simpa only [source, confStore, tickStore] using!
           Proofs.HealingLemmas.find?_mem hfind)
   obtain ⟨X, hXerase, hXrun⟩ := voterHead_runBlock_of_core S adm hxHon s
   have hrootNamed : D.root = X.root := by

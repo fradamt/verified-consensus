@@ -76,7 +76,7 @@ theorem honestVotesCone_succ_of_genuineConfirmation_of_frozenVoteReads
     Protocol.viable, Finset.mem_filter, decide_eq_true_eq] at hdata
   have hroot : Block.Preceq
       (Protocol.get_fg_root read.st.core.toHealing.toFG) B := by
-    simpa only [read] using hdata.2
+    simpa only [read] using! hdata.2
   have hd := nextVoteAdoption_of_recovery_after_gst
     S adm hv hw hpost hhor hroot
       (hanchor w hw hwcommittee) (hcandidate w hw hwcommittee)
@@ -102,7 +102,7 @@ theorem honestVotesCone_succ_of_genuineConfirmation_of_frozenVoteReads
       hd.transport hgenuine.eligible hd.support_subset hd.anchor hd.path
   obtain ⟨C, hChead, hCrun⟩ := hd.run
   have hChead' : C.erase = head := by
-    simpa only [head, tree, votes, support, read, frozenVoteRead] using hChead
+    simpa only [head, tree, votes, support, read, frozenVoteRead] using! hChead
   refine ⟨C, ?_, ?_, ?_⟩
   · rw [hChead']
     exact hhead
@@ -112,7 +112,7 @@ theorem honestVotesCone_succ_of_genuineConfirmation_of_frozenVoteReads
           (NamedProfile.gradeContract read.cache) S.E S.hc (S.node w) read.st).2 =
           some ⟨(S.node w).val_index, read.st.core.s, head.root⟩ := by
       simp only [Protocol.NamedDuties.goldfish_vote_with,
-        Protocol.goldfish_vote_with, hcommittee, if_true, head, tree, votes, support]
+        Protocol.goldfish_vote_with, hcommittee, ite_true, head, tree, votes, support]
     have hem := hd.emit _ hout
     rw [← hChead'] at hem
     rw [hslot] at hem

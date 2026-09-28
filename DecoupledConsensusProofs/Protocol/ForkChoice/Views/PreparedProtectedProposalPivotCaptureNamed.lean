@@ -99,7 +99,7 @@ private theorem preparedProposalPivot_voteViewValid_core
   simpa only [read, t, voteDutyRead,
     NamedActionReads.confirmationReadAt,
     NamedActionReads.confirmationReadFrom,
-    Protocol.NamedStore.setClock, hn] using hvalid
+    Protocol.NamedStore.setClock, hn] using! hvalid
 
 /-- The actual proposal-free prepared voter walk reaches the protected pivot. -/
 theorem PreparedProtectedProposalPivot.preceq_proposalFreeHead_core
@@ -127,7 +127,7 @@ theorem PreparedProtectedProposalPivot.preceq_proposalFreeHead_core
         (S.hc.round_of st.s)
         (DecoupledConsensusModel.Protocol.readFrame read.cache st.toHealing
           (S.hc.round_of st.s)).g1)
-      (by simpa only [st, read, voterAnchorAt] using hpivot.targetAnchor)
+      (by simpa only [st, read, voterAnchorAt] using! hpivot.targetAnchor)
   have havailable := honestHeadsAvailableBefore_of_namedPostHealingCone_core
     S adm hv hpost hhor hroot hpivot.slotProtected.cone
   have hresolve0 :=
@@ -137,7 +137,7 @@ theorem PreparedProtectedProposalPivot.preceq_proposalFreeHead_core
     simpa only [st, read, voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock] using hresolve0
+      Protocol.NamedStore.setClock] using! hresolve0
   have hbase := Protocol.canonicalSuffixConeSupportVoterView_core
     S adm hcom hd hpost hhor hpivot.slotProtected.cone hv
       (Proofs.Optimistic.support_cutoff_le_vote_time_succ S.E d)
@@ -148,7 +148,7 @@ theorem PreparedProtectedProposalPivot.preceq_proposalFreeHead_core
   have hcone : ConeSupport S.E st.T votes support votes (st.s - 1)
       rho.honest (fun X => Block.Preceq A.erase X) := by
     simpa only [st, read, votes, support, hslot,
-      Protocol.Store.toHealing] using hbase
+      Protocol.Store.toHealing] using! hbase
   have hvalid : Protocol.VoteSetValid S.E (st.s - 1) votes := by
     simpa only [st, read, votes] using
       preparedProposalPivot_voteViewValid_core S adm v (d + 1)

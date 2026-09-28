@@ -78,7 +78,7 @@ private theorem w4_fg_root_preceq_current_source
           have hQB : Block.Preceq Q B :=
             (Finset.mem_filter.mp (Proofs.Engine.deepest?_mem hwalk)).2.1
           have hsourceB : B = source := Option.some.inj hsource'
-          simpa only [hsourceB] using Block.preceq_trans hrootQ hQB
+          simpa only [hsourceB] using! Block.preceq_trans hrootQ hQB
 
 private theorem w4_action_invariant (S : Setup V) (rho : Run V)
     (v : V) (r : Round) :
@@ -99,7 +99,7 @@ theorem currentProduction_action_mem_in_run (S : Setup V) (rho : Run V)
     simpa only [actionStoreAt, Proofs.HealingSurface.actionReadAt,
       NamedActionReads.actionReadAt,
       NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, Protocol.NamedDuties.update_confirmation_with] using hC
+      NamedActionReads.preparedCache, Protocol.NamedDuties.update_confirmation_with] using! hC
   obtain ⟨n, hn, -⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix S rho sorted (S.a r)
   have hCn : C ∈ (NamedRun.stateBefore S rho n v).st.bodies := by
     rw [← congrFun hn v]
@@ -141,13 +141,13 @@ private theorem w4_round_action_head_fields
     simpa only [ast, actionStoreAt, Proofs.HealingSurface.actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using
+      NamedRun.stateBeforeTime] using!
         Proofs.NamedStoreBridge.justifiedInTree_stateBeforeTime S rho (S.a r) v
   have hF : ast.st.core.F ∈ ast.st.core.T := by
     simpa only [ast, actionStoreAt, Proofs.HealingSurface.actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using
+      NamedRun.stateBeforeTime] using!
         Proofs.NamedStoreBridge.finalizedInTree_stateBeforeTime S rho (S.a r) v
   have hpair' :
       (Protocol.NamedActions.round_action_with
@@ -155,7 +155,7 @@ private theorem w4_round_action_head_fields
         (S.node v) ast.st.core.toHealing ast.record).2.finality_pair =
           some ⟨H, T⟩ := by
     simpa only [ast, actionAttestationAt, actionStoreAt,
-      Proofs.HealingSurface.actionReadAt, Protocol.NamedDuties.attest_with] using hpair
+      Proofs.HealingSurface.actionReadAt, Protocol.NamedDuties.attest_with] using! hpair
   obtain ⟨D, hD, heq⟩ := round_action_finality_pair
     (DecoupledConsensusModel.Protocol.frameContract ast.cache) S.E S.hc (S.node v)
     ast.st.core.toHealing ast.record
@@ -331,7 +331,7 @@ private theorem w4_currentProduction_record_lock_body
       simpa only [actionStoreAt, Proofs.HealingSurface.actionReadAt,
         NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
         NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-        NamedRun.stateBeforeTime] using hD
+        NamedRun.stateBeforeTime] using! hD
     have hbefore := Proofs.NamedRuntime.tick_prefix_eq_strict S rho
       core.sorted core.nodup hevent
     have hbefore' : NamedRun.stateBefore S rho i v =
@@ -353,7 +353,7 @@ private theorem w4_currentProduction_record_lock_body
   simpa only [actionStoreAt, Proofs.HealingSurface.actionReadAt,
     NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
     NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-    NamedRun.stateBeforeTime] using hDn'
+    NamedRun.stateBeforeTime] using! hDn'
 
 private theorem w4_currentProduction_effective_lock_body
     (S : Setup V) (rho : Run V) (core : LeakFairnessExecution S rho)
@@ -386,7 +386,7 @@ private theorem w4_currentProduction_effective_lock_body
         exact w4_currentProduction_finality_body_witness S rho v r hfp
       · have hrecord :
             (rho.stateBeforeTime S (S.a r) v).record.legacy.lock H = some T := by
-          simpa only [currentProductionRecord, Protocol.own_lock, hfp, hh] using hlock
+          simpa only [currentProductionRecord, Protocol.own_lock, hfp, hh] using! hlock
         exact w4_currentProduction_record_lock_body S rho core v r hrecord
 
 private def w4_NamedEnteringAt (E : Env V) (cfg : HeightConfig)
@@ -612,21 +612,21 @@ theorem lock_on_source_at_frontier (S : Setup V) (rho : Run V)
   let st := ast.st
   let H := (currentProductionSourceState S rho v r source).h
   have hfront : st.core.h_max ≤ H + 1 := by
-    simpa only [st, ast, H] using hfrontier
+    simpa only [st, ast, H] using! hfrontier
   have hnoPre := NamedJustificationBound.noHighJustifications_stateBeforeTime
     S rho (S.a r) v
   have hno : Internal.NamedNoHighJustifications S.E S.cfg st := by
     simpa only [st, ast, actionStoreAt, Proofs.HealingSurface.actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using hnoPre
+      NamedRun.stateBeforeTime] using! hnoPre
   have hbelowPre := NamedJustificationBound.justificationBelowMax_stateBeforeTime
     S rho (S.a r) v
   have hbelow : st.core.h_j < st.core.h_max := by
     simpa only [st, ast, actionStoreAt, Proofs.HealingSurface.actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using hbelowPre
+      NamedRun.stateBeforeTime] using! hbelowPre
   obtain ⟨body, hbody, hbodyHeight, hbodyRoot⟩ :=
     w4_currentProduction_effective_lock_body S rho core v r source hlock
   have hlow : H ≤ st.core.h_j :=
@@ -639,7 +639,7 @@ theorem lock_on_source_at_frontier (S : Setup V) (rho : Run V)
       hfront.trans_eq (congrArg (fun n : Nat => n + 1) hJHeight.symm)
     exact Nat.le_antisymm hupper (Nat.succ_le_of_lt hhigh)
   have hRoot : Protocol.get_fg_root st.core.toHealing.toFG = st.core.J := by
-    exact if_pos hMax
+    exact ite_eq_left hMax
   have hJsource : Block.Preceq st.core.J source := by
     have hfloor := w4_fg_root_preceq_current_source S rho v r source hsource
     have hfloor' : Block.Preceq
@@ -667,19 +667,19 @@ theorem lock_on_source_at_frontier (S : Setup V) (rho : Run V)
     simpa only [st, ast, actionStoreAt, Proofs.HealingSurface.actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using hcarrierPre
+      NamedRun.stateBeforeTime] using! hcarrierPre
   have hcarrierJ' :
       (Protocol.derive_named S.E S.cfg carrier).J = st.core.J := by
     simpa only [st, ast, actionStoreAt, Proofs.HealingSurface.actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using hcarrierJ
+      NamedRun.stateBeforeTime] using! hcarrierJ
   have hcarrierHeight' :
       (Protocol.derive_named S.E S.cfg carrier).h_j = st.core.h_j := by
     simpa only [st, ast, actionStoreAt, Proofs.HealingSurface.actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using hcarrierHeight
+      NamedRun.stateBeforeTime] using! hcarrierHeight
   have hcarrierH :
       (Protocol.derive_named S.E S.cfg carrier).h_j = H :=
     hcarrierHeight'.trans hJHeight

@@ -89,7 +89,7 @@ theorem CanonicalRegimeRoundAt.successorTargetLockAlignment_of_canonicalHeight
       exact hv
     exact finalityPairTarget_eq_canonicalTarget
       S adm hfinality hround hP0 hW hWheight habove haHonest
-        (by simpa only [(Proofs.Optimistic.emits_attest_shape S haEmit).1] using haEmit)
+        (by simpa only [(Proofs.Optimistic.emits_attest_shape S haEmit).1] using! haEmit)
         (le_of_lt (hbefore i _ hi hevent)) hpair
   · intro p hfp hpHeight
     have hactionHor : S.a r ≤ rho.horizon := by

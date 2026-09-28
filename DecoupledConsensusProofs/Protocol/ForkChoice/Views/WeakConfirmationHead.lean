@@ -48,7 +48,7 @@ private theorem candidatePath_of_processedBandDescendant_local
       read.st.core.toHealing.toFG.toSG.toGoldfishStore read.st.core.s := by
     simpa only [read, voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using
+      Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using!
       hDprocessed
   have hancestor : ∀ B : Block V, Block.Preceq B D →
       B ∈ Protocol.voter_processed_block_tree S.E
@@ -58,13 +58,13 @@ private theorem candidatePath_of_processedBandDescendant_local
       (s := s) (B := D) hDprocessed B hBD
     simpa only [read, voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using
+      Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using!
       hanc
   have hFroot : Block.Preceq read.st.core.F
       (Protocol.get_fg_root read.st.core.toHealing.toFG) :=
     Proofs.Records.preceq_get_fg_root_of_F (st := read.st.core.toHealing.toFG) (by
       simpa only [read, voteDutyRead, NamedActionReads.confirmationReadAt,
-        NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+        NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
         (Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime
           S rho (Protocol.vote_time S.E (s + 1)) w))
   have hmem : ∀ B : Block V,
@@ -77,9 +77,9 @@ private theorem candidatePath_of_processedBandDescendant_local
       read.st.core.toHealing.toFG
       (Protocol.voter_processed_block_tree S.E
         read.st.core.toHealing.toFG.toSG.toGoldfishStore read.st.core.s)
-    simp only [Protocol.get_filtered_block_tree_from,
-      Protocol.viable_tree, Protocol.finalized_descendants,
-      Protocol.viable, Finset.mem_filter, decide_eq_true_eq]
+    simp only [Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
+      Protocol.finalized_descendants, Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
     exact ⟨⟨⟨hancestor B (Block.preceq_trans hBC hCD),
       Block.preceq_trans hFroot hrootB⟩,
       D, hDread, Block.preceq_trans hBC hCD, hband⟩, hrootB⟩
@@ -195,7 +195,7 @@ private theorem finalized_preceq_at_delivery_local
     simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
       Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore, pre, Gamma] using hroot
+      Proofs.Optimistic.tickStore, pre, Gamma] using! hroot
   exact Block.preceq_trans hmono (Block.preceq_trans hFroot hroot')
 
 private theorem voterHeadMem_of_core
@@ -213,7 +213,7 @@ private theorem voterHeadMem_of_core
     (Proofs.NamedRuntime.stateBeforeTime_invariants S rho
       (Protocol.vote_time S.E d) w).1
   have hinv : Proofs.NamedConfirmationMembership.Invariant S.E S.cfg read.st := by
-    simpa only [read, voteDutyRead, NamedActionReads.confirmationReadAt] using
+    simpa only [read, voteDutyRead, NamedActionReads.confirmationReadAt] using!
       Proofs.NamedConfirmationMembership.invariant_clock S.E S.cfg _ _ hinvPre
   have hroot : Protocol.get_fg_root st.toHealing.toFG ∈ st.T :=
     Proofs.NamedStoreRoots.fg_root_mem read.st hinv.1.2
@@ -409,9 +409,9 @@ private theorem handlerInserts_local
       Proofs.update_finality_T, Proofs.foldl_on_goldfish_vote_checked_T S.E]
   rw [onBlockWithBodies_local]
   unfold Protocol.NamedStore.process_block_core
-  rw [if_neg (not_not.mpr hp)]
+  rw [ite_eq_right (not_not.mpr hp)]
   unfold Protocol.NamedStore.commitBlock
-  rw [if_pos ⟨hfresh, hafter⟩]
+  rw [ite_eq_left ⟨hfresh, hafter⟩]
   exact Finset.mem_insert_self _ _
 
 private theorem acceptsAtDeliveryGuards_local
@@ -457,8 +457,8 @@ private theorem acceptsAtDeliveryGuards_local
         NamedReceipt.process S (NamedRun.stateBefore S rho i v).st
           (Object.block B) := Proofs.NamedReceiptCallsBase.delivery_result S rho hi
     rw [hstate]
-    simpa only [NamedReceipt.process, NamedReceipt.processed,
-      decide_eq_true_eq] using hnew
+    simp only [NamedReceipt.process, NamedReceipt.processed]
+    exact decide_eq_true hnew
 
 private theorem acceptsAtProposedBlock_local
     (S : Setup V) {rho : Run V} (adm : AdmissibleCore S rho)
@@ -613,7 +613,7 @@ private theorem block_admittedBefore_of_accepted_after_cutoff_local
         (hFhist j (Nat.le_trans (Nat.le_succ j)
           (index_succ_le_strict_filter_length rho
             adm.toNamedScheduleWellFormed.sorted GammaOut hdeliv
-            (by simpa only [Event.time] using ht'cutoff))))
+            (by simpa only [Event.time] using! ht'cutoff))))
         (proposer_eq_of_acceptsAt_block S hacc)
         (parent_slot_lt_of_acceptsAt_block S hacc)
         (carried_attestations_admissible_of_acceptsAt_block S hacc)
@@ -643,7 +643,7 @@ private theorem voterHeadProcessed_of_supporter
   have hXpre : X.erase ∈
       (rho.storeBeforeTime S x (Protocol.vote_time S.E s)).T := by
     simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       hXmem
   rcases block_eq_genesis_or_acceptsBefore_of_mem_storeBeforeTime S
       adm.toNamedScheduleWellFormed x (Protocol.vote_time S.E s) hXpre with
@@ -682,7 +682,7 @@ private theorem voterHeadProcessed_of_supporter
         simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
           Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-          Proofs.Optimistic.tickStore] using hroot
+          Proofs.Optimistic.tickStore] using! hroot
       exact Block.preceq_trans
         (finalized_preceq_at_prefix_of_storeBeforeRoot_preceq
           S rho adm.toNamedScheduleWellFormed.sorted hroot' hjVote) hBXD
@@ -760,11 +760,10 @@ private theorem actionBodyRunBlock_local
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hD
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hD
   obtain ⟨i, hi, -⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix S rho
     adm.toNamedScheduleWellFormed.sorted (S.a r)
   have hDi : D ∈ (NamedRun.stateBefore S rho i v).st.bodies := by
-    change D ∈ (NamedRun.stateBefore S rho i v).st.bodies
     rw [← hi]
     exact hDpre
   exact Proofs.NamedRuntime.blockInRun_of_direct S rho
@@ -817,7 +816,7 @@ private theorem emittedAttestationEq_local
   rw [Proofs.NamedRuntime.tick_prefix_eq_strict S rho adm.sorted adm.nodup hi]
     at hduty
   simpa only [actionAttestationAt, actionReadAt,
-    NamedActionReads.actionReadAt] using hduty.symm
+    NamedActionReads.actionReadAt] using! hduty.symm
 
 private theorem honestEmittedHeightRowWitness_local
     (S : Setup V) {rho : Run V} (adm : AdmissibleCore S rho)
@@ -1105,7 +1104,7 @@ private theorem actionBlockProcessedAtNextDuty_local
           simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
             Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-            Proofs.Optimistic.tickStore] using hrootD
+            Proofs.Optimistic.tickStore] using! hrootD
         exact finalized_preceq_at_prefix_of_storeBeforeRoot_preceq
           S rho adm.toNamedScheduleWellFormed.sorted hroot' hjVote
       have htSupport : t < Protocol.support_cutoff S.E s :=
@@ -1160,7 +1159,7 @@ private theorem voterHeadEmits_of_core_local
           (voterHeadAt S rho w s).root⟩ := by
     simp only [Protocol.NamedDuties.goldfish_vote_with,
       Protocol.goldfish_vote_with]
-    rw [if_pos]
+    rw [ite_eq_left]
     · rfl
     · exact hcommittee'
   have ho : Object.gfVote
@@ -1223,7 +1222,7 @@ theorem genuineConfirmationWith_preceq_nextVoterHead_of_frontierWitnesses
         (Internal.NamedRecoveryRead.confirmationInputRead S rho v s).cache)
       S.E S.hc (confStore S rho v s) s := by
     rw [← hgenuine.selected, update_confirmation_with_live_confirmed,
-      if_pos hgenuine.genuine]
+      ite_eq_left hgenuine.genuine]
   have hEligible : Protocol.voters_count S.E
       (confLate S.E (confStore S rho v s) s) s <
       2 * Protocol.goldfish_score S.E (confStore S rho v s).T
@@ -1231,15 +1230,15 @@ theorem genuineConfirmationWith_preceq_nextVoterHead_of_frontierWitnesses
         (confVotes S.E (confStore S rho v s) s) s B := by
     have h := hgenuine.genuine
     rw [← hDwalk] at h
-    simpa only [confEligible, confCount, confScore,
-      decide_eq_true_eq] using h
+    simp only [confEligible, decide_eq_true_eq] at h
+    simpa only [confCount, confScore] using h
   have hpostVote : S.E.t_GST ≤ Protocol.vote_time S.E s := by
     apply le_trans hpost
     exact (proposal_time_lt_vote_time S.E s).le
   have hcases : Block.Preceq
       (Protocol.get_fg_root read.st.core.toHealing.toFG) B ∨
       Block.Preceq B (Protocol.get_fg_root read.st.core.toHealing.toFG) := by
-    simpa only [Block.compatible, Bool.or_eq_true] using hroot
+    simpa only [Block.compatible, Bool.or_eq_true] using! hroot
   rcases hcases with hrootBelow | hbelowRoot
   · have hpathData : B ∈ voterCandidateTreeAt S rho w (s + 1) ∧
         ∀ C : Block V,
@@ -1261,7 +1260,7 @@ theorem genuineConfirmationWith_preceq_nextVoterHead_of_frontierWitnesses
           NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom,
           Protocol.NamedStore.setClock, Proofs.Optimistic.voteDutyStore,
-          Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using h
+          Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using! h
       by_cases hband : read.st.core.h_max - 1 ≤ (read.st.core.σ B).h
       · exact candidatePath_of_processedBandDescendant_local S adm hw
           (Block.preceq_self B) hBprocessed' hband hrootBelow
@@ -1328,20 +1327,20 @@ theorem genuineConfirmationWith_preceq_nextVoterHead_of_frontierWitnesses
                 using hhigh) hCrun) a ta K ha hemit hta hrow hselected hKrun)
           have hcompatCases : Block.Preceq C.erase K.erase ∨
               Block.Preceq K.erase C.erase := by
-            simpa only [Block.compatible, Bool.or_eq_true] using hrawCompatible
+            simpa only [Block.compatible, Bool.or_eq_true] using! hrawCompatible
           rcases hcompatCases with hCK | hKC
           · have hnamed := namedPreceq_of_runBlock_erase_preceq_local
               S adm hCrun hKrun hCK
-            simpa only [NamedBlock.compatible, Bool.or_eq_true] using
+            simpa only [NamedBlock.compatible, Bool.or_eq_true] using!
               (Or.inl hnamed)
           · have hnamed := namedPreceq_of_runBlock_erase_preceq_local
               S adm hKrun hCrun hKC
-            simpa only [NamedBlock.compatible, Bool.or_eq_true] using
+            simpa only [NamedBlock.compatible, Bool.or_eq_true] using!
               (Or.inr hnamed)
         have hCK : NamedBlock.Preceq C K := by
           have hcompatCases : NamedBlock.Preceq C K ∨
               NamedBlock.Preceq K C := by
-            simpa only [NamedBlock.compatible, Bool.or_eq_true] using hcompatible
+            simpa only [NamedBlock.compatible, Bool.or_eq_true] using! hcompatible
           rcases hcompatCases with hCK | hKC
           · exact hCK
           · have hmono := Proofs.NamedEntryHeight.derive_height_mono S.E S.cfg hKC
@@ -1364,7 +1363,7 @@ theorem genuineConfirmationWith_preceq_nextVoterHead_of_frontierWitnesses
           simpa only [read, voteDutyRead, NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
             Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-            Proofs.Optimistic.tickStore] using h
+            Proofs.Optimistic.tickStore] using! h
         have hKheightRead := namedHeight_at_voteDuty S adm hw hKrun hKmemRead
         have hBK : Block.Preceq B K.erase := by
           simpa only [hCB] using Proofs.NamedWire.erase_preceq hCK
@@ -1432,7 +1431,7 @@ theorem genuineConfirmationWith_preceq_nextVoterHead_of_frontierWitnesses
       (Protocol.voter_support_view S.E read.st.core.toHealing.toFG.toSG.toGoldfishStore read.st.core.s)
       (read.st.core.s - 1) hbelowRoot
     rw [voterHeadAt_eq_get_head_with_anchor S rho w (s + 1)]
-    simpa only [read, hslot, Nat.add_sub_cancel] using hhead
+    simpa only [read, hslot, Nat.add_sub_cancel] using! hhead
 
 #print axioms genuineConfirmationWith_preceq_nextVoterHead_of_frontierWitnesses
 theorem genuineConfirmationWith_preceq_nextVoterHead_of_frontierWitnesses_of_delivery
@@ -1482,7 +1481,7 @@ theorem genuineConfirmationWith_preceq_nextVoterHead_of_frontierWitnesses_of_del
         (Internal.NamedRecoveryRead.confirmationInputRead S rho v s).cache)
       S.E S.hc (confStore S rho v s) s := by
     rw [← hgenuine.selected, update_confirmation_with_live_confirmed,
-      if_pos hgenuine.genuine]
+      ite_eq_left hgenuine.genuine]
   have hEligible : Protocol.voters_count S.E
       (confLate S.E (confStore S rho v s) s) s <
       2 * Protocol.goldfish_score S.E (confStore S rho v s).T
@@ -1490,12 +1489,12 @@ theorem genuineConfirmationWith_preceq_nextVoterHead_of_frontierWitnesses_of_del
         (confVotes S.E (confStore S rho v s) s) s B := by
     have h := hgenuine.genuine
     rw [← hDwalk] at h
-    simpa only [confEligible, confCount, confScore,
-      decide_eq_true_eq] using h
+    simp only [confEligible, decide_eq_true_eq] at h
+    simpa only [confCount, confScore] using h
   have hcases : Block.Preceq
       (Protocol.get_fg_root read.st.core.toHealing.toFG) B ∨
       Block.Preceq B (Protocol.get_fg_root read.st.core.toHealing.toFG) := by
-    simpa only [Block.compatible, Bool.or_eq_true] using hroot
+    simpa only [Block.compatible, Bool.or_eq_true] using! hroot
   rcases hcases with hrootBelow | hbelowRoot
   · have hpathData : B ∈ voterCandidateTreeAt S rho w (s + 1) ∧
         ∀ C : Block V,
@@ -1513,7 +1512,7 @@ theorem genuineConfirmationWith_preceq_nextVoterHead_of_frontierWitnesses_of_del
           NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom,
           Protocol.NamedStore.setClock, Proofs.Optimistic.voteDutyStore,
-          Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using h
+          Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using! h
       by_cases hband : read.st.core.h_max - 1 ≤ (read.st.core.σ B).h
       · exact candidatePath_of_processedBandDescendant_local S adm hw
           (Block.preceq_self B) hBprocessed' hband hrootBelow
@@ -1575,20 +1574,20 @@ theorem genuineConfirmationWith_preceq_nextVoterHead_of_frontierWitnesses_of_del
                 using hhigh) hCrun) a ta K ha hemit hta hrow hselected hKrun)
           have hcompatCases : Block.Preceq C.erase K.erase ∨
               Block.Preceq K.erase C.erase := by
-            simpa only [Block.compatible, Bool.or_eq_true] using hrawCompatible
+            simpa only [Block.compatible, Bool.or_eq_true] using! hrawCompatible
           rcases hcompatCases with hCK | hKC
           · have hnamed := namedPreceq_of_runBlock_erase_preceq_local
               S adm hCrun hKrun hCK
-            simpa only [NamedBlock.compatible, Bool.or_eq_true] using
+            simpa only [NamedBlock.compatible, Bool.or_eq_true] using!
               (Or.inl hnamed)
           · have hnamed := namedPreceq_of_runBlock_erase_preceq_local
               S adm hKrun hCrun hKC
-            simpa only [NamedBlock.compatible, Bool.or_eq_true] using
+            simpa only [NamedBlock.compatible, Bool.or_eq_true] using!
               (Or.inr hnamed)
         have hCK : NamedBlock.Preceq C K := by
           have hcompatCases : NamedBlock.Preceq C K ∨
               NamedBlock.Preceq K C := by
-            simpa only [NamedBlock.compatible, Bool.or_eq_true] using hcompatible
+            simpa only [NamedBlock.compatible, Bool.or_eq_true] using! hcompatible
           rcases hcompatCases with hCK | hKC
           · exact hCK
           · have hmono := Proofs.NamedEntryHeight.derive_height_mono S.E S.cfg hKC
@@ -1611,7 +1610,7 @@ theorem genuineConfirmationWith_preceq_nextVoterHead_of_frontierWitnesses_of_del
           simpa only [read, voteDutyRead, NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
             Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-            Proofs.Optimistic.tickStore] using h
+            Proofs.Optimistic.tickStore] using! h
         have hKheightRead := namedHeight_at_voteDuty S adm hw hKrun hKmemRead
         have hBK : Block.Preceq B K.erase := by
           simpa only [hCB] using Proofs.NamedWire.erase_preceq hCK
@@ -1679,7 +1678,7 @@ theorem genuineConfirmationWith_preceq_nextVoterHead_of_frontierWitnesses_of_del
       (Protocol.voter_support_view S.E read.st.core.toHealing.toFG.toSG.toGoldfishStore read.st.core.s)
       (read.st.core.s - 1) hbelowRoot
     rw [voterHeadAt_eq_get_head_with_anchor S rho w (s + 1)]
-    simpa only [read, hslot, Nat.add_sub_cancel] using hhead
+    simpa only [read, hslot, Nat.add_sub_cancel] using! hhead
 
 #print axioms genuineConfirmationWith_preceq_nextVoterHead_of_frontierWitnesses_of_delivery
 

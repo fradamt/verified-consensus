@@ -128,7 +128,7 @@ private theorem exactActionRow_mem_namedProcessed
     simpa only [st, proposerReadAt,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using!
         (Proofs.NamedRuntime.stateBeforeTime_invariants S rho
           (Protocol.proposal_time S.E s)
           (S.E.proposer s)).1.1.1.2.2.2.1
@@ -140,7 +140,7 @@ private theorem exactActionRow_mem_namedProcessed
     simpa only [st, Protocol.proposerDutyStore, proposerReadAt,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using!
         hprocessed
   obtain ⟨b, hb, hberase⟩ := List.mem_map.mp hmemMap
   have hbFlat := hb
@@ -150,7 +150,7 @@ private theorem exactActionRow_mem_namedProcessed
     simpa only [st, proposerReadAt,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using!
         Proofs.NamedStoreBridge.sgRowRounds_stateBeforeTime S rho
           (Protocol.proposal_time S.E s) (S.E.proposer s)
   have hbr : b.round = k := hrounds k b hbk
@@ -166,7 +166,7 @@ private theorem exactActionRow_mem_namedProcessed
     simpa only [st, proposerReadAt,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hbOwn
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hbOwn
   have hbval : b.val_index = a.val_index :=
     congrArg CombinedAttestation.val_index hberase
   have hbHon : b.val_index ∈ rho.honest := by

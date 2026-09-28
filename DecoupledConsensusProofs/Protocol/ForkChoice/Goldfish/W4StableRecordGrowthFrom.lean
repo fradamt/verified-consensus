@@ -290,18 +290,17 @@ theorem dutyCoverAt_of_viable_and_localG2
       (Protocol.get_fg_root n.st.core.toHealing.toFG) :=
     StoreFinality.finalized_preceq_fgRoot (by
       simpa only [hn, NamedActionReads.confirmationReadAt,
-        NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using hFJ)
+        NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using! hFJ)
   rcases (show Block.Preceq P
       (Protocol.get_fg_root n.st.core.toHealing.toFG) ∨
       Block.Preceq (Protocol.get_fg_root n.st.core.toHealing.toFG) P by
-    simpa only [Block.compatible, Bool.or_eq_true] using hrootCompat) with hPr | hrP
+    simpa only [Block.compatible, Bool.or_eq_true] using! hrootCompat) with hPr | hrP
   · exact Or.inr hPr
   · have hfiltered : P ∈ Protocol.get_filtered_block_tree
         n.st.core.toHealing.toFG := by
-      simp only [Protocol.get_filtered_block_tree,
-        Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
-        Protocol.finalized_descendants, Finset.mem_filter,
-        Protocol.Store.toHealing]
+      simp only [Protocol.get_filtered_block_tree, Protocol.get_filtered_block_tree_from,
+        Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter]
+      simp only [Protocol.Store.toHealing]
       exact ⟨⟨⟨hmem, Block.preceq_trans hFroot hrP⟩, hviab⟩, hrP⟩
     exact Or.inl ⟨hfiltered, hgrade hfiltered⟩
 

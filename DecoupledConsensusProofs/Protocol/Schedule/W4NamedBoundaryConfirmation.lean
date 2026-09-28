@@ -52,7 +52,7 @@ private theorem w4nb_confAnchorWith_preceq_of_genuine
     Block.Preceq (confAnchorWith contract E hc st) B := by
   have hwalk : confWalkWith contract E hc st s = B := by
     have hsel := h.selected
-    rw [update_confirmation_with_live_confirmed, if_pos h.genuine] at hsel
+    rw [update_confirmation_with_live_confirmed, ite_eq_left h.genuine] at hsel
     exact hsel
   have hfloor : Block.Preceq (confAnchorWith contract E hc st)
       (confWalkWith contract E hc st s) :=
@@ -384,15 +384,15 @@ theorem w4NamedBoundaryConfirmationFacts.eventFacts
             have hres := Proofs.Optimistic.le_time_of_index_ge
               S adm.toNamedAdmissibleCore.toNamedScheduleWellFormed
               (by simpa only [strictEventIndex] using hlow) hev
-            simpa only [Event.time] using hres
+            simpa only [Event.time] using! hres
           have hle : t ≤ Protocol.view_freeze S.E s := by
             have htrue := Proofs.Optimistic.filter_true_of_index_lt S
               adm.toNamedAdmissibleCore.toNamedScheduleWellFormed _
               (Proofs.Optimistic.downward_le (Protocol.view_freeze S.E s))
               (by simpa only [inclusiveEventIndex] using hhigh) hev
-            simpa only [decide_eq_true_eq, Event.time] using htrue
+            simpa only [decide_eq_true_eq, Event.time] using! htrue
           have hhonest : u ∈ rho.honest := by
-            simpa only [Event.node] using adm.honest_only _ hmem
+            simpa only [Event.node] using! adm.honest_only _ hmem
           have hgt : Protocol.proposal_time S.E s < t :=
             lt_of_lt_of_le hpropCut hge
           rcases publicTime_slotWindow_cases S hpub hgt

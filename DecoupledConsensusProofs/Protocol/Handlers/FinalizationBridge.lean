@@ -81,8 +81,8 @@ private theorem raw_block_finalizer (E : Env V) (st : Protocol.Store V) (B : Blo
        have hStored : CoreFinalizer stored := by
          obtain ⟨D, hD, hDF, hDh⟩ := h
          have hDB : D ≠ B := by intro heq; subst D; exact hFresh hD
-         exact ⟨D, Finset.mem_insert_of_mem hD, by simpa [stored, if_neg hDB] using hDF,
-           by simpa [stored, if_neg hDB] using hDh⟩
+         exact ⟨D, Finset.mem_insert_of_mem hD, by simpa [stored, ite_eq_right hDB] using hDF,
+           by simpa [stored, ite_eq_right hDB] using hDh⟩
        have fields := gf_fold_fields E stored B.gf_votes
        change CoreFinalizer (Protocol.update_finality unpacked (unpacked.σ B))
        have hsigma : unpacked.σ B = sigma := by
@@ -110,7 +110,7 @@ private theorem process_core_finalizer (S : Setup V) (st : Protocol.NamedStore V
       change NamedBlock.genesis ∈ st.bodies
       exact hco.2.2.1.1
     rw [Protocol.NamedStore.process_block_core,
-      if_neg (not_not.mpr hpgen), NamedStore.commit_core]
+      ite_eq_right (not_not.mpr hpgen), NamedStore.commit_core]
     dsimp only [Protocol.on_block_checked_using]
     split_ifs
     · change CoreFinalizer (Protocol.on_block_using S.E st.core Block.genesis _)
@@ -129,7 +129,8 @@ private theorem process_core_finalizer (S : Setup V) (st : Protocol.NamedStore V
        change (derive_named S.E S.cfg B).h_F < (derive_named S.E S.cfg B).h
        exact (Proofs.NamedStoreRoots.chainOrder_derive_named S.E S.cfg B).heights_ordered.trans_lt
          (Proofs.NamedStoreRoots.chainOrder_derive_named S.E S.cfg B).justified_below_height
-     rw [Protocol.NamedStore.process_block_core, if_neg (not_not.mpr hp), NamedStore.commit_core]
+     rw [Protocol.NamedStore.process_block_core, ite_eq_right (not_not.mpr hp),
+       NamedStore.commit_core]
      dsimp only [Protocol.on_block_checked_using]
      split_ifs
      · exact raw_block_finalizer S.E st.core B.erase _ hStrict h

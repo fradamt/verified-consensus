@@ -62,12 +62,12 @@ theorem derivedStateAgrees_actionStoreAt
   have hDpre : D ∈ (rho.stateBeforeTime S (S.a r) v).st.bodies := by
     simpa only [actionStoreAt, actionReadAt, NamedActionReads.actionReadAt,
       NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hD
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hD
   have hview := Proofs.NamedStoreBridge.derivedView_stateBeforeTime
     S rho (S.a r) v D hDpre
   simpa only [actionStoreAt, actionReadAt, NamedActionReads.actionReadAt,
     NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
-    NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hview
+    NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hview
 
 /- The action-read activity is supplied separately from the named grade. -/
 

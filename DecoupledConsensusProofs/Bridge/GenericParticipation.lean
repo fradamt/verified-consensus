@@ -101,7 +101,7 @@ private theorem actionRound_eq_of_formula_bounds (S : Setup V) {t : Time}
         have : (0 : Time) ≤ (r : Time) := by positivity
         exact mul_nonneg this hL.le)
     exact (not_lt_of_ge (hle.trans hlo)) ht
-  simp only [Instantiation.actionRound, if_neg h0]
+  simp only [Instantiation.actionRound, ite_eq_right h0]
   apply ediv_round_of_bounds S hL
   · rw [action_formula S r] at hlo
     have hA0 : S.a 0 = 6 * S.E.Δ := by
@@ -163,7 +163,7 @@ private theorem actionRound_bounds_of_ge (S : Setup V) {t : Time}
     rw [htoNat]
     exact Int.lt_ediv_add_one_mul_self _ hL
   have hif : ¬ t < S.a 0 := not_lt_of_ge ht
-  simp only [Instantiation.actionRound, if_neg hif]
+  simp only [Instantiation.actionRound, ite_eq_right hif]
   have hformula : S.a (Int.toNat ((t - 6 * S.E.Δ) / (S.a 1 - S.a 0))) =
       S.a 0 +
         ((Int.toNat ((t - 6 * S.E.Δ) / (S.a 1 - S.a 0)) : Nat) : Time) * L S := by

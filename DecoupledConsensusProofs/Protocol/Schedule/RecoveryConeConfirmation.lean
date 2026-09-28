@@ -70,7 +70,7 @@ theorem genuineConfirmationAndPreceq_of_postHealingCone
     S adm hcom hs hpost hhor hvotes hv hresolve
   have hvalid : Protocol.VoteSetValid S.E s
       (confLate S.E st s) := by
-    simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using
+    simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using!
       Protocol.voteSetValid_confLate_stateBeforeTime
         S adm.toNamedAdmissibleCore.toNamedScheduleWellFormed v
           (Protocol.confirmation_time S.E s) s
@@ -114,10 +114,11 @@ theorem genuineConfirmationAndPreceq_of_postHealingCone
         exact hanchor''
       have hanchorEligible : confEligible S.E st s
           (confAnchorWith contract S.E S.hc st) = true := by
-        simp only [confEligible, decide_eq_true_eq, confCount, confScore]
+        simp only [confEligible, decide_eq_true_eq]
+        simp only [confCount, confScore]
         exact hsupport.eligible hvalid (by
           intro X hX
-          simpa only [hEq] using hX)
+          simpa only [hEq] using! hX)
       have hA' : confWalkWith contract S.E S.hc st s =
           confAnchorWith contract S.E S.hc st := by
         simpa only [confWalkWith] using hA

@@ -94,7 +94,7 @@ theorem selectedActionG2_preceq_frozenG1_at_reader
       (DecoupledConsensusModel.Protocol.readFrame before.cache before.st.core.toHealing r).g1 =
         some ((storeRoot S.E S.hc domainRead.st r .g1).map
           (fun X => DecoupledConsensusModel.Protocol.clipGrade X before.st.core.F)) := by
-    simpa only [before, domainRead, storeRoot, phaseRoot] using hframe
+    simpa only [before, domainRead, storeRoot, phaseRoot] using! hframe
   have hbase :
       (DecoupledConsensusModel.Protocol.readFrame before.cache before.st.core.toHealing r).g1 =
         some (some (DecoupledConsensusModel.Protocol.clipGrade raw before.st.core.F)) := by
@@ -105,7 +105,7 @@ theorem selectedActionG2_preceq_frozenG1_at_reader
   refine ⟨DecoupledConsensusModel.Protocol.clipGrade raw before.st.core.F, ?_, hQclip⟩
   simpa only [read, before, t, voteDutyRead,
     NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
-    Protocol.NamedStore.setClock] using hprepared
+    Protocol.NamedStore.setClock] using! hprepared
 
 /-- A selected action G2 block is below the prepared vote-duty head.
 

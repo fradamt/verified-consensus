@@ -99,7 +99,7 @@ theorem seedBoundaryCone_of_belowHeads
   have hHemit' : NamedRun.emits S rho w
       (.gfVote ⟨w, S.hc.opening_slot (q + 1) - 1, H.erase.root⟩)
       (Protocol.vote_time S.E (S.hc.opening_slot (q + 1) - 1)) := by
-    simpa only [hHerase] using hHemit
+    simpa only [hHerase] using! hHemit
   have hHhead : NamedHonestHead S rho
       (S.hc.opening_slot (q + 1) - 1) H := by
     exact ⟨w, hw, hwcommittee, hHrun, hHemit'⟩

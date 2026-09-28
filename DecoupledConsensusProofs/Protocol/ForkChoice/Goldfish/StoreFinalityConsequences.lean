@@ -43,8 +43,9 @@ theorem historical_mem_viableTree_of_current_preceq
     F ∈ Protocol.V_tree st.toHealing.toFG := by
   obtain ⟨W, hWT, hh⟩ := hmax
   simp only [Protocol.V_tree, Protocol.viable_tree,
-    Protocol.finalized_descendants, Protocol.viable,
-    Finset.mem_filter, decide_eq_true_eq, Protocol.Store.toHealing]
+    Protocol.finalized_descendants, Finset.mem_filter]
+  simp only [Protocol.viable, decide_eq_true_eq]
+  simp only [Protocol.Store.toHealing]
   exact ⟨⟨hFT, hcur⟩, W, hWT, hcontain W hWT hh,
     Nat.le_trans (Nat.sub_le _ _) hh⟩
 
@@ -91,7 +92,7 @@ theorem justified_preceq_fgRoot {st : Protocol.Store V} {F : Block V}
     (hlocalOrCascade : Block.preceq F st.F = true ∨ st.h_max = st.h_j + 1) :
     Block.Preceq F (Protocol.get_fg_root st.toHealing.toFG) := by
   rcases hlocalOrCascade with hlocal | hgate
-  · simp only [Protocol.get_fg_root, Protocol.Store.toHealing]
+  · simp only [Protocol.get_fg_root]
     split
     · exact hFJ
     · exact hlocal

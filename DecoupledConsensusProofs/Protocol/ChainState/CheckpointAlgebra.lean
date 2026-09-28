@@ -144,13 +144,13 @@ private theorem named_node_nj_eq_of_height_eq
   rw [Protocol.process_height_events_eq] at hh ⊢
   split_ifs with htarget hprogress
   · have hh' := hh
-    rw [if_pos htarget] at hh'
+    rw [ite_eq_left htarget] at hh'
     rw [Protocol.advance_height_h, Protocol.afterFin_h,
       fold_h (derive_named E cfg parent)
         (NamedBlock.node parent slot root votes support rows proposer).erase rows] at hh'
     exact False.elim ((Nat.ne_of_lt (Nat.lt_succ_self _)) hh'.symm)
   · have hh' := hh
-    rw [if_neg htarget, if_pos hprogress] at hh'
+    rw [ite_eq_right htarget, ite_eq_left hprogress] at hh'
     rw [Protocol.advance_height_h, Protocol.afterFin_h,
       fold_h (derive_named E cfg parent)
         (NamedBlock.node parent slot root votes support rows proposer).erase rows] at hh'
@@ -341,7 +341,7 @@ private theorem named_target_or_quiet_of_gate_closed
       · left
         have htargetTrue : targetReady E (Protocol.afterFin E τ) = true :=
           htargetEq.trans hquorum
-        rw [if_pos htargetTrue]
+        rw [ite_eq_left htargetTrue]
         constructor
         · rw [Protocol.advance_height_J, Protocol.afterFin_T_h]
           exact fold_T_h (derive_named E cfg P0) P1'.erase rows

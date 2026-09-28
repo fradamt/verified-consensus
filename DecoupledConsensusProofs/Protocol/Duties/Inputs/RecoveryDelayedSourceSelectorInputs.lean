@@ -108,7 +108,7 @@ theorem voterAnchorSourceClearInputs_of_namedHeightRegimeFrame_delayed
       simpa only [filteredTree, voteDutyRead,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        vote] using hfiltered.2
+        vote] using! hfiltered.2
     refine ⟨hnext, ?_⟩
     intro w hw L hanchor hLB
     rcases voterAnchorAt_cases S rho w
@@ -182,7 +182,7 @@ theorem honestHeightRow_prefixFGSelectorCone_of_namedFrame_delayed
   have hactionHorizon : S.a a.round ≤ rho.horizon := by
     have hin := (adm.in_horizon (Event.tick a.val_index ta)
       (List.mem_of_getElem? hiEvent)).2
-    simpa only [Event.time, hta] using hin
+    simpa only [Event.time, hta] using! hin
   have hroundFromStart : r0 ≤ a.round := by
     by_contra hnot
     have htimeLt : ta < S.a r0 := by
@@ -287,7 +287,7 @@ theorem honestHeightRow_prefixFGSelectorCone_of_namedFrame_delayed
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hBmem
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hBmem
   have hview := Proofs.NamedStoreBridge.derivedView_stateBeforeTime
     S rho (S.a a.round) a.val_index B hBpre
   have hcheckpoint : J =
@@ -298,7 +298,7 @@ theorem honestHeightRow_prefixFGSelectorCone_of_namedFrame_delayed
       simpa only [actionStoreAt, actionReadAt,
         NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
         NamedActionReads.confirmationReadFrom,
-        NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hview
+        NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hview
     calc
       J = (Protocol.derive_named S.E S.cfg B).T_h := hJderived
       _ = ((actionStoreAt S rho a.val_index a.round).st.core.σ

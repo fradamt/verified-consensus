@@ -485,7 +485,7 @@ private theorem preceq_actionQ2_of_domainGrade_mem
     (DecoupledConsensusModel.Protocol.readFrame (Proofs.HealingSurface.actionReadAt S rho v r).cache
       (Proofs.HealingSurface.actionReadAt S rho v r).st.core.toHealing r) = some Q
   unfold DecoupledConsensusModel.Protocol.grade2Block
-  rw [if_pos (actionFrame_allClosed S core hv hr hhor),
+  rw [ite_eq_left (actionFrame_allClosed S core hv hr hhor),
     actionFrame_g2 S core hv hr hhor,
     show storeRoot S.E S.hc
       (NamedRun.stateBeforeTime S rho (domain S.E S.hc r .g2) v).st r .g2 =
@@ -549,9 +549,9 @@ theorem honestCarriersAbove_succ_of_gradeFormingMajority_of_stable
             Internal.NamedOutageEntry.actionReadAt,
             NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
             NamedActionReads.confirmationReadFrom, Protocol.NamedDuties.update_confirmation_with,
-            Protocol.update_confirmation_with, Protocol.Store.toHealing] using hFJ)
+            Protocol.update_confirmation_with, Protocol.Store.toHealing] using! hFJ)
     exact Block.preceq_trans hPF (Block.preceq_trans hFroot (by
-      simpa only [action, Proofs.HealingSurface.actionReadAt] using
+      simpa only [action, Proofs.HealingSurface.actionReadAt] using!
         actionFGRoot_preceq_actionSGBlockAt S rho u (r + 1)))
   · obtain ⟨F, -, hFErase, hcompatNamed⟩ :=
       NamedFinalityGuard.finalized_representative_compatible_before_boundary
@@ -565,7 +565,7 @@ theorem honestCarriersAbove_succ_of_gradeFormingMajority_of_stable
         NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
         NamedActionReads.confirmationReadFrom,
         Protocol.NamedDuties.update_confirmation_with,
-        Protocol.update_confirmation_with] using h
+        Protocol.update_confirmation_with] using! h
     have hFActionP : Block.Preceq action.st.core.F P := by
       simp only [Block.compatible, Bool.or_eq_true] at hcompat
       rcases hcompat with hPF' | hFP
@@ -617,14 +617,14 @@ theorem honestCarriersAbove_succ_of_gradeFormingMajority_of_stable
         (by simpa only [hPme] using hno) u huHon
         (S.a (r + 1)) hpre.le (hPmAction u huHon)
     rcases hprotected with hProot | hPactive
-    · exact Block.preceq_trans (by simpa only [hPme] using hProot)
+    · exact Block.preceq_trans (by simpa only [hPme] using! hProot)
         (actionFGRoot_preceq_actionSGBlockAt S rho u (r + 1))
     · have hPactive' : P ∈ filteredTree action := by
         simpa only [hPme, action, Proofs.HealingSurface.actionReadAt,
           Internal.NamedOutageEntry.actionReadAt, NamedActionReads.actionReadAt,
           NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
           Protocol.NamedDuties.update_confirmation_with,
-          Protocol.update_confirmation_with] using hPactive
+          Protocol.update_confirmation_with] using! hPactive
       obtain ⟨Q, hQ, hPQ⟩ := preceq_actionQ2_of_domainGrade_mem
         S hexec.core huHon (Nat.succ_pos r) hnextHor hPtree hgrade hPactive'
       exact preceq_actionSGBlockAt_of_actionQ2

@@ -85,7 +85,7 @@ private theorem gfVote_delivery_settled_at_proposalDuty
         u.val_index = true := by
   let pre := (rho.stateBefore S i (S.E.proposer (s + 1))).st.core
   have hpreTime : pre.t ≤ t := by
-    simpa [pre, Event.time] using
+    simpa [pre, Event.time] using!
       (Protocol.store_time_le_event_time S
         adm.toNamedScheduleWellFormed hi (S.E.proposer (s + 1)))
   have hclock0 : Protocol.proposal_time S.E s ≤ pre.t := by
@@ -287,7 +287,7 @@ private theorem delivery_store_slot_before_next_proposal
     (hhi : t < Protocol.proposal_time S.E (s + 1)) :
     (rho.stateBefore S i w).st.core.s = s := by
   have hpreTime : (rho.stateBefore S i w).st.core.t ≤ t := by
-    simpa [Event.time] using
+    simpa [Event.time] using!
       (Protocol.store_time_le_event_time S
         adm.toNamedScheduleWellFormed hi w)
   have hclock0 : Protocol.proposal_time S.E s ≤
@@ -329,7 +329,7 @@ private theorem capInputs_carried_block_body_of_core
     by_cases hp : B.parent ∉ before.bodies
     · simp only [hp] at hpost ⊢
       exact False.elim (hnew hpost)
-    · rw [if_neg hp] at hpost ⊢
+    · rw [ite_eq_right hp] at hpost ⊢
       let after := Protocol.on_block_checked_using
         (fun current => Protocol.on_block_using S.E current B.erase
           (fun parentState => Protocol.named_transition S.E S.cfg parentState B))
@@ -432,7 +432,7 @@ private theorem actual_gfVote_settled_at_proposalDuty
       have hclock : before.core.t < Protocol.proposal_time S.E (s + 1) := by
         have hle : before.core.t ≤ t := by
           rw [hbefore]
-          simpa [Event.time] using
+          simpa [Event.time] using!
             (Protocol.store_time_le_event_time S
               adm.toNamedScheduleWellFormed hdeliver (S.E.proposer (s + 1)))
         exact lt_of_le_of_lt hle hhi
@@ -477,7 +477,7 @@ private theorem actual_gfVote_settled_at_proposalDuty
         have hrawStamps := Protocol.poolStamps_stateBefore S
           adm.toNamedScheduleWellFormed (S.E.proposer (s + 1)) j
         have htle : (rho.stateBefore S j (S.E.proposer (s + 1))).st.core.t ≤ t := by
-          simpa [Event.time] using
+          simpa [Event.time] using!
             (Protocol.store_time_le_event_time S
               adm.toNamedScheduleWellFormed htick (S.E.proposer (s + 1)))
         exact (Protocol.poolStep_tickStore _ _ _ htle hrawStamps).2
@@ -497,7 +497,7 @@ private theorem actual_gfVote_settled_at_proposalDuty
           exact Proofs.Optimistic.proposal_with_gf_votes _ .poolAndCarried
             S.E S.hc (S.node (S.E.proposer (s + 1))) _ hB'
       have hgf : B.gf_votes = before.core.gf_votes (before.core.s - 1) := by
-        simpa [hbefore] using hgf0
+        simpa [hbefore] using! hgf0
       have huPool : u ∈ before.core.gf_votes (before.core.s - 1) := by
         rw [← hgf]
         exact List.mem_of_getElem? huindex
@@ -593,7 +593,7 @@ theorem voter_raw_extra_equivocates_proposal_afterGST_core
       simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
         Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-        Proofs.Optimistic.tickStore, hpredSucc] using hreceipt
+        Proofs.Optimistic.tickStore, hpredSucc] using! hreceipt
     obtain ⟨i, t, hacc, hus, hlo, hhi⟩ :=
       Protocol.WeakExecution.targetReceiptVotesAcceptedInWindow_of_admissible
         S adm hv (s - 1) u hreceipt'
@@ -629,7 +629,7 @@ theorem voter_raw_extra_equivocates_proposal_afterGST_core
     have hCprefix : C ∈ (rho.stateBefore S n v).st.core.T := by
       simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Run.storeBeforeTime, hn] using hC.1
+        Run.storeBeforeTime, hn] using! hC.1
     have hCP : C = P.erase := unique_slot_block_in_store_core S adm hs hprop
       hCprefix hPprefix
       (by simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,

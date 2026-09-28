@@ -144,8 +144,8 @@ theorem mem_bodies_on_block_with (E : Env V) (hc : Protocol.HealConfig)
       insert B st.bodies := by
     show (if B.parent ∉ st.bodies then st else
       Protocol.NamedStore.commitBlock st _ B).bodies = insert B st.bodies
-    rw [if_neg (not_not.mpr hp), Protocol.NamedStore.commitBlock,
-      if_pos (And.intro hnew hins)]
+    rw [ite_eq_right (not_not.mpr hp), Protocol.NamedStore.commitBlock,
+      ite_eq_left (And.intro hnew hins)]
   have hmem : B ∈ (Protocol.NamedStore.process_block_core E hc cfg st B).bodies := by
     rw [hcore]; exact Finset.mem_insert_self _ _
   show B ∈ (Protocol.NamedAdmission.admit_carried .alsoCarried hc st
@@ -190,7 +190,7 @@ private theorem tick_bodies_proposal (S : Setup V) (v : V) (n : NodeState V) (s 
     Protocol.NamedStore.setClock,
     Proofs.Optimistic.proposal_time_ne_vote_time S.E s,
     Proofs.Optimistic.proposal_time_ne_support_cutoff S.E s, hpr, hs,
-    and_false, and_true, if_false, if_true, Protocol.NamedDuties.attest_with,
+    and_false, and_true, ite_false, ite_true, Protocol.NamedDuties.attest_with,
     Protocol.NamedAdmission.admit_row]
   split
   · split <;> rfl
@@ -369,11 +369,11 @@ theorem fg_root_preceq_get_sg_root_with_frame (c : DecoupledConsensusModel.Proto
   | some (some root) =>
     cases ha : DecoupledConsensusModel.Protocol.activePrefix
         (Protocol.get_filtered_block_tree st.toFG) root with
-    | none => simpa only [ha, Option.getD_none] using Block.preceq_self _
+    | none => simpa only [ha, Option.getD_none] using! Block.preceq_self _
     | some A =>
       have hA : A ∈ (Protocol.get_filtered_block_tree st.toFG).filter
           (fun B => Block.preceq B root = true) := Proofs.Engine.deepest?_mem ha
-      simpa only [ha, Option.getD_some] using
+      simpa only [ha, Option.getD_some] using!
         Proofs.Records.preceq_get_fg_root_of_mem_filtered (Finset.mem_filter.mp hA).1
 
 /-- Every contract's head descends from that contract's own anchor: the walk
@@ -420,9 +420,9 @@ theorem selected_row_round_le (hc : Protocol.HealConfig) (st : Protocol.NamedSto
     · exact (List.mem_filter.mp hp).2
     · obtain ⟨B, -, hrow⟩ := List.mem_flatMap.mp hcarr
       by_cases hb : Protocol.NamedProposalRows.eligibleBody hc st B
-      · rw [if_pos hb] at hrow
+      · rw [ite_eq_left hb] at hrow
         exact (List.mem_filter.mp hrow).2
-      · rw [if_neg hb] at hrow
+      · rw [ite_eq_right hb] at hrow
         exact absurd hrow (List.not_mem_nil)
   have hw' : hc.round_of st.core.s - hc.η_SG ≤ a.round ∧ a.round ≤ hc.round_of st.core.s := by
     simpa only [Protocol.ProposalRows.inWindow, decide_eq_true_eq] using hw
@@ -447,7 +447,7 @@ private theorem honest_selected_row_emission (S : Setup V) {rho : Run V}
       simpa only [st, proposerReadAt,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom,
-        NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using
+        NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using!
           Proofs.NamedStoreBridge.sgRowRounds_stateBeforeTime S rho
             (Protocol.proposal_time S.E s) (S.E.proposer s)
     have har : a.round = k := hrounds k a hak
@@ -459,7 +459,7 @@ private theorem honest_selected_row_emission (S : Setup V) {rho : Run V}
       simpa only [st, proposerReadAt,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom,
-        NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using haOwn
+        NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! haOwn
     obtain ⟨_, _, _, _, _, hem⟩ :=
       Proofs.Bridges.heldArePastEmissions_of_admissibleCore
         S adm.toNamedAdmissibleCore n (S.E.proposer s) haN hhon
@@ -472,7 +472,7 @@ private theorem honest_selected_row_emission (S : Setup V) {rho : Run V}
       simpa only [st, proposerReadAt,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom,
-        NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hbody
+        NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hbody
     obtain ⟨_, _, _, _, _, hem⟩ :=
       Proofs.NamedOutageProvenance.honest_held_ancestor_row_emission
         S rho adm.toNamedAdmissibleCore.toNamedUnforgeable n

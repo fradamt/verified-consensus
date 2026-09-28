@@ -132,7 +132,7 @@ theorem relativeCarrierWindowAt_of_gateOff
       (rho.storeBeforeTime S u (S.a (r - 1))).bodies := by
     simpa only [actionStoreAt, actionReadAt, NamedActionReads.actionReadAt,
       NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hWbody
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hWbody
   have hWrun : RunBlock S rho W := by
     obtain ⟨n, hn, -⟩ := Proofs.Bridges.stateBeforeTime_eq_stateBefore S
       adm.toNamedAdmissibleCore.toNamedScheduleWellFormed (S.a (r - 1))
@@ -154,7 +154,8 @@ theorem relativeCarrierWindowAt_of_gateOff
   have hrootF : Protocol.get_fg_root
       (rho.storeBeforeTime S w (S.a r)).toHealing.toFG =
       (rho.storeBeforeTime S w (S.a r)).F := by
-    simp only [Protocol.get_fg_root, Protocol.Store.toHealing, if_neg hgate]
+    simp only [Protocol.get_fg_root]
+    exact ite_eq_right hgate
   have hFmono : Block.Preceq
       (NamedRun.stateBeforeTime S rho (domain S.E S.hc r p) w).st.core.F
       (rho.storeBeforeTime S w (S.a r)).F := by

@@ -99,7 +99,7 @@ theorem honestHMaxAt_lt_of_boundedHeightGradeSourceAt
       adm hDrun hsource.lifecycle.runBlock hDerase
   have hCbody : C ∈
       (rho.storeBeforeTime S v (S.a source)).bodies := by
-    simpa only [hDC] using hDbody
+    simpa only [hDC] using! hDbody
   have hheightLocal :
       (Protocol.derive_named S.E S.cfg C).h ≤
         (rho.storeBeforeTime S v (S.a source)).core.h_max :=

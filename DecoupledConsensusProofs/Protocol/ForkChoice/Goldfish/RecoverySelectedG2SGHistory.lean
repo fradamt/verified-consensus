@@ -47,7 +47,7 @@ private theorem compatible_lower_right {B C T : Block V}
     (hBC : Block.compatible B C = true) (hTC : Block.Preceq T C) :
     Block.compatible B T = true := by
   rcases (show Block.Preceq B C ∨ Block.Preceq C B by
-    simpa only [Block.compatible, Bool.or_eq_true] using hBC) with h | h
+    simpa only [Block.compatible, Bool.or_eq_true] using! hBC) with h | h
   · exact Block.compatible_of_preceq_common h hTC
   · simp only [Block.compatible, Bool.or_eq_true]
     exact Or.inr (Block.preceq_trans hTC h)
@@ -118,7 +118,7 @@ theorem PrefixFGSelectorConeAt.sgEmissionsCompatible_sameRound_of_G2_cover_named
       S adm hbelow ready hseed.signerHonest hselected hQmem hcapCut hrec
         hQheight (Nat.le_refl cut) hfrontier hw).1
     simpa only [PhaseGrades.filteredTree,
-      Internal.NamedRecoveryRead.actionDutyRead, actionReadAt] using hactive
+      Internal.NamedRecoveryRead.actionDutyRead, actionReadAt] using! hactive
   have hrootQ : Block.Preceq
       (Protocol.get_fg_root
         (actionStoreAt S rho w a.round).st.core.toHealing.toFG) Q.erase :=
@@ -209,7 +209,7 @@ theorem PrefixFGSelectorConeAt.sgEmissionsCompatible_sameRound_of_G2_cover_of_fr
         (Nat.not_succ_le_self blocked (hmono.trans hframe.prevHeight))
     · exact hTprevK
   have hTprevQ : Block.Preceq Tprev.erase Q.erase :=
-    Block.preceq_trans (by simpa only [hKT] using hTprevK) hTQ
+    Block.preceq_trans (by simpa only [hKT] using! hTprevK) hTQ
   intro w hw _
   have hrootBound := (hseed.checkpointFiltered_at_read_of_frameN
     adm hfirst hframe ready hK6Q2 hK6Clear (le_refl (S.a a.round))
@@ -221,7 +221,7 @@ theorem PrefixFGSelectorConeAt.sgEmissionsCompatible_sameRound_of_G2_cover_of_fr
         (Protocol.get_fg_root
           (actionStoreAt S rho w a.round).st.core.toHealing.toFG) T := by
       simpa only [actionStoreAt_fgRoot_eq_storeBeforeTime] using hrootBound
-    simpa only [Block.compatible, Bool.or_eq_true] using Or.inl hpre
+    simpa only [Block.compatible, Bool.or_eq_true] using! Or.inl hpre
   have hlive : Block.compatible
       (actionStoreAt S rho w a.round).live_confirmed T = true := by
     rcases actionStoreAt_liveConfirmed_genuine_or_fgRoot S rho w a.round with

@@ -105,7 +105,7 @@ theorem honestAttestation_mem_processedAtProposal_after_gst
     by_cases hsame : p = a.val_index
     · have hreadSelf := Protocol.attest_mem_stateBeforeTime_of_post S
         adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hi
-        (by simpa only [tp] using hlt) hselfPool
+        (by simpa only [tp] using! hlt) hselfPool
       simpa only [hsame] using hreadSelf
     · by_cases halready : NamedReceipt.processed
           (rho.stateBefore S (j + 1) p).st (Object.attest a) = true
@@ -157,7 +157,7 @@ theorem honestAttestation_mem_processedAtProposal_after_gst
   let duty := Protocol.proposerDutyStore S rho s
   have haDuty : a.erase ∈ duty.sg_pool a.round := by
     simpa only [duty, Protocol.proposerDutyStore,
-      Proofs.Optimistic.tickStore, Run.storeBeforeTime, tp, p] using haRead
+      Proofs.Optimistic.tickStore, Run.storeBeforeTime, tp, p] using! haRead
   have hround : a.round ≤ S.hc.round_of duty.s := by
     have hltAction : S.a a.round < Protocol.proposal_time S.E s := by
       rw [← (Proofs.Optimistic.emits_attest_shape S hemit).2]

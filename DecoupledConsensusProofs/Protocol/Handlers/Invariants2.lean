@@ -274,12 +274,12 @@ theorem chainStatesOk_write (E : Env V) (cfg : HeightConfig)
       Protocol.state_transition E cfg (m B.parent) B else m C) := by
   intro C
   by_cases hC : C = B
-  · refine ⟨?_, ?_⟩ <;> simp only [if_pos hC]
+  · refine ⟨?_, ?_⟩ <;> simp only [ite_eq_left hC]
     · rw [hC, state_transition_L]
       exact Block.preceq_self _
     · exact chainFinality_state_transition E cfg _ B (h B.parent).2
         (Block.preceq_trans (h B.parent).1 (preceq_parent B))
-  · refine ⟨?_, ?_⟩ <;> simp only [if_neg hC]
+  · refine ⟨?_, ?_⟩ <;> simp only [ite_eq_right hC]
     · exact (h C).1
     · exact (h C).2
 

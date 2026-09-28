@@ -119,7 +119,7 @@ theorem relativeCarrierWindowAt_of_fixedRoot
       (rho.storeBeforeTime S u (S.a (r - 1))).bodies := by
     simpa only [actionStoreAt, actionReadAt, NamedActionReads.actionReadAt,
       NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hWbody
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hWbody
   have hWrun : RunBlock S rho W := by
     obtain ⟨n, hn, -⟩ := Proofs.Bridges.stateBeforeTime_eq_stateBefore S
       adm.toNamedAdmissibleCore.toNamedScheduleWellFormed (S.a (r - 1))

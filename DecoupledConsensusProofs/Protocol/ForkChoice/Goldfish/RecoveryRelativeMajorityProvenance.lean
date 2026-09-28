@@ -89,7 +89,7 @@ theorem majorityForkChoice_eq_anchor_or_honestLatestSupport_of_windowMajority
   · exact Or.inl heq
   · have hmajority : Protocol.W_r E pool etaSG r <
         2 * Protocol.sg_support E pool etaSG T r A := by
-      simpa only [decide_eq_true_eq] using helig
+      simpa only [decide_eq_true_eq] using! helig
     have hex : ∃ v ∈ Hon, v ∈ Protocol.sgSupporters pool etaSG T r A := by
       by_contra hnone
       push Not at hnone
@@ -376,7 +376,7 @@ theorem actionRelativeAnchor_eq_fgRoot_or_preceq_honestEarlierCarrier
     have hheadMem' : head ∈ (rho.storeBeforeTime S w (S.a r)).T := by
       simpa only [ast, actionStoreAt, Run.storeBeforeTime,
         NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
-        NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache] using hheadMem
+        NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache] using! hheadMem
     obtain ⟨headNamed, hheadNamed, hheadRun⟩ :=
       Proofs.NamedStoreBridge.runBlock_of_mem_core_T_stateBeforeTime S
         adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hw (S.a r) hheadMem'

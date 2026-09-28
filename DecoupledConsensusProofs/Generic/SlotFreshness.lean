@@ -142,7 +142,7 @@ theorem proposal_time_le_of_acceptsAt_block
     have hshape := Proofs.HealingSurface.emits_block_shape S rho hemit
     have ht' : t' = t := by
       have heq : Event.tick v t' = e := Option.some.inj (htick.symm.trans he)
-      simpa [Event.time] using (congrArg Event.time heq).trans htime
+      simpa [Event.time] using! (congrArg Event.time heq).trans htime
     exact (Proofs.NamedWire.erase_slot B) ▸ (hshape.2.1.symm.trans ht').le
   · obtain ⟨t', hdeliver⟩ := hdeliver
     have heq : Event.deliver v (.block B) t' = e :=
@@ -162,7 +162,7 @@ theorem proposal_time_le_of_acceptsAt_block
     exact le_trans hmono (le_trans
       (proposal_time_slotOf_le S.E
         (stateBefore_store_time_nonneg S adm.toNamedScheduleWellFormed v i))
-      (by simpa [Event.time] using
+      (by simpa [Event.time] using!
         store_time_le_event_time S adm.toNamedScheduleWellFormed heDeliver v))
 
 theorem block_slot_lt_of_mem_before_proposal
@@ -184,7 +184,7 @@ theorem block_slot_lt_of_mem_before_proposal
   · subst D
     simp only [NamedBlock.erase] at hDe
     subst C
-    simpa using hs
+    simpa using! hs
   · obtain ⟨i, hin, t, haccepts⟩ := hacc
     obtain ⟨-, e, he, -, het⟩ := haccepts.1
     have ht : t < Protocol.proposal_time S.E s := by
@@ -215,7 +215,7 @@ theorem block_slot_lt_of_mem_beforeTime_of_le_proposal
   · subst D
     simp only [NamedBlock.erase] at hDe
     subst C
-    simpa using hs
+    simpa using! hs
   · obtain ⟨i, hin, time, hacc⟩ := hacc
     obtain ⟨_, e, he, _, het⟩ := hacc.1
     have htime : time < Protocol.proposal_time S.E s := by

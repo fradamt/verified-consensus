@@ -128,7 +128,7 @@ theorem awake_sgVote_mem_stateBeforeTime
   have hpool := NamedAdmission.pool_view_mem
     (rho.stateBeforeTime S t w).st hcoh.2.2.2.1
     (actionAttestationAt S rho v r) hheld'
-  simpa only [(actionAttestationAt_shape S rho v r).2.1] using
+  simpa only [(actionAttestationAt_shape S rho v r).2.1] using!
     (Finset.mem_image_of_mem Protocol.sgVote hpool)
 
 end WeakSG

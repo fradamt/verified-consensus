@@ -116,7 +116,7 @@ theorem SettledBootstrapPreparedV4.liveConfirmedSelection_at_actual_vote_core
       (confWalkWith contract S.E S.hc (confStore S rho w q) q) = true
   · apply hseed.of_ancestor
     exact hboot.confBoot q hq hqd w hw _ ⟨rfl, hg⟩
-  · rw [update_confirmation_with_live_confirmed, if_neg hg]
+  · rw [update_confirmation_with_live_confirmed, ite_eq_right hg]
     apply protectedVoteSlot_of_heads_actual_v4 S adm hstartPos hhor
     intro x hx
     change Block.Preceq

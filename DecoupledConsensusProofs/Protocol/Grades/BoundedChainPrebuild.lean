@@ -154,7 +154,7 @@ theorem liveConfirmedSelection_preceq_voteDutyHead_before_of_T1
   by_cases hg : confEligible S.E (confStore S rho w q) q
       (confWalkWith contract S.E S.hc (confStore S rho w q) q) = true
   · exact ((hT1 d hd hcap).2 q hqd w hw _ ⟨rfl, hg⟩).heads x hx
-  · rw [update_confirmation_with_live_confirmed, if_neg hg]
+  · rw [update_confirmation_with_live_confirmed, ite_eq_right hg]
     have hcapHor : b0 ≤ rho.horizon :=
       hexec.interval.2.1.trans hexec.interval.2.2
     have hroundOneNonneg : 0 ≤ domain S.E S.hc 1 .g2 :=
@@ -244,7 +244,7 @@ theorem liveConfirmedSelection_preceq_voteDutyHead_before_of_T1
           exact harith _ _ S.E.Δ_pos
         exact ((hsources a.round (Nat.zero_le _) hat).2
           (Nat.zero_le _) a.val_index ha).2 _ hT
-    simpa only [contract, confRoot, confStore, tickStore] using hroot
+    simpa only [contract, confRoot, confStore, tickStore] using! hroot
 
 #print axioms liveConfirmedSelection_preceq_voteDutyHead_before_of_T1
 
@@ -386,7 +386,7 @@ theorem namedConfirmationIdxQueryEmitted_of_healthyPrefix_of_T1
     exact hlive
   obtain ⟨L, hLbody, hLe⟩ := Finset.mem_image.mp hliveImage
   have hLbefore : L ∈ (NamedRun.stateBefore S rho n v).st.bodies := by
-    simpa only [read, NamedActionReads.actionReadFrom] using hLbody
+    simpa only [read, NamedActionReads.actionReadFrom] using! hLbody
   have hLrun : NamedRun.blockInRun S rho L :=
     Proofs.Bridges.runBlock_of_stateBefore_mem S hv hLbefore
   have hselection : ∀ (j : Nat) (w : V) (q : Round),

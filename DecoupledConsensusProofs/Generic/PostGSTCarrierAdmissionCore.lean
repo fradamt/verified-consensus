@@ -134,7 +134,7 @@ theorem block_admittedBefore_of_accepted_after_cutoff_core
           (by rw [Proofs.NamedWire.erase_slot]; exact hproposalLe)
       have hjBound := Proofs.index_succ_le_strict_filter_length rho
         adm.toNamedScheduleWellFormed.sorted GammaOut hdeliv
-        (by simpa only [Event.time] using ht'cutoff)
+        (by simpa only [Event.time] using! ht'cutoff)
       have haccept := acceptsAt_block_of_delivery_guards_core S adm hdeliv
         hslot (hFhist j (Nat.le_trans (Nat.le_succ j) hjBound))
         (proposer_eq_of_acceptsAt_block S hacc)

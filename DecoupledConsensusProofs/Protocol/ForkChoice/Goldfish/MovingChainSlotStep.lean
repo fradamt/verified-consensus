@@ -114,7 +114,8 @@ private theorem movingFrontierChainStateN_gateOnRoot_preceq_of_boundary
   have hrootEq : Protocol.get_fg_root st.core.toHealing.toFG = J.erase := by
     calc
       Protocol.get_fg_root st.core.toHealing.toFG = st.core.J := by
-        simp only [Protocol.get_fg_root, Protocol.Store.toHealing, if_pos hgate]
+        simp only [Protocol.get_fg_root]
+        exact ite_eq_left hgate
       _ = J.erase := hJerase.symm
   rw [hrootEq]
   by_cases hz : st.core.h_j = 0
@@ -135,7 +136,7 @@ private theorem movingFrontierChainStateN_gateOnRoot_preceq_of_boundary
         have hlt : j < strictEventIndex rho t1 := by
           rw [← h.historyStart]
           exact hj0
-        simpa only [Event.time] using
+        simpa only [Event.time] using!
           time_lt_of_index_lt_strictEventIndex S
             adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hlt hjevent
       have hJn0 : Block.Preceq J.erase (End n0) :=
@@ -394,7 +395,7 @@ private theorem movingFrontierChainStateN_readRoot_preceq_endpointAtCursor_named
   by_cases hgate : pre.core.h_max = pre.core.h_j + 1
   · obtain ⟨C, hCbody, hJ, hhj⟩ :=
       Proofs.Bridges.storeJustificationOnChain_stateBeforeTime S rho t v
-    have hCbody' : C ∈ pre.bodies := by simpa only [pre] using hCbody
+    have hCbody' : C ∈ pre.bodies := by simpa only [pre] using! hCbody
     have hJpre : (Protocol.derive_named S.E S.cfg C).J = pre.core.J := by
       simpa only [pre, Run.storeBeforeTime] using hJ
     have hhjpre : (Protocol.derive_named S.E S.cfg C).h_j =
@@ -415,7 +416,7 @@ private theorem movingFrontierChainStateN_readRoot_preceq_endpointAtCursor_named
         (rho.stateBefore S (strictEventIndex rho t) v).st.bodies := by
       rw [← storeBeforeTime_eq_stateBefore_strictEventIndex
         S adm.toNamedAdmissibleCore.toNamedScheduleWellFormed v t]
-      simpa only [pre] using hJbody
+      simpa only [pre] using! hJbody
     have hJrun : RunBlock S rho J :=
       Proofs.Bridges.runBlock_of_stateBefore_mem S hv hJbodyN
     have hrow : pre.core.h_j ≠ 0 →
@@ -473,7 +474,7 @@ private theorem movingFrontierChainStateN_readRoot_preceq_endpointAtCursor_named
     simpa only [pre, hE] using hgateRoot
   · obtain ⟨C, hCbody, hCF, _hCheight⟩ :=
       Proofs.Bridges.storeFinalizationOnChain_stateBeforeTime S rho t v
-    have hCbody' : C ∈ pre.bodies := by simpa only [pre] using hCbody
+    have hCbody' : C ∈ pre.bodies := by simpa only [pre] using! hCbody
     have hCbodyN : C ∈
         (rho.stateBefore S (strictEventIndex rho t) v).st.bodies := by
       rw [← storeBeforeTime_eq_stateBefore_strictEventIndex
@@ -504,10 +505,9 @@ private theorem movingFrontierChainStateN_readRoot_preceq_endpointAtCursor_named
     have hFEnd : Block.Preceq pre.core.F E.erase := by
       have hpre := NamedFinalizationBridge.finalized_preceq_of_height_lt
         S rho E C hsb adm.toNamedRootCollisionFree hErun hCrun hcrossed
-      simpa only [hCF] using hpre
-    simp only [Protocol.get_fg_root, Protocol.Store.toHealing,
-      if_neg (by simpa only [pre] using hgate)]
-    simpa only [pre] using hFEnd
+      simpa only [hCF] using! hpre
+    convert hFEnd using 1
+    exact ite_eq_right hgate
 
 private theorem movingFrontierChainStateN_confFrontier_sub_one_le_endpointAtCursor_named
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)
@@ -765,7 +765,7 @@ theorem movingSlotPreEntryN_confOutcome_atPrev_core
         (confirmationInputRead S rho w c).st.core.toHealing.toFG) E0.erase := by
     simpa only [confirmationInputRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      Run.storeBeforeTime] using hrootRaw
+      Run.storeBeforeTime] using! hrootRaw
   have hresolve := Protocol.headsResolveIn_confStore_of_postHealingCone
     S adm hw hpostVote
       ((support_cutoff_le_confirmation_time S.E c).trans hslotHor)
@@ -786,13 +786,13 @@ theorem movingSlotPreEntryN_confOutcome_atPrev_core
     simpa only [confirmationInputRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      NamedRun.stateBeforeTime] using
+      NamedRun.stateBeforeTime] using!
       Proofs.NamedStoreBridge.parentClosed_stateBeforeTime S rho
         (Protocol.confirmation_time S.E c) w
   have hmem : E0.erase ∈ (Proofs.Optimistic.confStore S rho w c).T := by
     apply Proofs.Records.mem_of_preceq ((parentClosed_iff _).mp hpc).2
       E0.erase X.erase hXmem
-    simpa only [hE0] using hEndX
+    simpa only [hE0] using! hEndX
   have hFJ : Block.Preceq
       (Proofs.Optimistic.confStore S rho w c).F
       (Proofs.Optimistic.confStore S rho w c).J := by
@@ -903,7 +903,7 @@ theorem movingSlotPreEntryN_confOutcome_atPrev_core
     S adm hcom hc hpostVote hslotHor hw (B := K)
     (by simpa only [hKEnd] using hvotes)
     (by simpa only [hKErase] using hroot)
-    (by simpa only [hKErase] using hanchor) hcandidate
+    (by simpa only [hKErase] using! hanchor) hcandidate
   simpa only [movingSlotConfirmationOutput, hKPrev] using hout
 
 /-- Every honest slot-`c` confirmation selection is genuine under the
@@ -1028,7 +1028,7 @@ theorem MovingSlotEntryStateN.windowFacts
           (Proofs.Optimistic.voteDutyStore S rho w (c + 1)).toHealing.toFG)
         E0.erase := by
       simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-        Proofs.Optimistic.tickStore, Run.storeBeforeTime] using hrootVoteRaw
+        Proofs.Optimistic.tickStore, Run.storeBeforeTime] using! hrootVoteRaw
     exact voterAnchorAt_preceq_of_previousCarriers S adm hfb hround
       hpostAction hcut
       (by
@@ -1046,7 +1046,7 @@ theorem MovingSlotEntryStateN.windowFacts
     have hanchorEnd : Block.Preceq
         (voterAnchorAt S rho w (c + 1)) End :=
       Block.preceq_trans (hanchorVote w hw)
-        (by simpa only [hE0, hprev] using hprevLe)
+        (by simpa only [hE0, hprev] using! hprevLe)
     exact Block.compatible_of_preceq_common hanchorEnd
       (Block.preceq_self End)
   have hconfOut : ∀ w ∈ rho.honest,
@@ -1076,7 +1076,7 @@ theorem MovingSlotEntryStateN.windowFacts
         E0.erase := by
       simpa only [confirmationInputRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Run.storeBeforeTime] using hrootConfRaw
+        Run.storeBeforeTime] using! hrootConfRaw
     have hresolve := Protocol.headsResolveIn_confStore_of_postHealingCone
       S adm hw hpostVote
         ((support_cutoff_le_confirmation_time S.E c).trans hslotHor)
@@ -1098,13 +1098,13 @@ theorem MovingSlotEntryStateN.windowFacts
       simpa only [confirmationInputRead,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        NamedRun.stateBeforeTime] using
+        NamedRun.stateBeforeTime] using!
         Proofs.NamedStoreBridge.parentClosed_stateBeforeTime S rho
           (Protocol.confirmation_time S.E c) w
     have hmem : E0.erase ∈ (Proofs.Optimistic.confStore S rho w c).T := by
       apply Proofs.Records.mem_of_preceq ((parentClosed_iff _).mp hpc).2
         E0.erase X.erase hXmem
-      simpa only [hE0] using hEndX
+      simpa only [hE0] using! hEndX
     have hFJ : Block.Preceq
         (Proofs.Optimistic.confStore S rho w c).F
         (Proofs.Optimistic.confStore S rho w c).J := by
@@ -1180,7 +1180,7 @@ theorem MovingSlotEntryStateN.windowFacts
       S adm hcom hc hpostVote hslotHor hw (B := K)
       (by simpa only [hKEnd] using hvotes)
       (by simpa only [hKErase] using hrootConf)
-      (by simpa only [hKErase] using hanchorConf) hcandidate
+      (by simpa only [hKErase] using! hanchorConf) hcandidate
     exact ⟨by simpa only [movingSlotConfirmationOutput, hKPrev] using hout.1,
       hfrontier.genuinePreceq w hw _ hout.1⟩
   refine ⟨Next, hfrontier, ?_⟩
@@ -1361,7 +1361,7 @@ theorem genuineConfirmation_not_allHonestVotesOff_with
     S adm hcom hc hpost hhor hnames hv hres
   have hvalid : Protocol.VoteSetValid S.E c
       (confLate S.E (Proofs.Optimistic.confStore S rho v c) c) := by
-    simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using
+    simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using!
       voteSetValid_confLate_stateBeforeTime S
         adm.toNamedAdmissibleCore.toNamedScheduleWellFormed v
         (Protocol.confirmation_time S.E c) c
@@ -1369,10 +1369,11 @@ theorem genuineConfirmation_not_allHonestVotesOff_with
   have hgate : confEligible S.E (Proofs.Optimistic.confStore S rho v c) c D = true := by
     have hlive := update_confirmation_with_live_confirmed contract S.E S.hc
       (Proofs.Optimistic.confStore S rho v c) c
-    rw [hgenuine.genuine, if_pos rfl] at hlive
+    rw [hgenuine.genuine, ite_eq_left rfl] at hlive
     rw [← hgenuine.selected, hlive]
     exact hgenuine.genuine
-  simp only [confEligible, confCount, confScore, decide_eq_true_eq] at hgate
+  simp only [confEligible, decide_eq_true_eq] at hgate
+  simp only [confCount, confScore] at hgate
   exact hnot hgate
 
 #print axioms genuineConfirmation_not_allHonestVotesOff_with

@@ -816,9 +816,9 @@ theorem movingEventFacts_vote_named
               S adm.toNamedAdmissibleCore.toNamedScheduleWellFormed _
               (Proofs.Optimistic.downward_lt (Protocol.support_cutoff S.E s))
               (by simpa only [strictEventIndex] using hhigh) hev
-            simpa only [decide_eq_true_eq, Event.time] using htrue
+            simpa only [decide_eq_true_eq, Event.time] using! htrue
           have hhonest : u ∈ rho.honest := by
-            simpa only [Event.node] using adm.honest_only _ hmem
+            simpa only [Event.node] using! adm.honest_only _ hmem
           rcases publicTime_slotWindow_cases S hpub hgt
             (le_of_lt (lt_of_lt_of_le hlt
               ((support_cutoff_le_view_freeze S.E s).trans
@@ -871,12 +871,12 @@ theorem movingEventFacts_confirmation_named
             have hres := Proofs.Optimistic.le_time_of_index_ge
               S adm.toNamedAdmissibleCore.toNamedScheduleWellFormed
               (by simpa only [strictEventIndex] using hlow) hev
-            simpa only [Event.time] using hres
+            simpa only [Event.time] using! hres
           have hle : t ≤ Protocol.view_freeze S.E s :=
             eventTime_le_of_lt_inclusive
               S adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hhigh hev
           have hhonest : u ∈ rho.honest := by
-            simpa only [Event.node] using adm.honest_only _ hmem
+            simpa only [Event.node] using! adm.honest_only _ hmem
           have hgt : Protocol.proposal_time S.E s < t :=
             lt_of_lt_of_le (proposal_time_lt_support_cutoff S.E s) hge
           rcases publicTime_slotWindow_cases S hpub hgt
@@ -957,8 +957,8 @@ private theorem MovingFrontierChainStateN.succ_of_eventFacts_named
   refine ⟨End', ?_, ?_, ?_⟩
   · intro j hji
     have hjne : j ≠ i + 1 := by omega
-    simp only [End', if_neg hjne]
-  · simp only [End', if_pos rfl]
+    simp only [End', ite_eq_right hjne]
+  · simp only [End', ite_eq_left rfl]
   · refine
       { historyStart := h.historyStart
         start_le := h.start_le.trans (Nat.le_succ i)
@@ -974,71 +974,71 @@ private theorem MovingFrontierChainStateN.succ_of_eventFacts_named
             Nat.ne_of_lt (h.start_le.trans_lt (Nat.lt_succ_self i))
           intro j a time ha hevent hemit hj hh hrow E hE hErun
           have hE' : E.erase = End n0 := by
-            simpa only [End', if_neg hn0ne] using hE
-          simpa only [End', if_neg hn0ne] using
+            simpa only [End', ite_eq_right hn0ne] using hE
+          simpa only [End', ite_eq_right hn0ne] using
             h.oldRows_named ha hevent hemit hj hh hrow E hE' hErun
         frontierFloor := h.frontierFloor
         boundaryTargets := by
           have hn0ne : n0 ≠ i + 1 := by
             have hn0le : n0 ≤ i := h.start_le
             omega
-          simpa only [End', if_neg hn0ne] using h.boundaryTargets }
+          simpa only [End', ite_eq_right hn0ne] using h.boundaryTargets }
     · intro j hj hjupper
       by_cases hji : j = i + 1
       · subst j
-        simpa only [End', if_pos rfl] using hNextRun
+        simpa only [End', ite_eq_left rfl] using hNextRun
       · have hjold : j ≤ i := by omega
-        simpa only [End', if_neg hji] using h.endpointRun j hj hjold
+        simpa only [End', ite_eq_right hji] using h.endpointRun j hj hjold
     · intro j hj hjupper
       by_cases hji : j = i
       · subst j
         have hine : i ≠ i + 1 := by omega
-        simp only [End', if_neg hine, if_pos rfl]
+        simp only [End', ite_eq_right hine, ite_eq_left rfl]
         exact hEndNext
       · have hjold : j < i := by omega
         have hjne : j ≠ i + 1 := by omega
         have hjsne : j + 1 ≠ i + 1 := by omega
-        simpa only [End', if_neg hjne, if_neg hjsne] using
+        simpa only [End', ite_eq_right hjne, ite_eq_right hjsne] using
           h.endpointMono j hj hjold
     · intro j hj hjupper
       by_cases hji : j = i
       · subst j
         have hine : i ≠ i + 1 := by omega
-        simpa only [End', if_neg hine, if_pos rfl] using hproposal
+        simpa only [End', ite_eq_right hine, ite_eq_left rfl] using hproposal
       · have hjold : j < i := by omega
         have hjne : j ≠ i + 1 := by omega
         have hjsne : j + 1 ≠ i + 1 := by omega
-        simpa only [End', if_neg hjne, if_neg hjsne] using
+        simpa only [End', ite_eq_right hjne, ite_eq_right hjsne] using
           h.proposalChain j hj hjold
     · intro j hj hjupper
       by_cases hji : j = i
       · subst j
-        simpa only [End', if_pos rfl] using hconfirmations
+        simpa only [End', ite_eq_left rfl] using hconfirmations
       · have hjold : j < i := by omega
         have hjsne : j + 1 ≠ i + 1 := by omega
-        simpa only [End', if_neg hjsne] using
+        simpa only [End', ite_eq_right hjsne] using
           h.genuineConfirmations j hj hjold
     · intro j hj hjupper
       by_cases hji : j = i
       · subst j
-        simpa only [End', if_pos rfl] using hsg
+        simpa only [End', ite_eq_left rfl] using hsg
       · have hjold : j < i := by omega
         have hjsne : j + 1 ≠ i + 1 := by omega
-        simpa only [End', if_neg hjsne] using h.sgCarriers j hj hjold
+        simpa only [End', ite_eq_right hjsne] using h.sgCarriers j hj hjold
     · intro j hj hjupper
       by_cases hji : j = i
       · subst j
-        simpa only [End', if_pos rfl] using hout
+        simpa only [End', ite_eq_left rfl] using hout
       · have hjold : j < i := by omega
         have hjsne : j + 1 ≠ i + 1 := by omega
-        simpa only [End', if_neg hjsne] using h.outputs j hj hjold
+        simpa only [End', ite_eq_right hjsne] using h.outputs j hj hjold
     · intro j hj hjupper
       by_cases hji : j = i
       · subst j
-        simpa only [End', if_pos rfl] using hanchors
+        simpa only [End', ite_eq_left rfl] using hanchors
       · have hjold : j < i := by omega
         have hjsne : j + 1 ≠ i + 1 := by omega
-        simpa only [End', if_neg hjsne] using h.anchors j hj hjold
+        simpa only [End', ite_eq_right hjsne] using h.anchors j hj hjold
 
 private theorem MovingFrontierChainStateN.through_constantEndpoint_named
     (S : Setup V) {rho : Run V}
@@ -1062,10 +1062,10 @@ private theorem MovingFrontierChainStateN.through_constantEndpoint_named
   let End' : Nat → Block V := fun j => if j ≤ c then End j else Next
   have hlow : ∀ j, j ≤ c → End' j = End j := by
     intro j hj
-    simp only [End', if_pos hj]
+    simp only [End', ite_eq_left hj]
   have hhigh : ∀ j, c < j → End' j = Next := by
     intro j hj
-    simp only [End', if_neg (Nat.not_le_of_gt hj)]
+    simp only [End', ite_eq_right (Nat.not_le_of_gt hj)]
   refine ⟨End', hlow, hhigh, ?_⟩
   refine
     { historyStart := h.historyStart
@@ -1371,7 +1371,7 @@ private theorem movingSlotWindowTail_eventFacts_named
             eventTime_le_of_lt_inclusive S
               adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hhigh hev
           have hhonest : u ∈ rho.honest := by
-            simpa only [Event.node] using adm.honest_only _ hmem
+            simpa only [Event.node] using! adm.honest_only _ hmem
           have hgtProposal : Protocol.proposal_time S.E s < t :=
             lt_of_le_of_lt (proposal_time_le_view_freeze S.E s) hgt
           rcases publicTime_slotWindow_cases S hpub hgtProposal hle
@@ -1525,7 +1525,7 @@ theorem MovingFrontierChainStateN.through_slotWindow_honestProposer_named
     have htrue := Proofs.Optimistic.filter_true_of_index_lt S
       adm.toNamedAdmissibleCore.toNamedScheduleWellFormed _
       (Proofs.Optimistic.downward_lt (Protocol.proposal_time S.E (s + 1)))
-      (by simpa only [strictEventIndex] using Nat.lt_of_not_ge hnot) hpevent
+      (by simpa only [strictEventIndex] using! Nat.lt_of_not_ge hnot) hpevent
     simp only [decide_eq_true_eq, Event.time] at htrue
     exact lt_irrefl _ htrue
   have hcfp : cf ≤ p := hcfsn.trans hsnp
@@ -1901,7 +1901,7 @@ theorem movingSlotWindowFacts_of_readInputs
     have hD := (hconfOut w hw).1
     have hselected := hD.selected
     rw [Protocol.update_confirmation_with_live_confirmed,
-      if_pos hD.genuine] at hselected
+      ite_eq_left hD.genuine] at hselected
     have hwalk : Protocol.confWalkWith contract S.E S.hc
         (Proofs.Optimistic.confStore S rho w (s - 1)) (s - 1) =
         movingSlotConfirmationOutput S rho (s - 1) w := by
@@ -2006,9 +2006,9 @@ theorem mem_get_filtered_block_tree_from_of_selfViable
     (hroot : Block.Preceq (Protocol.get_fg_root st) A)
     (hheight : st.h_max - 1 ≤ (st.σ A).h) :
     A ∈ Protocol.get_filtered_block_tree_from st blocks := by
-  simp only [Protocol.get_filtered_block_tree_from,
-    Protocol.viable_tree, Protocol.finalized_descendants,
-    Protocol.viable, Finset.mem_filter, decide_eq_true_eq]
+  simp only [Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
+    Protocol.finalized_descendants, Finset.mem_filter]
+  simp only [Protocol.viable, decide_eq_true_eq]
   exact ⟨⟨⟨hmem, hF⟩, A, hmem, Block.preceq_self _, hheight⟩, hroot⟩
 
 /-- The absorbed named confirmation reaches the next prepared vote head when
@@ -2058,7 +2058,7 @@ theorem genuineConfirmation_preceq_nextVoteDutyHead_of_endpointBand
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
       Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore] using hrootBRead
+      Proofs.Optimistic.tickStore] using! hrootBRead
   have htransport := Protocol.adoptionTransport_B_after_gst S adm hv hw
     hpost hhor hrootB
   have htransportRead : AdoptionTransport
@@ -2101,7 +2101,7 @@ theorem genuineConfirmation_preceq_nextVoteDutyHead_of_endpointBand
   have hDwalk : B.erase = confWalkWith confContract S.E S.hc
       (Proofs.Optimistic.confStore S rho v s) s := by
     rw [← hgenuine.selected, update_confirmation_with_live_confirmed,
-      if_pos hgenuine.genuine]
+      ite_eq_left hgenuine.genuine]
   have hEligible : Protocol.voters_count S.E
       (confLate S.E (Proofs.Optimistic.confStore S rho v s) s) s <
       2 * Protocol.goldfish_score S.E
@@ -2110,14 +2110,14 @@ theorem genuineConfirmation_preceq_nextVoteDutyHead_of_endpointBand
         (confVotes S.E (Proofs.Optimistic.confStore S rho v s) s) s B.erase := by
     have h := hgenuine.genuine
     rw [← hDwalk] at h
-    simpa only [confEligible, confCount, confScore,
-      decide_eq_true_eq] using h
+    simp only [confEligible, decide_eq_true_eq] at h
+    simpa only [confCount, confScore] using h
   have hFroot : Block.Preceq target.F
       (Protocol.get_fg_root target.toFG) :=
     Proofs.Records.preceq_get_fg_root_of_F (st := target.toFG) (by
       simpa only [read, voteDutyRead,
         NamedActionReads.confirmationReadAt,
-        NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+        NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
         (Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime S rho
           (Protocol.vote_time S.E (s + 1)) w))
   have hprocessedOld : B.erase ∈
@@ -2128,7 +2128,7 @@ theorem genuineConfirmation_preceq_nextVoteDutyHead_of_endpointBand
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
       Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore] using hprocessed
+      Proofs.Optimistic.tickStore] using! hprocessed
   have hancestor : ∀ C : Block V, Block.Preceq C B.erase →
       C ∈ Protocol.voter_processed_block_tree S.E target.toFG.toSG.toGoldfishStore target.s := by
     intro C hCB
@@ -2138,16 +2138,16 @@ theorem genuineConfirmation_preceq_nextVoteDutyHead_of_endpointBand
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
       Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore] using hC
+      Proofs.Optimistic.tickStore] using! hC
   have hmem : ∀ C : Block V,
       Block.Preceq (Protocol.get_fg_root target.toFG) C →
       Block.Preceq C B.erase → C ∈ voterCandidateTreeAt S rho w (s + 1) := by
     intro C hrootC hCB
     change C ∈ Protocol.get_filtered_block_tree_from target.toFG
       (Protocol.voter_processed_block_tree S.E target.toFG.toSG.toGoldfishStore target.s)
-    simp only [Protocol.get_filtered_block_tree_from,
-      Protocol.viable_tree, Protocol.finalized_descendants,
-      Protocol.viable, Finset.mem_filter, decide_eq_true_eq]
+    simp only [Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
+      Protocol.finalized_descendants, Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
     exact ⟨⟨⟨hancestor C hCB, Block.preceq_trans hFroot hrootC⟩,
       B.erase, hprocessed, hCB, hband⟩, hrootC⟩
   have hcompatible : Block.compatible

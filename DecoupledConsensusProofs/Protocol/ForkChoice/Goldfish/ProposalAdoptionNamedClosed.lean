@@ -158,7 +158,7 @@ private theorem proposedBlock_admittedBefore_vote_after_gst_named
           (index_succ_le_strict_filter_length rho
             adm.toNamedAdmissibleCore.toNamedScheduleWellFormed.sorted
             (Protocol.vote_time S.E s) hi
-            (by simpa only [Event.time] using hhi))))
+            (by simpa only [Event.time] using! hhi))))
         (proposedBlock_proposer S rho s hP)
         (proposedBlock_parent_slot_lt S adm hs hP)
         (proposedBlock_carried_attestations_admissible S rho s hP) hhi
@@ -184,7 +184,7 @@ private theorem namedBody_of_mem_storeBeforeTime
     adm.toNamedRootCollisionFree.root_injective D P hDrun hPrun D P
       (Or.inl (Proofs.NamedAncestry.named_self D))
       (Or.inr (Proofs.NamedAncestry.named_self P)) hroot
-  simpa only [hDP] using hD
+  simpa only [hDP] using! hD
 
 theorem honestProposal_voterHeadAt_eq_after_SG_healing_named_of_pins
     (_of_frontier : ∀
@@ -386,7 +386,7 @@ theorem honestProposal_voterHeadAt_eq_after_SG_healing_named_of_pins
         (proposerReadAt S rho start).st.core.toHealing.toFG) E.erase := by
     simpa only [proposerReadAt, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-      using hreadBound hdeadlineProposal hproposalHor hproposalNext hprop
+      using! hreadBound hdeadlineProposal hproposalHor hproposalNext hprop
   have hcut : S.hc.Γ_neg1 S.E.Δ m ≤ rho.horizon := by
     have hopen : S.hc.Γ_0 S.E.Δ m =
         Protocol.proposal_time S.E start := by
@@ -406,7 +406,7 @@ theorem honestProposal_voterHeadAt_eq_after_SG_healing_named_of_pins
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
         Proofs.Optimistic.slotOf_proposal_time] using
           round_of_opening_slot_eq_schedule S.hc m
-    simpa only [start, hqEq, hround] using h
+    simpa only [start, hqEq, hround] using! h
   have hsourceBandData := _of_frontier S adm hcom hbelow hrec hdelay hpost
     hdeadlineProposal hproposalHor hdeadlineSlot hproposalNext hprevDelta hprop
   obtain ⟨Ts, hTsrun, hTsband, hTsheads⟩ := hsourceBandData
@@ -428,7 +428,7 @@ theorem honestProposal_voterHeadAt_eq_after_SG_healing_named_of_pins
     have hsupport := fixedRoot_preparedProposalConeSupport_of_namedCone
       S adm hcom hdPos hpostVoteD
       hsupportHor (by simpa only [hdSucc] using hprop)
-      (by simpa only [hdSucc] using hsourceRoot) hheadsCone
+      (by simpa only [hdSucc] using! hsourceRoot) hheadsCone
     have hvalid := Protocol.proposerDutyStore_proposer_view_valid_core
       S adm.toNamedAdmissibleCore start
     have hproposerVoteRoot : Block.Preceq
@@ -437,7 +437,7 @@ theorem honestProposal_voterHeadAt_eq_after_SG_healing_named_of_pins
         E.erase := by
       simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-        using hreadBound hdeadlineVote hhor hvoteNext hprop
+        using! hreadBound hdeadlineVote hhor hvoteNext hprop
     have hwitness : CanonicalConeWitness
         (proposalDutyRead S rho start).st.core E.erase := by
       have hmem : E.erase ∈ (proposalDutyRead S rho start).st.core.T := by
@@ -468,7 +468,7 @@ theorem honestProposal_voterHeadAt_eq_after_SG_healing_named_of_pins
           simpa only [hEgen, proposalDutyRead, proposerReadAt,
             NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-            using (Protocol.genesis_mem_and_stamp_storeBeforeTime S
+            using! (Protocol.genesis_mem_and_stamp_storeBeforeTime S
               adm.toNamedScheduleWellFormed (S.E.proposer start)
               (Protocol.proposal_time S.E start)
               (Protocol.proposal_time S.E start)).1
@@ -481,12 +481,12 @@ theorem honestProposal_voterHeadAt_eq_after_SG_healing_named_of_pins
             rw [hXerase]
             exact hEheads x0 hx0h
           exact Proofs.Records.mem_of_preceq ((parentClosed_iff _).mp hpc).2
-            E.erase X.erase (by simpa only [hdSucc] using hXT) hEX
+            E.erase X.erase (by simpa only [hdSucc] using! hXT) hEX
       have hEbody := namedBody_of_mem_storeBeforeTime S adm hprop
         (by simpa only [proposalDutyRead, proposerReadAt,
           NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-          using hmem) hErun
+          using! hmem) hErun
       have hview := Proofs.NamedStoreBridge.derivedView_stateBeforeTime S rho
         (Protocol.proposal_time S.E start) (S.E.proposer start) E hEbody
       refine ⟨E.erase, hmem, Block.preceq_self _, ?_⟩
@@ -502,7 +502,7 @@ theorem honestProposal_voterHeadAt_eq_after_SG_healing_named_of_pins
         simpa only [proposalDutyRead, proposerReadAt,
           NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-          using hvalid)
+          using! hvalid)
   obtain ⟨Parent, hParent, hParentErase⟩ := proposedBlockAt_parent S rho start hP
   have hEParent : Block.Preceq E.erase Parent.erase := by
     simpa only [hParentErase] using hEparent
@@ -533,7 +533,7 @@ theorem honestProposal_voterHeadAt_eq_after_SG_healing_named_of_pins
         (voteDutyRead S rho v start).st.core.toHealing.toFG) E.erase := by
     simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-      using hreadBound hdeadlineVote hhor hvoteNext hv
+      using! hreadBound hdeadlineVote hhor hvoteNext hv
   have htargetBandData := _of_frontier S adm hcom hbelow hrec hdelay hpost
     hdeadlineVote hhor hdeadlineSlot hvoteNext hprevDelta hv
   obtain ⟨Tt, hTtrun, hTtband, hTtheads⟩ := htargetBandData
@@ -547,7 +547,7 @@ theorem honestProposal_voterHeadAt_eq_after_SG_healing_named_of_pins
   have hPbody := namedBody_of_mem_storeBeforeTime S adm hv
     (by simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-      using hPmem) hPrun
+      using! hPmem) hPrun
   have hPview := Proofs.NamedStoreBridge.derivedView_stateBeforeTime S rho
     (Protocol.vote_time S.E start) v P hPbody
   have hPband : (Proofs.Optimistic.voteDutyStore S rho v start).h_max - 1 ≤
@@ -555,7 +555,7 @@ theorem honestProposal_voterHeadAt_eq_after_SG_healing_named_of_pins
     rw [show ((Proofs.Optimistic.voteDutyStore S rho v start).σ P.erase).h =
         (Protocol.derive_named S.E S.cfg P).h by
       simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-        Proofs.Optimistic.tickStore] using
+        Proofs.Optimistic.tickStore] using!
         congrArg (fun z => z.h) hPview]
     exact hTtband.trans
       (Proofs.NamedEntryHeight.derive_height_mono S.E S.cfg hTtPNamed)
@@ -583,7 +583,7 @@ theorem honestProposal_voterHeadAt_eq_after_SG_healing_named_of_pins
   have hsourceBody := namedBody_of_mem_storeBeforeTime S adm hprop
     (by simpa only [proposerReadAt, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-      using hsourceCoreMem) hErun
+      using! hsourceCoreMem) hErun
   have htargetCoreMem : E.erase ∈ (voteDutyRead S rho v start).st.core.T := by
     have hpc := Proofs.NamedStoreBridge.parentClosed_stateBeforeTime S rho
       (Protocol.vote_time S.E start) v
@@ -592,24 +592,24 @@ theorem honestProposal_voterHeadAt_eq_after_SG_healing_named_of_pins
   have htargetBody := namedBody_of_mem_storeBeforeTime S adm hv
     (by simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-      using htargetCoreMem) hErun
+      using! htargetCoreMem) hErun
   have hroundStart : S.hc.round_of start = m := by
     simpa only [start] using round_of_opening_slot_eq_schedule S.hc m
   have htargetAnchor : Block.Preceq (voterAnchorAt S rho v start) E.erase := by
     have h := voterAnchorAt_preceq_of_previousCarriers S adm hbelow
       (q := m - 1) (s := d) (by simpa only [hdSucc, hqEq] using hroundStart)
       hpostPrev (by simpa only [hqEq] using hcut) (by simpa only [hdSucc] using hhor)
-      hupper hv (by simpa only [hdSucc] using htargetRoot)
+      hupper hv (by simpa only [hdSucc] using! htargetRoot)
     simpa only [hdSucc] using h
   have hpivot : PreparedProtectedProposalPivot S rho d v E :=
     { slotProtected := hprotected
       sourceAnchor := by simpa only [hdSucc] using hsourceAnchor
       targetAnchor := by simpa only [hdSucc] using htargetAnchor
-      sourceBody := by simpa only [hdSucc] using hsourceBody
-      targetBody := by simpa only [hdSucc] using htargetBody
+      sourceBody := by simpa only [hdSucc] using! hsourceBody
+      targetBody := by simpa only [hdSucc] using! htargetBody
       sourceBand := by simpa only [hdSucc] using hsourceBand
       targetBand := by
-        simpa only [hdSucc] using hTtband.trans
+        simpa only [hdSucc] using! hTtband.trans
           (Proofs.NamedEntryHeight.derive_height_mono S.E S.cfg
             (namedPreceq_of_runBlocks S adm hTtrun hErun hTtE))
       parent := by simpa only [hdSucc] using hEparent }
@@ -848,7 +848,7 @@ theorem honestProposal_voterHeadAt_eq_after_SG_healing_named_slot
         (proposerReadAt S rho start).st.core.toHealing.toFG) E.erase := by
     simpa only [proposerReadAt, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-      using hreadBound hdeadlineProposal hproposalHor hproposalNext hprop
+      using! hreadBound hdeadlineProposal hproposalHor hproposalNext hprop
   have hopenR : S.hc.opening_slot r ≤ start := by
     show S.hc.opening_slot (start / S.hc.R) ≤ start
     unfold Protocol.HealConfig.opening_slot
@@ -888,7 +888,7 @@ theorem honestProposal_voterHeadAt_eq_after_SG_healing_named_slot
     have hsupport := fixedRoot_preparedProposalConeSupport_of_namedCone
       S adm hcom hdPos hpostVoteD
       hsupportHor (by simpa only [hdSucc] using hprop)
-      (by simpa only [hdSucc] using hsourceRoot) hheadsCone
+      (by simpa only [hdSucc] using! hsourceRoot) hheadsCone
     have hvalid := Protocol.proposerDutyStore_proposer_view_valid_core
       S adm.toNamedAdmissibleCore start
     have hproposerVoteRoot : Block.Preceq
@@ -897,7 +897,7 @@ theorem honestProposal_voterHeadAt_eq_after_SG_healing_named_slot
         E.erase := by
       simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-        using hreadBound hdeadlineVote hhor hvoteNext hprop
+        using! hreadBound hdeadlineVote hhor hvoteNext hprop
     have hwitness : CanonicalConeWitness
         (proposalDutyRead S rho start).st.core E.erase := by
       have hmem : E.erase ∈ (proposalDutyRead S rho start).st.core.T := by
@@ -928,7 +928,7 @@ theorem honestProposal_voterHeadAt_eq_after_SG_healing_named_slot
           simpa only [hEgen, proposalDutyRead, proposerReadAt,
             NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-            using (Protocol.genesis_mem_and_stamp_storeBeforeTime S
+            using! (Protocol.genesis_mem_and_stamp_storeBeforeTime S
               adm.toNamedScheduleWellFormed (S.E.proposer start)
               (Protocol.proposal_time S.E start)
               (Protocol.proposal_time S.E start)).1
@@ -941,12 +941,12 @@ theorem honestProposal_voterHeadAt_eq_after_SG_healing_named_slot
             rw [hXerase]
             exact hEheads x0 hx0h
           exact Proofs.Records.mem_of_preceq ((parentClosed_iff _).mp hpc).2
-            E.erase X.erase (by simpa only [hdSucc] using hXT) hEX
+            E.erase X.erase (by simpa only [hdSucc] using! hXT) hEX
       have hEbody := namedBody_of_mem_storeBeforeTime S adm hprop
         (by simpa only [proposalDutyRead, proposerReadAt,
           NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-          using hmem) hErun
+          using! hmem) hErun
       have hview := Proofs.NamedStoreBridge.derivedView_stateBeforeTime S rho
         (Protocol.proposal_time S.E start) (S.E.proposer start) E hEbody
       refine ⟨E.erase, hmem, Block.preceq_self _, ?_⟩
@@ -962,7 +962,7 @@ theorem honestProposal_voterHeadAt_eq_after_SG_healing_named_slot
         simpa only [proposalDutyRead, proposerReadAt,
           NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-          using hvalid)
+          using! hvalid)
   obtain ⟨Parent, hParent, hParentErase⟩ := proposedBlockAt_parent S rho start hP
   have hEParent : Block.Preceq E.erase Parent.erase := by
     simpa only [hParentErase] using hEparent
@@ -993,7 +993,7 @@ theorem honestProposal_voterHeadAt_eq_after_SG_healing_named_slot
         (voteDutyRead S rho v start).st.core.toHealing.toFG) E.erase := by
     simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-      using hreadBound hdeadlineVote hhor hvoteNext hv
+      using! hreadBound hdeadlineVote hhor hvoteNext hv
   have htargetBandData := exists_namedCommonPreviousHeadAncestor_in_frontierBand_through_confirmation_after_GST
       S adm hcom hbelow hrec hdelay hpost
     hdeadlineVote hhor hdeadlineSlot hvoteNext hprevDelta hv
@@ -1008,7 +1008,7 @@ theorem honestProposal_voterHeadAt_eq_after_SG_healing_named_slot
   have hPbody := namedBody_of_mem_storeBeforeTime S adm hv
     (by simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-      using hPmem) hPrun
+      using! hPmem) hPrun
   have hPview := Proofs.NamedStoreBridge.derivedView_stateBeforeTime S rho
     (Protocol.vote_time S.E start) v P hPbody
   have hPband : (Proofs.Optimistic.voteDutyStore S rho v start).h_max - 1 ≤
@@ -1016,7 +1016,7 @@ theorem honestProposal_voterHeadAt_eq_after_SG_healing_named_slot
     rw [show ((Proofs.Optimistic.voteDutyStore S rho v start).σ P.erase).h =
         (Protocol.derive_named S.E S.cfg P).h by
       simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-        Proofs.Optimistic.tickStore] using
+        Proofs.Optimistic.tickStore] using!
         congrArg (fun z => z.h) hPview]
     exact hTtband.trans
       (Proofs.NamedEntryHeight.derive_height_mono S.E S.cfg hTtPNamed)
@@ -1044,7 +1044,7 @@ theorem honestProposal_voterHeadAt_eq_after_SG_healing_named_slot
   have hsourceBody := namedBody_of_mem_storeBeforeTime S adm hprop
     (by simpa only [proposerReadAt, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-      using hsourceCoreMem) hErun
+      using! hsourceCoreMem) hErun
   have htargetCoreMem : E.erase ∈ (voteDutyRead S rho v start).st.core.T := by
     have hpc := Proofs.NamedStoreBridge.parentClosed_stateBeforeTime S rho
       (Protocol.vote_time S.E start) v
@@ -1053,22 +1053,22 @@ theorem honestProposal_voterHeadAt_eq_after_SG_healing_named_slot
   have htargetBody := namedBody_of_mem_storeBeforeTime S adm hv
     (by simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-      using htargetCoreMem) hErun
+      using! htargetCoreMem) hErun
   have htargetAnchor : Block.Preceq (voterAnchorAt S rho v start) E.erase := by
     have h := voterAnchorAt_preceq_of_previousCarriers S adm hbelow
       (q := r - 1) (s := d) (by simpa only [hdSucc] using hroundStart)
       hpostPrev (by rw [hqEq]; exact hcut) (by simpa only [hdSucc] using hhor)
-      hupper hv (by simpa only [hdSucc] using htargetRoot)
+      hupper hv (by simpa only [hdSucc] using! htargetRoot)
     simpa only [hdSucc] using h
   have hpivot : PreparedProtectedProposalPivot S rho d v E :=
     { slotProtected := hprotected
       sourceAnchor := by simpa only [hdSucc] using hsourceAnchor
       targetAnchor := by simpa only [hdSucc] using htargetAnchor
-      sourceBody := by simpa only [hdSucc] using hsourceBody
-      targetBody := by simpa only [hdSucc] using htargetBody
+      sourceBody := by simpa only [hdSucc] using! hsourceBody
+      targetBody := by simpa only [hdSucc] using! htargetBody
       sourceBand := by simpa only [hdSucc] using hsourceBand
       targetBand := by
-        simpa only [hdSucc] using hTtband.trans
+        simpa only [hdSucc] using! hTtband.trans
           (Proofs.NamedEntryHeight.derive_height_mono S.E S.cfg
             (namedPreceq_of_runBlocks S adm hTtrun hErun hTtE))
       parent := by simpa only [hdSucc] using hEparent }
@@ -1080,13 +1080,13 @@ theorem honestProposal_voterHeadAt_eq_after_SG_healing_named_slot
       hpostVoteD hsupportHor hv (by simpa only [hdSucc] using hP) hpivot
   have hsuffix := namedProposalPivotSuffixTransfer_of_riseLeOne
     S adm (by simpa only [hdSucc] using hstartPos)
-      (by simpa only [hdSucc, Nat.add_sub_cancel] using hpostFrozen)
+      (by simpa only [hdSucc, Nat.add_sub_cancel] using! hpostFrozen)
       (by simpa only [hdSucc] using hprop) hv
       (by simpa only [hdSucc] using hhor)
       (by simpa only [hdSucc] using hP) hfrozen
   have hscoreBridge := namedProposalCandidateScoreBridge_afterGST
     S adm (by simpa only [hdSucc] using hstartPos)
-      (by simpa only [hdSucc, Nat.add_sub_cancel] using hpostFrozen)
+      (by simpa only [hdSucc, Nat.add_sub_cancel] using! hpostFrozen)
       (by simpa only [hdSucc] using hprop) hv
       (by simpa only [hdSucc] using hhor)
       (by simpa only [hdSucc] using hP)
@@ -1130,7 +1130,7 @@ theorem honestProposal_slotVoteCone_after_SG_healing_named
   exact (protectedVoteSlot_of_coreHeads S adm.toNamedAdmissibleCore
     (Nat.succ_pos s) hhor (by
       intro v hv
-      simpa only [Protocol.voteDutyHead, hheads v hv] using
+      simpa only [Protocol.voteDutyHead, hheads v hv] using!
         (Block.preceq_self P.erase))).cone
 
 #print axioms honestProposal_slotVoteCone_after_SG_healing_named
@@ -1246,7 +1246,7 @@ theorem honestProposal_confirmationReadFacts_after_SG_healing_named_of_openingPr
         (voterHeadAt S rho w start) := by
       simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Protocol.voteDutyHead] using hrootHead
+        Protocol.voteDutyHead] using! hrootHead
     simpa only [hheads w hw] using hrootHead'
   have hFhist : ProposalFinalizedBelowAtDeliveries S rho start P := by
     intro w hw i hi
@@ -1306,7 +1306,7 @@ theorem honestProposal_confirmationReadFacts_after_SG_healing_named_of_openingPr
         (voterHeadAt S rho v start) := by
       simpa only [confirmationInputRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Protocol.voteDutyHead] using hrootHead
+        Protocol.voteDutyHead] using! hrootHead
     simpa only [hheads v hv] using hrootHead'
   have hround : S.hc.round_of (start + 1) = m - 1 + 1 := by
     simpa only [start, hpred] using Proofs.HealingLemmas.round_of_opening_succ S.hc m
@@ -1321,7 +1321,7 @@ theorem honestProposal_confirmationReadFacts_after_SG_healing_named_of_openingPr
   have hPbody := namedBody_of_mem_storeBeforeTime S adm hv
     (by simpa only [confirmationInputRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-      using hPmem) hPrun
+      using! hPmem) hPrun
   have hPview := Proofs.NamedStoreBridge.derivedView_stateBeforeTime S rho
     (Protocol.confirmation_time S.E start) v P hPbody
   obtain ⟨T, hTrun, hTband, hTheads⟩ :=
@@ -1348,15 +1348,16 @@ theorem honestProposal_confirmationReadFacts_after_SG_healing_named_of_openingPr
       (confirmationInputRead S rho v start).st.core.F P.erase := by
     exact Block.preceq_trans (by
       simpa only [confirmationInputRead, NamedActionReads.confirmationReadAt,
-        NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+        NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
           (Proofs.Records.preceq_get_fg_root_of_F
             (st := (rho.storeBeforeTime S v
               (Protocol.confirmation_time S.E start)).core.toHealing.toFG) hFJ)) hroot
   have hV : P.erase ∈ Protocol.V_tree
       (confirmationInputRead S rho v start).st.core.toHealing.toFG := by
-    simp only [Protocol.V_tree, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, decide_eq_true_eq, Protocol.Store.toHealing]
+    simp only [Protocol.V_tree, Protocol.viable_tree, Protocol.finalized_descendants,
+      Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
+    simp only [Protocol.Store.toHealing]
     exact ⟨⟨hPmem, hFP⟩, P.erase, hPmem, Block.preceq_self _, hPband⟩
   have hcandidate : P.erase ∈
       confTree (confirmationInputRead S rho v start).st.core :=
@@ -1487,7 +1488,7 @@ theorem honestProposal_confirmationReadFacts_after_SG_healing_named_slot
         (voterHeadAt S rho w start) := by
       simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Protocol.voteDutyHead] using hrootHead
+        Protocol.voteDutyHead] using! hrootHead
     simpa only [hheads w hw] using hrootHead'
   have hFhist : ProposalFinalizedBelowAtDeliveries S rho start P := by
     intro w hw i hi
@@ -1551,7 +1552,7 @@ theorem honestProposal_confirmationReadFacts_after_SG_healing_named_slot
         (voterHeadAt S rho v start) := by
       simpa only [confirmationInputRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Protocol.voteDutyHead] using hrootHead
+        Protocol.voteDutyHead] using! hrootHead
     simpa only [hheads v hv] using hrootHead'
   have hanchor : Block.Preceq (confirmationAnchorAt S rho v start) P.erase := by
     rcases (Nat.succ_le_of_lt hstartLtNext).lt_or_eq with hlt | heqBoundary
@@ -1612,7 +1613,7 @@ theorem honestProposal_confirmationReadFacts_after_SG_healing_named_slot
   have hPbody := namedBody_of_mem_storeBeforeTime S adm hv
     (by simpa only [confirmationInputRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-      using hPmem) hPrun
+      using! hPmem) hPrun
   have hPview := Proofs.NamedStoreBridge.derivedView_stateBeforeTime S rho
     (Protocol.confirmation_time S.E start) v P hPbody
   obtain ⟨T, hTrun, hTband, hTheads⟩ :=
@@ -1639,15 +1640,16 @@ theorem honestProposal_confirmationReadFacts_after_SG_healing_named_slot
       (confirmationInputRead S rho v start).st.core.F P.erase := by
     exact Block.preceq_trans (by
       simpa only [confirmationInputRead, NamedActionReads.confirmationReadAt,
-        NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+        NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
           (Proofs.Records.preceq_get_fg_root_of_F
             (st := (rho.storeBeforeTime S v
               (Protocol.confirmation_time S.E start)).core.toHealing.toFG) hFJ)) hroot
   have hV : P.erase ∈ Protocol.V_tree
       (confirmationInputRead S rho v start).st.core.toHealing.toFG := by
-    simp only [Protocol.V_tree, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, decide_eq_true_eq, Protocol.Store.toHealing]
+    simp only [Protocol.V_tree, Protocol.viable_tree, Protocol.finalized_descendants,
+      Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
+    simp only [Protocol.Store.toHealing]
     exact ⟨⟨hPmem, hFP⟩, P.erase, hPmem, Block.preceq_self _, hPband⟩
   have hcandidate : P.erase ∈
       confTree (confirmationInputRead S rho v start).st.core :=
@@ -1683,7 +1685,7 @@ theorem honestProposal_openingVoteCone_after_SG_healing_named_of_openingProposer
   exact (protectedVoteSlot_of_coreHeads S adm.toNamedAdmissibleCore
     hstartPos hhor (by
       intro v hv
-      simpa only [Protocol.voteDutyHead, hheads v hv] using
+      simpa only [Protocol.voteDutyHead, hheads v hv] using!
         (Block.preceq_self P.erase))).cone
 
 #print axioms honestProposal_openingVoteCone_after_SG_healing_named_of_openingProposer

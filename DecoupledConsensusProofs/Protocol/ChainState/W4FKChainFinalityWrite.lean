@@ -164,8 +164,7 @@ theorem namedFinalityReady_of_covered
   have hquorum :
       (fold_rows (TimeoutBinding.targeted V) sigma B.erase
         B.attestations).finalityQuorum E = true := by
-    simpa only [ChainState.finalityQuorum, ChainState.Q_finality,
-      Electorate.quorumCheck, decide_eq_true_eq] using hquorumSet
+    exact decide_eq_true hquorumSet
   simp only [Protocol.finalityReady, Bool.and_eq_true]
   refine ⟨?_, hquorum⟩
   simp only [decide_eq_true_eq]

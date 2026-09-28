@@ -482,7 +482,7 @@ theorem emitted_block_due (gc : Protocol.GradeContract V)
   by_contra hnot
   rw [NamedTick.tick_computed_duties] at hB
   dsimp only at hB
-  simp only [if_neg hnot] at hB
+  simp only [ite_eq_right hnot] at hB
   split_ifs at hB <;>
     simp only [List.mem_append, List.mem_map, List.mem_cons, List.not_mem_nil,
       reduceCtorEq, or_false, and_false, exists_false] at hB
@@ -591,7 +591,7 @@ theorem block_call_rows_after_event (S : Setup V) (rho : NamedRun V)
     rw [Proofs.NamedRuntime.stateBefore_tick S rho he]
     apply tick_rows_after_proposal (DecoupledConsensusModel.Protocol.frameContract c) S (S.node reader)
       n.st n.record t a
-    simp only [if_pos hdue]
+    simp only [ite_eq_left hdue]
     rw [congrArg Prod.fst hcallEq]
     exact ha
 
@@ -616,12 +616,12 @@ theorem action_tick_store (S : Setup V) (reader : V) (before : NamedNodeState V)
   change (Protocol.NamedTick.tick (NamedProfile.gradeContract (preparedCache S before (S.a q)))
     S.E S.hc S.cfg (S.node reader) before.st before.record (S.a q)).1 = _
   rw [NamedTick.tick_computed_duties]
-  simp only [if_neg hp, if_neg hv, if_pos (And.intro hpos hs)]
+  simp only [ite_eq_right hp, ite_eq_right hv, ite_eq_left (And.intro hpos hs)]
   have hround : S.hc.round_of (Protocol.NamedDuties.update_confirmation_with
       (NamedProfile.gradeContract (preparedCache S before (S.a q))) S.E S.hc
       (Protocol.NamedStore.setClock S.E before.st (S.a q)) (S.E.slotOf (S.a q) - 1)).core.s = q :=
     Proofs.HealingLemmas.round_of_slotOf_a S q
-  simp only [hround, hawake, and_self, if_true]
+  simp only [hround, hawake, and_self, ite_true]
   rfl
 
 /-- This witness is produced from the actual direct/self/F1 call. Its
@@ -770,7 +770,7 @@ theorem honest_row_after_call (S : Setup V) (rho : NamedRun V)
       dsimp only [Protocol.on_sg_vote]
       simp only [show a.erase.round = a.round from rfl,
         show a.erase.confirmed = a.confirmed from rfl]
-      rw [if_neg hguard]
+      rw [ite_eq_right hguard]
       simp [Protocol.Store.sg_pool]
     exact hpost a (NamedAdmission.admitted_original_row S.hc input a hpre hnew)
 

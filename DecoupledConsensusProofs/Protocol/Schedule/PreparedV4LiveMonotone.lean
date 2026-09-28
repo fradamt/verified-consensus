@@ -116,7 +116,7 @@ theorem SettledBootstrapPreparedV4.liveConfirmed_mono_core_of_pins
   have hbase : Block.Preceq (rho.storeAt S v t).live_confirmed
       (rho.stateBefore S m v).st.live_confirmed := by
     simpa only [Run.storeAt,
-      stateAt_eq_take S adm.toNamedScheduleWellFormed, m] using
+      stateAt_eq_take S adm.toNamedScheduleWellFormed, m] using!
         Block.preceq_self (rho.storeAt S v t).live_confirmed
   have hmn : m ≤ n := filter_le_length_mono rho htu
   have hfold :=
@@ -129,11 +129,11 @@ theorem SettledBootstrapPreparedV4.liveConfirmed_mono_core_of_pins
     have hafter : t < Protocol.confirmation_time S.E q := by
       have hfalse := filter_false_of_index_ge
         S adm.toNamedScheduleWellFormed _ (downward_le t) hmi hqevent
-      simpa only [decide_eq_false_iff_not, not_le, Event.time] using hfalse
+      simpa only [decide_eq_false_iff_not, not_le, Event.time] using! hfalse
     have hbefore : Protocol.confirmation_time S.E q ≤ u := by
       have htrue := filter_true_of_index_lt
         S adm.toNamedScheduleWellFormed _ (downward_le u) hin hqevent
-      simpa only [decide_eq_true_eq, Event.time] using htrue
+      simpa only [decide_eq_true_eq, Event.time] using! htrue
     have hstart : start ≤ q := by
       by_contra hnot
       have hqstart := confirmationTime_mono_live_v4 S.E

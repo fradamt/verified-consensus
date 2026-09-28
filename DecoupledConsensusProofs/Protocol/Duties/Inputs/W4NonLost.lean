@@ -188,7 +188,7 @@ theorem w4FgRoot_preceq_openingProposal_after_SG_healing
             Proofs.NamedRuntime.blockInRun_of_ancestor S rho hCrun hJC
           obtain ⟨hTrun, hTheight⟩ := hreg.checkpoint_runBlock adm
           rcases (show Block.Preceq R T.erase ∨ Block.Preceq T.erase R by
-            simpa only [Block.compatible, Bool.or_eq_true] using hRT) with
+            simpa only [Block.compatible, Bool.or_eq_true] using! hRT) with
             hRT | hTR
           · exact hRT
           · have hTJ : NamedBlock.Preceq T J :=
@@ -313,7 +313,7 @@ theorem notLost_of_honestPredecessorOpening_named_after_SG_healing_of_lifecycle
     (Protocol.get_fg_root
       (rho.storeBeforeTime S u (S.a r)).toHealing.toFG)
     (actionSGBlockAt S rho w (r - 1))
-  exact Block.preceq_trans (by simpa only [hprev] using hroot) (hcover w hw)
+  exact Block.preceq_trans (by simpa only [hprev] using! hroot) (hcover w hw)
 
 #print axioms w4FgRoot_preceq_openingProposal_after_SG_healing
 #print axioms notLost_of_honestPredecessorOpening_named_after_SG_healing_of_lifecycle
@@ -359,7 +359,7 @@ private theorem w4ActionFGSourceEqLive
           ((NamedProfile.gradeContract (actionReadAt S rho v r).cache).read S.E S.hc
             (actionReadAt S rho v r).st.core.toHealing r).clear =
           some (actionStoreAt S rho v r).live_confirmed :=
-        deepest_clear_eq_tip (by simpa using hAlive) hclearAt
+        deepest_clear_eq_tip (by simpa using! hAlive) hclearAt
       rw [PhaseGrades.nodeFGSource, Protocol.fg_source_with.eq_def, hQ2] at hsource'
       simp only [hwalk, Option.some.injEq] at hsource'
       exact hsource'.symm

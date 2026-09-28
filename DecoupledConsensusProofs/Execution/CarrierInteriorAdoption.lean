@@ -35,7 +35,7 @@ theorem carrierInterior_scoreEq_of_scoreBridge
     namedWalkTargetScore S rho s v C = namedWalkSourceScore S rho s C := by
   intro C hCsource hCtarget
   have hCcandidate : C ∈ voterCandidateTreeAt S rho v s := by
-    simpa only [namedWalkTargetTree] using Finset.mem_of_mem_erase hCtarget
+    simpa only [namedWalkTargetTree] using! Finset.mem_of_mem_erase hCtarget
   have hCfiltered : C ∈ Protocol.get_filtered_block_tree
       (Proofs.Optimistic.voteDutyStore S rho v s).toHealing.toFG :=
     frozenVoterCandidateTree_subset_filtered S.E _ hCcandidate

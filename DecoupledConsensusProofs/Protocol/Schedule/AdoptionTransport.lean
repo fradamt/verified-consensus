@@ -137,7 +137,7 @@ theorem delivery_store_slot_before_confirmation
   have hclock : Protocol.proposal_time S.E s ≤ (rho.stateBefore S i w).st.t :=
     tick_le_store_time S adm.toNamedScheduleWellFormed hi htick hlo
   have hup : (rho.stateBefore S i w).st.t ≤ t := by
-    simpa [Event.time] using store_time_le_event_time S adm.toNamedScheduleWellFormed hi w
+    simpa [Event.time] using! store_time_le_event_time S adm.toNamedScheduleWellFormed hi w
   have hslot := Proofs.NamedStoreBridge.slotOfClock_stateBefore S rho i w
   unfold Proofs.Optimistic.SlotOfClock at hslot
   show (rho.stateBefore S i w).st.core.s = s ∨ (rho.stateBefore S i w).st.core.s = s + 1
@@ -167,7 +167,7 @@ theorem on_goldfish_vote_beforeCutoff_or_equivocates
   by_cases hdup : u ∈ st.gf_votes u.slot
   · have heq : Protocol.on_goldfish_vote st u = st := by
       unfold Protocol.on_goldfish_vote
-      rw [if_pos (Or.inr (Or.inr hdup))]
+      rw [ite_eq_left (Or.inr (Or.inr hdup))]
     rw [heq]
     apply Or.inl
     rw [beforeCutoff, Finset.mem_filter, Protocol.Store.pool, List.mem_toFinset]
@@ -179,7 +179,7 @@ theorem on_goldfish_vote_beforeCutoff_or_equivocates
   by_cases hequiv : Protocol.equivocates (st.pool u.slot) u.val_index = true
   · have heq : Protocol.on_goldfish_vote st u = st := by
       unfold Protocol.on_goldfish_vote
-      rw [if_neg (by aesop), if_pos hequiv]
+      rw [ite_eq_right (by aesop), ite_eq_left hequiv]
     rw [heq]
     apply Or.inr
     rw [Protocol.equivocates, decide_eq_true_eq] at hequiv ⊢
@@ -229,7 +229,7 @@ theorem on_goldfish_vote_checked_beforeCutoff_or_equivocates
   have hcheck : ¬ (u.val_index ∉ E.committee u.slot) := by
     intro hnot
     exact hnot hcommittee
-  rw [Protocol.on_goldfish_vote_checked, if_neg hcheck]
+  rw [Protocol.on_goldfish_vote_checked, ite_eq_right hcheck]
   exact on_goldfish_vote_beforeCutoff_or_equivocates st u Γ hstamps
     hfresh hfuture hclock
 
@@ -359,7 +359,7 @@ theorem gfVote_delivery_settled_at_confStore
     delivery_store_slot_before_confirmation S adm hw hi hlo hhi
   have hclock : pre.t < Protocol.confirmation_time S.E s :=
     lt_of_le_of_lt
-      (by simpa [pre, Event.time] using
+      (by simpa [pre, Event.time] using!
         store_time_le_event_time S adm.toNamedScheduleWellFormed hi w)
       hhi
   have hfresh : ¬ u.slot < pre.s - 1 := by

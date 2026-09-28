@@ -470,8 +470,8 @@ theorem storeBeforeTime_mem_filtered_of_band
   have hFA : Block.Preceq st.F A.erase :=
     Block.preceq_trans
       (Proofs.Records.preceq_get_fg_root_of_F (st := st.toHealing.toFG) hFJ)
-      (by simpa only [st, Run.storeBeforeTime] using hroot)
-  simpa only [Protocol.get_filtered_block_tree] using
+      (by simpa only [st, Run.storeBeforeTime] using! hroot)
+  simpa only [Protocol.get_filtered_block_tree] using!
     mem_get_filtered_block_tree_from_of_selfViable st.toHealing.toFG st.T
       hmemCore hFA
       (by simpa only [st, Run.storeBeforeTime] using hroot) hfloor
@@ -509,7 +509,7 @@ theorem storeBeforeTime_path_mem_filtered_of_band
   have hFD : Block.Preceq st.F D.erase :=
     Block.preceq_trans
       (Proofs.Records.preceq_get_fg_root_of_F (st := st.toHealing.toFG) hFJ)
-      (by simpa only [st, Run.storeBeforeTime] using hroot)
+      (by simpa only [st, Run.storeBeforeTime] using! hroot)
   have hfloor : st.h_max - 1 ≤ (st.σ A.erase).h := by
     have hview := Proofs.NamedStoreBridge.derivedView_stateBeforeTime S rho t v A hmem
     have hview' : st.σ A.erase = Protocol.derive_named S.E S.cfg A := by
@@ -517,13 +517,14 @@ theorem storeBeforeTime_path_mem_filtered_of_band
     rw [hview']
     simpa only [st, Run.storeBeforeTime] using hband
   have hV : D.erase ∈ Protocol.V_tree st.toHealing.toFG := by
-    simp only [Protocol.V_tree, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, decide_eq_true_eq, Protocol.Store.toHealing]
+    simp only [Protocol.V_tree, Protocol.viable_tree, Protocol.finalized_descendants,
+      Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
+    simp only [Protocol.Store.toHealing]
     exact ⟨⟨hDmem, hFD⟩, A.erase,
       hmemCore, hDA, hfloor⟩
   exact Proofs.Records.mem_filtered_of_mem_V_tree hV
-    (by simpa only [st, Run.storeBeforeTime] using hroot)
+    (by simpa only [st, Run.storeBeforeTime] using! hroot)
 
 /-! ## 5. The primed Goldfish inputs at the pre-entry state -/
 
@@ -934,7 +935,7 @@ theorem MovingSlotEntryStateN.historyAtHonestProposalEvent
     have htrue := Proofs.Optimistic.filter_true_of_index_lt
       S adm.toNamedAdmissibleCore.toNamedScheduleWellFormed _
       (Proofs.Optimistic.downward_lt (Protocol.proposal_time S.E (c + 1 + 1)))
-      (by simpa only [strictEventIndex] using Nat.lt_of_not_ge hnot) hpevent
+      (by simpa only [strictEventIndex] using! Nat.lt_of_not_ge hnot) hpevent
     simp only [decide_eq_true_eq, Event.time] at htrue
     exact lt_irrefl _ htrue
   have hcfp : cf ≤ p := hcfsn.trans hsnp
@@ -1328,7 +1329,7 @@ theorem MovingSlotPreEntryN.voteInputs
       (Protocol.get_fg_root
         (Proofs.Optimistic.voteDutyStore S rho w (c + 1)).toHealing.toFG) Prev := by
     simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore, Run.storeBeforeTime] using hrootRaw
+      Proofs.Optimistic.tickStore, Run.storeBeforeTime] using! hrootRaw
   have hcutHor : Protocol.support_cutoff S.E c ≤ rho.horizon :=
     (support_cutoff_le_confirmation_time S.E c).trans hslotHor
   have havailable := honestHeadsAvailableBefore_of_namedPostHealingCone
@@ -1372,13 +1373,13 @@ theorem MovingSlotPreEntryN.voteInputs
       (Proofs.Optimistic.voteDutyStore S rho w (c + 1)).toHealing.toFG := by
     rw [← hE]
     simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore, Run.storeBeforeTime] using hfilteredRaw
+      Proofs.Optimistic.tickStore, Run.storeBeforeTime] using! hfilteredRaw
   have hanchorP := hentry.voterAnchorAt_preceq_prev S adm hfb hround ht1
     hpostAction hcut hslotHor hw
   refine ⟨Or.inl ⟨?_, ?_, ?_⟩,
     Block.compatible_of_preceq_common hanchorP (Block.preceq_self Prev)⟩
   · simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore, Run.storeBeforeTime] using hroot
+      Proofs.Optimistic.tickStore, Run.storeBeforeTime] using! hroot
   · exact namedAncestorCandidate_of_processedDescendant_and_hMax_core
       S adm.toNamedAdmissibleCore hw hprocessed hXrun hPrevX hfiltered hmax
   · intro D hAD _hAne hDPrev _hDne
@@ -1388,7 +1389,7 @@ theorem MovingSlotPreEntryN.voteInputs
             (Protocol.vote_time S.E (c + 1))).toHealing.toFG) D := by
       refine Block.preceq_trans ?_ hAD
       simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-        Proofs.Optimistic.tickStore, Run.storeBeforeTime] using
+        Proofs.Optimistic.tickStore, Run.storeBeforeTime] using!
         w4u_fgRoot_preceq_voterAnchorAt S rho w (c + 1)
     have hpc : ParentClosed (rho.storeBeforeTime S w
         (Protocol.vote_time S.E (c + 1))).core := by
@@ -1409,7 +1410,7 @@ theorem MovingSlotPreEntryN.voteInputs
         (Proofs.Optimistic.voteDutyStore S rho w (c + 1)).toHealing.toFG := by
       rw [← hDnerase]
       simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-        Proofs.Optimistic.tickStore, Run.storeBeforeTime] using hDfilteredRaw
+        Proofs.Optimistic.tickStore, Run.storeBeforeTime] using! hDfilteredRaw
     exact namedAncestorCandidate_of_processedDescendant_and_hMax_core
       S adm.toNamedAdmissibleCore hw hprocessed hXrun
       (Block.preceq_trans hDPrev hPrevX) hDfiltered hmax

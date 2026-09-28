@@ -108,7 +108,7 @@ theorem namedCandidatePath_of_processedBandDescendant_core
     simpa only [read, Internal.NamedRecoveryRead.voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
       Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore] using hDprocessed
+      Proofs.Optimistic.tickStore] using! hDprocessed
   have hancestor : ∀ B : Block V, Block.Preceq B D →
       B ∈ Protocol.voter_processed_block_tree S.E
         read.st.core.toHealing.toFG.toSG.toGoldfishStore read.st.core.s := by
@@ -118,7 +118,7 @@ theorem namedCandidatePath_of_processedBandDescendant_core
     simpa only [read, Internal.NamedRecoveryRead.voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
       Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore] using hanc
+      Proofs.Optimistic.tickStore] using! hanc
   have hFroot : Block.Preceq read.st.core.F
       (Protocol.get_fg_root read.st.core.toHealing.toFG) :=
     Proofs.Records.preceq_get_fg_root_of_F
@@ -126,7 +126,7 @@ theorem namedCandidatePath_of_processedBandDescendant_core
         simpa only [read, Internal.NamedRecoveryRead.voteDutyRead,
           NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom,
-          Protocol.NamedStore.setClock] using
+          Protocol.NamedStore.setClock] using!
             (Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime
               S rho (Protocol.vote_time S.E (s + 1)) w))
   have hmem : ∀ B : Block V,
@@ -138,9 +138,9 @@ theorem namedCandidatePath_of_processedBandDescendant_core
       read.st.core.toHealing.toFG
       (Protocol.voter_processed_block_tree S.E
         read.st.core.toHealing.toFG.toSG.toGoldfishStore read.st.core.s)
-    simp only [Protocol.get_filtered_block_tree_from,
-      Protocol.viable_tree, Protocol.finalized_descendants,
-      Protocol.viable, Finset.mem_filter, decide_eq_true_eq]
+    simp only [Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
+      Protocol.finalized_descendants, Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
     exact ⟨⟨⟨hancestor B (Block.preceq_trans hBC hCD),
       Block.preceq_trans hFroot hrootB⟩,
       D, hDread, Block.preceq_trans hBC hCD, hband⟩, hrootB⟩

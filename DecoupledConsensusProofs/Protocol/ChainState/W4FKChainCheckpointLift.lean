@@ -87,9 +87,9 @@ theorem namedCheckpointAncestors (E : Env V) (cfg : HeightConfig) (B : NamedBloc
       -- the finality branch first: `afterFin` writes the parent's justification
       by_cases hfin : Protocol.finalityReady E tau = true
       · have hafterF : (Protocol.afterFin E tau).F = tau.J := by
-          rw [Protocol.afterFin_F, if_pos hfin]
+          rw [Protocol.afterFin_F, ite_eq_left hfin]
         have hafterHF : (Protocol.afterFin E tau).h_F = tau.h_j := by
-          rw [Protocol.afterFin_h_F, if_pos hfin]
+          rw [Protocol.afterFin_h_F, ite_eq_left hfin]
         have hFout : (derive_named E cfg (.node p s root gv gsv ats proposer)).F =
             (derive_named E cfg p).J := by
           rw [hderive, Protocol.process_height_events_F, hafterF, htauJ]
@@ -101,20 +101,20 @@ theorem namedCheckpointAncestors (E : Env V) (cfg : HeightConfig) (B : NamedBloc
         · by_cases htarget :
               Protocol.targetReady E (Protocol.afterFin E tau) = true
           · refine ⟨entry, w4clNamedExtend s root gv gsv ats proposer hentryLe, ?_, ?_⟩
-            · rw [hderive, Protocol.process_height_events_eq, if_pos htarget,
+            · rw [hderive, Protocol.process_height_events_eq, ite_eq_left htarget,
                 Protocol.advance_height_J, Protocol.afterFin_T_h, htauT, hentryErase]
             · right
-              rw [hderive, Protocol.process_height_events_eq, if_pos htarget,
+              rw [hderive, Protocol.process_height_events_eq, ite_eq_left htarget,
                 Protocol.advance_height_h_j, Protocol.afterFin_h, htauH, hentryHeight]
           · refine ⟨JP, w4clNamedExtend s root gv gsv ats proposer hJPle, ?_, ?_⟩
-            · rw [hderive, Protocol.process_height_events_eq, if_neg htarget]
+            · rw [hderive, Protocol.process_height_events_eq, ite_eq_right htarget]
               split_ifs
               · rw [Protocol.advance_height_J, Protocol.afterFin_J, htauJ, hJPerase]
               · rw [Protocol.afterFin_J, htauJ, hJPerase]
             · have hsame : (derive_named E cfg
                   (.node p s root gv gsv ats proposer)).h_j =
                   (derive_named E cfg p).h_j := by
-                rw [hderive, Protocol.process_height_events_eq, if_neg htarget]
+                rw [hderive, Protocol.process_height_events_eq, ite_eq_right htarget]
                 split_ifs
                 · rw [Protocol.advance_height_h_j, Protocol.afterFin_h_j, htauHj]
                 · rw [Protocol.afterFin_h_j, htauHj]
@@ -124,9 +124,9 @@ theorem namedCheckpointAncestors (E : Env V) (cfg : HeightConfig) (B : NamedBloc
           exact hJPheight
       · have hnot : ¬ Protocol.finalityReady E tau = true := hfin
         have hafterF : (Protocol.afterFin E tau).F = tau.F := by
-          rw [Protocol.afterFin_F, if_neg hnot]
+          rw [Protocol.afterFin_F, ite_eq_right hnot]
         have hafterHF : (Protocol.afterFin E tau).h_F = tau.h_F := by
-          rw [Protocol.afterFin_h_F, if_neg hnot]
+          rw [Protocol.afterFin_h_F, ite_eq_right hnot]
         have hFout : (derive_named E cfg (.node p s root gv gsv ats proposer)).F =
             (derive_named E cfg p).F := by
           rw [hderive, Protocol.process_height_events_F, hafterF, htauF]
@@ -138,20 +138,20 @@ theorem namedCheckpointAncestors (E : Env V) (cfg : HeightConfig) (B : NamedBloc
         by_cases htarget :
             Protocol.targetReady E (Protocol.afterFin E tau) = true
         · refine ⟨entry, w4clNamedExtend s root gv gsv ats proposer hentryLe, ?_, ?_⟩
-          · rw [hderive, Protocol.process_height_events_eq, if_pos htarget,
+          · rw [hderive, Protocol.process_height_events_eq, ite_eq_left htarget,
               Protocol.advance_height_J, Protocol.afterFin_T_h, htauT, hentryErase]
           · right
-            rw [hderive, Protocol.process_height_events_eq, if_pos htarget,
+            rw [hderive, Protocol.process_height_events_eq, ite_eq_left htarget,
               Protocol.advance_height_h_j, Protocol.afterFin_h, htauH, hentryHeight]
         · refine ⟨JP, w4clNamedExtend s root gv gsv ats proposer hJPle, ?_, ?_⟩
-          · rw [hderive, Protocol.process_height_events_eq, if_neg htarget]
+          · rw [hderive, Protocol.process_height_events_eq, ite_eq_right htarget]
             split_ifs
             · rw [Protocol.advance_height_J, Protocol.afterFin_J, htauJ, hJPerase]
             · rw [Protocol.afterFin_J, htauJ, hJPerase]
           · have hsame : (derive_named E cfg
                 (.node p s root gv gsv ats proposer)).h_j =
                 (derive_named E cfg p).h_j := by
-              rw [hderive, Protocol.process_height_events_eq, if_neg htarget]
+              rw [hderive, Protocol.process_height_events_eq, ite_eq_right htarget]
               split_ifs
               · rw [Protocol.advance_height_h_j, Protocol.afterFin_h_j, htauHj]
               · rw [Protocol.afterFin_h_j, htauHj]

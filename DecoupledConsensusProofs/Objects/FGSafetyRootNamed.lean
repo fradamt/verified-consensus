@@ -104,7 +104,7 @@ theorem exists_regime_before_deadline (adm : Admissible S rho)
     exact hreg.seed.exactTick
   rw [← hfilter] at hmem
   apply (action_strictMono S).le_iff_le.mp
-  simpa only [Event.time, hreg.seed.actionTime_eq, decide_eq_true_eq] using
+  simpa only [Event.time, hreg.seed.actionTime_eq, decide_eq_true_eq] using!
     (List.mem_filter.mp hmem).2
 
 /-- From the base deadline through the next action, an honest reader's
@@ -161,7 +161,7 @@ theorem fgRoot_compatible_actionSGBlock_at_read_after_deadline
             Proofs.NamedRuntime.blockInRun_of_ancestor S rho hCrun hJC
           obtain ⟨hTrun, hTheight⟩ := hreg.checkpoint_runBlock adm
           rcases (show Block.Preceq R T.erase ∨ Block.Preceq T.erase R by
-            simpa only [Block.compatible, Bool.or_eq_true] using hRT) with
+            simpa only [Block.compatible, Bool.or_eq_true] using! hRT) with
             hRT | hTR
           · exact hRT
           · have hTJ : NamedBlock.Preceq T J :=
@@ -178,7 +178,7 @@ theorem fgRoot_compatible_actionSGBlock_at_read_after_deadline
             ((Nat.sub_le a.round 1).trans hac))))
       rcases (show Block.Preceq (actionSGBlockAt S rho v c) T.erase ∨
           Block.Preceq T.erase (actionSGBlockAt S rho v c) by
-        simpa only [Block.compatible, Bool.or_eq_true] using hSG) with
+        simpa only [Block.compatible, Bool.or_eq_true] using! hSG) with
         hBT | hTB
       · exact Block.compatible_of_preceq_common hRTpre hBT
       · simp only [Block.compatible, Bool.or_eq_true]
@@ -284,7 +284,7 @@ theorem fgRoot_preceq_previousHead_through_confirmation_after_deadline
             Proofs.NamedRuntime.blockInRun_of_ancestor S rho hCrun hJC
           obtain ⟨hTrun, hTheight⟩ := hreg.checkpoint_runBlock adm
           rcases (show Block.Preceq R T.erase ∨ Block.Preceq T.erase R by
-            simpa only [Block.compatible, Bool.or_eq_true] using hRT) with
+            simpa only [Block.compatible, Bool.or_eq_true] using! hRT) with
             hRT | hTR
           · exact hRT
           · have hTJ : NamedBlock.Preceq T J :=

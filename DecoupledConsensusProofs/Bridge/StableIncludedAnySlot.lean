@@ -257,7 +257,7 @@ theorem stableViableAtDuty_gstZero_of_head
     exact Block.compatible_of_preceq_common (hbelow v hv)
       (by simpa only [NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-        using hroot)
+        using! hroot)
   have hviable := W4StableWrite.proposalViableAtDuty_of_band_and_head S
     hhead hband (by simpa only [hdEq] using hbelow v hv) hfg
   simpa only [W4StableWrite.ProposalViableAtDutyRound,
@@ -524,7 +524,7 @@ theorem available_stableIncluded_any (S : Setup V) :
   have hwriteTime : S.a d ≤ T :=
     nextRoundWrite_before_inclusionDeadline S s
   have hhor : S.a d ≤ rho.horizon :=
-    hwriteTime.trans (by simpa only [T, legacyInterface] using hdeadline)
+    hwriteTime.trans (by simpa only [T, legacyInterface] using! hdeadline)
   have hqhor : S.a q ≤ rho.horizon :=
     (Assembly.a_mono S (Nat.le_add_right q _)).trans hhor
   have hconfHor : Protocol.confirmation_time S.E s ≤ rho.horizon :=
@@ -532,7 +532,7 @@ theorem available_stableIncluded_any (S : Setup V) :
   have hconfirmedHor : (legacyInterface S).proposalTime s +
       (legacyConstants S).confirmationDelay ≤ rho.horizon := by
     simpa [legacyInterface, legacyConstants, Statements.ourConstants,
-      Protocol.confirmation_time, Protocol.proposal_time] using hconfHor
+      Protocol.confirmation_time, Protocol.proposal_time] using! hconfHor
   obtain ⟨B, hHon, _⟩ := available_confirmedIncluded S rho t₀
     hsleep hrecovered s hs hprop hconfirmedHor
   have hB : proposedBlockAt S rho s = some B := hHon.2
@@ -556,7 +556,7 @@ theorem available_stableIncluded_any (S : Setup V) :
             (W4StableWrite.dutyTime_mono S hqd))
       have hret := W4StableWrite.stable_retained_of_duty_from S hcanon
         hduty0 hwrite hdutyToT
-        (by simpa only [T, legacyInterface] using hdeadline) v hv
+        (by simpa only [T, legacyInterface] using! hdeadline) v hv
       simpa [T, legacyInterface, Statements.«instance», Internal.readAt,
         Internal.stableOutputAt] using hret.2
   | @recovered source tPrefix gap extra hrec hcont hslash =>
@@ -574,7 +574,7 @@ theorem available_stableIncluded_any (S : Setup V) :
         simpa [legacyConstants, Statements.ourConstants, recoveryRound, hsum]
       have hstarts : S.hc.opening_slot m < s :=
         anySlot_opening_before_boundary S hmhi
-          (by simpa [hrecover, legacyInterface] using hs)
+          (by simpa [hrecover, legacyInterface] using! hs)
       have hwrite := stableWrite_anySlot_afterGST S hweak.core
         hweak.committees hboot hawake hfinality hphase hstarts
         hprop hB hsq hconfq hhor
@@ -593,7 +593,7 @@ theorem available_stableIncluded_any (S : Setup V) :
             (W4StableWrite.dutyTime_mono S hqd))
       have hret := W4StableWrite.stable_retained_of_duty_from S hcanon
         hdutyStart hwrite hdutyToT
-        (by simpa only [T, legacyInterface] using hdeadline) v hv
+        (by simpa only [T, legacyInterface] using! hdeadline) v hv
       simpa [T, legacyInterface, Statements.«instance», Internal.readAt,
         Internal.stableOutputAt] using hret.2
 

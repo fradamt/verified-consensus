@@ -122,7 +122,7 @@ theorem honestProposal_liveConfirmed_at_action_after_SG_healing_named_of_opening
         (voterHeadAt S rho v start) := by
       simpa only [confirmationInputRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Protocol.voteDutyHead] using hrootHead
+        Protocol.voteDutyHead] using! hrootHead
     simpa only [hheads v hv] using hrootHead'
   have hgenuine := genuineConfirmationAndPreceq_of_postHealingCone
     S adm hcom hstartPos hpostVote hhor hv hcone hroot hanchor hcandidate
@@ -130,7 +130,7 @@ theorem honestProposal_liveConfirmed_at_action_after_SG_healing_named_of_opening
     S adm hcom hstartPos hpostVote hhor hPrun hnames hv hroot hcandidate
   have hvalid : Protocol.VoteSetValid S.E start
       (confLate S.E (confStore S rho v start) start) := by
-    simpa only [confStore, tickStore] using
+    simpa only [confStore, tickStore] using!
       voteSetValid_confLate_stateBeforeTime S adm.toNamedScheduleWellFormed v
         (Protocol.confirmation_time S.E start) start
   have hpath : ∀ C : Block V,
@@ -160,7 +160,7 @@ theorem honestProposal_liveConfirmed_at_action_after_SG_healing_named_of_opening
     (NamedProfile.gradeContract (confirmationInputRead S rho v start).cache)
     S.E S.hc (confStore S rho v start) start rho.honest P.erase
       (by simpa only [confStore_eq_confirmationInputRead, confVotes,
-        confirmationVotes] using hsupport) hvalid hanchor' hpath
+        confirmationVotes] using! hsupport) hvalid hanchor' hpath
   have helig : confEligible S.E (confStore S rho v start) start P.erase = true := by
     rw [← hwalk]
     exact hgenuine.1.genuine
@@ -169,7 +169,7 @@ theorem honestProposal_liveConfirmed_at_action_after_SG_healing_named_of_opening
   change (Protocol.update_confirmation_with
     (NamedProfile.gradeContract (confirmationInputRead S rho v start).cache)
     S.E S.hc (confStore S rho v start) start).live_confirmed = P.erase
-  rw [update_confirmation_with_live_confirmed, hwalk, if_pos helig]
+  rw [update_confirmation_with_live_confirmed, hwalk, ite_eq_left helig]
 
 #print axioms honestProposal_liveConfirmed_at_action_after_SG_healing_named_of_openingProposer
 
@@ -369,7 +369,7 @@ private theorem lifecycleActionBatchAlignedAt_of_commonEndpoint
       S adm hq hpost hprevHor hcut horder hv hw
         (hcarrier w hw) (hroot v hv)
     simpa only [allPhasesCutoff, early, late, Phase.earlyOffset,
-      Phase.lateOffset] using hinput.1
+      Phase.lateOffset] using! hinput.1
   · exact hu
   · exact hmax
   · exact hconfirmed
@@ -563,7 +563,7 @@ theorem honestProposal_actionSelectors_after_SG_healing_named_of_openingProposer
       (Proofs.Records.preceq_get_fg_root_of_F (st :=
         (NamedRun.stateBeforeTime S rho (domain S.E S.hc m .g0) v).st.core.toHealing.toFG)
         hFJ)
-      (by simpa only [Protocol.voteDutyHead, hheads v hv] using hfg)
+      (by simpa only [Protocol.voteDutyHead, hheads v hv] using! hfg)
   have hrootAction : ∀ v ∈ rho.honest,
       Block.Preceq
         (Protocol.get_fg_root
@@ -589,7 +589,7 @@ theorem honestProposal_actionSelectors_after_SG_healing_named_of_openingProposer
     rw [hrootEq]
     simpa only [confirmationInputRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      Protocol.voteDutyHead, hheads v hv] using hconf
+      Protocol.voteDutyHead, hheads v hv] using! hconf
   have hrootActionF : ∀ v ∈ rho.honest,
       Block.Preceq (actionReadAt S rho v m).st.core.F P.erase := by
     intro v hv

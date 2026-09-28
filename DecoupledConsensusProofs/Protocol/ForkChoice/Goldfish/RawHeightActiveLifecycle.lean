@@ -115,7 +115,7 @@ private theorem namedGradeSource_mem_storeBeforeTime
   have hDsource : D = source :=
     lifecycle_runBlock_unique_of_erase_eq
       adm hDrun hsourceRun hDerase
-  simpa only [hDsource] using hDbody
+  simpa only [hDsource] using! hDbody
 
 private theorem actionStore_hMax_le_honestHMaxAt_lifecycle
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)
@@ -204,7 +204,7 @@ theorem activeExactHeightOpeningLifecycle_or_hMaxRise
     have htree :=
       (Proofs.NamedRuntime.stateBeforeTime_invariants S rho read p).1.1.1.1
     have htree' : pre.core.T = pre.bodies.image NamedBlock.erase := by
-      simpa only [pre] using htree
+      simpa only [pre] using! htree
     rw [htree']
     exact Finset.mem_image_of_mem NamedBlock.erase hsourceMem
   by_cases hriseEnd : H < honestHMaxAt S rho endpoint
@@ -265,7 +265,7 @@ theorem activeExactHeightOpeningLifecycle_or_hMaxRise
       simpa only [pre, p, read, proposerReadAt,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom,
-        NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hpay.1
+        NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hpay.1
     have hprevPositive : 0 < q - 1 := by
       by_contra hnonpos
       have hzero : q - 1 = 0 := Nat.eq_zero_of_not_pos hnonpos
@@ -385,7 +385,7 @@ theorem activeExactHeightOpeningLifecycle_or_hMaxRise
       have hrootPre := named_fgRoot_mem_filtered_stateBeforeTime
         S rho read p
       simpa only [root, duty, Protocol.proposerDutyStore,
-        Proofs.Optimistic.tickStore, pre, p, read] using hrootPre
+        Proofs.Optimistic.tickStore, pre, p, read] using! hrootPre
     have hrootMem : root ∈ pre.core.T :=
       Proofs.Records.get_filtered_block_tree_subset _ (by
         simpa only [root, duty, Protocol.proposerDutyStore,
@@ -413,7 +413,7 @@ theorem activeExactHeightOpeningLifecycle_or_hMaxRise
           (proposerReadAt S rho s).st.core.s).toFinset
         ((proposerReadAt S rho s).st.core.s - 1)
       simpa only [root, duty, Protocol.proposerDutyStore,
-        Proofs.Optimistic.tickStore, pre, p, read, proposedParent] using
+        Proofs.Optimistic.tickStore, pre, p, read, proposedParent] using!
           Block.preceq_trans hanchor hhead
     by_cases hsourceRoot : Block.Preceq source.erase root
     · have hsourceRootErase : Block.Preceq
@@ -430,7 +430,7 @@ theorem activeExactHeightOpeningLifecycle_or_hMaxRise
         exact hrootActive
       have hsourceStrict : Block.Prec source.erase rootNamed.erase := by
         simpa only [Block.Prec, Block.prec, hne, decide_false,
-          Bool.not_false, Bool.true_and] using hsourceRootErase
+          Bool.not_false, Bool.true_and] using! hsourceRootErase
       have hrootHeight :
           (Protocol.derive_named S.E S.cfg rootNamed).h = H := by
         apply Nat.le_antisymm
@@ -460,13 +460,13 @@ theorem activeExactHeightOpeningLifecycle_or_hMaxRise
           sourceRunBlock := hsourceRun
           sourceExactHeight := hsourceHeight
           sourceNotActive := by
-            simpa only [duty, s] using hactive
-          root_eq := by simpa only [root] using hrootErase
+            simpa only [duty, s] using! hactive
+          root_eq := by simpa only [root] using! hrootErase
           sourceStrictRoot := hsourceStrict
           rootActive := by
-            simpa only [root, duty, s, hrootErase] using hrootActive
+            simpa only [root, duty, s, hrootErase] using! hrootActive
           rootProcessed := by
-            simpa only [pre, p, read, s] using hrootBody
+            simpa only [pre, p, read, s] using! hrootBody
           rootRunBlock := hrootRun
           rootExactHeight := hrootHeight
           rootExactTarget := hrootTarget
@@ -479,10 +479,10 @@ theorem activeExactHeightOpeningLifecycle_or_hMaxRise
         rcases hquiet with hroot | hfiltered
         · exact hsourceRoot (by
             simpa only [root, duty, Protocol.proposerDutyStore,
-              Proofs.Optimistic.tickStore, pre, p, read] using hroot)
+              Proofs.Optimistic.tickStore, pre, p, read] using! hroot)
         · exact hactive (by
             simpa only [duty, Protocol.proposerDutyStore,
-              Proofs.Optimistic.tickStore, pre, p, read] using hfiltered)
+              Proofs.Optimistic.tickStore, pre, p, read] using! hfiltered)
       rcases (not_finalityFilterNoninterferenceAtRead_iff
           S rho p read source.erase).mp hnotQuiet with
         hinterference | hheight

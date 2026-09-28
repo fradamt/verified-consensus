@@ -97,7 +97,6 @@ private theorem w4cr_action_lt_openingProposal
   refine Int.mul_lt_mul_of_pos_right ?_ S.E.Δ_pos
   have hcast : ((S.hc.opening_slot q : Slot) : Int) + 2 ≤
       ((S.hc.opening_slot r : Slot) : Int) := by exact_mod_cast hos
-  push_cast at hcast ⊢
   omega
 
 /-- The previous round's opening slot is at least one slot below this one. -/
@@ -469,7 +468,7 @@ theorem w4cr_anchorsBelowEndpoint
       (by
         simpa only [Internal.NamedRecoveryRead.confirmationInputRead,
           NamedActionReads.confirmationReadAt, opening_confirmation_time_eq_action]
-          using hroot)
+          using! hroot)
   have hct : Protocol.confirmation_time S.E (S.hc.opening_slot r) = S.a r :=
     (Protocol.a_eq_confirmation_time S.hc S.E r).symm
   have hread : Internal.NamedRecoveryRead.confirmationInputRead S rho v
@@ -1320,7 +1319,7 @@ theorem w4cr_floorActive_atPreviousOpening
       canonicalConeWitness_of_bandDescendant S hQP1 hbodies2 (hband2 _ huh)
     have hmemf := canonicalConeSegment_mem_filtered_of_root_preceq hpc hFJ
       hrootQ hWT hheightW (Block.preceq_self Q.erase) hQW
-    simpa only [Protocol.proposerDutyStore, Proofs.Optimistic.tickStore] using hmemf
+    simpa only [Protocol.proposerDutyStore, Proofs.Optimistic.tickStore] using! hmemf
   · right
     rcases Block.preceq_linear hroot2 hQP1 with h | h
     · exact absurd h hrootQ
@@ -1506,7 +1505,7 @@ theorem w4cr_preparedFgSource_preceq_laterVoterHead_of_carrierWindow
     have hprevSlot : S.hc.opening_slot (r - 1) + 1 ≤ d :=
       (Nat.add_le_add_right
         (Nat.mul_le_mul_right S.hc.R (Nat.sub_le r 1)) 1).trans hd
-    simpa only [hprev2] using actionSGBlock_preceq_voterHeadAt_after_GST
+    simpa only [hprev2] using! actionSGBlock_preceq_voterHeadAt_after_GST
       S adm hcom hbelow hrec hdelay hpost (c := r - 2)
         (Nat.le_sub_of_add_le ((Nat.le_succ (_ + 2)).trans hr))
         (by simpa only [hprev2] using hprevSlot) hhor hu hw
@@ -1540,7 +1539,7 @@ theorem w4cr_canonicalHeightSourceHistoryAt_laterHead_after_SG_healing_named_of_
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using hmem
+      NamedRun.stateBeforeTime] using! hmem
   obtain ⟨N, hN, -⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix S rho
     adm.toNamedAdmissibleCore.toNamedScheduleWellFormed.sorted (S.a k)
   have hQrun : RunBlock S rho Q := by
@@ -1747,7 +1746,7 @@ theorem w4cr_timeoutHistory_of_heightHistory
             simpa only [actionStoreAt, actionReadAt,
               NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
               NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-              NamedRun.stateBeforeTime] using hCmem
+              NamedRun.stateBeforeTime] using! hCmem
           obtain ⟨N', hN', -⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix S rho
             adm.toNamedAdmissibleCore.toNamedScheduleWellFormed.sorted (S.a a.round)
           apply Proofs.Bridges.runBlock_of_stateBefore_mem S hv (i := N')
@@ -1773,7 +1772,7 @@ theorem w4cr_timeoutHistory_of_heightHistory
           simpa only [Protocol.Store.toHealing] using hCfgRoot
         rcases hcase with hnj | ⟨recorded, htarget, hne⟩
         · rw [← hderiveQ]
-          simpa only [hCfgQ] using hnj
+          simpa only [hCfgQ] using! hnj
         · exfalso
           have hrowTargetAtRead :
               (rho.stateBeforeTime S (S.a r) v).Λ.target hh = some recorded := by
@@ -1800,7 +1799,7 @@ theorem w4cr_timeoutHistory_of_heightHistory
             Block.compatible_of_preceq_common hQ1P hCPraw
           have hcompare : Block.Preceq Q1.erase C.erase ∨
               Block.Preceq C.erase Q1.erase := by
-            simpa only [Block.compatible, Bool.or_eq_true] using hcompat
+            simpa only [Block.compatible, Bool.or_eq_true] using! hcompat
           have hTeq :
               (Protocol.derive_named S.E S.cfg Q1).T_h =
                 (Protocol.derive_named S.E S.cfg C).T_h := by
@@ -2377,7 +2376,7 @@ private theorem w4cr_tickIndex_lt_of_time_lt_suffix
     have hevent : Event.tick v t = Event.tick w u :=
       Option.some.inj (hi.symm.trans hj)
     have htime : t = u := by
-      simpa only [Event.time] using congrArg Event.time hevent
+      simpa only [Event.time] using! congrArg Event.time hevent
     exact (ne_of_lt htu) htime
 
 private theorem w4cr_proposedBlock_preceq_of_canonicalSuffixFrom

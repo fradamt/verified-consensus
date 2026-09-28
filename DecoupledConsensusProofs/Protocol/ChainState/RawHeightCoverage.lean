@@ -113,7 +113,7 @@ private theorem named_mem_progress_foldl_of_matching
       rcases List.mem_cons.mp ha with rfl | htail
       · apply named_progress_subset_foldl
         rw [(TargetedTimeoutBinding.process_height_fields sigma a).1,
-          if_pos hmatch]
+          ite_eq_left hmatch]
         exact Finset.mem_insert_self _ _
       · apply ih _ htail
         have hfields := TimeoutBindingDefaults.process_context_fields
@@ -173,9 +173,9 @@ theorem named_proposedBlock_height_eq_succ_of_actionCoverage
           apply named_mem_progress_foldl_of_matching rows
             ({sigma with s := block.erase.slot}) hchild
           rcases hpair with htarget | htimeout
-          · simpa [htarget, NamedHeightPair.matchesEntry, sigma] using
+          · simpa [htarget, NamedHeightPair.matchesEntry, sigma] using!
               And.intro hPheight.symm hPtarget.symm
-          · simpa [htimeout, NamedHeightPair.matchesEntry, sigma] using
+          · simpa [htimeout, NamedHeightPair.matchesEntry, sigma] using!
               And.intro hPheight.symm hPtarget.symm
       have hmature' : folded.T_h.slot + S.cfg.timeoutDelay ≤ folded.s := by
         have hm := hmature block hB parent' rfl
@@ -187,7 +187,7 @@ theorem named_proposedBlock_height_eq_succ_of_actionCoverage
         rw [show folded.T_h = sigma.T_h by exact hfields.2.2.1]
         rw [show folded.s = block.erase.slot by
           exact named_foldl_s rows ({sigma with s := block.erase.slot})]
-        simpa only [block, Proofs.NamedWire.erase_slot, hslot] using hm
+        simpa only [block, Proofs.NamedWire.erase_slot, hslot] using! hm
       change (Protocol.process_height_events S.E S.cfg folded).h = H + 1
       rw [NjGap.advances_of_progress_quorum S.E S.cfg hmature' hquorum]
       have hfields := NamedDerivationGeometry.fold_context_fields
@@ -211,13 +211,13 @@ private theorem roundActionFinalityHeight_lt_actionHMax_named
     simpa only [ast, actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using
+      NamedRun.stateBeforeTime] using!
         Proofs.NamedStoreBridge.justifiedInTree_stateBeforeTime S rho (S.a r) v
   have hF : ast.st.core.F ∈ ast.st.core.T := by
     simpa only [ast, actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using
+      NamedRun.stateBeforeTime] using!
         Proofs.NamedStoreBridge.finalizedInTree_stateBeforeTime S rho (S.a r) v
   have hpair' :
       (Protocol.NamedActions.round_action_with
@@ -225,7 +225,7 @@ private theorem roundActionFinalityHeight_lt_actionHMax_named
         (S.node v) ast.st.core.toHealing ast.record).2.finality_pair =
           some ⟨H, T⟩ := by
     simpa only [ast, actionAttestationAt, actionStoreAt, actionReadAt,
-      Protocol.NamedDuties.attest_with] using hpair
+      Protocol.NamedDuties.attest_with] using! hpair
   obtain ⟨Hd, hHd, hHdHeight⟩ :=
     round_action_head_mem_frame ast.cache S.E S.hc (S.node v)
       ast.st.core ast.record hJ hF hpair'
@@ -247,7 +247,7 @@ private theorem roundActionFinalityHeight_lt_actionHMax_named
     simpa only [ast, actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using hnoPre
+      NamedRun.stateBeforeTime] using! hnoPre
   have hbelowPre :=
     NamedJustificationBound.justificationBelowMax_stateBeforeTime
       S rho (S.a r) v
@@ -255,7 +255,7 @@ private theorem roundActionFinalityHeight_lt_actionHMax_named
     simpa only [ast, actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using hbelowPre
+      NamedRun.stateBeforeTime] using! hbelowPre
   exact (hDHeight ▸ hno D hD).trans_lt hbelow
 
 private theorem recordLock_finalityEmission_before_named
@@ -382,7 +382,7 @@ private theorem recordLockHeight_lt_actionHMax_named
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using
+      NamedRun.stateBeforeTime] using!
         congrArg (fun x : NodeState V => x.st.core.h_max) (congrFun hn v)
   rw [hcurrentEq]
   exact hlocal.trans_le hmono
@@ -419,7 +419,7 @@ private theorem actionBody_runBlock_coverage
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using hD
+      NamedRun.stateBeforeTime] using! hD
   obtain ⟨i, hi, -⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix S rho
     adm.toNamedAdmissibleCore.toNamedScheduleWellFormed.sorted (S.a r)
   have hDi : D ∈ (rho.stateBefore S i v).st.bodies := by
@@ -452,9 +452,9 @@ theorem actionAttestationAt_pair_or_hMaxRise
     S adm.toNamedAdmissibleCore hr hhor hforms hv hactive
   have hsource' : actionFGSource S ast = some Q := by
     have hround : S.hc.round_of ast.st.core.toHealing.s = r := by
-      simpa only [ast, actionStoreAt, actionReadAt] using
+      simpa only [ast, actionStoreAt, actionReadAt] using!
         Proofs.HealingLemmas.round_of_slotOf_a S r
-    simpa only [PhaseGrades.nodeFGSource, actionFGSource, ast, hround] using
+    simpa only [PhaseGrades.nodeFGSource, actionFGSource, ast, hround] using!
       hsource
   obtain ⟨DQ, hDQ, hDQerase, hDQderive, -⟩ :=
     NamedActionSources.action_witness S rho v r Q hsource'
@@ -522,12 +522,12 @@ theorem actionAttestationAt_pair_or_hMaxRise
       ast.st.core.toHealing ast.record
     rcases hcases with hnone | ⟨Q', hQ', hresult⟩
     · have hnone' : actionFGSource S ast = none := by
-        simpa only [actionFGSource, ast] using hnone.1
+        simpa only [actionFGSource, ast] using! hnone.1
       rw [hsource'] at hnone'
       contradiction
     · have hQeq : Q' = Q := by
         have hQ'' : actionFGSource S ast = some Q' := by
-          simpa only [actionFGSource, ast] using hQ'
+          simpa only [actionFGSource, ast] using! hQ'
         rw [hsource'] at hQ''
         exact Option.some.inj hQ''.symm
       subst Q'
@@ -540,7 +540,7 @@ theorem actionAttestationAt_pair_or_hMaxRise
           change own_lock ast.record.legacy (ast.st.core.σ Q).h
             (actionAttestationAt S rho v r).finality_pair = some locked
           simpa only [actionAttestationAt, ast, actionStoreAt,
-            Protocol.NamedDuties.attest_with] using hown
+            Protocol.NamedDuties.attest_with] using! hown
         apply ownLockHeight_lt_actionHMax_named S adm v r
         simpa only [ast, actionStoreAt, actionReadAt,
           NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
@@ -683,7 +683,7 @@ private theorem namedTarget_mem_foldl {a : NamedAttestation V} :
           rw [hpair]
           simp [NamedHeightPair.matchesEntry,
             NamedHeightPair.properTarget]
-        rw [if_pos htest]
+        rw [ite_eq_left htest]
         exact Finset.mem_insert_self _ _
       · apply ih _ htail
         have hfields := TimeoutBindingDefaults.process_context_fields
@@ -948,7 +948,7 @@ private theorem exactRow_mem_namedProcessed
     simpa only [st, proposerReadAt,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using!
         (Proofs.NamedRuntime.stateBeforeTime_invariants S rho
           (Protocol.proposal_time S.E s)
           (S.E.proposer s)).1.1.1.2.2.2.1
@@ -960,7 +960,7 @@ private theorem exactRow_mem_namedProcessed
     simpa only [st, Protocol.proposerDutyStore, proposerReadAt,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using!
         hprocessed
   obtain ⟨b, hb, hberase⟩ := List.mem_map.mp hmemMap
   have hbFlat := hb
@@ -970,7 +970,7 @@ private theorem exactRow_mem_namedProcessed
     simpa only [st, proposerReadAt,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using!
         Proofs.NamedStoreBridge.sgRowRounds_stateBeforeTime S rho
           (Protocol.proposal_time S.E s) (S.E.proposer s)
   have hbr : b.round = k := hrounds k b hbk
@@ -986,7 +986,7 @@ private theorem exactRow_mem_namedProcessed
     simpa only [st, proposerReadAt,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hbOwn
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hbOwn
   have hbval : b.val_index = a.val_index :=
     congrArg CombinedAttestation.val_index hberase
   have hbHon : b.val_index ∈ rho.honest := by
@@ -1088,7 +1088,7 @@ theorem actionAttestationAt_coveredAtProposal
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using hCbody
+      NamedRun.stateBeforeTime] using! hCbody
   have hnotC := emittedAttestation_not_mem_named_chain_before
     S adm hv hemitV hCpre
   have hprocessed := honestAttestation_mem_processedAtProposal_after_gst
@@ -1197,7 +1197,7 @@ theorem actionAttestationAt_coveredAtProposal_of_chainRows
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using hCbody
+      NamedRun.stateBeforeTime] using! hCbody
   have hnotC := emittedAttestation_not_mem_named_chain_before
     S adm hv hemitV hCpre
   left

@@ -64,11 +64,11 @@ theorem supports_or_opposes {Key Blk : Type*} (c : Key → Blk → Prop)
   · by_cases hclean : CleanFrom raw u.round
     · by_cases hsweep : ∀ x ∈ late, u.round < x.round → c x.key B
       · exact Or.inl ⟨u, hu, hmax, hcov, hclean, hsweep⟩
-      · push_neg at hsweep
+      · push Not at hsweep
         obtain ⟨x, hx, hlt, hncov⟩ := hsweep
         exact Or.inr (Or.inl ⟨x, hx, fun v hv => le_trans (hmax v hv) hlt.le, hncov⟩)
     · unfold CleanFrom at hclean
-      push_neg at hclean
+      push Not at hclean
       obtain ⟨x, hx, y, hy, hle, heq, hkey⟩ := hclean
       exact Or.inr (Or.inr ⟨x, hx, y, hy, fun v hv => le_trans (hmax v hv) hle, heq, hkey⟩)
   · exact Or.inr (Or.inl ⟨u, hsub hu, hmax, hcov⟩)
@@ -81,7 +81,7 @@ theorem q20_graded_has_honest_supporter (E : Env V) (hc : Protocol.HealConfig) :
     Internal.PhaseGrades.Q20_graded_has_honest_supporter E hc := by
   intro gv F Hon r B p hmaj hgrade
   by_contra hno
-  push_neg at hno
+  push Not at hno
   -- No honest validator is a positive supporter: unpacking `positive` for one
   -- would hand back exactly the witnesses `hno` rules out.
   have hnopos : ∀ v ∈ Hon,

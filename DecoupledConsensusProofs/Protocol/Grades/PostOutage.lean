@@ -211,7 +211,7 @@ theorem advance_confirmed_retains_of_comparable
     (hG : Block.Preceq P G ∨ Block.Preceq G P) :
     Block.Preceq P (Protocol.advance_confirmed old G) := by
   apply Proofs.ConfirmationPolicy.prefix_preceq_advance_of_compatible hold
-  simpa only [Block.compatible, Bool.or_eq_true] using hG
+  simpa only [Block.compatible, Bool.or_eq_true] using! hG
 
 /-- A comparable stable root preserves a covering old stable record. -/
 theorem confirmation_write_stable_of_comparable
@@ -249,7 +249,7 @@ theorem duty_root_comparable_of_frame
       simp only [hactive] at hG
       have hEq := Option.some_inj.mp hG
       subst G
-      simpa only [Block.compatible, Bool.or_eq_true] using hfg
+      simpa only [Block.compatible, Bool.or_eq_true] using! hfg
   | some A =>
       simp only [hactive] at hG
       have hEq := Option.some_inj.mp hG
@@ -297,7 +297,7 @@ theorem confirmationDutyRoot_above_of_postOutageG2
         (by simpa only [Protocol.Store.toHealing] using hFJ)
     have hPFn : Block.Preceq P n.st.core.F := by
       simpa only [n, NamedActionReads.confirmationReadAt,
-        NamedActionReads.confirmationReadFrom] using hPFnow
+        NamedActionReads.confirmationReadFrom] using! hPFnow
     exact Or.inl (Block.preceq_trans hPFn
       (Block.preceq_trans hFroot (fgRoot_preceq_dutyStableRoot S n hG)))
   · have hFstable : Block.Preceq
@@ -321,20 +321,20 @@ theorem confirmationDutyRoot_above_of_postOutageG2
         (NamedRun.stateBeforeTime S rho
           (domain S.E S.hc r .g2) w).st.core.F S.hc.η_SG r
         (early S.E S.hc r .g2) (late S.E S.hc r .g2) = some raw := by
-      simpa only [postOutageFrozenG2At, postOutageReadAt] using hraw
+      simpa only [postOutageFrozenG2At, postOutageReadAt] using! hraw
     have hbase := FrameCompleted.frame_g2_completed_in_round
       S rho core w hw r hr u ht hta hhor
     have hframe := frame_phase_prepared_eq S rho w r .g2 u hround _ hbase
     rw [hfreeze] at hframe
     have hnround : S.hc.round_of n.st.core.s = r := by
       simpa only [n, NamedActionReads.confirmationReadAt,
-        NamedActionReads.confirmationReadFrom] using hround
+        NamedActionReads.confirmationReadFrom] using! hround
     have hframe' : (DecoupledConsensusModel.Protocol.readFrame n.cache
         n.st.core.toHealing r).g2 =
         some (some (DecoupledConsensusModel.Protocol.clipGrade raw
           (NamedRun.stateBeforeTime S rho u w).st.core.F)) := by
       simpa only [n, NamedActionReads.confirmationReadAt,
-        NamedActionReads.confirmationReadFrom] using hframe
+        NamedActionReads.confirmationReadFrom] using! hframe
     apply duty_root_comparable_of_frame S n
     · rw [hnround]
       exact hframe'
@@ -409,13 +409,13 @@ theorem PostOutageAbove.anchor_at_action_read
       (NamedActionReads.confirmationReadAt S rho w (S.a r)).st.core.toHealing.toFG := by
     simpa only [NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadAt,
-      Protocol.NamedDuties.update_confirmation_with] using hPtree
+      Protocol.NamedDuties.update_confirmation_with] using! hPtree
   have hanchor := h.anchor_at_prepared_read S rho P r core w hw (S.a r) hr
     (Proofs.HealingLemmas.round_of_slotOf_a S r) (q10_domain_lt_a S r .g1) le_rfl
     ((q10_domain_lt_a S r .g1).le.trans hhor) hPtree'
   simpa only [NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
     NamedActionReads.confirmationReadAt, nodeAnchor, nodeRead,
-    Protocol.NamedDuties.update_confirmation_with] using hanchor
+    Protocol.NamedDuties.update_confirmation_with] using! hanchor
 
 /-- The action SG carrier is above `P`. The finalized arm uses the FG-root
 floor. The raw-root arm projects the saved G2 root into the action tree. -/
@@ -432,7 +432,7 @@ theorem PostOutageAbove.actionSGBlock_floor
     simpa only [action, NamedActionReads.actionReadAt,
       NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
       NamedActionReads.preparedCache, Protocol.NamedStore.setClock,
-      Protocol.NamedDuties.update_confirmation_with] using hPtree
+      Protocol.NamedDuties.update_confirmation_with] using! hPtree
   rcases h.1 w hw with hPF | ⟨raw, hfreeze, hPraw⟩
   · have hPFaction : Block.Preceq P action.st.core.F := by
       exact Block.preceq_trans hPF
@@ -442,13 +442,13 @@ theorem PostOutageAbove.actionSGBlock_floor
       simpa only [action, NamedActionReads.actionReadAt,
         NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
         NamedActionReads.preparedCache, Protocol.NamedStore.setClock,
-        Protocol.NamedDuties.update_confirmation_with] using
+        Protocol.NamedDuties.update_confirmation_with] using!
         Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime S rho (S.a r) w
     exact Block.preceq_trans hPFaction
       (Block.preceq_trans
         (Proofs.Records.preceq_get_fg_root_of_F (st := action.st.core.toHealing.toFG)
           (by simpa only [Protocol.Store.toHealing] using hFJaction))
-        (by simpa only [Proofs.HealingSurface.actionStoreAt, action] using
+        (by simpa only [Proofs.HealingSurface.actionStoreAt, action] using!
           Proofs.HealingSurface.actionFGRoot_preceq_actionSGBlockAt S rho w r))
   · have hfreeze' : DecoupledConsensusModel.Protocol.freezeRoot S.E
         (NamedRun.stateBeforeTime S rho
@@ -456,7 +456,7 @@ theorem PostOutageAbove.actionSGBlock_floor
         (NamedRun.stateBeforeTime S rho
           (domain S.E S.hc r .g2) w).st.core.F S.hc.η_SG r
         (early S.E S.hc r .g2) (late S.E S.hc r .g2) = some raw := by
-      simpa only [postOutageFrozenG2At, postOutageReadAt] using hfreeze
+      simpa only [postOutageFrozenG2At, postOutageReadAt] using! hfreeze
     obtain ⟨root, hframe, hProot⟩ :=
       Proofs.HealingSurface.frameG2_preceq_of_freezeRoot_prepared
         S rho core w hw r hr (S.a r) (Proofs.HealingLemmas.round_of_slotOf_a S r)
@@ -467,7 +467,7 @@ theorem PostOutageAbove.actionSGBlock_floor
       simpa only [action, NamedActionReads.actionReadAt,
         NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
         NamedActionReads.preparedCache, Protocol.NamedStore.setClock,
-        Protocol.NamedDuties.update_confirmation_with] using hframe
+        Protocol.NamedDuties.update_confirmation_with] using! hframe
     obtain ⟨A, hA, hPA⟩ := activePrefix_covers hPtree hProot
     have hQ : Internal.PhaseGrades.nodeQ2 S action r = some A := by
       simp only [Internal.PhaseGrades.nodeQ2, Internal.PhaseGrades.nodeRead,
@@ -476,12 +476,12 @@ theorem PostOutageAbove.actionSGBlock_floor
         DecoupledConsensusModel.Protocol.grade2Block, hframeAction, Option.bind_some, id_eq]
       have hclosed : DecoupledConsensusModel.Protocol.allClosed
           (DecoupledConsensusModel.Protocol.readFrame action.cache action.st.core.toHealing r) = true := by
-        simpa only [action] using
+        simpa only [action] using!
           Proofs.HealingSurface.actionFrame_allClosed S core hw hr hhor
-      rw [if_pos hclosed]
+      rw [ite_eq_left hclosed]
       simpa only [action] using hA
     exact Proofs.HealingSurface.preceq_actionSGBlockAt_of_actionQ2 S core hw hr hhor
-      (by simpa only [action] using hQ) hPA
+      (by simpa only [action] using! hQ) hPA
 
 /-- Every honest attestation emitted in the certified round confirms the
 action SG carrier, which is above `P`. -/
@@ -529,7 +529,7 @@ theorem PostOutageAbove.emitted_vote_floor_of_finalized_or_active
           (by
             exact Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime
               S rho (S.a r) w))
-        (by simpa only [Proofs.HealingSurface.actionStoreAt] using
+        (by simpa only [Proofs.HealingSurface.actionStoreAt] using!
           Proofs.HealingSurface.actionFGRoot_preceq_actionSGBlockAt S rho w r))
     have hawake : (S.node w).awake r = true := by
       simpa only [haround] using Proofs.Optimistic.emits_attest_awake S hemit
@@ -566,7 +566,7 @@ theorem PostOutageAbove.frameG2_floor_at_read
         (NamedRun.stateBeforeTime S rho (domain S.E S.hc r .g2) w).st.core.toHealing.gradeView
         (NamedRun.stateBeforeTime S rho (domain S.E S.hc r .g2) w).st.core.F S.hc.η_SG r
         (early S.E S.hc r .g2) (late S.E S.hc r .g2) = some raw := by
-      simpa only [postOutageFrozenG2At] using hfreeze
+      simpa only [postOutageFrozenG2At] using! hfreeze
     obtain ⟨root', hroot', hProot⟩ := Proofs.HealingSurface.frameG2_preceq_of_freezeRoot
       S rho core w hw r hr t ht hta hhor hPtree hfreeze' hPraw
     have heq : root' = root :=
@@ -676,7 +676,7 @@ theorem PostOutageAbove.stable_at_read_of_write_floors
     simp only [Block.compatible, Bool.or_eq_true]
     exact Or.inr (Block.preceq_trans hFstop hFleP)
   exact Proofs.HealingSurface.stable_preceq_of_stable_writes_above_at_time S rho w hi hj hij
-    (by simpa only [start] using
+    (by simpa only [start] using!
       PostOutageAbove.stable_at_relativeG2 S rho P r h w hw)
     (fun k u hk hkj he hpos hcut G hG => hwrite k u he hpos hcut G hG) hcompat
 
@@ -856,7 +856,7 @@ theorem stable_above_P_through_succ_of_floor
           S rho stop w
         have hFroot := Proofs.Records.preceq_get_fg_root_of_F
           (st := (NamedRun.stateBeforeTime S rho stop w).st.core.toHealing.toFG)
-          (by simpa only [Protocol.Store.toHealing] using hFJ)
+          (by simpa only [Protocol.Store.toHealing] using! hFJ)
         have hroot' : Block.Preceq P
             (Protocol.get_fg_root
               (NamedRun.stateBeforeTime S rho stop w).st.core.toHealing.toFG) := by

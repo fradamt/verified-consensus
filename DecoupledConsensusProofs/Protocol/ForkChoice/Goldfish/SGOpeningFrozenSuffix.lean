@@ -39,11 +39,10 @@ theorem frozenVoterCandidateTree_subset_filtered
     Proofs.Optimistic.voter_candidate_tree E st ⊆
       Protocol.get_filtered_block_tree st.toFG := by
   intro B hB
-  simp only [Proofs.Optimistic.voter_candidate_tree,
-    Protocol.get_filtered_block_tree,
-    Protocol.get_filtered_block_tree_from,
-    Protocol.viable_tree, Protocol.finalized_descendants,
-    Protocol.viable, Finset.mem_filter, decide_eq_true_eq] at hB ⊢
+  simp only [Proofs.Optimistic.voter_candidate_tree, Protocol.get_filtered_block_tree,
+    Protocol.get_filtered_block_tree_from, Protocol.viable_tree, Protocol.finalized_descendants,
+    Finset.mem_filter] at hB ⊢
+  simp only [Protocol.viable, decide_eq_true_eq] at hB ⊢
   obtain ⟨⟨⟨hBprocessed, hFB⟩, W, hWprocessed, hBW, hheight⟩,
     hroot⟩ := hB
   have hBT : B ∈ st.T := by
@@ -141,10 +140,9 @@ private theorem voterCandidate_on_proposalSegment
       Proofs.Optimistic.voter_candidate_tree S.E target.toHealing := rfl
   rw [htree] at hproposal ⊢
   have hdata := hproposal
-  simp only [Proofs.Optimistic.voter_candidate_tree,
-    Protocol.get_filtered_block_tree_from,
-    Protocol.viable_tree, Protocol.finalized_descendants,
-    Protocol.viable, Finset.mem_filter, decide_eq_true_eq] at hdata ⊢
+  simp only [Proofs.Optimistic.voter_candidate_tree, Protocol.get_filtered_block_tree_from,
+    Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter] at hdata ⊢
+  simp only [Protocol.viable, decide_eq_true_eq] at hdata ⊢
   obtain ⟨⟨⟨hPprocessed, _hFP⟩, W, hWprocessed, hPW, hheight⟩,
     _hrootP⟩ := hdata
   have hPT : P.erase ∈ target.T := by
@@ -270,7 +268,7 @@ private theorem frozenSuffix_fgRoot_preceq_proposerAnchor
         (proposerReadAt S rho s).st.core.toHealing.toFG := by
     simpa only [proposerReadAt, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock] using
+      Protocol.NamedStore.setClock] using!
       named_fgRoot_mem_filtered_stateBeforeTime S rho
         (Protocol.proposal_time S.E s) (S.E.proposer s)
   exact Proofs.Records.preceq_get_fg_root_of_mem_filtered
@@ -355,7 +353,7 @@ private theorem stampedBefore_of_voterProcessed_not_proposalAncestor
   simp only [Protocol.voter_processed_block_tree, Finset.mem_filter] at hdata
   rcases hdata.2 with hstamp | hcurrent
   · simpa only [target, Proofs.Optimistic.toHealing_slot,
-      Proofs.Optimistic.voteDutyStore_slot] using hstamp
+      Proofs.Optimistic.voteDutyStore_slot] using! hstamp
   · obtain ⟨Q, hQ, hZQ⟩ := hcurrent
     have hproposalFull : P.erase ∈
         Protocol.get_filtered_block_tree target.toHealing.toFG :=
@@ -367,7 +365,7 @@ private theorem stampedBefore_of_voterProcessed_not_proposalAncestor
       (Protocol.vote_time S.E s)
     have hQprefix : Q ∈ (rho.stateBefore S n v).st.core.T := by
       simpa only [target, Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-        Proofs.Optimistic.tickStore, Run.storeBeforeTime, hn] using hQ.1
+        Proofs.Optimistic.tickStore, Run.storeBeforeTime, hn] using! hQ.1
     have hproposalPrefix : P.erase ∈ (rho.stateBefore S n v).st.core.T := by
       simpa only [target, Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
         Proofs.Optimistic.tickStore, Run.storeBeforeTime, hn] using hproposalT
@@ -377,7 +375,7 @@ private theorem stampedBefore_of_voterProcessed_not_proposalAncestor
       unique_slot_block_in_store_core S adm hs hprop hQprefix hproposalPrefix
         (by simpa only [target, Proofs.Optimistic.toHealing_slot,
           Proofs.Optimistic.voteDutyStore_slot] using hQ.2) hPslot
-    exact False.elim (hnot (by simpa only [hQeq] using hZQ))
+    exact False.elim (hnot (by simpa only [hQeq] using! hZQ))
 
 /-- A block above the proposer's FG root closes the honest proposer's
 finalized-delivery guard at every prefix before the proposal read. -/
@@ -438,7 +436,7 @@ private theorem stampedVoterBlock_mem_proposerDuty_afterGST
     have hvisible := Protocol.genesis_mem_and_stamp_storeBeforeTime S
       hsch (S.E.proposer s) (Protocol.proposal_time S.E s)
         (Protocol.proposal_time S.E s)
-    simpa only [Protocol.proposerDutyStore, Proofs.Optimistic.tickStore] using
+    simpa only [Protocol.proposerDutyStore, Proofs.Optimistic.tickStore] using!
       hvisible.1
   · obtain ⟨n, hn, -⟩ := Proofs.Bridges.stateBeforeTime_eq_stateBefore S hsch
       (Protocol.vote_time S.E s)
@@ -548,10 +546,9 @@ private theorem targetChild_mem_sourceTree_of_frozenProposal
     have hHcandidate := proposedParent_mem_namedWalkSourceTree S rho s
     exact frozenSuffix_path_of_candidate S rho hHcandidate hrootC hCH
   · have hdata := hCfrozen
-    simp only [Proofs.Optimistic.voter_candidate_tree,
-      Protocol.get_filtered_block_tree_from,
-      Protocol.viable_tree, Protocol.finalized_descendants,
-      Protocol.viable, Finset.mem_filter, decide_eq_true_eq] at hdata
+    simp only [Proofs.Optimistic.voter_candidate_tree, Protocol.get_filtered_block_tree_from,
+      Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter] at hdata
+    simp only [Protocol.viable, decide_eq_true_eq] at hdata
     obtain ⟨⟨⟨hCprocessed, _hFC⟩, W, hWprocessed, hCW, hheightTarget⟩,
       _hrootC⟩ := hdata
     have hWT : W ∈ target.T := by
@@ -598,10 +595,9 @@ private theorem targetChild_mem_sourceTree_of_frozenProposal
         (Proofs.Records.preceq_get_fg_root_of_F (st := source.toHealing.toFG) hFJ)
         hrootC
     change C ∈ Protocol.get_filtered_block_tree source.toHealing.toFG
-    simp only [Protocol.get_filtered_block_tree,
-      Protocol.get_filtered_block_tree_from,
-      Protocol.viable_tree, Protocol.finalized_descendants,
-      Protocol.viable, Finset.mem_filter, decide_eq_true_eq]
+    simp only [Protocol.get_filtered_block_tree, Protocol.get_filtered_block_tree_from,
+      Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
     rcases hviability with hthreshold | hpivotFloor
     · have hheight : source.h_max - 1 ≤ (source.σ W).h := by
         calc
@@ -1028,17 +1024,17 @@ private theorem frozenSuffix_voterSupport_subset_voterView
   intro B hB
   refine Proofs.Optimistic.carried_support_subset_of_mem_T_core S adm v n ?_
   simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-    Proofs.Optimistic.tickStore, Run.storeBeforeTime, hn] using hB
+    Proofs.Optimistic.tickStore, Run.storeBeforeTime, hn] using! hB
 
 /-- A filtered-tree candidate is above its store's finalized block. -/
 private theorem frozenSuffix_F_preceq_of_mem_filtered
     (st : Protocol.Store V) {C : Block V}
     (hC : C ∈ Protocol.get_filtered_block_tree st.toHealing.toFG) :
     Block.Preceq st.F C := by
-  simp only [Protocol.get_filtered_block_tree,
-    Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
-    Protocol.finalized_descendants, Protocol.viable,
-    Finset.mem_filter, decide_eq_true_eq, Protocol.Store.toHealing] at hC
+  simp only [Protocol.get_filtered_block_tree, Protocol.get_filtered_block_tree_from,
+    Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter] at hC
+  simp only [Protocol.viable, decide_eq_true_eq] at hC
+  simp only [Protocol.Store.toHealing] at hC
   exact hC.1.1.2
 
 /-- The delivery guard from a candidate below the named block. -/
@@ -1342,7 +1338,7 @@ theorem namedProposalCandidateScoreBridge_afterGST_core
       rw [Finset.mem_filter] at hB huB
       have hBprefix' : B ∈ (rho.stateBefore S n v).st.core.T := by
         simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-          Proofs.Optimistic.tickStore, Run.storeBeforeTime, hn] using hB.1
+          Proofs.Optimistic.tickStore, Run.storeBeforeTime, hn] using! hB.1
       have hBeq : B = P.erase :=
         unique_slot_block_in_store_core S adm hs hprop
           hBprefix' hBprefix hB.2 hPslot
@@ -1359,7 +1355,7 @@ theorem namedProposalCandidateScoreBridge_afterGST_core
       have huResolvedSource : Protocol.resolved
           (Protocol.proposerDutyStore S rho s).T u = true := by
         exact of_decide_eq_true (by
-          simpa only [Protocol.Store.toHealing] using hmem.2)
+          simpa only [Protocol.Store.toHealing] using! hmem.2)
       obtain ⟨H, hfindSource⟩ : ∃ H, Block.find?
           (Protocol.proposerDutyStore S rho s).T u.head = some H := by
         cases hfind : Block.find? (Protocol.proposerDutyStore S rho s).T u.head with
@@ -1499,10 +1495,9 @@ private theorem voterCandidate_on_proposalSegment
   let target:= Proofs.Optimistic.voteDutyStore S rho v s
   let pre:= rho.storeBeforeTime S v (Protocol.vote_time S.E s)
   have hdata:= hproposal
-  simp only [Proofs.Optimistic.voter_candidate_tree,
-    Protocol.get_filtered_block_tree_from,
-    Protocol.viable_tree, Protocol.finalized_descendants,
-    Protocol.viable, Finset.mem_filter, decide_eq_true_eq] at hdata ⊢
+  simp only [Proofs.Optimistic.voter_candidate_tree, Protocol.get_filtered_block_tree_from,
+    Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter] at hdata ⊢
+  simp only [Protocol.viable, decide_eq_true_eq] at hdata ⊢
   obtain ⟨⟨⟨hPprocessed, _hFP⟩, W, hWprocessed, hPW, hheight⟩,
     _hrootP⟩:= hdata
   have hPT: proposedBlock S rho s ∈ target.T:= by
@@ -1792,10 +1787,9 @@ private theorem targetChild_mem_sourceTree_of_frozenProposal
     simpa only [proposalWalkSourceTree, source] using
       (proposalPath_of_candidate S adm hHcandidate C hanchorC hanchorNe hCH)
   · have hdata:= hCfrozen
-    simp only [Proofs.Optimistic.voter_candidate_tree,
-      Protocol.get_filtered_block_tree_from,
-      Protocol.viable_tree, Protocol.finalized_descendants,
-      Protocol.viable, Finset.mem_filter, decide_eq_true_eq] at hdata
+    simp only [Proofs.Optimistic.voter_candidate_tree, Protocol.get_filtered_block_tree_from,
+      Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter] at hdata
+    simp only [Protocol.viable, decide_eq_true_eq] at hdata
     obtain ⟨⟨⟨hCprocessed, _hFC⟩, W, hWprocessed, hCW, hheightTarget⟩,
       _hrootC⟩:= hdata
     have hWT: W ∈ target.T:= by
@@ -1872,10 +1866,9 @@ private theorem targetChild_mem_sourceTree_of_frozenProposal
         (Proofs.Records.preceq_get_fg_root_of_F (st:= source.toHealing.toFG) hFJ)
         hrootC
     change C ∈ Protocol.get_filtered_block_tree source.toHealing.toFG
-    simp only [Protocol.get_filtered_block_tree,
-      Protocol.get_filtered_block_tree_from,
-      Protocol.viable_tree, Protocol.finalized_descendants,
-      Protocol.viable, Finset.mem_filter, decide_eq_true_eq]
+    simp only [Protocol.get_filtered_block_tree, Protocol.get_filtered_block_tree_from,
+      Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
     rcases hviability with hthreshold | hpivotFloor
     · have hheight: source.h_max - 1 ≤ (source.σ W).h:= by
         calc
@@ -2215,11 +2208,10 @@ theorem frozenProposalSuffixInputs_of_commonExactHeightCap
     exact (Nat.sub_le floor 1).trans hproposalHeight
   have hproposalCandidate: proposedBlock S rho s ∈
       Proofs.Optimistic.voter_candidate_tree S.E target.toHealing:= by
-    simp only [Proofs.Optimistic.voter_candidate_tree,
-      Protocol.get_filtered_block_tree_from,
-      Protocol.viable_tree, Protocol.finalized_descendants,
-      Protocol.viable, Finset.mem_filter, decide_eq_true_eq,
-      Protocol.Store.toHealing]
+    simp only [Proofs.Optimistic.voter_candidate_tree, Protocol.get_filtered_block_tree_from,
+      Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
+    simp only [Protocol.Store.toHealing]
     exact ⟨⟨⟨hproposalProcessed, hfinalizedProposal⟩,
       proposedBlock S rho s, hproposalProcessed, Block.preceq_self _,
       hproposalFrontier⟩, hrootProposal⟩

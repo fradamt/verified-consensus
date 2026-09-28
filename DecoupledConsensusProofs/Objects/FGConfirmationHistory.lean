@@ -63,7 +63,7 @@ private theorem actionBody_runBlock
   have hDpre : D ∈ (rho.stateBeforeTime S (S.a r) v).st.bodies := by
     simpa only [actionStoreAt, actionReadAt, NamedActionReads.actionReadAt,
       NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hD
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hD
   obtain ⟨i, hi, -⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix S rho
     adm.toNamedAdmissibleCore.toNamedScheduleWellFormed.sorted (S.a r)
   have hDi : D ∈ (rho.stateBefore S i v).st.bodies := by
@@ -132,7 +132,7 @@ theorem fgConfirmationWitness_eq_of_compatible_of_height_eq
     (hT' : T' = (derive_named S.E S.cfg C').T_h) :
     T = T' := by
   have hordered : NamedBlock.Preceq C C' ∨ NamedBlock.Preceq C' C := by
-    simpa only [NamedBlock.compatible, Bool.or_eq_true] using hcompat
+    simpa only [NamedBlock.compatible, Bool.or_eq_true] using! hcompat
   rcases hordered with hpre | hpre
   · rw [hT, hT']
     exact Proofs.NamedEntryHeight.entry_eq_on_plateau S.E S.cfg hpre hheight

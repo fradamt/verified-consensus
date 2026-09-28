@@ -68,7 +68,7 @@ theorem finalityTargetHeightSource_of_honestWeightMajority
   have hHdPre : Hd ∈
       (rho.stateBeforeTime S (S.a a.round) a.val_index).st.core.T := by
     rw [hHdDef]
-    simpa only [actionHeadWith, ast] using
+    simpa only [actionHeadWith, ast] using!
       (actionHeadWith_mem_storeBeforeTime (rho := rho) S a.val_index a.round)
   obtain ⟨D, hD, hDerase⟩ :=
     Proofs.NamedStoreBridge.exists_named_of_mem_stateBeforeTime S rho
@@ -84,7 +84,7 @@ theorem finalityTargetHeightSource_of_honestWeightMajority
       rw [← haAction]
       exact hpair
     simpa only [actionAttestationAt, ast, actionStoreAt,
-      Protocol.NamedDuties.attest_with] using
+      Protocol.NamedDuties.attest_with] using!
       hpairAction'
   have hround' :
       (Protocol.NamedActions.round_action_with gc S.E S.hc (S.node a.val_index)

@@ -146,17 +146,17 @@ theorem openingFrozenVotes_of_fixedJustificationRootParentData
   have hroot : Protocol.get_fg_root target.st.core.toHealing.toFG = J := by
     simpa only [target, voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      J, o] using hrootMax.1
+      J, o] using! hrootMax.1
   have hmax : target.st.core.h_max = H := by
     simpa only [target, voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      o] using hrootMax.2
+      o] using! hrootMax.2
   have hPtree : P.erase ∈ target.st.core.T := by
     have hmem := (admittedBefore_mem_and_stamp_at S
       adm.toNamedScheduleWellFormed (hadmit v hv) (le_refl _)).1
     simpa only [target, voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      o] using hmem
+      o] using! hmem
   have hPprocessed : P.erase ∈ Protocol.voter_processed_block_tree S.E
       target.st.core.toHealing.toFG.toSG.toGoldfishStore target.st.core.s := by
     simp only [Protocol.voter_processed_block_tree, Finset.mem_filter]
@@ -171,19 +171,19 @@ theorem openingFrozenVotes_of_fixedJustificationRootParentData
       (by simpa only [target, voteDutyRead,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-        using hPtree)
+        using! hPtree)
       hJP hPheight (by simpa only [target, voteDutyRead,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-        using hroot)
+        using! hroot)
       (by simpa only [target, voteDutyRead,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-        using hmax)
+        using! hmax)
     simpa only [target, voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-      using hraw
+      using! hraw
   have hmaxP : target.st.core.h_max ≤
       (Protocol.derive_named S.E S.cfg P).h + 1 := by
     rw [hmax]
@@ -198,26 +198,26 @@ theorem openingFrozenVotes_of_fixedJustificationRootParentData
       (Internal.NamedRecoveryRead.voteDutyStore S rho v (s + 1)).toHealing.s := by
     simpa only [target, voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      hopen] using hPprocessed
+      hopen] using! hPprocessed
   have hPfilteredStore : P.erase ∈ Protocol.get_filtered_block_tree
       (Internal.NamedRecoveryRead.voteDutyStore S rho v (s + 1)).toHealing.toFG := by
     simpa only [target, voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      hopen] using hPfiltered
+      hopen] using! hPfiltered
   have hmaxPStore : (Internal.NamedRecoveryRead.voteDutyStore S rho v (s + 1)).h_max ≤
       (Protocol.derive_named S.E S.cfg P).h + 1 := by
     simpa only [target, voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      hopen] using hmaxP
+      hopen] using! hmaxP
   have hFJ : Block.Preceq
       (Internal.NamedRecoveryRead.voteDutyStore S rho v (s + 1)).F
       (Internal.NamedRecoveryRead.voteDutyStore S rho v (s + 1)).J := by
-    simpa only [Internal.NamedRecoveryRead.voteDutyStore, hopen] using
+    simpa only [Internal.NamedRecoveryRead.voteDutyStore, hopen] using!
       (Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime
         S rho (Protocol.vote_time S.E o) v)
   have hpc : ParentClosed
       (Internal.NamedRecoveryRead.voteDutyStore S rho v (s + 1)) := by
-    simpa only [Internal.NamedRecoveryRead.voteDutyStore, hopen] using
+    simpa only [Internal.NamedRecoveryRead.voteDutyStore, hopen] using!
       (Proofs.NamedStoreBridge.parentClosed_stateBeforeTime
         S rho (Protocol.vote_time S.E o) v)
   have hPT : P.erase ∈
@@ -242,7 +242,7 @@ theorem openingFrozenVotes_of_fixedJustificationRootParentData
       hCfiltered hmaxPStore
     simpa only [voterCandidateTreeAt,
       Proofs.Optimistic.voter_candidate_tree_eq_protocol_voter_filtered_block_tree]
-      using hc
+      using! hc
   have hrootPStore : Block.Preceq
       (Protocol.get_fg_root
         (Internal.NamedRecoveryRead.voteDutyStore S rho v (s + 1)).toHealing.toFG)
@@ -254,7 +254,7 @@ theorem openingFrozenVotes_of_fixedJustificationRootParentData
     simpa only [targetStore, target, voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      hopen] using hrootPCurrent
+      hopen] using! hrootPCurrent
   have hPcandidate : P.erase ∈ voterCandidateTreeAt S rho v (s + 1) :=
     hcandidate_of_preceq (Block.preceq_self P.erase) hrootPStore
   have hrootA : Block.Preceq
@@ -268,7 +268,7 @@ theorem openingFrozenVotes_of_fixedJustificationRootParentData
       simpa only [targetStore, target, voteDutyRead,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        hopen] using hrootACurrent
+        hopen] using! hrootACurrent
   have hAcandidate : A ∈ voterCandidateTreeAt S rho v (s + 1) :=
     hcandidate_of_preceq hAP hrootA
   have hAne : A ≠ P.erase := by
@@ -302,7 +302,7 @@ theorem openingFrozenVotes_of_fixedJustificationRootParentData
       (by simpa only [targetStore, target, voteDutyRead,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        hopen] using hrootP)
+        hopen] using! hrootP)
   refine
     { proposalCandidate := hPcandidate
       pivotCandidate := hpivotCandidate
@@ -318,7 +318,7 @@ theorem openingFrozenVotes_of_fixedJustificationRootParentData
   · subst C
     exact Finset.mem_erase.mpr ⟨hAne, hAcandidate⟩
   · exact Finset.mem_erase.mpr
-      ⟨fun hCP => hAne (Block.preceq_antisymm hAP (by simpa only [hCP] using hCA)),
+      ⟨fun hCP => hAne (Block.preceq_antisymm hAP (by simpa only [hCP] using! hCA)),
         hcandidate_of_preceq (Block.preceq_trans hCA hAP)
           (by
             let read := voteDutyRead S rho v (s + 1)
@@ -330,7 +330,7 @@ theorem openingFrozenVotes_of_fixedJustificationRootParentData
               (by simpa only [read, voterAnchorAt,
                 Internal.PhaseGrades.nodeAnchor, Internal.PhaseGrades.nodeRead,
                 NamedProfile.gradeContract, DecoupledConsensusModel.Protocol.frameContract,
-                DecoupledConsensusModel.Protocol.frameGradeRead] using hrootAnchor)
+                DecoupledConsensusModel.Protocol.frameGradeRead] using! hrootAnchor)
               hanchorC)⟩
 
 end HealingSurface

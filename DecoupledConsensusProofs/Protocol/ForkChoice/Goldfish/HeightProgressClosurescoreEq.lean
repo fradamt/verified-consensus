@@ -72,11 +72,10 @@ private theorem pinScoreEq_voterCandidateTree_subset_filtered
   have hB' : B ∈ Proofs.Optimistic.voter_candidate_tree E st.toHealing := by
     simpa only [Proofs.Optimistic.voter_candidate_tree_eq_protocol_voter_filtered_block_tree]
       using hB
-  simp only [Proofs.Optimistic.voter_candidate_tree,
-    Protocol.get_filtered_block_tree,
-    Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
-    Protocol.finalized_descendants, Protocol.viable,
-    Finset.mem_filter, decide_eq_true_eq] at hB' ⊢
+  simp only [Proofs.Optimistic.voter_candidate_tree, Protocol.get_filtered_block_tree,
+    Protocol.get_filtered_block_tree_from, Protocol.viable_tree, Protocol.finalized_descendants,
+    Finset.mem_filter] at hB' ⊢
+  simp only [Protocol.viable, decide_eq_true_eq] at hB' ⊢
   obtain ⟨⟨⟨hBprocessed, hFB⟩, W, hWprocessed, hBW, hheight⟩,
     hroot⟩ := hB'
   have hBT : B ∈ st.T := by
@@ -312,7 +311,7 @@ theorem namedWalkScore_target_eq_source_of_proposalCandidate
         simpa only [source, proposalDutyRead, proposerReadAt,
           NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom,
-          Protocol.NamedStore.setClock] using hHsource
+          Protocol.NamedStore.setClock] using! hHsource
       obtain ⟨HN, hHNbody, hHNerase⟩ :=
         Proofs.NamedStoreBridge.exists_named_of_mem_stateBeforeTime S rho
           (Protocol.proposal_time S.E (s + 1))
@@ -322,11 +321,9 @@ theorem namedWalkScore_target_eq_source_of_proposalCandidate
           Finset.mem_of_mem_erase hCtarget
         have hCfiltered := pinScoreEq_voterCandidateTree_subset_filtered
           S.E target.st.core hCfull
-        simp only [Protocol.get_filtered_block_tree,
-          Protocol.get_filtered_block_tree_from,
-          Protocol.viable_tree, Protocol.finalized_descendants,
-          Protocol.viable, Finset.mem_filter,
-          decide_eq_true_eq] at hCfiltered
+        simp only [Protocol.get_filtered_block_tree, Protocol.get_filtered_block_tree_from,
+          Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter] at hCfiltered
+        simp only [Protocol.viable, decide_eq_true_eq] at hCfiltered
         obtain ⟨⟨⟨_, hFC⟩, _, _, _, _⟩, _⟩ := hCfiltered
         exact hFC
       have hFH : Block.Preceq target.st.core.F H :=
@@ -391,7 +388,7 @@ theorem namedWalkScore_target_eq_source_of_proposalCandidate
               simpa only [target, voteDutyRead,
                 NamedActionReads.confirmationReadAt,
                 NamedActionReads.confirmationReadFrom,
-                Protocol.NamedStore.setClock, Run.storeBeforeTime, hn] using hD
+                Protocol.NamedStore.setClock, Run.storeBeforeTime, hn] using! hD
             exact Proofs.Optimistic.carried_support_subset_of_mem_T
               S adm v n hDprefix x hx)) hu
       change u ∈ Protocol.voter_support_view S.E
@@ -408,7 +405,7 @@ theorem namedWalkScore_target_eq_source_of_proposalCandidate
             simpa only [target, voteDutyRead,
               NamedActionReads.confirmationReadAt,
               NamedActionReads.confirmationReadFrom,
-              Protocol.NamedStore.setClock] using hKtarget
+              Protocol.NamedStore.setClock] using! hKtarget
           obtain ⟨KN, hKNbody, hKNerase⟩ :=
             Proofs.NamedStoreBridge.exists_named_of_mem_stateBeforeTime S rho
               (Protocol.vote_time S.E (s + 1)) v hKpre
@@ -421,12 +418,12 @@ theorem namedWalkScore_target_eq_source_of_proposalCandidate
               have hvoteStamp := (Finset.mem_filter.mp hpool).2
               exact Protocol.HonestWeightMajority.stampedBefore_block_of_resolution
                 hfindTarget (by
-                  simpa only [target, htargetSlot, Nat.add_sub_cancel] using
+                  simpa only [target, htargetSlot, Nat.add_sub_cancel] using!
                     hvoteStamp)
             simpa only [target, voteDutyRead,
               NamedActionReads.confirmationReadAt,
               NamedActionReads.confirmationReadFrom,
-              Protocol.NamedStore.setClock, hKNerase] using hstampK
+              Protocol.NamedStore.setClock, hKNerase] using! hstampK
           have hKNfreeze := pinScoreEq_body_held_at_public_cut
             S adm hv (Protocol.publicTime_view_freeze S s) hKNbody hstamp
           have hFC : Block.Preceq source.st.core.F C := by
@@ -481,7 +478,7 @@ theorem namedWalkScore_target_eq_source_of_proposalCandidate
             · rw [Protocol.proposedBlock_gf_votes
                 S rho (s + 1) hproposal] at huList
               simpa only [proposalInputAt, Protocol.proposal_input_with,
-                Protocol.with_proposal_input] using huList
+                Protocol.with_proposal_input] using! huList
             · unfold Protocol.resolved
               have hfindSource' : Block.find?
                   (proposerReadAt S rho (s + 1)).st.core.toHealing.T
@@ -504,7 +501,7 @@ theorem namedWalkScore_target_eq_source_of_proposalCandidate
           simpa only [target, voteDutyRead,
             NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom,
-            Protocol.NamedStore.setClock, Run.storeBeforeTime, hn] using hD.1
+            Protocol.NamedStore.setClock, Run.storeBeforeTime, hn] using! hD.1
         have hDeq : D = P.erase := unique_slot_block_in_store
           S adm (Nat.succ_pos s) hproposerHonest
           hDprefix hPprefix (by simpa only [htargetSlot] using hD.2)
@@ -522,7 +519,7 @@ theorem namedWalkScore_target_eq_source_of_proposalCandidate
             S rho (s + 1) hproposal] at huList
           exact of_decide_eq_true (by
             simpa only [source, proposalDutyRead, Protocol.Store.toHealing]
-              using (List.mem_filter.mp huList).2)
+              using! (List.mem_filter.mp huList).2)
         obtain ⟨H, hfindSource⟩ : ∃ H, Block.find? source.st.core.T u.head = some H := by
           cases hfind : Block.find? source.st.core.T u.head with
           | none => simp [Protocol.resolved, hfind] at hresolvedSource
@@ -534,11 +531,11 @@ theorem namedWalkScore_target_eq_source_of_proposalCandidate
           (by simpa only [source, proposalDutyRead, proposerReadAt,
             NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom,
-            Protocol.NamedStore.setClock] using hfindSource)
+            Protocol.NamedStore.setClock] using! hfindSource)
           (by simpa only [target, voteDutyRead,
             NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom,
-            Protocol.NamedStore.setClock] using hfindTarget)
+            Protocol.NamedStore.setClock] using! hfindTarget)
         have hHslot : H.slot ≤ u.slot := by
           simpa only [← hHK] using hCK.1
         have hHC : C.preceq H = true := by

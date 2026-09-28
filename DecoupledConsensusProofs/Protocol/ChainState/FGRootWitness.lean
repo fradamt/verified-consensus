@@ -64,7 +64,7 @@ private theorem actionBody_runBlock_core
   have hDpre : D ∈ (rho.stateBeforeTime S (S.a r) v).st.bodies := by
     simpa only [actionStoreAt, actionReadAt, NamedActionReads.actionReadAt,
       NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hD
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hD
   obtain ⟨i, hi, -⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix S rho
     adm.toNamedScheduleWellFormed.sorted (S.a r)
   have hDi : D ∈ (rho.stateBefore S i v).st.bodies := by
@@ -101,7 +101,7 @@ theorem emittedAttestation_eq_actionAttestationAt_core
   obtain ⟨i, hi, hduty⟩ := Proofs.Optimistic.emits_attest_duty S hemit
   rw [Proofs.NamedRuntime.tick_prefix_eq_strict S rho adm.sorted adm.nodup hi] at hduty
   simpa only [actionAttestationAt, actionReadAt,
-    NamedActionReads.actionReadAt] using hduty.symm
+    NamedActionReads.actionReadAt] using! hduty.symm
 
 private theorem honestEmittedHeightRow_exactFGSelectorWitness_core
     (S : Setup V) {rho : Run V} (adm : AdmissibleCore S rho)
@@ -406,12 +406,12 @@ theorem processedJustification_confirmationWitness
         (rho.stateBeforeTime S (S.a a.round) a.val_index).st.bodies := by
       simpa only [actionStoreAt, actionReadAt, NamedActionReads.actionReadAt,
         NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
-        NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hD
+        NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hD
     have hKpreTime : K ∈
         (rho.stateBeforeTime S (S.a a.round) a.val_index).st.bodies := by
       simpa only [actionStoreAt, actionReadAt, NamedActionReads.actionReadAt,
         NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
-        NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hK
+        NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hK
     have hcohAction := (Proofs.NamedRuntime.stateBeforeTime_invariants S rho
       (S.a a.round) a.val_index).1.1.1
     obtain ⟨K', hK'D, hK'erase⟩ :=
@@ -447,7 +447,7 @@ theorem processedJustification_confirmationWitness
           (rho.storeBeforeTime S a.val_index (S.a a.round)).bodies := by
         simpa only [actionStoreAt, actionReadAt, NamedActionReads.actionReadAt,
           NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
-          NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hK
+          NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hK
       obtain ⟨nK, hnK, -⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix S rho
         sch.sorted (S.a a.round)
       have hKprefix : K ∈ (rho.stateBefore S nK a.val_index).st.bodies := by

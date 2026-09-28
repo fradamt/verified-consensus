@@ -83,13 +83,13 @@ theorem frontierBlock_filtered_of_gateOff
     have hpre := NamedFinalizationBridge.finalized_preceq_of_height_lt
       S rho Xn Dst hsb adm.toNamedRootCollisionFree hXrun hDrun hcrossed
     rw [hXerase] at hpre
-    simpa only [hDstF] using hpre
+    simpa only [hDstF] using! hpre
   have hgate : ¬ st.h_max = st.h_j + 1 := by
     apply Nat.ne_of_gt
     rw [hfrontier]
     exact Nat.lt_of_succ_le (by simpa only [Nat.add_assoc] using hgateOff)
   have hroot : Protocol.get_fg_root st.toHealing.toFG = st.F := by
-    simp only [Protocol.get_fg_root, Protocol.Store.toHealing, if_neg hgate]
+    simp only [Protocol.get_fg_root, Protocol.Store.toHealing, ite_eq_right hgate]
   have hV : X ∈ Protocol.V_tree st.toHealing.toFG := by
     obtain ⟨D', hD'mem, hD'erase⟩ :=
       Proofs.NamedStoreBridge.exists_named_of_mem_stateBeforeTime S rho read w hX
@@ -153,7 +153,7 @@ theorem frontierAncestor_filtered_of_gateOff
     frontierBlock_filtered_of_gateOff S adm hsb hw hread hD hDerase hDrun
       hDh hM hfrontier hgateOff
   exact Proofs.Records.mem_filtered_of_preceq
-    (by simpa only [Protocol.Store.toHealing] using hFJ)
+    (by simpa only [Protocol.Store.toHealing] using! hFJ)
     hDfiltered hCT hCD hrootC
 
 /-! ## Root-side read activity

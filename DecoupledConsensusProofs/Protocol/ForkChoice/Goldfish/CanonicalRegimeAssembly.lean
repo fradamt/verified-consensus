@@ -78,10 +78,10 @@ theorem gradeFloor_active_everywhere
   intro v hv
   let st := rho.storeBeforeTime S v (S.a r)
   have hpc : ParentClosed st.core := by
-    simpa only [st] using
+    simpa only [st] using!
       Proofs.NamedStoreBridge.parentClosed_stateBeforeTime S rho (S.a r) v
   have hFJ : Block.Preceq st.core.F st.core.J := by
-    simpa only [st] using
+    simpa only [st] using!
       Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime S rho
         (S.a r) v
   have hrootC : Block.Preceq

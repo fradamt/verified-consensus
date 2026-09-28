@@ -208,11 +208,11 @@ theorem gfVote_emitted_shape (S : Setup V) (v : V) (n : NodeState V) (t : Time)
   have hmem : Object.gfVote u ∈ emitted1 ++ emitted2 := by
     by_cases hA : t = S.hc.a S.E.Δ (S.hc.round_of st3.core.s) ∧
         (S.node v).awake (S.hc.round_of st3.core.s) = true
-    · rw [if_pos hA] at h
+    · rw [ite_eq_left hA] at h
       rcases List.mem_append.mp h with h' | h'
       · exact h'
       · exact absurd (List.mem_singleton.mp h') (by simp)
-    · rw [if_neg hA] at h
+    · rw [ite_eq_right hA] at h
       exact h
   rcases List.mem_append.mp hmem with h' | h'
   · exact absurd rfl (hb _ h' u)
@@ -226,7 +226,7 @@ theorem gfVote_emitted_shape (S : Setup V) (v : V) (n : NodeState V) (t : Time)
         rw [hproposalDue]
         rintro ⟨-, hteq, -⟩
         exact vote_time_ne_proposal_time S.E s (hvd.2.symm.trans hteq)
-      have hst1eq : st1 = st0 := by rw [hst1def, if_neg hpne]
+      have hst1eq : st1 = st0 := by rw [hst1def, ite_eq_right hpne]
       rw [hst1eq] at hvoted
       rw [hvoted] at hduty
       have hcoreduty : (Protocol.goldfish_vote_with gc S.E S.hc (S.node v) st0.core).2 = some w :=

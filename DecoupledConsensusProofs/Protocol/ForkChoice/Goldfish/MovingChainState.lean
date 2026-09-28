@@ -849,9 +849,10 @@ theorem MovingFrontierChainState.endpoint_mem_filtered_atIndex
       (Proofs.Records.preceq_get_fg_root_of_F (st:= st.toHealing.toFG) hFJ)
       (by simpa only [st] using hroot)
   have hV: End i ∈ Protocol.V_tree st.toHealing.toFG:= by
-    simp only [Protocol.V_tree, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, decide_eq_true_eq, Protocol.Store.toHealing]
+    simp only [Protocol.V_tree, Protocol.viable_tree, Protocol.finalized_descendants,
+      Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
+    simp only [Protocol.Store.toHealing]
     exact ⟨⟨by simpa only [st] using hmem, hFEnd⟩,
       End i, by simpa only [st] using hmem, Block.preceq_self _, hfloor⟩
   exact Proofs.Records.mem_filtered_of_mem_V_tree hV (by simpa only [st] using hroot)
@@ -910,9 +911,10 @@ theorem MovingFrontierChainState.endpointPath_mem_filtered_atIndex
       (Proofs.Records.preceq_get_fg_root_of_F (st:= st.toHealing.toFG) hFJ)
       (by simpa only [st] using hroot)
   have hV: D ∈ Protocol.V_tree st.toHealing.toFG:= by
-    simp only [Protocol.V_tree, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, decide_eq_true_eq, Protocol.Store.toHealing]
+    simp only [Protocol.V_tree, Protocol.viable_tree, Protocol.finalized_descendants,
+      Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
+    simp only [Protocol.Store.toHealing]
     exact ⟨⟨hDmem, hFD⟩,
       End i, by simpa only [st] using hmem, hDEnd, hfloor⟩
   exact Proofs.Records.mem_filtered_of_mem_V_tree hV (by simpa only [st] using hroot)

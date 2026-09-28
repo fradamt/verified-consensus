@@ -166,7 +166,7 @@ theorem w4PreparedSelectedSourceAt_of_fold
           (Nat.le_of_lt (hprevLate.trans_le (Nat.sub_le r 1))))) 3
   have hfoldHor : Protocol.confirmation_time S.E
       ((S.hc.opening_slot r + 3) - 1) ≤ rho.horizon := by
-    simpa only [Nat.add_sub_cancel] using hcarrierHor
+    simpa only [Nat.add_sub_cancel] using! hcarrierHor
   obtain ⟨F, End, hfold, _hbase⟩ := hfoldAt hstartSlot hfoldHor
   have hfoldStart : S.hc.opening_slot q + 3 ≤
       S.hc.opening_slot (r - 1) := by

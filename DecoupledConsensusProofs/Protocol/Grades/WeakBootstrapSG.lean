@@ -26,7 +26,7 @@ private theorem ancestorCompatible {A C B : Block V}
     (hAC : Block.Preceq A C) (hCB : Block.compatible C B = true) :
     Block.compatible A B = true := by
   have hcases : Block.Preceq C B ∨ Block.Preceq B C := by
-    simpa only [Block.compatible, Bool.or_eq_true] using hCB
+    simpa only [Block.compatible, Bool.or_eq_true] using! hCB
   rcases hcases with h | h
   · simp only [Block.compatible, Bool.or_eq_true]
     exact Or.inl (Block.preceq_trans hAC h)

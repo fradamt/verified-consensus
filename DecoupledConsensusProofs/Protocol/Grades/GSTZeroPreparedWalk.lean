@@ -152,7 +152,7 @@ theorem preparedStableRoot_preceq_confWalk_positive
               ht1 htop hhorg1 hg2Strict hQraw (by
                 simpa only [n, NamedActionReads.confirmationReadAt,
                   NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-                  using hQmem)
+                  using! hQmem)
           have hrootPrepared := NamedOutageClosure.frame_phase_prepared_eq
             S rho v r .g1 t hround _ hrootStrict
           change (DecoupledConsensusModel.Protocol.readFrame
@@ -268,7 +268,7 @@ theorem preparedStableRoot_preceq_confWalk_of_gstZero_clean
       NamedActionReads.confirmationReadAt, t, r,
       slotOf_confirmation_time,
       NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock] using hG
+      Protocol.NamedStore.setClock] using! hG
 
 #print axioms preparedStableRoot_preceq_confWalk_of_gstZero_clean
 
@@ -418,7 +418,7 @@ theorem preparedG1Raw_preceq_voteDutyHead_of_gstZero
         simpa only [NamedRecoveryRead.confirmationInputRead,
           NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-          t] using hfg))
+          t] using! hfg))
     have hprevHor : S.a (r - 1) ≤ rho.horizon := by
       have hprev : S.a (r - 1) + S.E.Δ ≤ early S.E S.hc r .g1 :=
         (NamedOutageClosure.action_delta_le_early S S.hc.R_ge_three
@@ -470,7 +470,7 @@ theorem preparedG1Raw_preceq_voteDutyHead_of_gstZero
             simpa only [NamedRecoveryRead.confirmationInputRead,
               NamedActionReads.confirmationReadAt,
               NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-              t] using hfgY))
+              t] using! hfgY))
         exact NamedOutageClosure.honestRoundVote_interpreted_at_reader_of_twoCutoff_compatible
           S rho h.core h.gstZero hdelivery r k .g1 hk y hy hdomainHor hdeadline
             ((Proofs.NamedOutageInputs.honestRoundVoters_iff S rho u k).mpr
@@ -564,7 +564,7 @@ theorem preparedConfirmationWalk_preceq_voteDutyHead_of_gstZero
       S h hhor hqd hupper hw hx
     rw [hWA]
     simpa only [A, contract, st, read, confAnchorWith,
-      Proofs.Optimistic.confStore_eq_confirmationInputRead] using hanchor
+      Proofs.Optimistic.confStore_eq_confirmationInputRead] using! hanchor
   · have helig : confEligible S.E st q W = true := by
       rcases ghost_eligible A (confTree st) (confScore S.E st q)
           (confEligible S.E st q) with hA | helig
@@ -572,7 +572,7 @@ theorem preparedConfirmationWalk_preceq_voteDutyHead_of_gstZero
       · simpa only [W, confWalkWith] using helig
     have hselected : (Protocol.update_confirmation_with contract S.E S.hc st q).live_confirmed =
         W := by
-      rw [update_confirmation_with_live_confirmed, if_pos (by
+      rw [update_confirmation_with_live_confirmed, ite_eq_left (by
         simpa only [W] using helig)]
     have hgenuine : GenuineConfirmationWith contract S.E S.hc st q W :=
       ⟨hselected, by simpa only [W] using helig⟩
@@ -631,11 +631,11 @@ theorem latestConfirmed_preceq_laterVoteDutyHead_of_gstZero
       by_cases helig : confirmationEligible S.E read.st.core q
           (namedConfirmationWalk S read q) = true
       · have hnone : (none : Option (Block V)) = some C := by
-          simpa only [helig, if_pos] using hsgRead
+          simpa only [helig, ite_eq_left] using hsgRead
         contradiction
       · have hselect : DecoupledConsensusModel.Protocol.frameSGCandidate read.cache
             S.E S.hc read.st.core.toHealing q = some C := by
-          simpa only [helig, if_neg] using hsgRead
+          simpa only [helig, ite_eq_right] using! hsgRead
         have hselect' : ((DecoupledConsensusModel.Protocol.readFrame read.cache
             read.st.core.toHealing (S.hc.round_of read.st.core.s)).g2.bind id).bind
               (activePrefix
@@ -686,7 +686,7 @@ theorem latestConfirmed_preceq_laterVoteDutyHead_of_gstZero
           some (rho.stateBefore S n v).st.core.latest_confirmed at hG
       rw [hstate, htimeq] at hG
       simpa only [NamedRecoveryRead.confirmationInputRead,
-        NamedActionReads.confirmationReadAt] using hG
+        NamedActionReads.confirmationReadAt] using! hG
     exact Block.preceq_trans
       (preparedStableRoot_preceq_confWalk_of_gstZero_clean
         S h hv hqhor hG')
@@ -738,7 +738,7 @@ theorem latestConfirmed_compatible_confWalk_of_gstZero
       (voteDutyHead S rho v (last + 1)) := by
     simpa only [NamedRecoveryRead.confirmationInputRead,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       hbound last (Nat.le_max_left _ _) hlastHor v hv
   have hwalk : Block.Preceq
       (namedConfirmationWalk S

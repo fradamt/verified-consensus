@@ -88,13 +88,13 @@ private theorem actionRowHeight_le_actionHMax
   have hbodyPre : Q ∈ (rho.stateBeforeTime S (S.a r) v).st.bodies := by
     simpa only [actionStoreAt, actionReadAt, NamedActionReads.actionReadAt,
       NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hbody
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hbody
   have hbound := Proofs.NamedStoreBridge.heights_le_hMax_stateBeforeTime S rho
     (S.a r) v Q hbodyPre
   rw [hheight] at hbound
   simpa only [actionStoreAt, actionReadAt, NamedActionReads.actionReadAt,
     NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
-    NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hbound
+    NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hbound
 
 /-- The virtual action store's frontier is below the inclusive public honest
 frontier at the same action time. -/

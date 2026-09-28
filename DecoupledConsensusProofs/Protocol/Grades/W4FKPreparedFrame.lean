@@ -388,7 +388,7 @@ private theorem w4fkActionNodeAnchorPreceq
       (by simpa only [hpred] using hcarrier) hv
       (by simpa only [Internal.NamedRecoveryRead.confirmationInputRead,
         NamedActionReads.confirmationReadAt, opening_confirmation_time_eq_action]
-        using hroot v hv)
+        using! hroot v hv)
   have hct : Protocol.confirmation_time S.E (S.hc.opening_slot q) = S.a q :=
     (Protocol.a_eq_confirmation_time S.hc S.E q).symm
   have hread : Internal.NamedRecoveryRead.confirmationInputRead S rho v

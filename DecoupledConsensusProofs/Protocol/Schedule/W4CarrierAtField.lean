@@ -537,7 +537,7 @@ private theorem w4cat_roundFloor_mem_filtered_at_plusTwoProposalN
   have hparentPre : proposedParent S rho d ∈ pre.T := by
     simpa only [pre, w, T2, d, proposerReadAt,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       (proposedParent_mem S rho d)
   have hFmem : F d ∈ pre.T :=
     Proofs.Records.mem_of_preceq ((parentClosed_iff pre).mp hpc).2
@@ -584,7 +584,7 @@ private theorem w4cat_roundFloor_mem_filtered_at_plusTwoProposalN
       (W := F d) (D := C) (Block.preceq_self _) hFmem hbandStore
       hrootPre hCF
   simpa only [Protocol.proposerDutyStore, Proofs.Optimistic.tickStore,
-    pre, w, T2] using hfiltered
+    pre, w, T2] using! hfiltered
 
 private theorem w4cat_roundFloor_mem_filtered_or_prec_rootN
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)
@@ -694,7 +694,7 @@ private theorem w4cat_roundFloor_mem_filtered_or_prec_rootN
                 (S.hc.opening_slot r + 2))).toHealing.toFG)) = true
       rw [Bool.and_eq_true]
       exact ⟨by simp only [heq, decide_false, Bool.not_false],
-        by simpa only [pre, w, T2, d] using hCroot⟩
+        by simpa only [pre, w, T2, d] using! hCroot⟩
 
 set_option maxHeartbeats 1200000 in
 private theorem w4cat_roundFloor_mem_filtered_or_prec_rootN_of_bandCover
@@ -762,7 +762,7 @@ private theorem w4cat_roundFloor_mem_filtered_or_prec_rootN_of_bandCover
     · exact Or.inl
         (w4cat_roundFloor_mem_filtered_at_plusTwoProposalN
           S adm hfb hfold hcov hboundary hcarrier hhor hcarriers hfields
-          (by simpa only [pre, w, T2, d] using hrootC))
+          (by simpa only [pre, w, T2, d] using! hrootC))
     · have hCroot' : Block.Preceq C
           (Protocol.get_fg_root
             (rho.storeBeforeTime S
@@ -770,7 +770,7 @@ private theorem w4cat_roundFloor_mem_filtered_or_prec_rootN_of_bandCover
               (Protocol.proposal_time S.E
                 (S.hc.opening_slot r + 2))).toHealing.toFG) := by
         simpa only [Protocol.proposerDutyStore, Proofs.Optimistic.tickStore,
-          pre, w, T2, d] using hCroot
+          pre, w, T2, d] using! hCroot
       by_cases heq : C = Protocol.get_fg_root
           (rho.storeBeforeTime S
             (S.E.proposer (S.hc.opening_slot r + 2))
@@ -884,7 +884,7 @@ private theorem w4cat_carrierBelowAt
       rw [← hbaseEq]
       exact hbaseToOpening
     intro w hw
-    simpa only [hrEq] using
+    simpa only [hrEq] using!
       (Block.preceq_trans (hcarrierQpin w hw) hDopen)
 
 set_option maxHeartbeats 800000 in
@@ -1088,18 +1088,18 @@ private theorem w4cat_proposedParent_mem_filtered
   let duty := Protocol.proposerDutyStore S rho d
   have hrootPre : Protocol.get_fg_root pre.toHealing.toFG ∈
       Protocol.get_filtered_block_tree pre.toHealing.toFG := by
-    simpa only [pre, Protocol.NamedStore.toHealing] using
+    simpa only [pre, Protocol.NamedStore.toHealing] using!
       named_fgRoot_mem_filtered_stateBeforeTime S rho t p
   have hrootDuty : Protocol.get_fg_root duty.toHealing.toFG ∈
       Protocol.get_filtered_block_tree duty.toHealing.toFG := by
     simpa only [duty, Protocol.proposerDutyStore,
-      Proofs.Optimistic.tickStore, pre, t, p] using hrootPre
+      Proofs.Optimistic.tickStore, pre, t, p] using! hrootPre
   let votes := Protocol.proposer_view duty.toHealing.toFG.toSG.toGoldfishStore duty.s
   let support := Protocol.proposer_support_view duty.toHealing.toFG.toSG.toGoldfishStore duty.s
   have hhead := getHead_mem_filtered_of_fgRoot_mem
     S.E S.hc duty.toHealing votes.toFinset support.toFinset
       (duty.s - 1) hrootDuty
-  simpa only [Protocol.proposedParent, duty, votes, support] using hhead
+  simpa only [Protocol.proposedParent, duty, votes, support] using! hhead
 
 /-! ## Public carrier export -/
 

@@ -56,11 +56,11 @@ theorem sameSlot_genuine_compatible_after_gst
     S adm hv hw hpost hhor
   have hBeligible := hB.genuine
   have hCeligible := hC.genuine
-  simp only [confEligible, confCount, confScore, decide_eq_true_eq]
-    at hBeligible hCeligible
+  simp only [confEligible, decide_eq_true_eq] at hBeligible hCeligible
+  simp only [confCount, confScore] at hBeligible hCeligible
   rw [← hB.selected, ← hC.selected]
   rw [update_confirmation_with_live_confirmed,
-    update_confirmation_with_live_confirmed, if_pos hB.genuine, if_pos hC.genuine]
+    update_confirmation_with_live_confirmed, ite_eq_left hB.genuine, ite_eq_left hC.genuine]
   exact eligible_compatible (confNumerator S.E (Proofs.Optimistic.confStore S rho v s) s)
     (confNumerator S.E (Proofs.Optimistic.confStore S rho w s) s) hcross.1 hcross.2
     hBeligible hCeligible

@@ -177,7 +177,7 @@ omit [DecidableEq V] [Fintype V] in
 private theorem index_of_same_event {alpha : Type} (events : List alpha)
     (hnodup : events.Nodup) {i j : Nat} {e : alpha}
     (hi : events[i]? = some e) (hj : events[j]? = some e) : i = j :=
-  (List.getElem?_inj (List.getElem?_eq_some_iff.mp hi).1 hnodup).mp
+  (List.Nodup.getElem?_inj (List.getElem?_eq_some_iff.mp hi).1 hnodup).mp
     (hi.trans hj.symm)
 
 private theorem signedSource_scope
@@ -301,11 +301,11 @@ private theorem activeSGVote_preceq
           exact hQ
       | none =>
           by_cases hraw : grades.rawG2
-          · simp only [hclear, hQ, if_pos hraw]
+          · simp only [hclear, hQ, ite_eq_left hraw]
             exact Block.preceq_trans
               (Proofs.HealingSurface.fg_root_preceq_get_sg_root_with_frame
                 n.cache S.E S.hc st a.round) hsgB
-          · simpa only [hclear, hQ, if_neg hraw] using hsgB
+          · simpa only [hclear, hQ, ite_eq_right hraw] using! hsgB
 
 /-- The named emission, retained-source, and root-collision bridges discharge
 the exact active-source interface. -/

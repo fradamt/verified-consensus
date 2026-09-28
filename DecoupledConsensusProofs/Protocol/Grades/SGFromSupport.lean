@@ -194,7 +194,7 @@ private theorem sg_retained_prefix (g F B : Block V) (hBF : Block.compatible B F
           · subst B
             exact False.elim (hGF hBF)
           · exact hBp
-        simpa only [clipGrade, hGF, Bool.eq_false_iff.mpr hGF, ↓reduceIte] using ih hBp
+        simpa only [clipGrade, hGF, Bool.eq_false_iff.mpr hGF, ↓reduceIte] using! ih hBp
 
 /-! ## 6. Schedule arithmetic -/
 
@@ -930,7 +930,7 @@ private theorem sg_round_le_clock_round (S : Setup V) (rho : NamedRun V)
     sch.tick_total reader hreader (S.a q) hpublic hnonneg hhor
   have hfiltered : NamedEvent.tick reader (S.a q) ∈
       rho.events.filter (fun e => decide (e.time < cut)) :=
-    List.mem_filter.mpr ⟨htick, by simpa only [NamedEvent.time, decide_eq_true_eq] using hq⟩
+    List.mem_filter.mpr ⟨htick, decide_eq_true hq⟩
   have hclock : S.a q ≤ (NamedRun.stateBeforeTime S rho cut reader).st.core.t :=
     sg_tick_mem_le_strict_clock S rho sch hfiltered
   have hslot : S.hc.opening_slot q ≤
@@ -1301,7 +1301,7 @@ private theorem sg_opposition_contained (S : Setup V) (rho : NamedRun V) (b0 b1 
           (domain S.E S.hc r .g2) v).st.core.F ∨
         Block.Preceq (NamedRun.stateBeforeTime S rho
           (domain S.E S.hc r .g2) v).st.core.F Pn.erase by
-      simpa only [Block.compatible, Bool.or_eq_true] using hPF) with hPle | hFle
+      simpa only [Block.compatible, Bool.or_eq_true] using! hPF) with hPle | hFle
     · exfalso
       refine hneed ?_
       have hstage : NamedRun.readAt S rho (domain S.E S.hc r .g1) v =
@@ -1326,7 +1326,7 @@ private theorem sg_opposition_contained (S : Setup V) (rho : NamedRun V) (b0 b1 
     by_cases hcase : S.a z.round < b0 → s ≤ z.round
     · exact absurd (sg_interpreted_covers S rho sch auth b0 s r Pn hconf.1 hpost v hv u hu
         (late S.E S.hc r .g2) hz hcase) hncov
-    · push_neg at hcase
+    · push Not at hcase
       obtain ⟨hltb0, hnotle⟩ := hcase
       have hars : a.round < s := by rw [har]; exact hnotle
       have hdb0 : S.a a.round + S.E.Δ ≤ b0 :=
@@ -1390,7 +1390,7 @@ private theorem sg_opposition_contained (S : Setup V) (rho : NamedRun V) (b0 b1 
       · simp only [Internal.OutageEntryRevision.staleAt, decide_eq_true_eq]
         exact Or.inl hbad
       · exfalso
-        push_neg at hbad
+        push Not at hbad
         have hcov : ∀ y ∈ Internal.OutageEntryRevision.latest
             (Internal.OutageEntryRevision.retainedRaw S
               (NamedRun.stateBeforeTime S rho tau v).st.core supportRound tau u),

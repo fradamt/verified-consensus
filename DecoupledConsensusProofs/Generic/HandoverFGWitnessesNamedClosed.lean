@@ -32,7 +32,7 @@ private theorem actionBody_runBlock_handover
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hD
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hD
   obtain ⟨j, hj, _⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix S rho
     adm.toNamedScheduleWellFormed.sorted (S.a r)
   have hDj : D ∈ (rho.stateBefore S j v).st.bodies := by
@@ -197,7 +197,7 @@ theorem fgWitnessesBelow_of_namedHeightRegimeBaseRun_of_headEq
     rw [← hfilter] at hmem
     have htime : S.a a.round ≤ S.a D := by
       simpa only [Event.time, hreg.seed.actionTime_eq,
-        decide_eq_true_eq] using (List.mem_filter.mp hmem).2
+        decide_eq_true_eq] using! (List.mem_filter.mp hmem).2
     have haround : a.round ≤ D := (action_strictMono S).le_iff_le.mp htime
     have hround : a.round + 1 ≤ b.round :=
       (Nat.add_le_add_right haround 1).trans (by simpa only [D] using hfresh)
@@ -207,7 +207,7 @@ theorem fgWitnessesBelow_of_namedHeightRegimeBaseRun_of_headEq
     have hrowHor : S.a b.round ≤ rho.horizon := by
       have hbtime := (Proofs.Optimistic.emits_attest_shape S hemit).2
       obtain ⟨j, hevent, -⟩ := hemit
-      simpa only [Event.time, hbtime] using
+      simpa only [Event.time, hbtime] using!
         (adm.in_horizon _ (List.mem_of_getElem? hevent)).2
     have hcompat :=
       ((hreg.laterHistory_main adm hcom hbelow hround).2 hrowHor).2
@@ -231,7 +231,7 @@ theorem fgWitnessesBelow_of_namedHeightRegimeBaseRun_of_headEq
         simpa only [hKfixed] using hcompat
       rcases (show Block.Preceq K.erase T.erase ∨
           Block.Preceq T.erase K.erase by
-        simpa only [Block.compatible, Bool.or_eq_true] using hcompat') with
+        simpa only [Block.compatible, Bool.or_eq_true] using! hcompat') with
         hKT | hTK
       · exact hKT
       · obtain ⟨hTrun, hTheight⟩ := hreg.checkpoint_runBlock adm

@@ -192,7 +192,7 @@ private theorem namedG1_preceq_commonActionCeiling
     exact Protocol.runBlock_eq_of_root_eq
       adm.toNamedAdmissibleCore.toNamedRootCollisionFree
       hHeadrun hCarrierRun hnamedRoot
-  exact Block.preceq_trans (by simpa only [hheadCarrier] using hBhead)
+  exact Block.preceq_trans (by simpa only [hheadCarrier] using! hBhead)
     (hupper v hv)
 
 set_option maxHeartbeats 400000 in
@@ -478,7 +478,7 @@ theorem namedG1At_fixedRootTarget_of_retainedPreviousGrade
       (st := (rho.storeBeforeTime S p
         (domain S.E S.hc q .g1)).toHealing.toFG) hFJ
     rw [hroot] at hrootFloor
-    simpa only [Protocol.Store.toHealing] using hrootFloor
+    simpa only [Protocol.Store.toHealing] using! hrootFloor
   have hforward : ∀ sender u root Head,
       u ∈ DecoupledConsensusModel.Protocol.interpretedInputs
         (readAt S rho (domain S.E S.hc q .g2) p).st.core.toHealing.gradeView
@@ -494,7 +494,7 @@ theorem namedG1At_fixedRootTarget_of_retainedPreviousGrade
         (domain S.E S.hc q .g1) p).st.core.F Head := by
     intro sender u root Head _ hcover hconf hfind
     apply Block.preceq_trans
-    · simpa only [PhaseGrades.readAt, Run.storeBeforeTime] using hFg1J
+    · simpa only [PhaseGrades.readAt, Run.storeBeforeTime] using! hFg1J
     · unfold DecoupledConsensusModel.Protocol.localCovers at hcover
       unfold Protocol.head_covers at hcover
       simp only [Protocol.HealingStore.gradeView, Protocol.Store.toHealing, hconf]

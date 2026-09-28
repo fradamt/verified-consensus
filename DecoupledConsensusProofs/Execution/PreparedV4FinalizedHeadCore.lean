@@ -141,7 +141,7 @@ theorem SettledBootstrapPreparedV4.finalized_has_voteHead_bound_core_of_pins
       obtain ⟨i, hi, _⟩ := hemit
       have h := (adm.toNamedScheduleWellFormed.in_horizon _
         (List.mem_of_getElem? hi)).2
-      simpa only [Event.time, htime] using h
+      simpa only [Event.time, htime] using! h
     by_cases hold : a.round < base + S.hc.η_SG
     · have hboundary : min (S.a (base + S.hc.η_SG))
           (Protocol.vote_time S.E start) ≤ u + 1 :=

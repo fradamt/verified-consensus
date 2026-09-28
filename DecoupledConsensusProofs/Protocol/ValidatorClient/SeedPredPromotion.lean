@@ -248,7 +248,7 @@ theorem seedLifecycleAction_fgSource_eq_block_of_selected
       ((NamedProfile.gradeContract (actionReadAt S rho v q).cache).read S.E S.hc
         (actionReadAt S rho v q).st.core.toHealing q).clear = some P.erase :=
     deepest_clear_eq_tip (floor := some Q2) (C := P.erase)
-      (by simpa using hQ2P) hclear
+      (by simpa using! hQ2P) hclear
   rw [nodeFGSource, Protocol.fg_source_with.eq_def, hQ2', hLiveHealing]
   simp only [hwalk]
 

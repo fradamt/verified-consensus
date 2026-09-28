@@ -64,7 +64,7 @@ private theorem node_tick_stable_preserves
   · rw [hcut.2] at hcompat ⊢
     apply named_update_stable_preserves S (NamedActionReads.confirmationReadFrom S n t)
       _ hold
-    simpa only [NamedActionReads.confirmationReadFrom] using hcompat
+    simpa only [NamedActionReads.confirmationReadFrom] using! hcompat
 
 private theorem stable_prefix_preserved
     (S : Setup V) (rho : Run V) (v : V) {B : Block V} {m : Nat}
@@ -87,14 +87,14 @@ private theorem stable_prefix_preserved
         unfold Run.stateBefore NamedRun.stateBefore
         rw [List.take_add_one, List.foldl_append]
         cases hn : rho.events[n]? with
-        | none => simpa using hprev
+        | none => simpa using! hprev
         | some e =>
             simp only [Option.toList, List.foldl_cons, List.foldl_nil]
             cases e with
             | tick u t =>
                 by_cases huv : u = v
                 · subst huv
-                  simpa only [NamedWorld.step, Function.update_self] using
+                  simpa only [NamedWorld.step, Function.update_self] using!
                     node_tick_stable_preserves S u
                       (rho.stateBefore S n u) t hprev
                       (by
@@ -104,14 +104,14 @@ private theorem stable_prefix_preserved
                           Function.update_self] using
                           hcompat n t hmn (Nat.lt_succ_self n) hn)
                 · simpa only [NamedWorld.step,
-                    Function.update_of_ne (Ne.symm huv)] using hprev
+                    Function.update_of_ne (Ne.symm huv)] using! hprev
             | deliver u o t =>
                 by_cases huv : u = v
                 · subst huv
                   simpa only [NamedWorld.step, Function.update_self,
-                    NamedOutageClosure.node_process_stable] using hprev
+                    NamedOutageClosure.node_process_stable] using! hprev
                 · simpa only [NamedWorld.step,
-                    Function.update_of_ne (Ne.symm huv)] using hprev
+                    Function.update_of_ne (Ne.symm huv)] using! hprev
       · have heq : m = n + 1 := by omega
         subst m
         exact hold

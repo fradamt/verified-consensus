@@ -62,7 +62,7 @@ theorem preparedProposalAnchor_preceq_voteDutyHead_of_gstZero
       (voterHeadAt S rho x d) := by
     simpa only [read, t, w, s, proposerReadAt,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       (fgRootAtRead_preceq_voteDutyHead_of_gstZero_named
         S h.core h.committees h.gstZero h.windows hhor hd hupper
           (t := t) ((proposal_time_lt_vote_time S.E s).le) hw hx)
@@ -97,7 +97,7 @@ theorem preparedProposalAnchor_preceq_voteDutyHead_of_gstZero
       have hno := confirmationRead_g1_round_zero_no_root
         S h.core w t (by simpa only [hr0] using hroundT) htne (root := raw)
       exact False.elim (hno (by
-        simpa only [read, proposerReadAt, t, w, hr0] using hframeR))
+        simpa only [read, proposerReadAt, t, w, hr0] using! hframeR))
     · have hr : 0 < r := Nat.pos_of_ne_zero hr0
       have hpostEarly : S.E.t_GST ≤ early S.E S.hc r .g2 := by
         rw [h.gstZero]
@@ -127,7 +127,7 @@ theorem preparedProposalAnchor_preceq_voteDutyHead_of_gstZero
           simpa only [read, proposerReadAt, t, w,
             NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-            using hfg))
+            using! hfg))
       have hprevHor : S.a (r - 1) ≤ rho.horizon := by
         have hprev : S.a (r - 1) + S.E.Δ ≤ early S.E S.hc r .g1 :=
           (NamedOutageClosure.action_delta_le_early S S.hc.R_ge_three
@@ -180,7 +180,7 @@ theorem preparedProposalAnchor_preceq_voteDutyHead_of_gstZero
                 (NamedRun.stateBeforeTime S rho (domain S.E S.hc r .g1) y).st.core.F
                 (voterHeadAt S rho x d) :=
               Block.preceq_trans hFrootY (by
-                simpa only [Run.storeBeforeTime] using hfgY)
+                simpa only [Run.storeBeforeTime] using! hfgY)
             exact NamedOutageClosure.honestRoundVote_interpreted_at_reader_of_twoCutoff_compatible
               S rho h.core h.gstZero hdelivery r k .g1 hk y hy hdomainHor hdeadline
                 ((Proofs.NamedOutageInputs.honestRoundVoters_iff S rho u k).mpr
@@ -292,7 +292,7 @@ theorem protected_preceq_proposedParent_of_gstZero_named
     simpa only [Internal.NamedRecoveryRead.voteDutyStore, voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-      using fgRootAtRead_preceq_voteDutyHead_of_gstZero_named
+      using! fgRootAtRead_preceq_voteDutyHead_of_gstZero_named
         S h.core h.committees h.gstZero h.windows hhor hd hupper
           (t := Protocol.vote_time S.E (d + 1)) (le_refl _) hp hy
   let R := Protocol.get_fg_root
@@ -304,7 +304,7 @@ theorem protected_preceq_proposedParent_of_gstZero_named
         S h.core hy hdPos hyCommittee hvoteHor
     refine ⟨Y, ?_, hYrun, hYemit⟩
     rw [hYerase]
-    simpa only [R, Internal.NamedRecoveryRead.voteDutyStore] using hroots y hy
+    simpa only [R, Internal.NamedRecoveryRead.voteDutyStore] using! hroots y hy
   have havailable : HonestHeadsAvailableBefore S rho d p
       (Protocol.support_cutoff S.E d) :=
     honestHeadsAvailableBefore_of_namedPostHealingCone_core
@@ -314,7 +314,7 @@ theorem protected_preceq_proposedParent_of_gstZero_named
   have hresolve : HeadsResolveIn S rho d st.T st.timestamp_block := by
     simpa only [st, read, proposerReadAt, t, p,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       hresolve0
   have hslot : st.s = d + 1 := by
     simpa only [st, read, proposerReadAt,
@@ -371,7 +371,7 @@ theorem protected_preceq_proposedParent_of_gstZero_named
     have hXmem : X.erase ∈ (rho.storeBeforeTime S p t).T := by
       simpa only [st, read, proposerReadAt, t, p,
         NamedActionReads.confirmationReadAt,
-        NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+        NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
         (Proofs.HealingLemmas.find?_mem hfind)
     have hXslot : X.erase.slot ≤ d :=
       Proofs.Optimistic.emitted_vote_head_slot_le_of_store_mem S h.core
@@ -383,9 +383,7 @@ theorem protected_preceq_proposedParent_of_gstZero_named
       · simpa only [votes, Protocol.proposer_view, hslot,
           Nat.add_sub_cancel, Protocol.Store.toHealing] using
           List.mem_toFinset.mp hraw
-      · change decide (Protocol.resolved st.toHealing.T
-          (⟨y, d, X.erase.root⟩ : GoldfishVote V) = true) = true
-        simp [Protocol.resolved, Protocol.Store.toHealing, hfind, hXslot]
+      · simp [Protocol.resolved, Protocol.Store.toHealing, hfind, hXslot]
     exact ⟨X.erase, hBX, hXslot, hsupport, hfind⟩
   have hcone : ConeSupport S.E st.T votes support votes (st.s - 1)
       rho.honest (fun X => Block.Preceq B X) := by
@@ -397,7 +395,7 @@ theorem protected_preceq_proposedParent_of_gstZero_named
     simpa only [hslot, Nat.add_sub_cancel] using hcone0
   have hvalid : Protocol.VoteSetValid S.E (st.s - 1) votes := by
     simpa only [st, read, votes, Internal.NamedRecoveryRead.proposalDutyStore,
-      proposalDutyRead] using
+      proposalDutyRead] using!
       (Protocol.proposerDutyStore_proposer_view_valid_core
         S h.core (d + 1))
   have hpos : 0 < ((S.E.committee d) ∩ rho.honest).card := by
@@ -454,7 +452,7 @@ theorem protected_preceq_proposedParent_of_gstZero_named
           simpa only [st, read, proposerReadAt, t, p,
             NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-            using hlarge)
+            using! hlarge)
       have haTime : S.a a.round < Protocol.vote_time S.E (d + 1) := by
         have htime : ta = S.a a.round := (emits_attest_shape S hemit).2
         rw [← htime]
@@ -491,7 +489,7 @@ theorem protected_preceq_proposedParent_of_gstZero_named
     simpa only [st, read, proposerReadAt, t, p,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      hXerase] using
+      hXerase] using!
       fgRootAtRead_preceq_voteDutyHead_of_gstZero_named
         S h.core h.committees h.gstZero h.windows hhor hd hupper
           (t := t) ((proposal_time_lt_vote_time S.E (d + 1)).le) hp hxHonest
@@ -499,15 +497,14 @@ theorem protected_preceq_proposedParent_of_gstZero_named
     Block.preceq_trans
       (Proofs.Records.preceq_get_fg_root_of_F (st := st.toHealing.toFG) hFJ) hrootX
   have hXcandidate : X.erase ∈ tree := by
-    simp only [tree, Protocol.get_filtered_block_tree,
-      Protocol.get_filtered_block_tree_from,
-      Protocol.viable_tree, Protocol.finalized_descendants,
-      Protocol.viable, Finset.mem_filter, decide_eq_true_eq]
+    simp only [tree, Protocol.get_filtered_block_tree, Protocol.get_filtered_block_tree_from,
+      Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
     exact ⟨⟨⟨hXT, hFX⟩, X.erase, hXT, Block.preceq_self _, hband⟩, hrootX⟩
   have hpc : ParentClosed st := by
     simpa only [st, read, proposerReadAt, t, p,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       Proofs.NamedStoreBridge.parentClosed_stateBeforeTime S rho t p
   have hrootAnchor : Block.Preceq
       (Protocol.get_fg_root st.toHealing.toFG)
@@ -548,7 +545,7 @@ theorem protected_preceq_proposedParent_of_gstZero_named
       tree votes support (st.s - 1))
   rw [Proofs.Optimistic.get_head_in_tree_split_with]
   simpa only [Internal.PhaseGrades.nodeAnchor, Internal.PhaseGrades.nodeRead,
-    tree, votes, support] using hhead
+    tree, votes, support] using! hhead
 
 #print axioms protected_preceq_proposedParent_of_gstZero_named
 #print axioms preparedProposalAnchor_preceq_voteDutyHead_of_gstZero

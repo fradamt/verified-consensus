@@ -93,7 +93,7 @@ theorem voterCandidateMem_or_preceq_root_of_honestPreviousHead_named
     simpa only [st, read, voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      Run.storeBeforeTime, Protocol.voteDutyHead] using hrootHead0
+      Run.storeBeforeTime, Protocol.voteDutyHead] using! hrootHead0
   have hcases : Block.Preceq
         (Protocol.get_fg_root st.toHealing.toFG) C ∨
       Block.Preceq C
@@ -110,7 +110,7 @@ theorem voterCandidateMem_or_preceq_root_of_honestPreviousHead_named
       simpa only [st, read, voteDutyRead,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Run.storeBeforeTime] using hrootMem0
+        Run.storeBeforeTime] using! hrootMem0
     have hFC : Block.Preceq st.F C := Block.preceq_trans
       (GradeDeliveryRun.finalized_preceq_of_mem_filtered_at_read
         S rho hrootMem) hroot
@@ -182,7 +182,7 @@ theorem voterCandidateMem_or_preceq_root_of_honestPreviousHead_named
           have hCfgProcessed := voterProcessed_mem_of_mem_previousFreeze_named
             S adm.toNamedScheduleWellFormed
               (Nat.succ_le_succ (Nat.zero_le s))
-              (by simpa only [Nat.add_sub_cancel] using hCfgFreeze)
+              (by simpa only [Nat.add_sub_cancel] using! hCfgFreeze)
           have hCfgReadBody := hreg.sourceMem_at_read_named adm
             (((action_strictMono S).monotone ha).trans hdeadlineVote.le) hu
           refine ⟨Cfg.erase, hCfgProcessed, ?_, ?_⟩
@@ -264,9 +264,9 @@ theorem voterCandidateMem_or_preceq_root_of_honestPreviousHead_named
               hYheight, heq]
     have hfiltered : C ∈ Protocol.get_filtered_block_tree_from
         st.toHealing.toFG blocks := by
-      simp only [Protocol.get_filtered_block_tree_from,
-        Protocol.viable_tree, Protocol.finalized_descendants,
-        Protocol.viable, Finset.mem_filter, decide_eq_true_eq]
+      simp only [Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
+        Protocol.finalized_descendants, Finset.mem_filter]
+      simp only [Protocol.viable, decide_eq_true_eq]
       exact ⟨⟨⟨hCmem, hFC⟩, hwitness⟩, hroot⟩
     simpa only [voterCandidateTreeAt, Protocol.voter_filtered_block_tree,
       Proofs.Optimistic.voteDutyRead_slot, st, read, blocks] using hfiltered

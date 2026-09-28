@@ -91,7 +91,7 @@ theorem voter_support_subset_voter_view_voteDuty
   intro B hB
   apply carried_support_subset_of_mem_T_core S adm v n
   simpa only [voteDutyStore, voteStore, tickStore,
-    Run.storeBeforeTime, hn] using hB
+    Run.storeBeforeTime, hn] using! hB
 
 
 /- The earlier candidate theorem is retained below; this is its prepared

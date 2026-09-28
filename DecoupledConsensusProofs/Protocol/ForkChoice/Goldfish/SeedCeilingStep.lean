@@ -355,10 +355,10 @@ theorem roundCeilingNextRegime_of_window
             ((Nat.sub_le _ 1).trans hopenLastPred) w hw).1
       actionFrontier := by
         intro w hw
-        simpa only [healStoreAt] using (hactionRead w hw).2
+        simpa only [healStoreAt] using! (hactionRead w hw).2
       actionGateOff := by
         intro w hw
-        simpa only [healStoreAt] using (hactionRead w hw).1
+        simpa only [healStoreAt] using! (hactionRead w hw).1
       proposalFrontier := fun w hw => (hproposalRead w hw).2
       proposalGateOff := fun w hw => (hproposalRead w hw).1 }
 
@@ -390,7 +390,7 @@ theorem voterAnchorAt_preceq_of_previousCarriers
     Block.Preceq (voterAnchorAt S rho w (s + 1)) C := by
   rcases voterAnchorAt_cases S rho w (s + 1) with hfg | hactive
   · rw [hfg]
-    simpa only [voteDutyStore] using hroot
+    simpa only [voteDutyStore] using! hroot
   · obtain ⟨root, A, hframe, hactive, hanchor⟩ := hactive
     rw [hanchor]
     have hr : 0 < q + 1 := Nat.succ_pos q
@@ -443,7 +443,7 @@ theorem voterAnchorAt_preceq_of_previousCarriers
       have hFJ :=
         Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime S rho
           (Protocol.vote_time S.E (s + 1)) w
-      simpa only [voteDutyStore, voteStore, tickStore] using
+      simpa only [voteDutyStore, voteStore, tickStore] using!
         (Proofs.Records.preceq_get_fg_root_of_F
           (st := (NamedRun.stateBeforeTime S rho
             (Protocol.vote_time S.E (s + 1)) w).st.core.toHealing.toFG) hFJ)
@@ -660,7 +660,7 @@ theorem voterAnchorAt_preceq_of_previousCarriers
         adm.toNamedAdmissibleCore.toNamedRootCollisionFree
         hHeadrun hCnrun hheadCnRoot
     have hAC : Block.Preceq A C :=
-      Block.preceq_trans (by simpa only [hheadCarrier] using hAhead) (hupper v hv)
+      Block.preceq_trans (by simpa only [hheadCarrier] using! hAhead) (hupper v hv)
     exact hAC
 
 
@@ -789,7 +789,7 @@ private theorem activeConfirmationAnchor_g1_data
         some ((PhaseGrades.storeRoot S.E S.hc domainRead.st r .g1).map
           (fun X => DecoupledConsensusModel.Protocol.clipGrade X before.st.core.F)) := by
     simpa only [before, domainRead, PhaseGrades.storeRoot,
-      PhaseGrades.phaseRoot, PhaseGrades.readAt] using hbase
+      PhaseGrades.phaseRoot, PhaseGrades.readAt] using! hbase
   have hprepared := NamedOutageClosure.frame_phase_prepared_eq
     S rho w r .g1 t hround _ hbase'
   have hreadFrame :
@@ -797,7 +797,7 @@ private theorem activeConfirmationAnchor_g1_data
         some ((PhaseGrades.storeRoot S.E S.hc domainRead.st r .g1).map
           (fun X => DecoupledConsensusModel.Protocol.clipGrade X read.st.core.F)) := by
     simpa only [read, before, NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom] using hprepared
+      NamedActionReads.confirmationReadFrom] using! hprepared
   cases hstore : PhaseGrades.storeRoot S.E S.hc domainRead.st r .g1 with
   | none =>
       simp only [hstore, Option.map_none] at hreadFrame
@@ -915,7 +915,7 @@ theorem confirmationAnchorAt_preceq_of_previousCarriers
           (Protocol.confirmation_time S.E s) w
       simpa only [Internal.NamedRecoveryRead.confirmationInputRead,
         NamedActionReads.confirmationReadAt,
-        NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+        NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
         (Proofs.Records.preceq_get_fg_root_of_F
           (st := (NamedRun.stateBeforeTime S rho
             (Protocol.confirmation_time S.E s) w).st.core.toHealing.toFG) hFJ)
@@ -1132,7 +1132,7 @@ theorem confirmationAnchorAt_preceq_of_previousCarriers
         adm.toNamedAdmissibleCore.toNamedRootCollisionFree
         hHeadrun hCnrun hheadCnRoot
     have hAC : Block.Preceq A C :=
-      Block.preceq_trans (by simpa only [hheadCarrier] using hAhead) (hupper v hv)
+      Block.preceq_trans (by simpa only [hheadCarrier] using! hAhead) (hupper v hv)
     exact hAC
 
 #print axioms confirmationAnchorAt_preceq_of_previousCarriers
@@ -1153,7 +1153,7 @@ private theorem voterCandidatePathAt_of_candidate
   have hCraw : C ∈ voter_candidate_tree S.E duty.toHealing := by
     simpa only [voterCandidateTreeAt, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock, duty, voteDutyStore] using hC
+      Protocol.NamedStore.setClock, duty, voteDutyStore] using! hC
   have hCfull : C ∈ Protocol.get_filtered_block_tree duty.toHealing.toFG :=
     frozenVoterCandidateTree_subset_filtered S.E duty.toHealing hCraw
   have hCT : C ∈ duty.T :=
@@ -1161,13 +1161,13 @@ private theorem voterCandidatePathAt_of_candidate
   have hpc : ParentClosed duty := by
     simpa only [duty, voteDutyStore, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock] using
+      Protocol.NamedStore.setClock] using!
       Proofs.NamedStoreBridge.parentClosed_stateBeforeTime S rho
         (Protocol.vote_time S.E (s + 1)) w
   have hFJ : Block.Preceq duty.F duty.J := by
     simpa only [duty, voteDutyStore, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock] using
+      Protocol.NamedStore.setClock] using!
       Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime S rho
         (Protocol.vote_time S.E (s + 1)) w
   have hrootAnchor : Block.Preceq
@@ -1175,7 +1175,7 @@ private theorem voterCandidatePathAt_of_candidate
       (voterAnchorAt S rho w (s + 1)) := by
     simpa only [duty, voteDutyStore, voterAnchorAt, nodeAnchor, nodeRead,
       Internal.NamedRecoveryRead.voteDutyRead, NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       fg_root_preceq_get_sg_root_with_frame
         (Internal.NamedRecoveryRead.voteDutyRead S rho w (s + 1)).cache S.E S.hc
         duty.toHealing (S.hc.round_of duty.toHealing.s)
@@ -1214,7 +1214,7 @@ private theorem voterCandidatePathAt_of_candidate
       Block.preceq_trans hDC hCW, hheight⟩, hDdata.2⟩
   simpa only [voterCandidateTreeAt, Internal.NamedRecoveryRead.voteDutyRead,
     NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
-    Protocol.NamedStore.setClock, duty, voteDutyStore] using hDcandidate'
+    Protocol.NamedStore.setClock, duty, voteDutyStore] using! hDcandidate'
 
 
 
@@ -1263,7 +1263,7 @@ private theorem relayVoteInputs_step
     simpa only [voterCandidateTreeAt, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      voteDutyStore] using (hvoteFacts w hw).1
+      voteDutyStore] using! (hvoteFacts w hw).1
   exact
     { candidate := hcandidate
       root := hvoteRoot w hw
@@ -1338,7 +1338,7 @@ private theorem relaySlotInputs_step
         simpa only [confRoot, confStore, tickStore,
           Internal.NamedRecoveryRead.confirmationInputRead,
           NamedActionReads.confirmationReadAt,
-          NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+          NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
           hconfRoot w hw)
   refine ⟨?_, hvoteAnchor⟩
   exact
@@ -1348,7 +1348,7 @@ private theorem relaySlotInputs_step
           simpa only [voterCandidateTreeAt, Internal.NamedRecoveryRead.voteDutyRead,
             NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-            voteDutyStore] using (hvoteFacts w hw).1
+            voteDutyStore] using! (hvoteFacts w hw).1
         exact
           { candidate := (hvoteFacts w hw).1
             root := hvoteRoot w hw
@@ -1363,13 +1363,13 @@ private theorem relaySlotInputs_step
               simpa only [filteredTree, confTree, confStore, tickStore,
                 Internal.NamedRecoveryRead.confirmationInputRead,
                 NamedActionReads.confirmationReadAt,
-                NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+                NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
                 (hconfFacts w hw).1
             root := by
               simpa only [confRoot, confStore, tickStore,
                 Internal.NamedRecoveryRead.confirmationInputRead,
                 NamedActionReads.confirmationReadAt,
-                NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+                NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
                 hconfRoot w hw
             anchor := by
               simp only [Block.compatible, Bool.or_eq_true]
@@ -1389,9 +1389,9 @@ theorem genuineConfirmation_runBlock_step
   let contract := NamedProfile.gradeContract read.cache
   have hwalk : namedConfirmationWalk S read s = D := by
     have hselected := hD.selected
-    rw [update_confirmation_with_live_confirmed, if_pos hD.genuine] at hselected
+    rw [update_confirmation_with_live_confirmed, ite_eq_left hD.genuine] at hselected
     simpa only [read, contract, namedConfirmationWalk, confWalkWith,
-      Proofs.Optimistic.confStore_eq_confirmationInputRead] using hselected
+      Proofs.Optimistic.confStore_eq_confirmationInputRead] using! hselected
   have hroots : Proofs.NamedStoreRoots.RootsInTree read.st := by
     have hbase :=
       (Proofs.NamedRuntime.stateBeforeTime_invariants S rho
@@ -1515,7 +1515,7 @@ theorem roundCeiling_persistence
       have hdata := hHprocessed
       simp only [Protocol.voter_processed_block_tree,
         Finset.mem_filter] at hdata
-      simpa only [voteDutyStore, voteStore, tickStore] using hdata.1
+      simpa only [voteDutyStore, voteStore, tickStore] using! hdata.1
     have hfrontier := h.gateOff.voteFrontier (S.hc.opening_slot q + 1)
       (Nat.le_succ _) (by simpa only [hlastPred] using hosucc) w hw
     have hgate := h.gateOff.voteGateOff (S.hc.opening_slot q + 1)
@@ -1534,11 +1534,11 @@ theorem roundCeiling_persistence
       S adm hsb hw hvoteNextHor hHmem rfl hHrun hDH' hHthin hM
         (by simpa only [voteDutyStore, voteStore, tickStore] using hfrontier)
         (by simpa only [voteDutyStore, voteStore, tickStore] using hgate)
-        (by simpa only [voteDutyStore, voteStore, tickStore] using hrootD)
+        (by simpa only [voteDutyStore, voteStore, tickStore] using! hrootD)
     have hfiltered : D ∈ Protocol.get_filtered_block_tree
         (voteDutyStore S rho w
           (S.hc.opening_slot q + 1)).toHealing.toFG := by
-      simpa only [voteDutyStore, voteStore, tickStore] using hfilteredPre
+      simpa only [voteDutyStore, voteStore, tickStore] using! hfilteredPre
     have hmax : (voteDutyStore S rho w (S.hc.opening_slot q + 1)).h_max ≤
         (derive_named S.E S.cfg H).h + 1 := by
       rw [hfrontier]
@@ -1600,7 +1600,7 @@ theorem roundCeiling_persistence
         simpa only [voterCandidateTreeAt, Internal.NamedRecoveryRead.voteDutyRead,
           NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-          voteDutyStore] using hfacts.1
+          voteDutyStore] using! hfacts.1
       exact
         { candidate := hcandidate
           root := hrootD
@@ -1960,7 +1960,7 @@ private theorem roundCeilingRelayFold_of_regime
     by_cases heq : d = o
     · subst d
       exact frozenVoterCandidateTree_subset_filtered S.E _
-        (by simpa only [hs0Succ] using (hopeningInput w hw).candidate)
+        (by simpa only [hs0Succ] using! (hopeningInput w hw).candidate)
     · have hdLt : o < d := lt_of_le_of_ne hdlo (Ne.symm heq)
       have hdPred : o ≤ d - 1 := Nat.le_pred_of_lt hdLt
       have hdPos : 0 < d := hoPos.trans_le hdlo
@@ -1969,7 +1969,7 @@ private theorem roundCeilingRelayFold_of_regime
       have hpredLt : d - 1 < last := by
         exact lt_of_lt_of_le (Nat.sub_lt hdPos Nat.zero_lt_one) hdhi
       have hin := hroundInputs (d - 1) hdPred hpredLt
-      simpa only [hdSucc] using
+      simpa only [hdSucc] using!
         frozenVoterCandidateTree_subset_filtered S.E _ (hin.vote w hw).candidate
   · intro d hdlo hdhi w hw
     by_cases heq : d = o
@@ -1993,7 +1993,7 @@ private theorem roundCeilingRelayFold_of_regime
           simpa only [confRoot, confStore, tickStore,
             Internal.NamedRecoveryRead.confirmationInputRead,
             NamedActionReads.confirmationReadAt,
-            NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+            NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
             hrootOrder.confirmation s0 (le_refl _)
               (by
                 simpa only [s0, last] using
@@ -2005,17 +2005,17 @@ private theorem roundCeilingRelayFold_of_regime
         exact Nat.succ_le_iff.mpr hsLt
       have hround := roundOf_succ_eq_step S
         (by simpa only [o] using hsMain)
-        (by simpa only [last] using Nat.le_pred_of_lt hshi)
+        (by simpa only [last] using! Nat.le_pred_of_lt hshi)
       have hhorS : Protocol.confirmation_time S.E s ≤ rho.horizon :=
         (confirmationTime_mono_step S.E
           (Nat.le_pred_of_lt hshi)).trans
-          (by simpa only [last] using hreg.roundConfirmationInHorizon)
+          (by simpa only [last] using! hreg.roundConfirmationInHorizon)
       exact confirmationAnchorAt_preceq_of_previousCarriers S adm hfb hround
         hpostAction hcut hhorS hupper hw (by
           simpa only [confRoot, confStore, tickStore,
             Internal.NamedRecoveryRead.confirmationInputRead,
             NamedActionReads.confirmationReadAt,
-            NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+            NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
             hrootOrder.confirmation s
               (by
                 simpa only [o, s0] using
@@ -2085,18 +2085,18 @@ private theorem ceiling_cacheAtRound_align_self_opening
   by_cases h1 : r = c.round
   · rw [show DecoupledConsensusModel.Protocol.alignRound c r = c by
       unfold DecoupledConsensusModel.Protocol.alignRound
-      rw [if_pos h1]]
+      rw [ite_eq_left h1]]
   · by_cases h2 : r = c.round + 1
     · rw [show DecoupledConsensusModel.Protocol.alignRound c r =
         ⟨r, c.next, DecoupledConsensusModel.Protocol.pendingFrame⟩ by
         unfold DecoupledConsensusModel.Protocol.alignRound
-        rw [if_neg h1, if_pos h2]]
+        rw [ite_eq_right h1, ite_eq_left h2]]
       subst h2
       simp [DecoupledConsensusModel.Protocol.cacheAtRound]
     · rw [show DecoupledConsensusModel.Protocol.alignRound c r =
         ⟨r, DecoupledConsensusModel.Protocol.pendingFrame, DecoupledConsensusModel.Protocol.pendingFrame⟩ by
         unfold DecoupledConsensusModel.Protocol.alignRound
-        rw [if_neg h1, if_neg h2]]
+        rw [ite_eq_right h1, ite_eq_right h2]]
       simp [DecoupledConsensusModel.Protocol.cacheAtRound, h1, h2]
 
 private theorem ceiling_clip_grade_compatible_opening (g F : Block V) :
@@ -2389,7 +2389,7 @@ private theorem proposalAnchorAt_preceq_of_previousCarriers
           simpa only [read, PhaseGrades.readAt, proposerReadAt,
             NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom, hopen,
-            Protocol.NamedStore.setClock] using
+            Protocol.NamedStore.setClock] using!
             (Proofs.Records.preceq_get_fg_root_of_F
               (st := (NamedRun.stateBeforeTime S rho
                 (Protocol.proposal_time S.E o) (S.E.proposer o)).st.core.toHealing.toFG)
@@ -2607,7 +2607,7 @@ private theorem proposalAnchorAt_preceq_of_previousCarriers
             adm.toNamedAdmissibleCore.toNamedRootCollisionFree
             hHeadrun hCnrun hheadCnRoot
         have hAC : Block.Preceq A C :=
-          Block.preceq_trans (by simpa only [hheadCarrier] using hAhead) (hupper v hv)
+          Block.preceq_trans (by simpa only [hheadCarrier] using! hAhead) (hupper v hv)
         exact hAC
 
 /-- The proposal anchor is below a carrier ceiling at any slot in the round.
@@ -2712,7 +2712,7 @@ theorem proposalAnchorAt_preceq_of_previousCarriers_named
           (fun X => DecoupledConsensusModel.Protocol.clipGrade X
       (NamedRun.stateBeforeTime S rho
               (Protocol.proposal_time S.E o) w).st.core.F)) := by
-    simpa only [PhaseGrades.storeRoot, PhaseGrades.phaseRoot] using
+    simpa only [PhaseGrades.storeRoot, PhaseGrades.phaseRoot] using!
       (FrameCompleted.frame_phase_completed_in_round S rho
         adm.toNamedAdmissibleCore w hw (q + 1) (Nat.succ_pos q) .g1
         (Protocol.proposal_time S.E o) hdomainLt hta hdomainHor)
@@ -2728,7 +2728,7 @@ theorem proposalAnchorAt_preceq_of_previousCarriers_named
           (fun X => DecoupledConsensusModel.Protocol.clipGrade X
             (proposerReadAt S rho o).st.core.F)) := by
     simpa only [proposerReadAt, NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom] using hframePrepared
+      NamedActionReads.confirmationReadFrom] using! hframePrepared
   suffices htarget : Block.Preceq
       (nodeAnchor S (Internal.NamedRecoveryRead.proposalDutyRead S rho o)
         (q + 1)) C by
@@ -2814,7 +2814,7 @@ theorem proposalAnchorAt_preceq_of_previousCarriers_named
           simpa only [read, PhaseGrades.readAt, proposerReadAt,
             NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom,
-            Protocol.NamedStore.setClock] using hFrootForward
+            Protocol.NamedStore.setClock] using! hFrootForward
         have hFC : Block.Preceq read.st.core.F C :=
           Block.preceq_trans hFroot hroot
         have hlatest : q ∈ Protocol.latest_window S.hc.η_SG (q + 1) := by
@@ -3028,7 +3028,7 @@ theorem proposalAnchorAt_preceq_of_previousCarriers_named
             adm.toNamedAdmissibleCore.toNamedRootCollisionFree
             hHeadrun hCnrun hheadCnRoot
         have hAC : Block.Preceq A C :=
-          Block.preceq_trans (by simpa only [hheadCarrier] using hAhead) (hupper v hv)
+          Block.preceq_trans (by simpa only [hheadCarrier] using! hAhead) (hupper v hv)
         exact hAC
 
 
@@ -3160,10 +3160,10 @@ theorem roundCeilingStepResidual_of_boundaryCone
       S adm hsb hprop hproposalHor hXpre rfl hXrun hCX hXheight hM
         (by simpa only [pre, o] using hreg.proposalFrontier _ hprop)
         (by simpa only [pre, o] using hreg.proposalGateOff _ hprop)
-        (by simpa only [pre, o, proposerDutyStore, tickStore] using hroot)
+        (by simpa only [pre, o, proposerDutyStore, tickStore] using! hroot)
     have hfiltered : Cstar.erase ∈ Protocol.get_filtered_block_tree
         (proposerDutyStore S rho o).toHealing.toFG := by
-      simpa only [pre, proposerDutyStore, tickStore] using hfilteredPre
+      simpa only [pre, proposerDutyStore, tickStore] using! hfilteredPre
     have hrootRead : Block.Preceq
         (Protocol.get_fg_root
           (proposerReadAt S rho o).st.core.toHealing.toFG) Cstar.erase := by
@@ -3171,7 +3171,7 @@ theorem roundCeilingStepResidual_of_boundaryCone
         Internal.NamedRecoveryRead.proposalDutyRead,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom,
-        Protocol.NamedStore.setClock] using hroot
+        Protocol.NamedStore.setClock] using! hroot
     have hanchor := proposalAnchorAt_preceq_of_previousCarriers
       S adm hfb hpostAction hcut hproposalHor hupper hprop hrootRead
     refine ⟨hfiltered, ?_⟩
@@ -3237,7 +3237,7 @@ private theorem seedRootRunBlock
     (NamedRun.stateBeforeTime S rho read w).st.core.toHealing.toFG hroot
   exact Proofs.NamedStoreBridge.runBlock_of_mem_core_T_stateBeforeTime S
     adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hw read
-    (by simpa only [Run.storeBeforeTime] using hmem)
+    (by simpa only [Run.storeBeforeTime] using! hmem)
 
 /-- Every FG root read in round `q + 1` is below every thin run block. -/
 private theorem seedRootReadCandidate_preceq_thin
@@ -3372,7 +3372,7 @@ private theorem exists_seedRebaseCeiling
     have hYmem : Y ∈ candidates := Finset.mem_insert_of_mem hY
     have hYRraw := deepest?_dominates hR hYmem
       (hcompatible Y hYmem Rraw hRmem)
-    simpa only [hRerase] using hYRraw
+    simpa only [hRerase] using! hYRraw
   · intro X hXrun hXthin hCX
     have hRXraw := hbelow Rraw hRmem X hXrun hXthin hCX
     simpa only [hRerase] using hRXraw
@@ -3428,7 +3428,7 @@ theorem exists_roundCeilingRebase
       simp only [seedRootReadCandidates, Finset.mem_union, Finset.mem_biUnion,
         Finset.mem_image, mem_seedSlotRange]
       exact Or.inr (Or.inr ⟨_, hprop, rfl⟩)
-    simpa only [proposerDutyStore, tickStore] using hRoots _ hmem
+    simpa only [proposerDutyStore, tickStore] using! hRoots _ hmem
 
 
 
@@ -3573,7 +3573,7 @@ private theorem roundCeiling_actionCarriersBelowFrontier_of_admissible
   have hlive : Block.Preceq ast.live_confirmed Cstar.erase := by
     have hout := hfrontier.outputsPreceq v hv
     simpa only [roundCeilingOpeningOutput, actionStoreAt, actionReadAt,
-      n, ast] using hout
+      n, ast] using! hout
   have hroot : Block.Preceq grades.anchor Cstar.erase := by
     have hanchor : Block.Preceq (PhaseGrades.nodeAnchor S n q) C.erase := by
       simpa only [Internal.NamedRecoveryRead.actionDutyRead, n] using

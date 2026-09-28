@@ -113,12 +113,14 @@ theorem fgRoot_eq_F_and_filteredMem_of_prefixCap_named
   have hrootF : Protocol.get_fg_root
       (rho.stateBefore S n reader).st.core.toHealing.toFG =
         (rho.stateBefore S n reader).st.core.F := by
-    simp only [Protocol.get_fg_root, Protocol.Store.toHealing, if_neg hgate]
+    simp only [Protocol.get_fg_root]
+    exact ite_eq_right hgate
   have hV : Q ∈ Protocol.V_tree
       (rho.stateBefore S n reader).st.core.toHealing.toFG := by
-    simp only [Protocol.V_tree, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, Protocol.Store.toHealing, decide_eq_true_eq]
+    simp only [Protocol.V_tree, Protocol.viable_tree, Protocol.finalized_descendants,
+      Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
+    simp only [Protocol.Store.toHealing]
     refine ⟨⟨hQmem, hFQ⟩, Q, hQmem, Block.preceq_self _, ?_⟩
     rw [hmax, hQheight]
     exact Nat.sub_le _ _

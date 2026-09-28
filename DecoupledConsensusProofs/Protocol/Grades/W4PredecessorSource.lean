@@ -78,14 +78,14 @@ private theorem w4src_actionCarrier_named
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using hmemAction
+      NamedRun.stateBeforeTime] using! hmemAction
   obtain ⟨B, hBbody, hBerase⟩ :=
     Proofs.NamedStoreBridge.exists_named_of_mem_stateBeforeTime S rho (S.a r) v hmem
   have hBaction : B ∈ (actionStoreAt S rho v r).st.bodies := by
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using hBbody
+      NamedRun.stateBeforeTime] using! hBbody
   have hBrun : RunBlock S rho B := by
     obtain ⟨n, hn, -⟩ := Proofs.Bridges.stateBeforeTime_eq_stateBefore S
       adm.toNamedAdmissibleCore.toNamedScheduleWellFormed (S.a r)
@@ -189,7 +189,7 @@ private theorem w4src_liveConfirmed_mem_action
     NamedActionReads.actionReadFrom, NamedActionReads.preparedCache, cr,
     NamedActionReads.confirmationReadFrom, NamedDuties.confirmation_core,
     Protocol.NamedStore.setClock, n,
-    Run.storeBeforeTime] using hmem
+    Run.storeBeforeTime] using! hmem
 
 private theorem w4src_previousOpening_mem_bodies
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)
@@ -422,7 +422,7 @@ private theorem w4_preceq_actionQ2_of_domainGrade_mem
       (DecoupledConsensusModel.Protocol.readFrame (actionReadAt S rho v r).cache
         (actionReadAt S rho v r).st.core.toHealing r) = some Q
   unfold DecoupledConsensusModel.Protocol.grade2Block
-  rw [if_pos (actionFrame_allClosed S core hv hr hhor),
+  rw [ite_eq_left (actionFrame_allClosed S core hv hr hhor),
     actionFrame_g2 S core hv hr hhor,
     show PhaseGrades.storeRoot S.E S.hc
       (NamedRun.stateBeforeTime S rho
@@ -461,7 +461,7 @@ theorem w4_preparedFGSource_eq_live_of_domainGrade
       ((NamedProfile.gradeContract (actionReadAt S rho v r).cache).read
         S.E S.hc (actionReadAt S rho v r).st.core.toHealing r).clear =
         some (actionStoreAt S rho v r).live_confirmed :=
-    w4src_deepest_clear_eq_tip (by simpa using hQlive) hclear
+    w4src_deepest_clear_eq_tip (by simpa using! hQlive) hclear
   have hround : S.hc.round_of
       (actionReadAt S rho v r).st.core.toHealing.s = r := by
     simpa only [actionStoreAt, Protocol.Store.toHealing] using
@@ -656,7 +656,7 @@ private theorem w4src_positive_of_actionVote
   have hfind' : Block.find? gv.T
       (actionSGBlockAt S rho u (p - 1)).root =
       some (actionSGBlockAt S rho u (p - 1)) := by
-    simpa only [gv, n] using hfind
+    simpa only [gv, n] using! hfind
   have htoken : DecoupledConsensusModel.Protocol.token (actionSGVoteAt S rho u (p - 1)) ∈
       readyView gv F S.hc.η_SG p (early S.E S.hc p .g2) u := by
     simpa only [readyView] using Finset.mem_image_of_mem DecoupledConsensusModel.Protocol.token hmem
@@ -781,7 +781,7 @@ private theorem w4src_not_opposing_of_actionVote
   have hfind' : Block.find? gv.T
       (actionSGBlockAt S rho u (p - 1)).root =
       some (actionSGBlockAt S rho u (p - 1)) := by
-    simpa only [gv, n] using hfind
+    simpa only [gv, n] using! hfind
   have htoken : DecoupledConsensusModel.Protocol.token (actionSGVoteAt S rho u (p - 1)) ∈
       readyView gv F S.hc.η_SG p (early S.E S.hc p .g2) u := by
     have hmem' : actionSGVoteAt S rho u (p - 1) ∈
@@ -913,12 +913,12 @@ private theorem w4src_domainGrade_of_roundFloor
             (rho.storeBeforeTime S v (S.a p)).core.toHealing.toFG) := by
       exact Proofs.Records.preceq_get_fg_root_of_F
         (st := (rho.storeBeforeTime S v (S.a p)).core.toHealing.toFG)
-        (by simpa only [Run.storeBeforeTime] using
+        (by simpa only [Run.storeBeforeTime] using!
           (Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime
             S rho (S.a p) v))
     have hroot := hfields.floorAboveRoots v hv
     exact Block.preceq_trans hFmono
-      (Block.preceq_trans hFroot (by simpa only [healStoreAt] using hroot))
+      (Block.preceq_trans hFroot (by simpa only [healStoreAt] using! hroot))
   have hready : ∀ v ∈ rho.honest, ∀ u ∈ rho.honest,
       actionSGVoteAt S rho u (p - 1) ∈
           interpretedInputs

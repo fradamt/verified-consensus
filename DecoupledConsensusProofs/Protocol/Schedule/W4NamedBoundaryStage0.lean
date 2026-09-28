@@ -142,7 +142,7 @@ private theorem w4nbs_parent_of_boundary
       exact Nat.add_le_add_left (by decide : (1 : Nat) ≤ 3) o
     exact (Int.add_le_add_right
       (Protocol.proposal_time_mono S.E hslots) _).trans
-      (by simpa only [o] using hbaseTiming.2.2)
+      (by simpa only [o] using! hbaseTiming.2.2)
   obtain ⟨EndAt, hstate, hconstAll⟩ :=
     w4NamedBoundaryHistoryN_toFreeze S adm hhandoff hboundary hconfHor
   have hconst : EndAt
@@ -398,7 +398,7 @@ theorem w4MovingSlotFoldAtN_boundary_honest_stage0
               exact (Int.add_le_add_right
                 (Protocol.proposal_time_mono S.E
                   hslots) _).trans
-                (by simpa only [o] using hbaseTiming.2.2))
+                (by simpa only [o] using! hbaseTiming.2.2))
         obtain ⟨P0, hP0, EndAt', hstate', hstrict, hincl⟩ :=
           movingBoundaryHistoryN_toProposal_honest (c := o + 1) S adm hstate
             (hconst _ (Nat.le_refl _)) ⟨D, rfl, hboundary.run⟩ hprop

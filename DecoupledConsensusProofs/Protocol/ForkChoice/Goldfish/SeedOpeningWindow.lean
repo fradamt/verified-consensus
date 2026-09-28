@@ -101,7 +101,7 @@ theorem seedOpeningParentHeight_of_frontier
       (selectedOpeningProposedParent_mem_filtered S (rho := rho) s)
   have hpc : ParentClosed st := by
     simpa only [st, n, proposerReadAt, NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       (Proofs.NamedStoreBridge.parentClosed_stateBeforeTime S rho
         (Protocol.proposal_time S.E s) (S.E.proposer s))
   have hroot : RootInjectiveBelow st.T := by
@@ -164,7 +164,7 @@ theorem seedOpeningParentHeight_of_frontier
   have hfrontier' : st.h_max = M := by
     simpa only [st, n, proposerReadAt, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, proposerDutyStore,
-      Proofs.Optimistic.tickStore, Protocol.NamedStore.setClock] using hfrontier
+      Proofs.Optimistic.tickStore, Protocol.NamedStore.setClock] using! hfrontier
   rw [hfrontier'] at hbound'
   have key : ∀ a b : Nat, a ≤ b + 1 → a - 1 ≤ b := by omega
   exact key M (Protocol.derive_named S.E S.cfg P.parent).h hbound'
@@ -248,7 +248,7 @@ private theorem proposedBlock_admittedBefore_vote_after_gst
           (index_succ_le_strict_filter_length rho
             adm.toNamedAdmissibleCore.toNamedScheduleWellFormed.sorted
             (Protocol.vote_time S.E s) hi
-            (by simpa only [Event.time] using hhi))))
+            (by simpa only [Event.time] using! hhi))))
         (proposedBlock_proposer S rho s hP)
         (proposedBlock_parent_slot_lt S adm hs hP)
         (proposedBlock_carried_attestations_admissible S rho s hP) hhi
@@ -453,10 +453,10 @@ theorem gateOffOpeningWindow_of_window
           hmem v hv (Protocol.vote_time S.E (S.hc.opening_slot q)) (le_refl _)
       confirmationFrontier := by
         intro v hv
-        simpa only [confStore, tickStore] using (hconfRead v hv).2
+        simpa only [confStore, tickStore] using! (hconfRead v hv).2
       confirmationGateOff := by
         intro v hv
-        simpa only [confStore, tickStore] using (hconfRead v hv).1
+        simpa only [confStore, tickStore] using! (hconfRead v hv).1
       proposalAtConfirmation := by
         intro v hv
         simpa only [confStore, tickStore] using
@@ -464,13 +464,13 @@ theorem gateOffOpeningWindow_of_window
             (Protocol.vote_time_le_confirmation_time S.E _)
       nextFrontier := by
         intro v hv
-        simpa only [healStoreAt] using (hnextRead v hv).2
+        simpa only [healStoreAt] using! (hnextRead v hv).2
       nextGateOff := by
         intro v hv
-        simpa only [healStoreAt] using (hnextRead v hv).1
+        simpa only [healStoreAt] using! (hnextRead v hv).1
       proposalAtNext := by
         intro v hv
-        simpa only [healStoreAt] using
+        simpa only [healStoreAt] using!
           hmem v hv (S.a (q + 1))
             (hvoteHi.trans (Assembly.a_mono S (Nat.le_succ q))) }
 

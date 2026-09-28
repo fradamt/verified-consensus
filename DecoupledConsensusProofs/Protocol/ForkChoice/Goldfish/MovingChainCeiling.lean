@@ -119,7 +119,7 @@ theorem MovingSlotPreEntryN.confOutcome_atPrev_of_ceiling_named
         (confirmationInputRead S rho w c).st.core.toHealing.toFG) E0.erase := by
     simpa only [confirmationInputRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      Run.storeBeforeTime] using hrootRaw
+      Run.storeBeforeTime] using! hrootRaw
   have hresolve := Protocol.headsResolveIn_confStore_of_postHealingCone
     S adm hw hpostVote
       ((support_cutoff_le_confirmation_time S.E c).trans hslotHor)
@@ -140,13 +140,13 @@ theorem MovingSlotPreEntryN.confOutcome_atPrev_of_ceiling_named
     simpa only [confirmationInputRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      NamedRun.stateBeforeTime] using
+      NamedRun.stateBeforeTime] using!
       Proofs.NamedStoreBridge.parentClosed_stateBeforeTime S rho
         (Protocol.confirmation_time S.E c) w
   have hmem : E0.erase ∈ (Proofs.Optimistic.confStore S rho w c).T := by
     apply Proofs.Records.mem_of_preceq ((parentClosed_iff _).mp hpc).2
       E0.erase X.erase hXmem
-    simpa only [hE0] using hEndX
+    simpa only [hE0] using! hEndX
   have hFJ : Block.Preceq
       (Proofs.Optimistic.confStore S rho w c).F
       (Proofs.Optimistic.confStore S rho w c).J := by
@@ -241,7 +241,7 @@ theorem MovingSlotPreEntryN.confOutcome_atPrev_of_ceiling_named
     S adm hcom hc hpostVote hslotHor hw (B := K)
     (by simpa only [hKEnd] using hvotes)
     (by simpa only [hKErase] using hroot)
-    (by simpa only [hKErase] using hanchor) hcandidate
+    (by simpa only [hKErase] using! hanchor) hcandidate
   simpa only [movingSlotConfirmationOutput, hKPrev] using hout
 
 
@@ -310,7 +310,7 @@ theorem MovingSlotEntryStateN.windowVoteAnchor_of_ceiling_named
         (Proofs.Optimistic.voteDutyStore S rho w (c + 1)).toHealing.toFG)
       E0.erase := by
     simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore, Run.storeBeforeTime] using hrootRaw
+      Proofs.Optimistic.tickStore, Run.storeBeforeTime] using! hrootRaw
   have hvoteHor : Protocol.vote_time S.E (c + 1) ≤ rho.horizon := by
     have htime : Protocol.vote_time S.E (c + 1) ≤
         Protocol.confirmation_time S.E c := by
@@ -329,7 +329,7 @@ theorem MovingSlotEntryStateN.windowVoteAnchor_of_ceiling_named
       (voterAnchorAt S rho w (c + 1)) Next := by
     refine Block.preceq_trans hanchor ?_
     exact Block.preceq_trans
-      (by simpa only [hE0, hprev] using hentry.prevLe) hNext
+      (by simpa only [hE0, hprev] using! hentry.prevLe) hNext
   exact Block.compatible_of_preceq_common hanchorNext
     (Block.preceq_self Next)
 
@@ -880,7 +880,7 @@ theorem MovingFrontierChainStateN.proposalAnchor_preceq_endpointAtProposal_of_ce
         (S.hc.round_of (proposerReadAt S rho s).st.core.s)) (End i) := by
   have hrootState := h.root_preceq_endpointAtProposal_beforeVote
     S adm hfb hevent hevent
-      (by simpa only [Event.time] using
+      (by simpa only [Event.time] using!
         (Protocol.proposal_time_lt_vote_time S.E s))
       hprop h.start_le hE hErun
   have hstate := Proofs.Optimistic.stateBefore_tick_eq_stateBeforeTime S
@@ -890,7 +890,7 @@ theorem MovingFrontierChainStateN.proposalAnchor_preceq_endpointAtProposal_of_ce
         (proposerReadAt S rho s).st.core.toHealing.toFG) (End i) := by
     rw [hstate] at hrootState
     simpa only [proposerReadAt, NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       hrootState
   exact proposalAnchorAt_preceq_of_previousCarriers_named
     S adm hfb hround hpostAction hcut hhor hupper hprop hroot
@@ -1132,12 +1132,12 @@ theorem MovingSlotEntryStateN.windowVotesCone_of_ceiling
         (Proofs.Optimistic.voteDutyStore S rho w (c + 1)).toHealing.toFG)
       E0.erase := by
     simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore, Run.storeBeforeTime] using hrootRaw
+      Proofs.Optimistic.tickStore, Run.storeBeforeTime] using! hrootRaw
   have hrootNext : Block.Preceq
       (Protocol.get_fg_root
         (Proofs.Optimistic.voteDutyStore S rho w (c + 1)).toHealing.toFG) Next := by
     exact Block.preceq_trans hroot (by
-      simpa only [hE0, hprev] using hPrevNext)
+      simpa only [hE0, hprev] using! hPrevNext)
   have hgenuine' : GenuineConfirmation (contract :=
       NamedProfile.gradeContract (confirmationInputRead S rho v c).cache)
       S.E S.hc (Proofs.Optimistic.confStore S rho v c) c Next := by
@@ -1152,7 +1152,7 @@ theorem MovingSlotEntryStateN.windowVotesCone_of_ceiling
     simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
       Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore] using hprocessedOld
+      Proofs.Optimistic.tickStore] using! hprocessedOld
   have htime : Protocol.vote_time S.E (c + 1) ≤
       Protocol.confirmation_time S.E c :=
     voteTimeSucc_le_confirmationTime_c S.E c
@@ -1225,7 +1225,7 @@ theorem MovingSlotEntryStateN.windowVotesCone_of_ceiling
   have hanchorEnd : Block.Preceq
       (voterAnchorAt S rho w (c + 1)) End :=
     Block.preceq_trans hanchor (by
-      simpa only [hE0, hprev] using hentry.prevLe)
+      simpa only [hE0, hprev] using! hentry.prevLe)
   have hbandN :
       (voteDutyRead S rho w (c + 1)).st.core.h_max - 1 ≤
         ((voteDutyRead S rho w (c + 1)).st.core.σ N.erase).h := by
@@ -1570,9 +1570,9 @@ theorem MovingSlotFoldAtN.step_of_ceiling_of_pins
       hpostAction hcut hdata.postVote hdata.postProp hdata.slotHor htiming
   refine ⟨fun d => if d ≤ c + 1 then F d else Next, ?_⟩
   have hlow : ∀ d : Slot, d ≤ c + 1 →
-      (if d ≤ c + 1 then F d else Next) = F d := fun _ hd => if_pos hd
+      (if d ≤ c + 1 then F d else Next) = F d := fun _ hd => ite_eq_left hd
   have hhigh : (if c + 1 + 1 ≤ c + 1 then F (c + 1 + 1) else Next) = Next :=
-    if_neg (nat_not_succ_succ_le_c c)
+    ite_eq_right (nat_not_succ_succ_le_c c)
   have hendNext : Block.Preceq End Next := hfrontier.oldPreceq
   have hprevNext : Block.Preceq (F (c + 1)) Next :=
     Block.preceq_trans hfold.entry.prevLe hendNext
@@ -1585,12 +1585,12 @@ theorem MovingSlotFoldAtN.step_of_ceiling_of_pins
     by_cases hec : e ≤ c + 1
     · rw [hlow d (hde.trans hec), hlow e hec]
       exact hfold.mono d e hd hde hec
-    · rw [if_neg hec]
+    · rw [ite_eq_right hec]
       by_cases hdle : d ≤ c + 1
       · rw [hlow d hdle]
         exact Block.preceq_trans (hfold.mono d (c + 1) hd hdle (Nat.le_refl _))
           hprevNext
-      · rw [if_neg hdle]
+      · rw [ite_eq_right hdle]
         exact Block.preceq_self Next
   have habsorbed : ∀ d : Slot, s0 ≤ d → d < c + 1 + 1 →
       S.E.proposer d ∈ rho.honest →
@@ -1624,7 +1624,7 @@ theorem MovingSlotFoldAtN.step_of_ceiling_of_pins
         hfb hdata.pos hround hupper hpostAction hcut hdata.postVote
         hdata.slotHor hu
       refine ⟨hout.1, ?_⟩
-      rw [if_neg (nat_not_add_two_le_succ_c d)]
+      rw [ite_eq_right (nat_not_add_two_le_succ_c d)]
       exact hfrontier.genuinePreceq u hu _ hout.1
   have hconfAbove : ∀ d : Slot, s0 ≤ d → d + 1 < c + 1 + 1 →
       ∀ u ∈ rho.honest,
@@ -1653,7 +1653,7 @@ theorem MovingSlotFoldAtN.step_of_ceiling_of_pins
       exact hfold.windowCone d hd hlt
     · have hdeq : d = c + 1 := Nat.le_antisymm (nat_le_of_lt_succ_c hdlt) hge
       subst hdeq
-      rw [if_neg (nat_not_succ_succ_le_c c)]
+      rw [ite_eq_right (nat_not_succ_succ_le_c c)]
       exact hcone
   have hhistoryAt : ∀ E' : Block V,
       MovingSlotEntryStateN S rho t1 M0 (c + 1 + 1) Next E' →

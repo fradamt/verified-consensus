@@ -40,15 +40,15 @@ theorem record_attestation_target_mono (Λ : Record) (a : CombinedAttestation V)
     | target g X =>
       change (if Λ'.target g = none then Λ'.with_target g X else Λ').target h = some T
       by_cases hg : Λ'.target g = none
-      · rw [if_pos hg]
+      · rw [ite_eq_left hg]
         simp only [Record.with_target]
         by_cases hgh : h = g
         · subst hgh
           rw [hg] at hs'
           exact absurd hs' (by simp)
-        · simp only [if_neg hgh]
+        · simp only [ite_eq_right hgh]
           exact hs'
-      · rw [if_neg hg]
+      · rw [ite_eq_right hg]
         exact hs'
   simp only [record_attestation]
   cases a.finality_pair with
@@ -110,9 +110,9 @@ theorem record_attestation_lock_eq (Λ : Record) (a : CombinedAttestation V)
     | target k Y =>
       change (if Λ'.target k = none then Λ'.with_target k Y else Λ').lock g = Λ'.lock g
       by_cases hk : Λ'.target k = none
-      · rw [if_pos hk]
+      · rw [ite_eq_left hk]
         rfl
-      · rw [if_neg hk]
+      · rw [ite_eq_right hk]
   cases a.finality_pair with
   | none => exact key Λ
   | some p => exact key (Λ.with_lock p.height p.target)

@@ -184,7 +184,7 @@ private theorem w4fs_adoptionSucc_of_frontierCap
         (voterHeadAt S rho w s) := by
       simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Protocol.voteDutyHead] using hrootHead
+        Protocol.voteDutyHead] using! hrootHead
     simpa only [hheads w hw] using hroot'
   exact w4_adoptionAt_slot_of_frontierCap S adm hcom hbelow hrec hdelay hpost
     hdeadlineSlot hpostProp hconfS hvoteNext hcutS hpostVote hrunD hheads hcone

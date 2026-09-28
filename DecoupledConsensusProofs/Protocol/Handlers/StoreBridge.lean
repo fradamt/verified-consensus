@@ -676,7 +676,7 @@ private theorem process_core_order (S : Setup V) (st : Protocol.NamedStore V)
       change NamedBlock.genesis ∈ st.bodies
       exact hco.2.2.1.1
     rw [Protocol.NamedStore.process_block_core,
-      if_neg (not_not.mpr hpgen), NamedStore.commit_core]
+      ite_eq_right (not_not.mpr hpgen), NamedStore.commit_core]
     dsimp only [Protocol.on_block_checked_using]
     split_ifs
     · change CoreOrder (Protocol.on_block_using S.E st.core Block.genesis _)
@@ -687,7 +687,7 @@ private theorem process_core_order (S : Setup V) (st : Protocol.NamedStore V)
     change CoreOrder
       (Protocol.NamedStore.process_block_core S.E S.hc S.cfg st B).core
     by_cases hp : B.parent ∈ st.bodies
-    · rw [Protocol.NamedStore.process_block_core, if_neg (not_not.mpr hp),
+    · rw [Protocol.NamedStore.process_block_core, ite_eq_right (not_not.mpr hp),
         NamedStore.commit_core]
       dsimp only [Protocol.on_block_checked_using]
       split_ifs

@@ -59,7 +59,7 @@ theorem bftRegime_of_generic (S : Setup V) (rho : Run V) (t₀ : Time)
     belowThird := ?_
     allAwake := allAwake_of_generic S rho h.allAwake }
   simpa [E, Instantiation.env, Generic.BelowOneThird,
-    Execution.BelowOneThird] using h.belowThird
+    Execution.BelowOneThird] using! h.belowThird
 
 theorem recoveryRegime_of_generic (S : Setup V) (rho : Run V) (t₀ : Time)
     (gap : Nat)
@@ -77,8 +77,8 @@ theorem recoveryRegime_of_generic (S : Setup V) (rho : Run V) (t₀ : Time)
     timeout := S.timeoutDelayBound
     horizon := ?_ }
   · simpa [E, Instantiation.env, Generic.BelowOneThird,
-      Execution.BelowOneThird] using h.belowThird
-  · simpa [C, Instantiation.constants, Statements.ourConstants] using h.horizon
+      Execution.BelowOneThird] using! h.belowThird
+  · simpa [C, Instantiation.constants, Statements.ourConstants] using! h.horizon
 
 theorem finalityRegime_of_generic (S : Setup V) (rho : Run V) (t₀ : Time)
     (gap : Nat)
@@ -95,7 +95,7 @@ theorem finalityRegime_of_generic (S : Setup V) (rho : Run V) (t₀ : Time)
     gapBound := ?_
     timeout := S.timeoutDelayBound }
   · simpa [E, Instantiation.env, Generic.BelowOneThird,
-      Execution.BelowOneThird] using h.belowThird
+      Execution.BelowOneThird] using! h.belowThird
   · simpa [C, Instantiation.constants] using h.gapBound
 
 theorem recoveredBy_of_generic (S : Setup V) (rho : Run V)
@@ -118,11 +118,14 @@ theorem recoveredBy_of_generic (S : Setup V) (rho : Run V)
           simp [Setup.extraRounds, C, Instantiation.constants, Statements.ourConstants]
         rw [hprefix]
         have he := hcont.agrees.events v hv
-        convert he using 1 <;> try rfl
-        all_goals
-          apply List.filter_congr
-          intro e he
+        have hnode : ∀ e : NamedEvent V, NamedEvent.node e = Generic.Event.node e := by
+          intro e
           cases e <;> rfl
+        have htime : ∀ e : NamedEvent V, NamedEvent.time e = Generic.Event.time e := by
+          intro e
+          cases e <;> rfl
+        simp only [hnode, htime]
+        exact he
       · exact slashableBound_of_generic S rho hslash
 
 theorem outageRegime_of_generic (S : Setup V) (rho : Run V)

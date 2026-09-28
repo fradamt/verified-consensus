@@ -136,7 +136,7 @@ theorem proposerDutyStore_proposer_view_valid_core
         (proposerDutyStore S rho s).s).toFinset := by
   have hsch := adm.toNamedScheduleWellFormed
   simpa only [proposerDutyStore, Proofs.Optimistic.tickStore,
-    Proofs.Optimistic.slotOf_proposal_time] using
+    Proofs.Optimistic.slotOf_proposal_time] using!
       voteSetValid_proposer_view_stateBeforeTime S hsch
         (S.E.proposer s) (Protocol.proposal_time S.E s) s
 

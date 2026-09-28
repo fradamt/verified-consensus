@@ -70,10 +70,8 @@ theorem handlesAt_iff (S : Setup V) (rho : Run V) (i : Nat) (v : V)
     change DecoupledConsensusModel.Execution.handles S
         (Generic.Run.stateBefore (P S) rho i v) e o at hh
     rw [hstate] at hh
-    have hnode' : NamedEvent.node e = v := by
-      simpa only [named_node_eq] using hnode
-    have htime' : NamedEvent.time e = t := by
-      simpa only [named_time_eq] using htime
+    have hnode' : NamedEvent.node e = v := (named_node_eq e).trans hnode
+    have htime' : NamedEvent.time e = t := (named_time_eq e).trans htime
     exact ⟨(handles_iff S rho i v e o he hnode').1 hh,
       ⟨e, he, hnode', htime'⟩⟩
   · rintro ⟨ho, ⟨e, he, hnode, htime⟩⟩
@@ -131,18 +129,18 @@ private theorem named_execution_valid_of_generic_schedule
   refine {
     horizon_nonneg := h.horizon_nonneg
     sorted := by
-      simpa only [NamedRun.events_eq, named_key_eq] using h.sorted
-    nodup := by simpa only [NamedRun.events_eq] using h.nodup
+      simpa only [NamedRun.events_eq, named_key_eq] using! h.sorted
+    nodup := by simpa only [NamedRun.events_eq] using! h.nodup
     in_horizon := by
-      simpa only [NamedRun.events_eq, NamedRun.horizon_eq, named_time_eq] using h.in_horizon
+      simpa only [NamedRun.events_eq, NamedRun.horizon_eq, named_time_eq] using! h.in_horizon
     honest_only := by
-      simpa only [NamedRun.events_eq, NamedRun.honest_eq, named_node_eq] using h.honest_only
+      simpa only [NamedRun.events_eq, NamedRun.honest_eq, named_node_eq] using! h.honest_only
     tick_public := ?_
     tick_total := ?_ }
   · intro v t ht
-    simpa [Generic.PublicTime, E] using h.tick_public v t ht
+    simpa [Generic.PublicTime, E] using! h.tick_public v t ht
   · intro v hv t ht h0 hhor
-    exact h.tick_total v hv t (by simpa [Generic.PublicTime, E] using ht) h0 hhor
+    exact h.tick_total v hv t (by simpa [Generic.PublicTime, E] using! ht) h0 hhor
 
 private theorem named_execution_valid_of_generic_delivery
     (S : Setup V) (rho : Run V)
@@ -204,9 +202,9 @@ theorem voteSafetySchedule_of_generic_unforgeableRun
     VoteSafetySchedule S rho := by
   refine {
     sorted := by
-      simpa only [NamedRun.events_eq, named_key_eq] using h.sorted
+      simpa only [NamedRun.events_eq, named_key_eq] using! h.sorted
     honest_only := by
-      simpa only [NamedRun.events_eq, named_node_eq] using h.honest_only }
+      simpa only [NamedRun.events_eq, named_node_eq] using! h.honest_only }
 
 theorem attestationAuthenticity_of_generic_unforgeableRun
     (S : Setup V) (rho : Run V)
@@ -241,7 +239,7 @@ theorem finalityExecution_of_generic_runWellFormed
     (h : Generic.RunWellFormed (E S) (I S) rho) :
     Internal.FinalityExecution S rho := by
   refine { sorted := ?_, rootCollisionFree := h.idealization }
-  simpa only [NamedRun.events_eq, named_key_eq] using h.sorted
+  simpa only [NamedRun.events_eq, named_key_eq] using! h.sorted
 
 private theorem processed_eq (S : Setup V) (rho : Run V) (i : Nat) (v : V)
     (o : NamedObject V) :
@@ -277,18 +275,18 @@ theorem genericExecutionValid_of_named
       honest_only := ?_
       tick_public := ?_
       tick_total := ?_ }
-    · simpa only [NamedRun.events_eq, named_key_eq] using
+    · simpa only [NamedRun.events_eq, named_key_eq] using!
         h.toNamedScheduleWellFormed.sorted
-    · simpa only [NamedRun.events_eq, NamedRun.horizon_eq, named_time_eq] using
+    · simpa only [NamedRun.events_eq, NamedRun.horizon_eq, named_time_eq] using!
         h.toNamedScheduleWellFormed.in_horizon
-    · simpa only [NamedRun.events_eq, named_node_eq] using
+    · simpa only [NamedRun.events_eq, named_node_eq] using!
         h.toNamedScheduleWellFormed.honest_only
     · intro v t ht
-      simpa [Generic.PublicTime, Execution.PublicTime, E] using
+      simpa [Generic.PublicTime, Execution.PublicTime, E] using!
         h.toNamedScheduleWellFormed.tick_public v t ht
     · intro v hv t ht hnonneg hhor
       apply h.toNamedScheduleWellFormed.tick_total v hv t
-      · simpa [Generic.PublicTime, Execution.PublicTime, E] using ht
+      · simpa [Generic.PublicTime, Execution.PublicTime, E] using! ht
       · exact hnonneg
       · exact hhor
   · refine {
@@ -313,7 +311,7 @@ theorem genericExecutionValid_of_named
       carried := ?_ }
     · intro v o t hproc u hu ha
       have hproc' := (processes_iff S rho v o t).1 hproc
-      have ha' : (NamedObject.author o) = some u := by simpa [P] using ha
+      have ha' : (NamedObject.author o) = some u := by simpa [P] using! ha
       rcases h.toNamedUnforgeable.unforgeable v o t hproc' u hu ha' with
         ⟨t', htle, hemits⟩
       exact ⟨t', htle, (emits_iff S rho u o t').2 hemits⟩

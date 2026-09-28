@@ -68,11 +68,8 @@ theorem voteDutyHead_mem_of_emission_core
     dsimp only [tree]
     rw [← Proofs.Optimistic.voter_candidate_tree_eq_protocol_voter_filtered_block_tree]
     intro D hD
-    simp only [Proofs.Optimistic.voter_candidate_tree,
-      Protocol.get_filtered_block_tree_from,
-      Protocol.viable_tree, Protocol.finalized_descendants,
-      Protocol.voter_processed_block_tree, Finset.mem_filter] at hD
-    exact hD.1.1.1.1
+    exact Finset.mem_of_mem_filter _ (Finset.mem_of_mem_filter _
+      (Finset.mem_of_mem_filter _ (Finset.mem_of_mem_filter _ hD)))
   have hanchor : Protocol.get_sg_root_with
       (NamedProfile.gradeContract read.cache) S.E S.hc st.toHealing
       (S.hc.round_of st.s) ∈ st.T := by

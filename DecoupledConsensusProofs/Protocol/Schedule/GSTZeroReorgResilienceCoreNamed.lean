@@ -73,7 +73,7 @@ theorem preparedVoterAnchor_preceq_voteDutyHead_of_gstZero_core
     simpa only [read, t, s, voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      voteDutyHead] using
+      voteDutyHead] using!
       Proofs.HealingSurface.WeakGenesis.fgRootAtRead_preceq_voteDutyHead_of_gstZero_named
         S h.core h.committees h.gstZero h.windows hhor hd hupper
           (t := t) (le_refl _) hw hx
@@ -101,7 +101,7 @@ theorem preparedVoterAnchor_preceq_voteDutyHead_of_gstZero_core
       have hno := Proofs.HealingSurface.WeakGenesis.confirmationRead_g1_round_zero_no_root
         S h.core w t (by simpa only [hr0] using hroundT) htne (root := raw)
       exact False.elim (hno (by
-        simpa only [read, voteDutyRead, t, hr0] using hframeR))
+        simpa only [read, voteDutyRead, t, hr0] using! hframeR))
     · have hr : 0 < r := Nat.pos_of_ne_zero hr0
       have hgrade := Proofs.HealingSurface.WeakSG.phaseGrade_of_preparedFrame_g1
         S rho h.core w hw r hr t hroundT hdomain htop hdomainHor
@@ -165,7 +165,7 @@ theorem preparedVoterAnchor_preceq_voteDutyHead_of_gstZero_core
                 (DecoupledConsensusModel.Protocol.domain S.E S.hc r .g1) y).st.core.F
               (voterHeadAt S rho x d) :=
             Block.preceq_trans hFrootY (by
-              simpa only [Run.storeBeforeTime, voteDutyHead] using hfgY)
+              simpa only [Run.storeBeforeTime, voteDutyHead] using! hfgY)
           exact NamedOutageClosure.honestRoundVote_interpreted_at_reader_of_twoCutoff_compatible
             S rho h.core h.gstZero hdelivery r k .g1 hk y hy hdomainHor hdeadline
               ((Proofs.NamedOutageInputs.honestRoundVoters_iff S rho u k).mpr
@@ -231,11 +231,11 @@ theorem honestHead_voterProcessed_at_nextDuty_at_cutoff_core
     exact ⟨by
       simpa only [read, voteDutyRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Protocol.Store.toHealing] using hgenesis.1,
+        Protocol.Store.toHealing] using! hgenesis.1,
       Or.inl (by
         simpa only [read, voteDutyRead, NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-          Protocol.Store.toHealing] using hgenesis.2)⟩
+          Protocol.Store.toHealing] using! hgenesis.2)⟩
   · have hvisible := admittedBefore_mem_and_stamp_at S
       core.toNamedScheduleWellFormed hadmit
       (le_trans (le_of_lt (support_cutoff_lt_view_freeze S.E s))
@@ -244,7 +244,7 @@ theorem honestHead_voterProcessed_at_nextDuty_at_cutoff_core
         (Protocol.support_cutoff S.E s) H = true := by
       simpa only [read, voteDutyRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-        using hvisible.2
+        using! hvisible.2
     have hstampFreeze : stampedBefore read.st.core.timestamp_block
         (Protocol.view_freeze S.E s) H = true := by
       rw [stampedBefore_eq_occurrenceBefore] at hstampCut ⊢
@@ -255,7 +255,7 @@ theorem honestHead_voterProcessed_at_nextDuty_at_cutoff_core
     exact ⟨by
       simpa only [read, voteDutyRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Protocol.Store.toHealing] using hvisible.1,
+        Protocol.Store.toHealing] using! hvisible.1,
       Or.inl hstampFreeze⟩
 
 #print axioms honestHead_voterProcessed_at_nextDuty_at_cutoff_core
@@ -416,7 +416,7 @@ theorem actionBlockProcessedAtNextDuty_core
           simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
             Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-            Proofs.Optimistic.tickStore] using hrootD
+            Proofs.Optimistic.tickStore] using! hrootD
         exact finalized_preceq_at_prefix_of_storeBeforeRoot_preceq
           S rho core.toNamedScheduleWellFormed.sorted hroot' hjVote
       have hadmit := block_admittedBefore_of_accepted_after_cutoff_core
@@ -449,11 +449,11 @@ theorem actionBlockProcessedAtNextDuty_core
   exact ⟨by
     simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      Protocol.Store.toHealing] using hvis.1,
+      Protocol.Store.toHealing] using! hvis.1,
     Or.inl (by
       simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Protocol.Store.toHealing] using hvis.2)⟩
+        Protocol.Store.toHealing] using! hvis.2)⟩
 
 #print axioms actionBlockProcessedAtNextDuty_core
 
@@ -527,7 +527,7 @@ theorem coneBandDescendant_of_frontierWitnesses_at_vote_core
       have hzero : read.st.core.h_max - 1 = 0 := by
         simpa only [read, voteDutyRead, NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-          using Nat.sub_eq_zero_of_le (Nat.le_of_not_gt hn)
+          using! Nat.sub_eq_zero_of_le (Nat.le_of_not_gt hn)
       rw [hzero] at hhighNamed
       exact Nat.not_lt_zero _ hhighNamed
     obtain ⟨a, ta, D, K, ha, hemit, hta, hrow, hselected, hDmem, hKmem,
@@ -541,11 +541,11 @@ theorem coneBandDescendant_of_frontierWitnesses_at_vote_core
         hCnrun a ta K ha hemit hta (by
           simpa only [read, voteDutyRead, NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-            using hrow) hselected hKrun
+            using! hrow) hselected hKrun
     have hCnK : NamedBlock.Preceq Cn K := by
       have hcases : Block.Preceq Cn.erase K.erase ∨
           Block.Preceq K.erase Cn.erase := by
-        simpa only [Block.compatible, Bool.or_eq_true, hKentry] using hcompatible
+        simpa only [Block.compatible, Bool.or_eq_true, hKentry] using! hcompatible
       rcases hcases with hCK | hKC
       · obtain ⟨Cn', hCn'K, hCn'erase⟩ :=
           Proofs.NamedAncestry.erased_ancestor_lift K hCK
@@ -579,7 +579,7 @@ theorem coneBandDescendant_of_frontierWitnesses_at_vote_core
               (Protocol.vote_time S.E (s + 1))).core.h_max - 1 := by
           simpa only [read, voteDutyRead, NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-            using hhighNamed
+            using! hhighNamed
         exact False.elim ((Nat.not_le_of_gt hhighStore) hmono)
     have hpostSupport : S.E.t_GST ≤ Protocol.support_cutoff S.E s := by
       exact hpost.trans (le_of_lt (by
@@ -589,7 +589,7 @@ theorem coneBandDescendant_of_frontierWitnesses_at_vote_core
       S core ha hw hKmem (by
         simpa only [(emits_attest_shape S hemit).2] using hta)
       hpostSupport hhor (Block.preceq_trans hroot (by
-        simpa only [hCnErase, hKentry] using Proofs.NamedWire.erase_preceq hCnK))
+        simpa only [hCnErase, hKentry] using! Proofs.NamedWire.erase_preceq hCnK))
     have hKmemRead : K.erase ∈ read.st.core.T :=
       (Finset.mem_filter.mp hprocessed).1
     have hheight := storedHeight_of_runBlock_mem_voteDutyRead_core
@@ -600,7 +600,7 @@ theorem coneBandDescendant_of_frontierWitnesses_at_vote_core
           read.st.core.h_max - 1 := by
         simpa only [read, voteDutyRead, NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-          using hKheight
+          using! hKheight
       exact hKheight'.ge
     have hCK : Block.Preceq C K.erase := by
       simpa only [hCnErase] using Proofs.NamedWire.erase_preceq hCnK
@@ -636,7 +636,7 @@ theorem voteDutyRead_voteViewValid_core
     (s := read.st.core.s) hpool hcarried
   simpa only [read, t, voteDutyRead, NamedActionReads.confirmationReadAt,
     NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock, hn]
-    using hvalid
+    using! hvalid
 
 #print axioms voteDutyRead_voteViewValid_core
 
@@ -672,7 +672,7 @@ theorem protectedVoteSlot_succ_at_vote_of_weakGenesis_core
         (voterHeadAt S rho x s) := by
     simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      voteDutyHead] using
+      voteDutyHead] using!
       (Proofs.HealingSurface.WeakGenesis.fgRootAtRead_preceq_voteDutyHead_of_gstZero_named
         S h.core h.committees h.gstZero h.windows hprevHor
           (d := s) (last := s - 1) (Nat.one_le_iff_ne_zero.mpr (Nat.ne_of_gt hs))
@@ -731,7 +731,7 @@ theorem protectedVoteSlot_succ_at_vote_of_weakGenesis_core
         Block.Preceq B
           (Protocol.get_fg_root
             (voteDutyRead S rho w (s + 1)).st.core.toHealing.toFG) := by
-      simpa only [Block.compatible, Bool.or_eq_true] using hroots w hw
+      simpa only [Block.compatible, Bool.or_eq_true] using! hroots w hw
     rcases hcases with hroot | habove
     · obtain ⟨D, hBD, hprocessed, hband⟩ :=
         coneBandDescendant_of_frontierWitnesses_at_vote_core
@@ -756,7 +756,7 @@ theorem protectedVoteSlot_succ_at_vote_of_weakGenesis_core
         simpa only [st, read, voteDutyRead,
           NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-          using hresolve0
+          using! hresolve0
       have hbase := canonicalSuffixConeSupportVoterView_core
         S h.core h.committees hs hpost hcutHor hB.cone hw
           (support_cutoff_le_vote_time_succ S.E s)
@@ -767,7 +767,7 @@ theorem protectedVoteSlot_succ_at_vote_of_weakGenesis_core
       have hcone : ConeSupport S.E st.T votes support votes (st.s - 1)
           rho.honest (fun X => Block.Preceq B X) := by
         simpa only [st, read, votes, support, hslot,
-          Protocol.Store.toHealing] using hbase
+          Protocol.Store.toHealing] using! hbase
       have hvalid := voteDutyRead_voteViewValid_core S h.core w (s + 1)
       have hmajor : Protocol.voters_count S.E votes (st.s - 1) <
           2 * (Protocol.goldfishSupporters S.E st.T votes support
@@ -790,7 +790,7 @@ theorem protectedVoteSlot_succ_at_vote_of_weakGenesis_core
           (NamedProfile.gradeContract read.cache) S.E S.hc st.toHealing
           tree votes support (st.s - 1))
       simpa only [get_head_in_tree_eq_voterHeadAt_of_anchor,
-        read, st, tree] using hhead
+        read, st, tree] using! hhead
     · exact Block.preceq_trans habove
         (Proofs.HealingSurface.fgRoot_preceq_voterHeadAt S rho w (s + 1))
   refine ⟨hheads, ?_⟩
@@ -1017,7 +1017,7 @@ theorem actionAnchor_eq_openingConfirmationAnchor_core
   simpa only [Internal.PhaseGrades.nodeAnchor, Internal.PhaseGrades.nodeRead,
     confirmationInputRead, NamedActionReads.confirmationReadAt,
     Proofs.Optimistic.confStore_eq_confirmationInputRead, confAnchorWith,
-    Proofs.HealingSurface.opening_confirmation_time_eq_action] using heq
+    Proofs.HealingSurface.opening_confirmation_time_eq_action] using! heq
 
 #print axioms actionAnchor_eq_openingConfirmationAnchor_core
 
@@ -1078,7 +1078,7 @@ theorem honestHeadsAvailableBefore_actionStore_core
       (rho.storeBeforeTime S x (Protocol.vote_time S.E q)).core.T := by
     simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-      using hXmem
+      using! hXmem
   have hXn : X ∈ (rho.stateBefore S n x).st.core.T := by
     rw [← hn]
     exact hXtime
@@ -1214,7 +1214,7 @@ theorem commonAncestor_preceq_actionHead_of_gstZero_core
         S h.core h.committees h.gstZero h.windows hhor
           (d := q) (Nat.one_le_iff_ne_zero.mpr (Nat.ne_of_gt hqpos))
           hupper' (t := S.a r) hnextVote hv hx
-    simpa only [R, ast, pre] using hroot
+    simpa only [R, ast, pre] using! hroot
   have hnamesRoot : NamedHonestVotesCone S rho q
       (fun X => Block.Preceq R X) := by
     intro x hx hcommittee
@@ -1277,11 +1277,11 @@ theorem commonAncestor_preceq_actionHead_of_gstZero_core
     simpa only [pre, p, confirmationInputRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      Proofs.HealingSurface.opening_confirmation_time_eq_action] using hbandNamed
+      Proofs.HealingSurface.opening_confirmation_time_eq_action] using! hbandNamed
   have hheight : pre.core.h_max - 1 ≤ (pre.core.σ X.erase).h := by
     have hviewHeight : (pre.core.σ X.erase).h =
         (Protocol.derive_named S.E S.cfg X).h := by
-      simpa only [pre] using congrArg (fun st => st.h) hview
+      simpa only [pre] using! congrArg (fun st => st.h) hview
     rw [hviewHeight]
     exact hbandPre
   have hrootX : Block.Preceq R X.erase := by
@@ -1297,10 +1297,9 @@ theorem commonAncestor_preceq_actionHead_of_gstZero_core
       Protocol.get_filtered_block_tree ast.toHealing.toFG := by
     rw [actionStoreAt_filteredTree S rho v r]
     change X.erase ∈ Protocol.get_filtered_block_tree pre.core.toHealing.toFG
-    simp only [Protocol.get_filtered_block_tree,
-      Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, decide_eq_true_eq]
+    simp only [Protocol.get_filtered_block_tree, Protocol.get_filtered_block_tree_from,
+      Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
     exact ⟨⟨⟨hXmemPre, hFX⟩, X.erase, hXmemPre,
       Block.preceq_self _, hheight⟩, hrootX⟩
   have hBX : Block.Preceq B X.erase := by
@@ -1308,7 +1307,7 @@ theorem commonAncestor_preceq_actionHead_of_gstZero_core
   apply protectedBlock_preceq_actionHead_of_cone_compatible_core
     S h.core ha hcone
       (Block.compatible_of_preceq_common (hsg x hx) (by
-        simpa only [q, p] using hheads x hx))
+        simpa only [q, p] using! hheads x hx))
   intro _
   exact actionPath_to_ancestor_of_candidate_core
     S h.core hcandidate hBX

@@ -406,8 +406,8 @@ theorem PrefixFGSelectorConeAt.checkpointVoteStep_of_previousSGHistory_beforeFir
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
         Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-        Proofs.Optimistic.tickStore] using hrootBound
-    simpa only [Block.compatible, Bool.or_eq_true] using Or.inl hpre
+        Proofs.Optimistic.tickStore] using! hrootBound
+    simpa only [Block.compatible, Bool.or_eq_true] using! Or.inl hpre
   have hanchor := WeakSG.getSgRoot_compatible_of_windowHistory_at_voteDuty
     S adm.toNamedAdmissibleCore (Eq.refl r) hr hnext hvoteHor hw
       (hhistory w hw).2.1 (hhistory w hw).2.2.1 hroot
@@ -488,8 +488,8 @@ theorem PrefixFGSelectorConeAt.checkpointVoteStep_of_previousSGHistory_of_frameN
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
         Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-        Proofs.Optimistic.tickStore] using hrootBound
-    simpa only [Block.compatible, Bool.or_eq_true] using Or.inl hpre
+        Proofs.Optimistic.tickStore] using! hrootBound
+    simpa only [Block.compatible, Bool.or_eq_true] using! Or.inl hpre
   have hanchor := WeakSG.getSgRoot_compatible_of_windowHistory_at_voteDuty
     S adm.toNamedAdmissibleCore (Eq.refl r) hr hnext hvoteHor hw
       (hhistory w hw).2.1 (hhistory w hw).2.2.1 hroot

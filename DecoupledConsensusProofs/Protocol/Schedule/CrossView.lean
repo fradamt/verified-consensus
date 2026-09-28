@@ -83,7 +83,7 @@ theorem voteDutyFrozen_subset_confLate
       (Protocol.view_freeze S.E s)
       ((rho.stateBefore S N1 w).st.core.pool s) := by
     rw [hstore1] at hu
-    simpa only [Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using hu
+    simpa only [Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using! hu
   have hu2 : u ∈ beforeCutoff
       (rho.stateBefore S N2 w).st.core.timestamp_vote
       (Protocol.view_freeze S.E s)
@@ -101,7 +101,7 @@ theorem voteDutyFrozen_subset_confLate
     rw [congrArg NamedNodeState.st
       (congrFun (Proofs.Optimistic.stateBeforeTime_eq_take S sch Γ2) w)]
   rw [confLate, hstore2]
-  simpa only [Proofs.Optimistic.tickStore] using hu3
+  simpa only [Proofs.Optimistic.tickStore] using! hu3
 
 /-! ## Acceptance provenance and its one residual timing fact -/
 
@@ -143,7 +143,7 @@ theorem confirmationVotesAcceptedInWindow_of_timing
     rw [congrArg NamedNodeState.st (congrFun hn v)]
   have huprefix : u ∈ (rho.stateBefore S n v).st.core.pool s := by
     rw [hstoreEq] at hupool
-    simpa only [Proofs.Optimistic.tickStore] using hupool
+    simpa only [Proofs.Optimistic.tickStore] using! hupool
   have hulist : u ∈ (rho.stateBefore S n v).st.core.gf_votes s := by
     simpa only [Protocol.Store.pool, List.mem_toFinset] using huprefix
   have hus : u.slot = s :=

@@ -225,7 +225,7 @@ theorem actionSGVote_mem_stamp_nextOpeningProposer
     S adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hj heCut hcutRead hu
       (by simpa only [sgVote_actionAttestationAt] using hut)
   simpa only [s, read, Protocol.proposerDutyStore,
-    Proofs.Optimistic.tickStore] using hpostRead
+    Proofs.Optimistic.tickStore] using! hpostRead
 
 
 /-- Every honest-validator slice of the next opening proposal's grade batch
@@ -244,7 +244,7 @@ theorem nextOpeningProposer_roundBatch_card_le_one
       (r := r + 1)
       (v := v) hv
   simpa only [s, Protocol.proposerDutyStore, Proofs.Optimistic.tickStore,
-    Protocol.HealingStore.gradeView, Protocol.Store.toHealing] using h
+    Protocol.HealingStore.gradeView, Protocol.Store.toHealing] using! h
 
 /-! An exact preceding action carrier is present and stamped before the next
 `Gamma[-1]` in the next opening proposal store, provided the common block is
@@ -282,7 +282,7 @@ theorem actionSGBlockAt_visible_nextOpeningProposer_of_cleanActionRead
   have hactivePre : Q ∈ Protocol.get_filtered_block_tree
       (rho.storeBeforeTime S (S.E.proposer s) read).toHealing.toFG := by
     simpa only [duty, Protocol.proposerDutyStore,
-      Proofs.Optimistic.tickStore, read] using hactive
+      Proofs.Optimistic.tickStore, read] using! hactive
   rcases block_eq_genesis_or_acceptsBefore_of_mem_storeBeforeTime
       S adm.toNamedAdmissibleCore.toNamedScheduleWellFormed v (S.a r) hCsource with
     hgen | ⟨D, i, t, hDerase, hacc, ht⟩
@@ -478,14 +478,14 @@ theorem G2_nextOpeningProposer_of_cleanActionRead
       apply Finset.mem_filter.mpr
       refine ⟨?_, ?_⟩
       · simpa only [batch, gv, Protocol.round_batch,
-          if_neg (Nat.succ_ne_zero r), Nat.add_sub_cancel] using huPool
+          ite_eq_right (Nat.succ_ne_zero r), Nat.add_sub_cancel] using! huPool
       · exact (actionSGVoteAt_shape S rho v r).1
     have hfind := actionSGBlockAt_find_nextOpeningProposer_of_cleanActionRead
       S adm hclean hprop hv hactive
     have hfindAct : Block.find? gv.T
         (actionSGBlockAt S rho v r).root =
           some (actionSGBlockAt S rho v r) := by
-      simpa only [gv, duty, s] using hfind
+      simpa only [gv, duty, s] using! hfind
     have huHeaded : u ∈ headed := by
       apply Finset.mem_filter.mpr
       refine ⟨huBatch, ?_⟩
@@ -513,11 +513,11 @@ theorem G2_nextOpeningProposer_of_cleanActionRead
         S adm hclean hprop hv hactive
     have hblockStamp : occurrenceBefore (gv.timestamp_block C)
         (S.hc.Γ_neg1 S.E.Δ (r + 1)) = true := by
-      simpa only [gv, duty, s, stampedBefore_eq_occurrenceBefore, C] using
+      simpa only [gv, duty, s, stampedBefore_eq_occurrenceBefore, C] using!
         hblockVisible.2
     have hvoteStamp : occurrenceBefore (gv.timestamp_sg_vote u)
         (S.hc.Γ_neg1 S.E.Δ (r + 1)) = true := by
-      simpa only [gv, duty, s, u] using huRead.2
+      simpa only [gv, duty, s, u] using! huRead.2
     have hres : occurrenceBefore (tau u)
         (S.hc.Γ_neg1 S.E.Δ (r + 1)) = true := by
       simp only [tau, u, actionSGVoteAt,
@@ -589,18 +589,18 @@ private theorem cacheAtRound_align_self_opening_local
   by_cases h1 : r = c.round
   · rw [show DecoupledConsensusModel.Protocol.alignRound c r = c by
       unfold DecoupledConsensusModel.Protocol.alignRound
-      rw [if_pos h1]]
+      rw [ite_eq_left h1]]
   · by_cases h2 : r = c.round + 1
     · rw [show DecoupledConsensusModel.Protocol.alignRound c r =
         ⟨r, c.next, DecoupledConsensusModel.Protocol.pendingFrame⟩ by
         unfold DecoupledConsensusModel.Protocol.alignRound
-        rw [if_neg h1, if_pos h2]]
+        rw [ite_eq_right h1, ite_eq_left h2]]
       subst h2
       simp [DecoupledConsensusModel.Protocol.cacheAtRound]
     · rw [show DecoupledConsensusModel.Protocol.alignRound c r =
         ⟨r, DecoupledConsensusModel.Protocol.pendingFrame, DecoupledConsensusModel.Protocol.pendingFrame⟩ by
         unfold DecoupledConsensusModel.Protocol.alignRound
-        rw [if_neg h1, if_neg h2]]
+        rw [ite_eq_right h1, ite_eq_right h2]]
       simp [DecoupledConsensusModel.Protocol.cacheAtRound, h1, h2]
 
 private theorem clip_grade_compatible_opening_local (g F : Block V) :
@@ -796,7 +796,7 @@ private theorem frameG1_preceq_of_freezeRoot_prepared_opening
     rfl
   have hFP : Block.Preceq read.st.core.F P := by
     simpa only [read, before, NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock] using NamedOutageClosure.q10_filtered_F hPtree
+      Protocol.NamedStore.setClock] using! NamedOutageClosure.q10_filtered_F hPtree
   have hFB : Block.Preceq
       (NamedRun.stateBeforeTime S rho (domain S.E S.hc r .g1) w).st.core.F raw := by
     rw [hopen]
@@ -813,7 +813,7 @@ private theorem frameG1_preceq_of_freezeRoot_prepared_opening
       simp only [Block.compatible, Bool.or_eq_true]
       exact Or.inr hFP)).mpr (Block.preceq_trans hPraw hPraw1)
   refine ⟨DecoupledConsensusModel.Protocol.clipGrade raw1 read.st.core.F, ?_, hPclip⟩
-  simpa only [read, before, hstore, Option.map_some] using hframe
+  simpa only [read, before, hstore, Option.map_some] using! hframe
 
 /-- A persistent clean action grade bounds the prepared parent of the next
 opening proposal. -/
@@ -849,7 +849,7 @@ theorem protected_preceq_nextOpeningProposedParent_of_cleanActionRead
   have hPmem : P ∈
       (relativeG2Read S rho (r + 1) w).st.core.toHealing.gradeView.T := by
     have hmem := mem_T_of_mem_filteredTree (hforms w hprop).1
-    simpa only [relativeG2Read, filteredTree] using hmem
+    simpa only [relativeG2Read, filteredTree] using! hmem
   have hPgrade : DecoupledConsensusModel.Protocol.gradeBool S.E
       (relativeG2Read S rho (r + 1) w).st.core.toHealing.gradeView
       (relativeG2Read S rho (r + 1) w).st.core.F S.hc.η_SG (r + 1)

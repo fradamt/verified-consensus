@@ -340,8 +340,9 @@ theorem viableFinalized_external {S : Setup V} {ρ : Run V}
       rwa [hfin.1] at hd
     refine ⟨F, ?_, Block.preceq_self F⟩
     simp only [Protocol.V_tree, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable, Finset.mem_filter,
-      decide_eq_true_eq, Protocol.Store.toHealing]
+      Protocol.finalized_descendants, Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
+    simp only [Protocol.Store.toHealing]
     refine ⟨⟨hFT, hcur⟩, W.erase, ?_, hFW, ?_⟩
     · rw [hco.1]
       exact Finset.mem_image_of_mem NamedBlock.erase hWb

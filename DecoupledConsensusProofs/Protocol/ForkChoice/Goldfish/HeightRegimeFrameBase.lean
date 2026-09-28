@@ -90,9 +90,10 @@ theorem NamedHeightRegimeFrame.fgRoot_preceq_and_filteredMem
       (by rw [hQheight]; exact Nat.le_succ blocked) hTQ
   have hV : Q.erase ∈ Protocol.V_tree
       (rho.stateBefore S n reader).st.core.toHealing.toFG := by
-    simp only [Protocol.V_tree, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, Protocol.Store.toHealing, decide_eq_true_eq]
+    simp only [Protocol.V_tree, Protocol.viable_tree, Protocol.finalized_descendants,
+      Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
+    simp only [Protocol.Store.toHealing]
     refine ⟨⟨hQraw, hFQ⟩, Q.erase, hQraw, Block.preceq_self _, ?_⟩
     rw [hmax, hQstored]
     exact Nat.sub_le _ _

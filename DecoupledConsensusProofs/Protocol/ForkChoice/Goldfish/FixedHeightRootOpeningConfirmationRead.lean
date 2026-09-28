@@ -207,7 +207,7 @@ theorem openingProposalAdmittedBeforeVote_of_fixedJustificationRootNoRise
           (index_succ_le_strict_filter_length rho
             adm.toNamedAdmissibleCore.toNamedScheduleWellFormed.sorted
             (Protocol.vote_time S.E s) hdeliver
-            (by simpa only [Event.time] using hbeforeVote))))
+            (by simpa only [Event.time] using! hbeforeVote))))
         (Protocol.proposedBlock_proposer S rho s hB)
         (Protocol.proposedBlock_parent_slot_lt S adm hs hB)
         (Protocol.proposedBlock_carried_attestations_admissible S rho s hB)
@@ -471,13 +471,13 @@ theorem sgOpeningConfirmationReads_of_fixedJustificationRootNoRise
   · simpa only [Internal.NamedRecoveryRead.confirmationInputRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      st, t] using hrootP
+      st, t] using! hrootP
   · exact Block.preceq_trans hanchorParent hparentP
   · simpa only [Internal.PhaseGrades.filteredTree,
       Internal.NamedRecoveryRead.confirmationInputRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      st, t] using hcandidateRaw
+      st, t] using! hcandidateRaw
 
 #print axioms sgOpeningConfirmationReads_of_fixedJustificationRootNoRise
 
@@ -624,9 +624,10 @@ theorem sgOpeningConfirmationReads_of_fixedJustificationRootNoRise
       _ = (pre.σ B).h:=
         (congrArg (fun state => state.h) (hagree B hBT)).symm
   have hV: B ∈ Protocol.V_tree pre.toHealing.toFG:= by
-    simp only [Protocol.V_tree, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, decide_eq_true_eq, Protocol.Store.toHealing]
+    simp only [Protocol.V_tree, Protocol.viable_tree, Protocol.finalized_descendants,
+      Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
+    simp only [Protocol.Store.toHealing]
     exact ⟨⟨hBT, hFB⟩, B, hBT, Block.preceq_self B, hheight⟩
   have hfiltered:= Proofs.Records.mem_filtered_of_mem_V_tree hV hrootB
   refine ⟨?_, ?_, ?_⟩

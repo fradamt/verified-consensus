@@ -61,9 +61,9 @@ private theorem align_current' (c : Cache V) (s : Round) :
     (alignRound c s).current = cacheAtRound c s ∧ (alignRound c s).round = s := by
   unfold alignRound
   split_ifs with hs hn
-  · exact ⟨by simp only [cacheAtRound, if_pos hs], hs.symm⟩
-  · exact ⟨by simp only [cacheAtRound, if_neg hs, if_pos hn], rfl⟩
-  · exact ⟨by simp only [cacheAtRound, if_neg hs, if_neg hn], rfl⟩
+  · exact ⟨by simp only [cacheAtRound, ite_eq_left hs], hs.symm⟩
+  · exact ⟨by simp only [cacheAtRound, ite_eq_right hs, ite_eq_left hn], rfl⟩
+  · exact ⟨by simp only [cacheAtRound, ite_eq_right hs, ite_eq_right hn], rfl⟩
 
 private theorem complete_one_other' (E : Env V) (hc : Protocol.HealConfig)
     (st : Protocol.HealingStore V) (r : Round) (t : Time) (p q : Phase) (f : Frame V) (h : q ≠ p) :

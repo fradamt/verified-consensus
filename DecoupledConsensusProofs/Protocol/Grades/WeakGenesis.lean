@@ -246,7 +246,7 @@ private theorem confirmationRead_g1_round_zero_no_root_core
           next := DecoupledConsensusModel.Protocol.completeFrame S.E S.hc
             before.st.core.toHealing (a.round + 1) t a.next }) 0)).g1 =
       some (some root) at hroot
-  simp only [ha, DecoupledConsensusModel.Protocol.cacheAtRound, if_pos] at hroot
+  simp only [ha, DecoupledConsensusModel.Protocol.cacheAtRound, ite_eq_left] at hroot
   have htime' : t ≠ domain S.E S.hc a.round .g1 := by
     simpa [ha] using htime
   have hcomp := completeFrame_g1_eq S.E S.hc before.st.core.toHealing
@@ -278,7 +278,7 @@ private theorem confirmationRead_g1_round_zero_no_root_core
       before.st.core.toHealing 0).g1 ≠ some (some root) at hraw'
     have hc0' : 0 = before.cache.round := hc0.symm
     unfold DecoupledConsensusModel.Protocol.readFrame at hraw'
-    simp only [DecoupledConsensusModel.Protocol.cacheAtRound, if_pos hc0'] at hraw'
+    simp only [DecoupledConsensusModel.Protocol.cacheAtRound, ite_eq_left hc0'] at hraw'
     change DecoupledConsensusModel.Protocol.clipResult before.st.core.F
         before.cache.current.g1 ≠ some (some root) at hraw'
     exact hraw' hroot
@@ -393,7 +393,7 @@ private theorem prepared_frame_g2_round_zero_no_root
             before.st.core.toHealing (a.round + 1) (S.a 0) a.next }) 0)).g2 =
       some (some root) at hroot
   rw [cacheAtRound_clip_local] at hroot
-  simp only [ha, DecoupledConsensusModel.Protocol.cacheAtRound, if_pos] at hroot
+  simp only [ha, DecoupledConsensusModel.Protocol.cacheAtRound, ite_eq_left] at hroot
   have htime' : S.a 0 ≠ domain S.E S.hc a.round .g2 := by
     simpa [ha] using htime
   have hcomp := completeFrame_g2_eq S.E S.hc before.st.core.toHealing
@@ -423,7 +423,7 @@ private theorem prepared_frame_g2_round_zero_no_root
       (DecoupledConsensusModel.Protocol.cacheAtRound before.cache 0)).g2 ≠
         some (some root) at hraw'
     have hc0' : 0 = before.cache.round := hc0.symm
-    simp only [DecoupledConsensusModel.Protocol.cacheAtRound, if_pos hc0'] at hraw'
+    simp only [DecoupledConsensusModel.Protocol.cacheAtRound, ite_eq_left hc0'] at hraw'
     change DecoupledConsensusModel.Protocol.clipResult before.st.core.toHealing.F
         before.cache.current.g2 ≠ some (some root) at hraw'
     exact hraw' hroot
@@ -487,7 +487,7 @@ theorem confirmationRead_g2_round_zero_no_root
           next := DecoupledConsensusModel.Protocol.completeFrame S.E S.hc
             before.st.core.toHealing (a.round + 1) t a.next }) 0)).g2 =
       some (some root) at hroot
-  simp only [ha, DecoupledConsensusModel.Protocol.cacheAtRound, if_pos] at hroot
+  simp only [ha, DecoupledConsensusModel.Protocol.cacheAtRound, ite_eq_left] at hroot
   have htime' : t ≠ domain S.E S.hc a.round .g2 := by
     simpa [ha] using htime
   have hcomp := completeFrame_g2_eq S.E S.hc before.st.core.toHealing
@@ -519,7 +519,7 @@ theorem confirmationRead_g2_round_zero_no_root
       before.st.core.toHealing 0).g2 ≠ some (some root) at hraw'
     have hc0' : 0 = before.cache.round := hc0.symm
     unfold DecoupledConsensusModel.Protocol.readFrame at hraw'
-    simp only [DecoupledConsensusModel.Protocol.cacheAtRound, if_pos hc0'] at hraw'
+    simp only [DecoupledConsensusModel.Protocol.cacheAtRound, ite_eq_left hc0'] at hraw'
     change DecoupledConsensusModel.Protocol.clipResult before.st.core.F
         before.cache.current.g2 ≠ some (some root) at hraw'
     exact hraw' hroot
@@ -543,7 +543,7 @@ private theorem actionRead_g1_round_zero_no_root
   apply hno
   simpa only [actionReadAt, NamedActionReads.actionReadAt,
     NamedActionReads.actionReadFrom, DecoupledConsensusModel.Protocol.readFrame,
-    Protocol.Store.toHealing] using hroot
+    Protocol.Store.toHealing] using! hroot
 
 
 /-- The first action has no earlier honest source for a non-genesis FG root. -/
@@ -602,7 +602,7 @@ theorem confAnchorWith_eq_genesis_zero
           exfalso
           apply hno
           simpa only [read, confStore, tickStore,
-            ← Protocol.confirmation_time_zero_eq_action_zero S] using hframe
+            ← Protocol.confirmation_time_zero_eq_action_zero S] using! hframe
 
 theorem block_eq_genesis_of_mem_confStore_zero
     (S : Setup V) {rho : Run V} (adm : AdmissibleCore S rho)
@@ -641,7 +641,7 @@ theorem runGoldfishVote_of_mem_confVotes_zero
     exact huLate.1
   have hvalid : Protocol.VoteSetValid S.E 0
       (confLate S.E (Proofs.Optimistic.confStore S rho v 0) 0) := by
-    simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using
+    simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using!
       voteSetValid_confLate_stateBeforeTime S adm.toNamedScheduleWellFormed v
         (Protocol.confirmation_time S.E 0) 0
   have hus : u.slot = 0 := (hvalid u huLate).1
@@ -663,7 +663,7 @@ theorem confVotes_zero_target_eq_genesis
     (confNumerator S.E (Proofs.Optimistic.confStore S rho v 0) 0).subset_late hu
   have hvalid : Protocol.VoteSetValid S.E 0
       (confLate S.E (Proofs.Optimistic.confStore S rho v 0) 0) := by
-    simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using
+    simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using!
       voteSetValid_confLate_stateBeforeTime S adm.toNamedScheduleWellFormed v
         (Protocol.confirmation_time S.E 0) 0
   have hus : u.slot = 0 := (hvalid u huLate).1
@@ -820,7 +820,7 @@ theorem actionSGBlock_eq_genesis_zero (S : Setup V) {rho : Run V}
   let st := n.st.core.toHealing
   let grades := DecoupledConsensusModel.Protocol.frameGradeRead n.cache S.E S.hc st 0
   have hlive' : st.live_confirmed = Block.genesis := by
-    simpa only [st, n, actionStoreAt, actionReadAt] using hlive
+    simpa only [st, n, actionStoreAt, actionReadAt] using! hlive
   have hanchor : grades.anchor = Block.genesis := by
     unfold grades DecoupledConsensusModel.Protocol.frameGradeRead
       DecoupledConsensusModel.Protocol.anchor
@@ -892,7 +892,7 @@ theorem protectedVoteSlot_genesis (S : Setup V) {rho : Run V}
       (Protocol.vote_time S.E s) v).1
   have hinv : Proofs.NamedConfirmationMembership.Invariant S.E S.cfg read.st := by
     simpa only [read, Internal.NamedRecoveryRead.voteDutyRead,
-      NamedActionReads.confirmationReadAt] using
+      NamedActionReads.confirmationReadAt] using!
       Proofs.NamedConfirmationMembership.invariant_clock S.E S.cfg _ _ hinvPre
   have hroot : Protocol.get_fg_root st.toHealing.toFG ∈ st.T :=
     Proofs.NamedStoreRoots.fg_root_mem read.st hinv.1.2
@@ -931,7 +931,7 @@ theorem protectedVoteSlot_genesis (S : Setup V) {rho : Run V}
         some ⟨(S.node v).val_index, read.st.core.s, H.root⟩ := by
     simp only [Protocol.NamedDuties.goldfish_vote_with,
       Protocol.goldfish_vote_with]
-    rw [if_pos]
+    rw [ite_eq_left]
     · rfl
     · rw [S.node_val_index, hslot]
       exact hc

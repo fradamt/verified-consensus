@@ -154,24 +154,24 @@ theorem namedJustificationWitness (E : Env V) (cfg : HeightConfig) (B : NamedBlo
           exact hnjAfter
         refine ⟨entry, Proofs.NamedAncestry.named_extend s root gv gsv ats proposer hentryLe,
           ?_, ?_, ?_, ?_⟩
-        · rw [hderive, Protocol.process_height_events_eq, if_pos htarget,
+        · rw [hderive, Protocol.process_height_events_eq, ite_eq_left htarget,
             Protocol.advance_height_J, Protocol.afterFin_T_h, w4caRows_T_h, hentryErase]
         · rw [Proofs.NamedEntryHeight.entry_eq_on_plateau E cfg hentryLe hentryHeight,
             hentryErase]
         · rw [namedNj_eq_of_preceq_same_height E cfg hentryLe hentryHeight.symm] at hnjParent
           exact hnjParent
         · right
-          rw [hderive, Protocol.process_height_events_eq, if_pos htarget,
+          rw [hderive, Protocol.process_height_events_eq, ite_eq_left htarget,
             Protocol.advance_height_h_j, Protocol.afterFin_h, w4caRows_h, hentryHeight]
       · have hJout : (derive_named E cfg (.node p s root gv gsv ats proposer)).J =
             (derive_named E cfg p).J := by
-          rw [hderive, Protocol.process_height_events_eq, if_neg htarget]
+          rw [hderive, Protocol.process_height_events_eq, ite_eq_right htarget]
           split_ifs
           · rw [Protocol.advance_height_J, Protocol.afterFin_J, w4caRows_J]
           · rw [Protocol.afterFin_J, w4caRows_J]
         have hHjout : (derive_named E cfg (.node p s root gv gsv ats proposer)).h_j =
             (derive_named E cfg p).h_j := by
-          rw [hderive, Protocol.process_height_events_eq, if_neg htarget]
+          rw [hderive, Protocol.process_height_events_eq, ite_eq_right htarget]
           split_ifs
           · rw [Protocol.advance_height_h_j, Protocol.afterFin_h_j, w4caRows_h_j]
           · rw [Protocol.afterFin_h_j, w4caRows_h_j]

@@ -77,7 +77,7 @@ theorem honestProposal_slotVoteCone_after_SG_healing_named_of_heads
   obtain ⟨X, hXhead, hXrun, hXemit⟩ :=
     voteDutyHead_runBlock_and_emits S adm hs hhor hw hcommittee
   refine ⟨X, ?_, hXrun, hXemit⟩
-  simpa only [hXhead, Protocol.voteDutyHead, hheads w hw] using
+  simpa only [hXhead, Protocol.voteDutyHead, hheads w hw] using!
     Block.preceq_self P.erase
 
 #print axioms honestProposal_slotVoteCone_after_SG_healing_named_of_heads

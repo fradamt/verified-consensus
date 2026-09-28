@@ -51,7 +51,7 @@ theorem proposedBlock_voterCandidate_of_gstZero_named
   have hBT : B.erase ∈ st.T := by
     simpa only [st, read, t, s, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using hBT0
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using! hBT0
   have hslot : st.s = s := by
     simpa only [st, read] using voteDutyRead_slot S rho v s
   have hprocessed : B.erase ∈ Protocol.voter_processed_block_tree S.E
@@ -64,14 +64,14 @@ theorem proposedBlock_voterCandidate_of_gstZero_named
         Internal.NamedRecoveryRead.voteDutyRead,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom,
-        Protocol.NamedStore.setClock] using hBT
+        Protocol.NamedStore.setClock] using! hBT
     · refine ⟨?_, ?_⟩
       · simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
           Proofs.Optimistic.tickStore, st, read, t, s,
           Internal.NamedRecoveryRead.voteDutyRead,
           NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom,
-          Protocol.NamedStore.setClock] using hBT
+          Protocol.NamedStore.setClock] using! hBT
       · rw [Proofs.NamedWire.erase_slot, proposedBlockAt_slot S rho s hB,
           Proofs.Optimistic.toHealing_slot]
         exact (Proofs.Optimistic.voteDutyStore_slot S rho v s).symm
@@ -115,7 +115,7 @@ theorem proposedBlock_voterCandidate_of_gstZero_named
           simpa only [st, read, t, Internal.NamedRecoveryRead.voteDutyRead,
             NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-            using hlarge)
+            using! hlarge)
       have haTime : S.a a.round < Protocol.vote_time S.E s := by
         have htime : ta = S.a a.round := (emits_attest_shape S hemit).2
         rw [← htime]
@@ -166,7 +166,7 @@ theorem proposedBlock_voterCandidate_of_gstZero_named
     simpa only [R, st, read, t, s, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      voteDutyHead] using
+      voteDutyHead] using!
       fgRootAtRead_preceq_voteDutyHead_of_gstZero_named
         S h.core h.committees h.gstZero h.windows hconfHor hd hupper
           (t := t) (le_refl _) hv hx
@@ -183,7 +183,7 @@ theorem proposedBlock_voterCandidate_of_gstZero_named
     S h hconfHor hd hupper hproposalHor hprop hprotectedR
   have hroot : Block.Preceq
       (Protocol.get_fg_root st.toHealing.toFG) B.erase := by
-    simpa only [R] using Block.preceq_trans hRparent hparentBlock
+    simpa only [R] using! Block.preceq_trans hRparent hparentBlock
   exact (WeakJoint.namedCandidatePath_of_processedBandDescendant_core
     S h.core hv (s := d) (C := B.erase) (D := B.erase)
       (Block.preceq_self _) hprocessed

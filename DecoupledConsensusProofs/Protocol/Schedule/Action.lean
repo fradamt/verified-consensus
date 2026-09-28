@@ -138,7 +138,7 @@ private theorem action_tick_at (S : Setup V) (v : V) (before : NamedNodeState V)
       (NamedProfile.gradeContract
         (DecoupledConsensusModel.Protocol.onPhaseTick S.E S.hc before.st.core.toHealing (S.a r) before.cache))
       S.E S.hc S.cfg (S.node v) before.st before.record (S.a r)]
-  simp only [if_neg hp, if_neg hv, if_pos (And.intro hpos hs), List.nil_append]
+  simp only [ite_eq_right hp, ite_eq_right hv, ite_eq_left (And.intro hpos hs), List.nil_append]
   have hround : S.hc.round_of (Protocol.NamedDuties.update_confirmation_with
       (NamedProfile.gradeContract
         (DecoupledConsensusModel.Protocol.onPhaseTick S.E S.hc before.st.core.toHealing (S.a r) before.cache))
@@ -162,7 +162,7 @@ theorem honest_emits_exact_actionAttestationAt_of_awake
     (Proofs.HealingLemmas.publicTime_a S r) (Proofs.HealingLemmas.a_nonneg S r) hhor
   show Object.attest (actionAttestationAt S rho v r) ∈
     (NamedNode.tick S v (rho.stateBeforeTime S (S.a r) v) (S.a r)).2
-  rw [action_tick_at S v (rho.stateBeforeTime S (S.a r) v) r, if_pos hA]
+  rw [action_tick_at S v (rho.stateBeforeTime S (S.a r) v) r, ite_eq_left hA]
   exact List.mem_singleton_self _
 
 /-- The existing recovery and safety proofs use the full-participation

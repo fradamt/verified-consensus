@@ -63,7 +63,7 @@ private theorem carry_root_preceq_anchor (E : Env V) (hc : Protocol.HealConfig)
             (Protocol.get_fg_root st.toFG))
       cases hp : DecoupledConsensusModel.Protocol.activePrefix
           (Protocol.get_filtered_block_tree st.toFG) root with
-      | none => simpa only [hp, Option.getD_none] using Block.preceq_self _
+      | none => simpa only [hp, Option.getD_none] using! Block.preceq_self _
       | some X =>
         simpa only [hp, Option.getD_some] using
           carry_filtered_root_preceq (NamedProposalParent.activePrefix_mem _ root X hp)
@@ -332,7 +332,7 @@ private theorem succ_le_boundaryRound (S : Setup V) (rho : NamedRun V)
     sch.tick_total v hv τ hpublic hnonneg (hlt.le.trans hb0)
   have hfiltered : NamedEvent.tick v τ ∈
       rho.events.filter (fun e => decide (e.time < b0)) :=
-    List.mem_filter.mpr ⟨htick, by simpa only [NamedEvent.time, decide_eq_true_eq]⟩
+    List.mem_filter.mpr ⟨htick, decide_eq_true hlt⟩
   have hclock : τ ≤ (NamedRun.stateBeforeTime S rho b0 v).st.core.t :=
     tick_mem_le_strict_clock S rho sch hfiltered
   have hslot : S.hc.opening_slot (s + 1) ≤
@@ -417,10 +417,10 @@ private theorem carry_grade2_mem_tree {st : Protocol.HealingStore V}
     q ∈ Protocol.get_filtered_block_tree st.toFG := by
   unfold DecoupledConsensusModel.Protocol.grade2Block at h
   by_cases hcl : DecoupledConsensusModel.Protocol.allClosed frame = true
-  · rw [if_pos hcl] at h
+  · rw [ite_eq_left hcl] at h
     obtain ⟨x, _, hx⟩ := Option.bind_eq_some_iff.mp h
     exact NamedProposalParent.activePrefix_mem _ x q hx
-  · rw [if_neg hcl] at h
+  · rw [ite_eq_right hcl] at h
     exact absurd h (by simp)
 
 /-! ## Row Q10: the grade-2 block is at or below the anchor -/
@@ -567,7 +567,7 @@ private theorem carry_retained_prefix (g F B : Block V)
             exact False.elim (hGF hBF)
           · exact hBp
         simpa only [DecoupledConsensusModel.Protocol.clipGrade, hGF,
-          Bool.eq_false_iff.mpr hGF, ↓reduceIte] using ih hBp
+          Bool.eq_false_iff.mpr hGF, ↓reduceIte] using! ih hBp
 
 /-- Copy of the private `sg_active_g2_of_frame` of `SGFromSupport`: the active
 prefix of a P-covering frame root covers P, provided P is in the reader's
@@ -829,7 +829,7 @@ theorem honest_confirmed_above_of_invariant
     have hQ2eq : DecoupledConsensusModel.Protocol.grade2Block n.st.core.toHealing
         (DecoupledConsensusModel.Protocol.readFrame n.cache n.st.core.toHealing a.round) = some G := by
       unfold DecoupledConsensusModel.Protocol.grade2Block
-      rw [if_pos hclosed]
+      rw [ite_eq_left hclosed]
       exact hGn
     have hnstrict : n = actionReadFrom S
         (NamedRun.stateBeforeTime S rho (S.a a.round) a.val_index) a.round := by

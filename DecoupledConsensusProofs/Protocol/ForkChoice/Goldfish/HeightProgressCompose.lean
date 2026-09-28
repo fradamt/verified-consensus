@@ -171,13 +171,13 @@ private theorem honestStrictRead_root_eq_genesis_and_hMax_eq_one
   have hlocalLower : 1 ≤ st.core.h_max := by
     have hDheight' : (Protocol.derive_named S.E S.cfg D).h =
         st.core.h_max := by
-      simpa only [st] using hDheight
+      simpa only [st] using! hDheight
     rw [← hDheight']
     exact Protocol.one_le_derive_named_h S.E S.cfg D
   have hlocal : st.core.h_max = 1 :=
     Nat.le_antisymm hlocalUpper hlocalLower
   have hbelow : st.core.h_j < st.core.h_max := by
-    simpa only [st] using
+    simpa only [st] using!
       NamedJustificationBound.justificationBelowMax_stateBeforeTime
         S rho read w
   have hhj : st.core.h_j = 0 := by
@@ -188,10 +188,10 @@ private theorem honestStrictRead_root_eq_genesis_and_hMax_eq_one
   have hJgen : st.core.J = Block.genesis := by
     have hJ' : (Protocol.derive_named S.E S.cfg Jc).J =
         st.core.J := by
-      simpa only [st] using hJ
+      simpa only [st] using! hJ
     have hJh' : (Protocol.derive_named S.E S.cfg Jc).h_j =
         st.core.h_j := by
-      simpa only [st] using hJh
+      simpa only [st] using! hJh
     rw [← hJ']
     exact NamedJustificationCertificates.justified_zero_is_genesis
       S.E S.cfg Jc (hJh'.trans hhj)
@@ -199,7 +199,7 @@ private theorem honestStrictRead_root_eq_genesis_and_hMax_eq_one
     rw [hlocal, hhj]
   refine ⟨?_, by simpa only [st] using hlocal⟩
   simpa only [st, Protocol.get_fg_root, Protocol.Store.toHealing,
-    if_pos hgate, hJgen]
+    ite_eq_left hgate, hJgen]
 
 /-- A named derivation at height one still has the genesis height entry. -/
 private theorem derivedTarget_eq_genesis_of_height_one
@@ -486,7 +486,7 @@ private theorem heightOneFrontier_rise
     have hfiltered := (hformsPrev v0 hv0).1
     have htree := Proofs.Records.get_filtered_block_tree_subset _ hfiltered
     simpa only [PhaseGrades.filteredTree, PhaseGrades.readAt,
-      Run.storeBeforeTime] using htree
+      Run.storeBeforeTime] using! htree
   obtain ⟨G, hGerase, hGRun⟩ :=
     Proofs.NamedStoreBridge.runBlock_of_mem_core_T_stateBeforeTime
       S adm.toNamedScheduleWellFormed hv0
@@ -856,8 +856,8 @@ theorem heightProgress_pointwise
               exact frontierBlock_filtered_at_healStoreAt_of_gateOff
                 S adm hsb hw (hhorAt (k := q0) hq0End) hprocessed rfl hQrun
                   (by rw [hQheight]; exact Nat.sub_le M 1) hMone
-                  (by simpa only [healStoreAt] using (hgateQ0 w hw).2)
-                  (by simpa only [healStoreAt] using (hgateQ0 w hw).1)
+                  (by simpa only [healStoreAt] using! (hgateQ0 w hw).2)
+                  (by simpa only [healStoreAt] using! (hgateQ0 w hw).1)
             obtain ⟨hwindowPrev, hdomainWindow⟩ :=
               gradeWindows_of_gateOff_at_nextAction
                 S adm hfb hq0pos hforms0 hQrun hQheight hMone hcapQ0

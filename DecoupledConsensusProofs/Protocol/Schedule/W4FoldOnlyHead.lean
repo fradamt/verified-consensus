@@ -247,7 +247,7 @@ theorem w4NamedExecOpeningHeadAtPinFor_of_fold
         obtain ⟨B', hB', hpre⟩ :=
           hfold.absorbed s hsBase (Nat.lt_succ_self s) hprop'
         have hBB' : B' = B := proposedBlockAt_unique S rho s hB' hB
-        simpa only [hBB'] using hpre)
+        simpa only [hBB'] using! hpre)
       (w4fh_movingSlotEntryStateN_prevLe hfold.entry)
   have hnextCone : NamedHonestVotesCone S rho (s + 1)
       (fun X => Block.Preceq B.erase X) := by
@@ -297,7 +297,7 @@ theorem w4NamedExecOpeningHeadAtPinFor_of_fold
         (S.hc.round_of (actionStoreAt S rho v r).toHealing.s)) B.erase := by
     rw [hroundAction]
     simpa only [PhaseGrades.nodeAnchor, PhaseGrades.nodeRead, actionReadAt]
-      using hanchorNode
+      using! hanchorNode
   have hpath := WeakAction.actionPath_to_ancestor_of_candidate S
     adm.toNamedAdmissibleCore hcandidate (Block.preceq_self B.erase)
   exact WeakAction.protectedBlock_preceq_actionHead_of_cone_compatible S

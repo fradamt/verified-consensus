@@ -48,14 +48,14 @@ private theorem genuineConfirmationAt_of_with
   have hwalk : confWalkWith contract S.E S.hc
       (Proofs.Optimistic.confStore S rho v s) s = P := by
     have hselected := h.selected
-    rw [update_confirmation_with_live_confirmed, if_pos h.genuine] at hselected
+    rw [update_confirmation_with_live_confirmed, ite_eq_left h.genuine] at hselected
     exact hselected
   refine ⟨?_, hrecordP⟩
   unfold GenuineConfirmationAt
   constructor
   · rw [hrecordP]
     simpa only [namedConfirmationWalk, n, contract,
-      Proofs.Optimistic.confStore_eq_confirmationInputRead] using hwalk.symm
+      Proofs.Optimistic.confStore_eq_confirmationInputRead] using! hwalk.symm
   · exact h.genuine
 
 
@@ -87,12 +87,12 @@ theorem seedLifecyclePacket_of_roundCeiling
   have hfrontier : ∀ w ∈ rho.honest,
       (rho.storeBeforeTime S w (S.a q)).h_max = M := by
     intro w hw
-    simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using
+    simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using!
       hwindow.confirmationFrontier w hw
   have hgate : ∀ w ∈ rho.honest,
       (rho.storeBeforeTime S w (S.a q)).h_j + 2 ≤ M := by
     intro w hw
-    simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using
+    simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using!
       hwindow.confirmationGateOff w hw
   have hrelG1 : RelativeCarrierWindowAt S rho (q - 1) .g1 :=
     relativeCarrierWindowAt_of_gateOff S adm hfb hq hwindow.postPreviousAction
@@ -145,10 +145,10 @@ theorem seedLifecyclePacket_of_roundCeiling
     obtain ⟨u, hu, hBu⟩ := relativeGrade_has_roundCarrier
       S adm.toNamedAdmissibleCore hrelG1
         (by simpa only [hqPred] using hmajority) hw
-        (by simpa only [namedG1At, PhaseGrades.readAt, hqPred] using hG1q)
+        (by simpa only [namedG1At, PhaseGrades.readAt, hqPred] using! hG1q)
     have huHon : u ∈ rho.honest :=
       ((Proofs.NamedOutageInputs.honestRoundVoters_iff S rho u (q - 1)).mp hu).1
-    simpa only [hqPred] using
+    simpa only [hqPred] using!
       Block.preceq_trans hBu (haligned.previousCarriersBelowParent u huHon)
   · intro v hv
     simpa only [hqPred] using genuineConfirmationAt_of_with S adm hv

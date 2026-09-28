@@ -37,7 +37,8 @@ private theorem confirmationWalkWith_of_twoCones
       confEligible E st s (confWalkWith contract E hc st s) = true := by
   have hanchorEligible :
       confEligible E st s (confAnchorWith contract E hc st) = true := by
-    simp only [confEligible, decide_eq_true_eq, confCount, confScore]
+    simp only [confEligible, decide_eq_true_eq]
+    simp only [confCount, confScore]
     exact hA.eligible hvalid (fun _ h => h)
   have helig : confEligible E st s (confWalkWith contract E hc st s) = true := by
     rcases ghost_eligible (confAnchorWith contract E hc st)
@@ -52,7 +53,7 @@ private theorem confirmationWalkWith_of_twoCones
   refine ⟨?_, helig⟩
   have hor : Block.Preceq (confAnchorWith contract E hc st) B ∨
       Block.Preceq B (confAnchorWith contract E hc st) := by
-    simpa only [Block.compatible, Bool.or_eq_true] using hcompat
+    simpa only [Block.compatible, Bool.or_eq_true] using! hcompat
   rcases hor with hAB | hBA
   · exact ghost_passes_cone E st.T (confTree st)
       (confVotes E st s) (confVotes E st s) (confLate E st s)
@@ -135,7 +136,7 @@ theorem confirmationWalk_of_readFacts_named
     have hroot := fg_root_preceq_get_sg_root_with_frame
       read.cache S.E S.hc duty.toHealing (S.hc.round_of duty.s)
     simpa only [confRoot, A, contract, duty, read,
-      Proofs.Optimistic.confStore_eq_confirmationInputRead] using hroot
+      Proofs.Optimistic.confStore_eq_confirmationInputRead] using! hroot
   have hresolve : HeadsResolveIn S rho s duty.T duty.timestamp_block := by
     have hr := WeakGoldfish.headsResolveIn_confStore_of_postHealingCone
       S h.core hv hpost
@@ -157,7 +158,7 @@ theorem confirmationWalk_of_readFacts_named
   obtain ⟨X', hX'body, hX'erase⟩ :=
     Proofs.NamedStoreBridge.exists_named_of_mem_stateBeforeTime S rho
       (Protocol.confirmation_time S.E s) v (by
-        simpa only [duty, Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using hXmem)
+        simpa only [duty, Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using! hXmem)
   obtain ⟨n, hn, -⟩ := Proofs.Bridges.stateBeforeTime_eq_stateBefore
     S h.core.toNamedScheduleWellFormed (Protocol.confirmation_time S.E s)
   have hX'prefix : X' ∈ (rho.stateBefore S n v).st.bodies := by
@@ -177,11 +178,11 @@ theorem confirmationWalk_of_readFacts_named
     exact hX'body
   have hXview : duty.σ X.erase =
       Protocol.derive_named S.E S.cfg X := by
-    simpa only [duty, Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using
+    simpa only [duty, Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using!
       Proofs.NamedStoreBridge.derivedView_stateBeforeTime S rho
         (Protocol.confirmation_time S.E s) v X hXbody
   have hFJ : Block.Preceq duty.F duty.J := by
-    simpa only [duty, Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using
+    simpa only [duty, Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using!
       Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime
         S rho (Protocol.confirmation_time S.E s) v
   have hrootX : Block.Preceq (confRoot duty) X.erase := by
@@ -191,21 +192,20 @@ theorem confirmationWalk_of_readFacts_named
   have hFX : Block.Preceq duty.F X.erase :=
     Block.preceq_trans
       (Proofs.Records.preceq_get_fg_root_of_F (st := duty.toHealing.toFG) hFJ)
-      (by simpa only [confRoot] using hrootX)
+      (by simpa only [confRoot] using! hrootX)
   have hheight : duty.h_max - 1 ≤ (duty.σ X.erase).h := by
     rw [hXview]
     have hband := confirmationReadBand_le_voterHeadHeight_of_gstZero_named
       S h hs hhor (v := v) (x := x) hx (X := X) hXhead hXrun
     simpa only [duty, Proofs.Optimistic.confStore_eq_confirmationInputRead] using hband
   have hcandidate : X.erase ∈ confTree duty := by
-    simp only [confTree, Protocol.get_filtered_block_tree,
-      Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, decide_eq_true_eq]
+    simp only [confTree, Protocol.get_filtered_block_tree, Protocol.get_filtered_block_tree_from,
+      Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
     exact ⟨⟨⟨hXmem, hFX⟩, X.erase, hXmem, Block.preceq_self _, hheight⟩,
-      by simpa only [confRoot] using hrootX⟩
+      by simpa only [confRoot] using! hrootX⟩
   have hvalid : Protocol.VoteSetValid S.E s (confLate S.E duty s) := by
-    simpa only [duty, Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using
+    simpa only [duty, Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using!
       voteSetValid_confLate_stateBeforeTime
         S h.core.toNamedScheduleWellFormed v
           (Protocol.confirmation_time S.E s) s
@@ -216,7 +216,7 @@ theorem confirmationWalk_of_readFacts_named
         exact Protocol.confPath_of_candidate S hcandidate C hAC hCne
           (Block.preceq_trans hCB (by rw [hX]; exact hheads x hx)))
   simpa only [namedConfirmationWalk, read, contract, duty,
-    Proofs.Optimistic.confStore_eq_confirmationInputRead] using hresult
+    Proofs.Optimistic.confStore_eq_confirmationInputRead] using! hresult
 
 #print axioms confirmationWalk_of_readFacts_named
 

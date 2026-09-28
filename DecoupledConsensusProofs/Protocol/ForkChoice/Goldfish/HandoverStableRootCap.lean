@@ -30,7 +30,7 @@ private theorem stableRootAt_mem_stateBefore_for_cap
       Protocol.get_filtered_block_tree nd.st.core.toHealing.toFG := by
     have hfg' := named_fgRoot_mem_filtered_stateBeforeTime S rho time v
     simpa only [nd, hstate, NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock] using hfg'
+      Protocol.NamedStore.setClock] using! hfg'
   change (match ((DecoupledConsensusModel.Protocol.readFrame nd.cache nd.st.core.toHealing
       (S.hc.round_of nd.st.core.s)).g2.bind id).bind
         (DecoupledConsensusModel.Protocol.activePrefix

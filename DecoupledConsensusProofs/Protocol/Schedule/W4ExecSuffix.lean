@@ -137,7 +137,7 @@ theorem lastSuffixStart_le_movingStart
       exact vote_time_lt_support_cutoff_local S.E
         (S.hc.opening_slot q + 2)
     simp only [decide_eq_false_iff_not, Event.time] at hfalse
-    exact hfalse (by simpa only [htime] using hbefore)
+    exact hfalse (by simpa only [htime] using! hbefore)
   exact Nat.succ_le_iff.mpr hi
 
 /-- Every tick between the public cursor and the moving history's start is at
@@ -159,7 +159,7 @@ theorem boundaryPrefix_tick_time_eq
     SuffixStartsAfterBoundaryVote.time_le_of_index
       S adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hstart hj hevent
   have hupper : t < Protocol.support_cutoff S.E s0 := by
-    simpa only [s0, Event.time] using
+    simpa only [s0, Event.time] using!
       time_lt_of_index_lt_strictEventIndex S
         adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hhigh hevent
   have hgt : Protocol.proposal_time S.E s0 < t :=
@@ -293,12 +293,12 @@ theorem canonicalSuffixAndActionHistory_of_completeN
       ∃ E : NamedBlock V, E.erase = End' j ∧ RunBlock S rho E := by
     intro j _hj
     by_cases hjM : j < nM
-    · rw [show End' j = End nM by simp only [End', if_pos hjM]]
+    · rw [show End' j = End nM by simp only [End', ite_eq_left hjM]]
       exact h.endpointRun nM (by simpa only [nM] using Nat.le_refl nM)
         (by simpa only [nM, nC] using hstartComplete)
     · have hnMj : nM ≤ j := Nat.le_of_not_gt hjM
       have hminLower : nM ≤ min j nC := le_min hnMj hstartComplete
-      rw [show End' j = End (min j nC) by simp only [End', if_neg hjM]]
+      rw [show End' j = End (min j nC) by simp only [End', ite_eq_right hjM]]
       exact h.endpointRun (min j nC)
         (by simpa only [nM] using hminLower)
         (by simpa only [nC] using min_le_right j nC)
@@ -315,11 +315,11 @@ theorem canonicalSuffixAndActionHistory_of_completeN
     intro j k hj hjk
     by_cases hjM : j < nM
     · by_cases hkM : k < nM
-      · simp only [End', if_pos hjM, if_pos hkM]
+      · simp only [End', ite_eq_left hjM, ite_eq_left hkM]
         exact Block.preceq_self _
       · have hnMk : nM ≤ k := Nat.le_of_not_gt hkM
         have hminLower : nM ≤ min k nC := le_min hnMk hstartComplete
-        simp only [End', if_pos hjM, if_neg hkM]
+        simp only [End', ite_eq_left hjM, ite_eq_right hkM]
         exact h.endpoint_mono
           (by simpa only [nM] using Nat.le_refl nM)
           (by simpa only [nM] using hminLower)
@@ -328,7 +328,7 @@ theorem canonicalSuffixAndActionHistory_of_completeN
       have hkM : ¬ k < nM := Nat.not_lt_of_ge (hnMj.trans hjk)
       have hminLower : nM ≤ min j nC := le_min hnMj hstartComplete
       have hminMono : min j nC ≤ min k nC := min_le_min_right nC hjk
-      simp only [End', if_neg hjM, if_neg hkM]
+      simp only [End', ite_eq_right hjM, ite_eq_right hkM]
       exact h.endpoint_mono
         (by simpa only [nM] using hminLower) hminMono
         (by simpa only [nC] using min_le_right k nC)
@@ -347,7 +347,7 @@ theorem canonicalSuffixAndActionHistory_of_completeN
         have hjsmin : min (j + 1) nC = j + 1 := min_eq_left hjsC
         have hjsM : ¬ j + 1 < nM :=
           Nat.not_lt_of_ge (hnMj.trans (Nat.le_succ j))
-        simpa only [End', if_neg hjM, if_neg hjsM, hjmin, hjsmin] using
+        simpa only [End', ite_eq_right hjM, ite_eq_right hjsM, hjmin, hjsmin] using
           h.proposalChain j (by simpa only [nM] using hnMj)
             (by simpa only [nC] using hjC) stage B hstage hobs
       · have hlength : rho.events.length ≤ j := by
@@ -395,7 +395,7 @@ theorem canonicalSuffixAndActionHistory_of_completeN
             have hjsmin : min (j + 1) nC = j + 1 := min_eq_left hjsC
             have hjsM : ¬ j + 1 < nM :=
               Nat.not_lt_of_ge (hnMj.trans (Nat.le_succ j))
-            simpa only [End', if_neg hjsM, hjsmin] using
+            simpa only [End', ite_eq_right hjsM, hjsmin] using
               h.outputs j (by simpa only [nM] using hnMj)
                 (by simpa only [nC] using hjC)
           · have hlength : rho.events.length ≤ j := by
@@ -683,9 +683,8 @@ theorem canonicalOpeningLifecycleAt_of_executionPrepared
       S hcom (hduty P hP) hv
   refine ⟨?_, hexec.openingProposalPreceqActionHeadAt
     hopen hafter hprop hhor P hP v hv⟩
-  change (actionStoreAt S rho v r).st.core.live_confirmed = P.erase
   rw [actionStoreAt_eq_update_confirmation_openingConfStore S rho v r]
-  simpa only [Proofs.Optimistic.confStore_eq_confirmationInputRead] using hwrite
+  simpa only [Proofs.Optimistic.confStore_eq_confirmationInputRead] using! hwrite
 
 #print axioms canonicalOpeningLifecycleAt_of_executionPrepared
 
@@ -759,7 +758,7 @@ private theorem tickIndex_lt_of_time_lt_suffix
     have hevent : Event.tick v t = Event.tick w u :=
       Option.some.inj (hi.symm.trans hj)
     have htime : t = u := by
-      simpa only [Event.time] using congrArg Event.time hevent
+      simpa only [Event.time] using! congrArg Event.time hevent
     exact (ne_of_lt htu) htime
 
 /-- Field-level restatement of
@@ -901,7 +900,7 @@ private theorem confRoot_preceq_namedConfirmationAnchor_slot
     simpa only [Internal.NamedRecoveryRead.confirmationInputRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock] using
+      Protocol.NamedStore.setClock] using!
       named_fgRoot_mem_filtered_stateBeforeTime S rho
         (Protocol.confirmation_time S.E s) v
   exact Proofs.Records.preceq_get_fg_root_of_mem_filtered
@@ -943,7 +942,7 @@ theorem w4SlotLateResolvePin_of_adoption
     S adm hcom hbelow hrec hdelay hpost (hd.trans (Nat.le_succ t)) hvoteHor
     hprop hB
   refine ⟨fun v _hv => ?_, fun v hv => ?_⟩
-  · simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using
+  · simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using!
       Protocol.voteSetValid_confLate_stateBeforeTime S
         adm.toNamedAdmissibleCore.toNamedScheduleWellFormed v
         (Protocol.confirmation_time S.E (t + 1)) (t + 1)
@@ -1063,7 +1062,7 @@ private theorem namedProposedParent_eq_previousSlotBlock_of_preceq_suffix
       (Protocol.proposal_time S.E (s + 1))).core.T := by
     simpa only [H, proposerReadAt, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock] using
+      Protocol.NamedStore.setClock] using!
       proposedParent_mem S rho (s + 1)
   by_contra hne
   have hne' : B ≠ H := fun h => hne h.symm

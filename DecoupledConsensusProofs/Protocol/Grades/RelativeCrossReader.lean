@@ -357,7 +357,7 @@ private theorem emitted_block_due (gc : Protocol.GradeContract V)
   by_contra hnot
   rw [NamedTick.tick_computed_duties] at hB
   dsimp only at hB
-  simp only [if_neg hnot] at hB
+  simp only [ite_eq_right hnot] at hB
   split_ifs at hB <;>
     simp only [List.mem_append, List.mem_map, List.mem_cons, List.not_mem_nil,
       reduceCtorEq, or_false, and_false, exists_false] at hB
@@ -453,7 +453,7 @@ private theorem block_call_rows_after_event (S : Setup V) (rho : NamedRun V)
     rw [Proofs.NamedRuntime.stateBefore_tick S rho he]
     apply tick_rows_after_proposal (DecoupledConsensusModel.Protocol.frameContract c) S (S.node reader)
       n.st n.record t a
-    simp only [if_pos hdue]
+    simp only [ite_eq_left hdue]
     rw [congrArg Prod.fst hcallEq]
     exact ha
 
@@ -480,12 +480,12 @@ private theorem action_tick_store (S : Setup V) (reader : V) (before : NamedNode
   change (Protocol.NamedTick.tick (NamedProfile.gradeContract (preparedCache S before (S.a q)))
     S.E S.hc S.cfg (S.node reader) before.st before.record (S.a q)).1 = _
   rw [NamedTick.tick_computed_duties]
-  simp only [if_neg hp, if_neg hv, if_pos (And.intro hpos hs)]
+  simp only [ite_eq_right hp, ite_eq_right hv, ite_eq_left (And.intro hpos hs)]
   have hround : S.hc.round_of (Protocol.NamedDuties.update_confirmation_with
       (NamedProfile.gradeContract (preparedCache S before (S.a q))) S.E S.hc
       (Protocol.NamedStore.setClock S.E before.st (S.a q)) (S.E.slotOf (S.a q) - 1)).core.s = q :=
     Proofs.HealingLemmas.round_of_slotOf_a S q
-  simp only [hround, hawake, and_self, if_true]
+  simp only [hround, hawake, and_self, ite_true]
   rfl
 
 
@@ -572,7 +572,7 @@ private theorem new_row_round_floor (hc : Protocol.HealConfig) (st : Protocol.Na
   have hfuture : hc.round_of st.core.s < a.round := Nat.lt_of_not_ge hn
   have hcore : Protocol.on_sg_vote hc st.core a.erase = st.core := by
     unfold Protocol.on_sg_vote
-    exact if_pos (Or.inr (Or.inl hfuture))
+    exact ite_eq_left (Or.inr (Or.inl hfuture))
   rw [NamedAdmission.admit_row_of_core_noop hc st a hcore] at hpost
   exact hpre hpost
 
@@ -867,7 +867,7 @@ private theorem call_vote_or_equiv (S : Setup V) (rho : NamedRun V)
         dsimp only [Protocol.on_sg_vote]
         simp only [show a.erase.round = a.round from rfl,
           show a.erase.confirmed = a.confirmed from rfl]
-        rw [if_neg hguard]
+        rw [ite_eq_right hguard]
         simp [Protocol.Store.sg_pool]
       have ha := hpost a (NamedAdmission.admitted_original_row S.hc input a hpre hnew)
       exact Or.inl ⟨a, ha, rfl, rfl, rfl⟩
@@ -1402,7 +1402,7 @@ private theorem absorb_finality_step (U afterJ : Protocol.Store V)
   have hprec : Block.prec U.F sigma.F = true := by
     change (!decide (U.F = sigma.F) && Block.preceq U.F sigma.F) = true
     rw [show decide (U.F = sigma.F) = false by simp [hne]]
-    simpa only [Bool.not_false, Bool.true_and] using hUF
+    simpa only [Bool.not_false, Bool.true_and] using! hUF
   have hguard :
       (Block.prec afterJ.F sigma.F &&
         Block.preceq sigma.F afterJ.J &&
@@ -1411,7 +1411,7 @@ private theorem absorb_finality_step (U afterJ : Protocol.Store V)
     rw [hF, hsigma, hT, hmax]
     simp only [Bool.and_eq_true, decide_eq_true_eq]
     exact ⟨⟨hprec, hJ⟩, hviable⟩
-  rw [if_pos hguard]
+  rw [ite_eq_left hguard]
   exact Block.preceq_self _
 
 /-- A fresh accepted named carrier makes its own finalized checkpoint local.
@@ -1448,7 +1448,7 @@ private theorem fresh_receipt_absorbs_finality
           (Execution.NamedReceiptCalls.postCore S before B).core =
             before.core := by
         simp only [Execution.NamedReceiptCalls.postCore,
-          Protocol.NamedStore.process_block_core, if_pos hn]
+          Protocol.NamedStore.process_block_core, ite_eq_left hn]
       exact hnew (hsame ▸ hpost)
     have hAheld : A ∈ before.bodies :=
       NamedOutageHistory.ViabilityHistoryTime.ancestor_body_mem
@@ -1476,10 +1476,10 @@ private theorem fresh_receipt_absorbs_finality
       · refine ⟨?_, ?_, ?_, ?_⟩
         · intro D hD
           exact Proofs.Bridges.runBlock_of_stateBefore_mem S htarget hD
-        · simpa only [Protocol.NamedStore.setClock] using
+        · simpa only [Protocol.NamedStore.setClock] using!
             (NamedJustificationBound.noHighJustifications_stateBefore
               S rho i target)
-        · simpa only [Protocol.NamedStore.setClock] using
+        · simpa only [Protocol.NamedStore.setClock] using!
             (Proofs.Bridges.namedProvenance_stateBefore S rho i target)
         · simpa only [Protocol.NamedStore.setClock] using
             (Proofs.NamedStoreBridge.maximum_carrier_stateBefore S rho i target)
@@ -1546,23 +1546,22 @@ private theorem fresh_receipt_absorbs_finality
       · have horder :=
           NamedDerivationGeometry.chainOrder_derive_named S.E S.cfg B
         have hFJ := horder.finalized_preceq_justified
-        simpa only [afterJ, hg, if_true] using hFJ
+        simpa only [afterJ, hg, ite_true] using! hFJ
       · have hgFalse :
             (Block.preceq afterMax.F sigma.J &&
               decide (Protocol.HeightId.mk afterMax.h_j afterMax.J.root <
                 Protocol.HeightId.mk sigma.h_j sigma.J.root)) = false :=
           Bool.eq_false_of_not_eq_true hg
         have hafter : afterJ.J = afterMax.J := by
-          simp only [afterJ, hgFalse, Bool.false_eq_true, if_false]
+          simp only [afterJ, hgFalse, Bool.false_eq_true, ite_false]
         rw [hafter]
         change Block.Preceq sigma.F U.J
         rw [hUJ]
         exact hupgrade
     have hviable : sigma.F ∈ Protocol.viable_tree U.σ U.F
         (max U.h_max sigma.h) U.T := by
-      simp only [Protocol.viable_tree,
-        Protocol.finalized_descendants, Protocol.viable,
-        Finset.mem_filter, decide_eq_true_eq]
+      simp only [Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter]
+      simp only [Protocol.viable, decide_eq_true_eq]
       refine ⟨⟨hFmemU, hfloorU⟩, ?_⟩
       by_cases hlow : max U.h_max sigma.h - 1 ≤ sigma.h
       · refine ⟨B.erase, ?_, ?_, ?_⟩
@@ -1613,7 +1612,7 @@ private theorem fresh_receipt_absorbs_finality
               Protocol.named_transition S.E S.cfg
                 (before.core.σ B.erase.parent) B
             else before.core.σ M.erase).h
-          rw [if_neg hMne, hco.2.2.2.2 M hMheld, hMheight, ← hUmax,
+          rw [ite_eq_right hMne, hco.2.2.2.2 M hMheld, hMheight, ← hUmax,
             hmaxEq]
           exact Nat.sub_le _ _
     have hviableAfter : sigma.F ∈
@@ -2023,7 +2022,7 @@ theorem crossReaderBodyReadyGuard_of_finalizedBelow
             S rho core.toNamedScheduleWellFormed
             (NamedOutageHistory.GuardedHelpers.early_g2_public S r hr)
             hHbody
-          simpa only [hHnErase] using hstamp
+          simpa only [hHnErase] using! hstamp
         have hdeadline : max (early S.E S.hc r .g2) S.E.t_GST + S.E.Δ ≤
             early S.E S.hc r .g1 := by
           rw [max_eq_left hgst, early_g2_add_delta_eq_g1]
@@ -2081,7 +2080,7 @@ theorem crossReaderBodyReadyGuard_of_finalizedBelow
           apply NamedPublicCutBody.body_mem_stateBeforeTime_of_public_stampedBefore
             S rho core.toNamedScheduleWellFormed
             (NamedOutageClosure.q10_late_g1_public S r hr) hHbody
-          simpa only [hHnErase] using hstamp
+          simpa only [hHnErase] using! hstamp
         have hgstLate : S.E.t_GST ≤ late S.E S.hc r .g1 := by
           exact hgst.trans (by
             simp only [early, late, Phase.earlyOffset, Phase.lateOffset]
@@ -2223,7 +2222,7 @@ theorem crossReaderBodyReadyGuard_of_namedHeightRegimeFrame
     have hin :=
       (adm.in_horizon (Event.tick a.val_index ta)
         (List.mem_of_getElem? hiEvent)).2
-    simpa only [Event.time, htime] using hin
+    simpa only [Event.time, htime] using! hin
   have hroundFromStart : r0 ≤ a.round := by
     by_contra hnot
     have haRoundLt : a.round < r0 := Nat.lt_of_not_ge hnot
@@ -2263,7 +2262,7 @@ theorem crossReaderBodyReadyGuard_of_namedHeightRegimeFrame
         (NamedActionReads.actionReadFrom S
           (NamedRun.stateBefore S rho actionIndex a.val_index)
           a.round).st.core.toHealing a.round = some Q := by
-      simpa only [actionIndex] using hselected
+      simpa only [actionIndex] using! hselected
     obtain ⟨j, raw, -, -, hfreeze, -⟩ :=
       contractQ2_capture_at_action_index
         S rho actionIndex a.val_index a.round hselected'
@@ -2292,7 +2291,7 @@ theorem crossReaderBodyReadyGuard_of_namedHeightRegimeFrame
     simpa only [actionReadAt, NamedActionReads.actionReadAt,
       NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hFQ
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hFQ
   have hsourceFQ : Block.Preceq
       (NamedRun.stateBeforeTime S rho
         (domain S.E S.hc a.round .g0) a.val_index).st.core.F Q :=
@@ -3141,7 +3140,7 @@ theorem g1G0CrossReaderBodyReadyGuard_of_finalizedBelow
             S rho core.toNamedScheduleWellFormed
             (early_g1_public S r hr)
             hHbody
-          simpa only [hHnErase] using hstamp
+          simpa only [hHnErase] using! hstamp
         have hdeadline : max (early S.E S.hc r .g1) S.E.t_GST + S.E.Δ ≤
             early S.E S.hc r .g0 := by
           rw [max_eq_left hgst, early_g1_add_delta_eq_g0]
@@ -3199,7 +3198,7 @@ theorem g1G0CrossReaderBodyReadyGuard_of_finalizedBelow
           apply NamedPublicCutBody.body_mem_stateBeforeTime_of_public_stampedBefore
             S rho core.toNamedScheduleWellFormed
             (late_g0_public S r hr) hHbody
-          simpa only [hHnErase] using hstamp
+          simpa only [hHnErase] using! hstamp
         have hgstLate : S.E.t_GST ≤ late S.E S.hc r .g0 := by
           exact hgst.trans (by
             simp only [early, late, Phase.earlyOffset, Phase.lateOffset]

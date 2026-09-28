@@ -76,7 +76,7 @@ private theorem w4gc_body_run
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using hB
+      NamedRun.stateBeforeTime] using! hB
   obtain ⟨n, hn, -⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix S rho
     adm.toNamedAdmissibleCore.toNamedScheduleWellFormed.sorted (S.a r)
   apply Proofs.Bridges.runBlock_of_stateBefore_mem S hv (i := n)
@@ -506,7 +506,7 @@ theorem commonFinalityAboveFrontier_of_openingCarrierRecurrence_of_pins_prepared
     have hslot : S.hc.opening_slot r + 2 ≤ S.hc.opening_slot (r + 1) := by
       simpa only [Protocol.HealConfig.opening_slot, Nat.add_mul, Nat.one_mul] using
         Nat.add_le_add_left S.hc.R_ge_two (r * S.hc.R)
-    simpa only [Setup.a, Protocol.a_eq_confirmation_time] using
+    simpa only [Setup.a, Protocol.a_eq_confirmation_time] using!
       Int.add_le_add_right (proposal_time_mono S.E hslot) (6 * S.E.Δ)
   have hselected_bounds : ∀ {q start L e gap c : Nat},
       q ≤ start → e + 4 ≤ 2 * L + 1 → start + 1 + 2 * L < c →

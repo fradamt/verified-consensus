@@ -156,11 +156,9 @@ omit [Fintype V] in
 /-- A block the FG filter keeps is a processed block. -/
 theorem mem_T_of_mem_filteredTree {st : Protocol.Store V} {B : Block V}
     (h : B ∈ Protocol.get_filtered_block_tree st.toHealing.toFG) : B ∈ st.T := by
-  simp only [Protocol.get_filtered_block_tree,
-    Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
-    Protocol.finalized_descendants, Finset.mem_filter,
-    Protocol.Store.toHealing] at h
-  exact h.1.1.1
+  unfold Protocol.get_filtered_block_tree Protocol.get_filtered_block_tree_from
+    Protocol.viable_tree Protocol.finalized_descendants at h
+  exact (Finset.mem_filter.mp (Finset.mem_filter.mp (Finset.mem_filter.mp h).1).1).1
 
 /-! ## Transfer of a common grade into the action's frozen candidate -/
 
@@ -206,7 +204,7 @@ theorem preceq_actionQ2_of_domainGrade (S : Setup V) {rho : Run V}
     (DecoupledConsensusModel.Protocol.readFrame (actionReadAt S rho v r).cache
       (actionReadAt S rho v r).st.core.toHealing r) = some X
   unfold DecoupledConsensusModel.Protocol.grade2Block
-  rw [if_pos (actionFrame_allClosed S core hv hr hhor), actionFrame_g2 S core hv hr hhor,
+  rw [ite_eq_left (actionFrame_allClosed S core hv hr hhor), actionFrame_g2 S core hv hr hhor,
     show PhaseGrades.storeRoot S.E S.hc (NamedRun.stateBeforeTime S rho
       (DecoupledConsensusModel.Protocol.domain S.E S.hc r .g2) v).st r .g2 = some raw from hfz]
   exact hX
@@ -266,7 +264,6 @@ theorem preceq_actionSGBlockAt_of_actionQ2 (S : Setup V) {rho : Run V}
       simp only []
       have hAB : Block.Preceq grades.anchor B := by
         have hmem := Proofs.Engine.deepest?_mem hdc
-        unfold Protocol.deepest_clear at hmem
         exact (Finset.mem_filter.mp hmem).2.1
       exact Block.preceq_trans hCQ (Block.preceq_trans hanchor hAB)
 
@@ -294,7 +291,6 @@ theorem preceq_actionFGSource_of_actionQ2 (S : Setup V) (rho : Run V) (v : V)
       simp only [hwalk] at hsource
       have hQB : Block.Preceq Q B := by
         have hmem := Proofs.Engine.deepest?_mem hwalk
-        unfold Protocol.deepest_clear at hmem
         exact (Finset.mem_filter.mp hmem).2.1
       rw [← Option.some_inj.mp hsource]
       exact Block.preceq_trans hCQ hQB
@@ -361,11 +357,11 @@ theorem actionQ2_mem_filteredTree (S : Setup V) (rho : Run V) (v : V) (r : Round
   by_cases hcl : DecoupledConsensusModel.Protocol.allClosed
       (DecoupledConsensusModel.Protocol.readFrame (actionReadAt S rho v r).cache
         (actionReadAt S rho v r).st.core.toHealing r) = true
-  · rw [if_pos hcl] at hq'
+  · rw [ite_eq_left hcl] at hq'
     obtain ⟨root, -, hact⟩ := Option.bind_eq_some_iff.mp hq'
     unfold DecoupledConsensusModel.Protocol.activePrefix at hact
     exact (Finset.mem_filter.mp (Proofs.Engine.deepest?_mem hact)).1
-  · rw [if_neg hcl] at hq'
+  · rw [ite_eq_right hcl] at hq'
     exact absurd hq' (by simp)
 
 /-- A common grade makes the exact action FG source nonempty. -/

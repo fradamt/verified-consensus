@@ -66,15 +66,15 @@ theorem on_goldfish_vote {E : Env V} {st : Protocol.Store V}
   by_cases hguard :
       u.slot < st.s - 1 ∨ st.s < u.slot ∨ u ∈ st.gf_votes u.slot
   · rw [show Protocol.on_goldfish_vote st u = st by
-      simp only [Protocol.on_goldfish_vote, if_pos hguard]]
+      simp only [Protocol.on_goldfish_vote, ite_eq_left hguard]]
     exact h
   by_cases hequiv : Protocol.equivocates (st.pool u.slot) u.val_index = true
   · rw [show Protocol.on_goldfish_vote st u = st by
-      simp only [Protocol.on_goldfish_vote, if_neg hguard, if_pos hequiv]]
+      simp only [Protocol.on_goldfish_vote, ite_eq_right hguard, ite_eq_left hequiv]]
     exact h
   have hgf : (Protocol.on_goldfish_vote st u).gf_votes =
       fun k => if k = u.slot then st.gf_votes k ++ [u] else st.gf_votes k := by
-    simp only [Protocol.on_goldfish_vote, if_neg hguard, if_neg hequiv]
+    simp only [Protocol.on_goldfish_vote, ite_eq_right hguard, ite_eq_right hequiv]
   intro k x hx
   rw [hgf] at hx
   by_cases hk : k = u.slot
@@ -85,7 +85,7 @@ theorem on_goldfish_vote {E : Env V} {st : Protocol.Store V}
     · have hxu : x = u := List.mem_singleton.mp hx
       subst x
       exact huCommittee
-  · simp only [if_neg hk] at hx
+  · simp only [ite_eq_right hk] at hx
     exact h k x hx
 
 /-- The source-aligned checked ingress preserves committee typing without an
@@ -96,9 +96,9 @@ theorem on_goldfish_vote_checked (E : Env V) {st : Protocol.Store V}
     CommitteePools E (Protocol.on_goldfish_vote_checked E st u) := by
   unfold Protocol.on_goldfish_vote_checked
   by_cases hu : u.val_index ∉ E.committee u.slot
-  · rw [if_pos hu]
+  · rw [ite_eq_left hu]
     exact h
-  · rw [if_neg hu]
+  · rw [ite_eq_right hu]
     apply h.on_goldfish_vote u
     simpa only [not_not] using hu
 
@@ -413,14 +413,14 @@ theorem world_step (S : Execution.Setup V) :
       · subst x
         simp only [Execution.NamedWorld.step, Function.update_apply]
         exact on_tick_emit S v (w v) t (h v)
-      · simp only [Execution.NamedWorld.step, Function.update_apply, if_neg hx]
+      · simp only [Execution.NamedWorld.step, Function.update_apply, ite_eq_right hx]
         exact h x
   | deliver v o t =>
       by_cases hx : x = v
       · subst x
         simp only [Execution.NamedWorld.step, Function.update_apply]
         exact process S (w v) o (h v)
-      · simp only [Execution.NamedWorld.step, Function.update_apply, if_neg hx]
+      · simp only [Execution.NamedWorld.step, Function.update_apply, ite_eq_right hx]
         exact h x
 
 /-- Folding any event list from a well-typed world preserves the invariant. -/

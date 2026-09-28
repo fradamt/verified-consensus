@@ -315,7 +315,7 @@ theorem q10_row_at_public_cut (S : Setup V) (rho : NamedRun V)
       (q10_publicTime_nonneg S hpublic) hhor
     obtain ⟨k, htick⟩ := List.mem_iff_getElem?.mp htickMem
     have hjk : j < k := q10_index_lt_of_time_lt rho sch.sorted he htick
-      (by simpa only [het] using hearly)
+      (by simpa only [het] using! hearly)
     rw [← Proofs.NamedRuntime.tick_prefix_eq_strict S rho sch.sorted sch.nodup htick]
     exact (Proofs.NamedSGArrival.stateBefore_sg_row_stamp_mono S rho reader
       (Nat.succ_le_of_lt hjk) hpost).1
@@ -464,7 +464,7 @@ theorem q10_interpreted_back (S : Setup V) (rho : NamedRun V)
       obtain ⟨Hn, hHn, hHe⟩ := Finset.mem_image.mp hHmem
       have hstampN : stampedBefore
           (NamedRun.stateBeforeTime S rho T1 v).st.core.timestamp_block c Hn.erase = true := by
-        simpa only [hHe] using hready.1
+        simpa only [hHe] using! hready.1
       have hcutN : Hn ∈ (NamedRun.stateBeforeTime S rho c v).st.bodies :=
         NamedPublicCutBody.body_mem_stateBeforeTime_of_public_stampedBefore
           S rho sch hpublic hHn hstampN
@@ -484,7 +484,7 @@ theorem q10_interpreted_back (S : Setup V) (rho : NamedRun V)
         rw [stampedBefore_eq_occurrenceBefore] at hstampN ⊢
         rw [hstamp2, ← hstamp1]
         exact hstampN
-      simpa only [hHe] using this
+      simpa only [hHe] using! this
 
 /-! ## 7. Forward transport of a covering input
 
@@ -612,13 +612,13 @@ theorem q10_interpreted_fwd_cover (S : Setup V) (rho : NamedRun V)
       constructor
       · have hs2 : stampedBefore
             (NamedRun.stateBeforeTime S rho T2 v).st.core.timestamp_block c2 Hn.erase = true := by
-          simpa only [hHe] using hready.1
+          simpa only [hHe] using! hready.1
         have hs1 : stampedBefore
             (NamedRun.stateBeforeTime S rho T1 v).st.core.timestamp_block c1 Hn.erase = true := by
           rw [stampedBefore_eq_occurrenceBefore] at hs2 ⊢
           rw [hstampeq]
           exact occurrenceBefore_mono hc hs2
-        simpa only [hHe] using hs1
+        simpa only [hHe] using! hs1
       · simp only [Block.compatible, Bool.or_eq_true]
         exact Or.inr (Block.preceq_trans hFB hBH)
 
@@ -840,7 +840,7 @@ theorem q10_retained_prefix (g F B : Block V) (hBF : Block.compatible B F = true
             exact False.elim (hGF hBF)
           · exact hBp
         simpa only [DecoupledConsensusModel.Protocol.clipGrade, hGF,
-          Bool.eq_false_iff.mpr hGF, ↓reduceIte] using ih hBp
+          Bool.eq_false_iff.mpr hGF, ↓reduceIte] using! ih hBp
 
 omit [Fintype V] in
 /-- Every filtered-tree member succeeds the finalized block. -/
@@ -1037,9 +1037,9 @@ theorem q10_frame_core (S : Setup V) (rho : NamedRun V)
   unfold DecoupledConsensusModel.Protocol.grade2Block at hq
   by_cases hcl : DecoupledConsensusModel.Protocol.allClosed frame = true
   swap
-  · rw [if_neg hcl] at hq
+  · rw [ite_eq_right hcl] at hq
     exact absurd hq (by simp)
-  rw [if_pos hcl, hg2, Option.bind_some, id_eq] at hq
+  rw [ite_eq_left hcl, hg2, Option.bind_some, id_eq] at hq
   obtain ⟨g2c, hg2c, hact⟩ := Option.bind_eq_some_iff.mp hq
   obtain ⟨g2, hg2raw, hclip⟩ := Option.map_eq_some_iff.mp hg2c
   -- the read value is in the filtered tree and below the clipped G2 root

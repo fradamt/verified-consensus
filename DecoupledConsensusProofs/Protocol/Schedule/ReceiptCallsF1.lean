@@ -104,7 +104,7 @@ private theorem full_new_core_guard (hc : Protocol.HealConfig) (st : Protocol.Na
       a.erase ∈ (Protocol.on_sg_vote hc st.core a.erase).sg_pool a.round := by
   by_contra hguard
   have hs : (Protocol.NamedAdmission.admit_row hc st a).sg_rows = st.sg_rows := by
-    simp only [Protocol.NamedAdmission.admit_row, if_neg hguard]
+    simp only [Protocol.NamedAdmission.admit_row, ite_eq_right hguard]
   exact hpre (hs ▸ hpost)
 
 set_option linter.unusedSectionVars false in
@@ -188,11 +188,11 @@ theorem block_full_marker_origin (S : Setup V) (rho : NamedRun V) (i : Nat) (v :
     by_contra hn
     change a ∈ (Protocol.NamedAdmission.admit_carried .alsoCarried S.hc before
       (Execution.NamedReceiptCalls.postCore S before B) B).sg_rows a.round at hpost
-    simp only [Protocol.NamedAdmission.admit_carried, if_neg hn] at hpost
+    simp only [Protocol.NamedAdmission.admit_carried, ite_eq_right hn] at hpost
     exact hcorepre hpost
   change a ∈ (Protocol.NamedAdmission.admit_carried .alsoCarried S.hc before
     (Execution.NamedReceiptCalls.postCore S before B) B).sg_rows a.round at hpost
-  rw [Protocol.NamedAdmission.admit_carried, if_pos hgate] at hpost
+  rw [Protocol.NamedAdmission.admit_carried, ite_eq_left hgate] at hpost
   obtain ⟨j, _, hrow, hbefore, hafter⟩ :=
     admit_rows_new_marker S.hc (Execution.NamedReceiptCalls.postCore S before B)
       B.attestations a hcorepre hpost
@@ -307,22 +307,22 @@ theorem tick_new_full_row_origin (gc : Protocol.GradeContract V) (E : Env V)
       NamedObject.attest a ∈ (Protocol.NamedTick.tick gc E hc cfg nd st record t).2.2 := by
     rw [hstore] at hpost
     by_cases hA : t = hc.a E.Δ (hc.round_of st3.core.s) ∧ nd.awake (hc.round_of st3.core.s) = true
-    · rw [if_pos hA] at hpost
+    · rw [ite_eq_left hA] at hpost
       rcases admit_row_mem_cases hc st3
           (Protocol.NamedDuties.attest_with gc E hc nd st3 record).2.2 a hpost with hold | hrow
       · exact Or.inl hold
       · right
         rw [hrow, NamedTick.tick_computed_duties]
         dsimp only [st3, st2, st1, st0, s] at hA ⊢
-        simp only [if_pos hA, List.mem_append, List.mem_singleton, or_true]
-    · rw [if_neg hA] at hpost
+        simp only [ite_eq_left hA, List.mem_append, List.mem_singleton, or_true]
+    · rw [ite_eq_right hA] at hpost
       exact Or.inl hpost
   rcases hlocal with hold | hemitted
   · rw [hrows] at hold
     by_cases hP : 0 < s ∧ t = Protocol.proposal_time E s ∧ E.proposer s = nd.val_index
     · have hprop : a ∈
           (Protocol.NamedDuties.propose_block_with gc E hc cfg nd st0).1.sg_rows a.round := by
-        simpa only [st1, if_pos hP] using hold
+        simpa only [st1, ite_eq_left hP] using hold
       obtain ⟨B, hB, hbody⟩ := proposal_new_row gc E hc cfg nd st0 a hpre hprop
       refine Or.inr ⟨B, ?_, hpre, hbody⟩
       rw [NamedTick.tick_computed_duties]
@@ -330,7 +330,7 @@ theorem tick_new_full_row_origin (gc : Protocol.GradeContract V) (E : Env V)
       dsimp only [st0] at hB
       simp only [hB]
       split_ifs <;> simp only [List.mem_append, List.mem_singleton, true_or]
-    · have hfalse : a ∈ st.sg_rows a.round := by simpa only [st1, if_neg hP] using hold
+    · have hfalse : a ∈ st.sg_rows a.round := by simpa only [st1, ite_eq_right hP] using! hold
       exact False.elim (hpre hfalse)
   · exact Or.inl hemitted
 

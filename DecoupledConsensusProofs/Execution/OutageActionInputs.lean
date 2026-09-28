@@ -99,7 +99,7 @@ theorem tick_at_action (S : Setup V) (v : V) (before : NamedNodeState V) (r : Ro
   change (Protocol.NamedTick.tick (NamedProfile.gradeContract (preparedCache S before (S.a r)))
     S.E S.hc S.cfg (S.node v) before.st before.record (S.a r)).2.2 = _
   rw [NamedTick.tick_computed_duties]
-  simp only [if_neg hp, if_neg hv, if_pos (And.intro hpos hs), List.nil_append]
+  simp only [ite_eq_right hp, ite_eq_right hv, ite_eq_left (And.intro hpos hs), List.nil_append]
   have hround : S.hc.round_of (Protocol.NamedDuties.update_confirmation_with
       (NamedProfile.gradeContract (preparedCache S before (S.a r))) S.E S.hc
       (Protocol.NamedStore.setClock S.E before.st (S.a r)) (S.E.slotOf (S.a r) - 1)).core.s = r :=
@@ -134,7 +134,7 @@ theorem emitted_attestation_stages (S : Setup V) (rho : NamedRun V)
   change NamedObject.attest a ∈
     (Execution.NamedNode.tick S v (NamedRun.stateBefore S rho i v) (S.a a.round)).2 at ha
   rw [tick_at_action] at ha
-  simp only [if_pos hawake, List.mem_singleton, NamedObject.attest.injEq] at ha
+  simp only [ite_eq_left hawake, List.mem_singleton, NamedObject.attest.injEq] at ha
   exact ⟨i, hi, ho, ha.symm, hval, (action_read_round S _ a.round).symm, rfl, hawake⟩
 
 theorem emitted_attestation_head (S : Setup V) (rho : NamedRun V)

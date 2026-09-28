@@ -252,7 +252,7 @@ theorem proposal_root_of_output
       rcases (by
         simpa [Protocol.NamedActions.proposal_with, Protocol.with_proposal_input] using hroot) with
         ⟨a, ha, hax⟩
-      simpa using hax.symm
+      simpa using! hax.symm
 
 theorem emitted_block_root_local {B : NamedBlock (Fin 2)} {t : Time}
     (h : NamedRun.emits S rho 0 (.block B) t) :

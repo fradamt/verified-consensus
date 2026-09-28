@@ -201,7 +201,7 @@ theorem preparedAnchor_compatible_carrier_or_activePrefix
         NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
         NamedActionReads.confirmationReadFrom,
         NamedActionReads.preparedCache, NamedRun.stateBeforeTime,
-        Run.storeBeforeTime] using hWbody
+        Run.storeBeforeTime] using! hWbody
     have hWrun : RunBlock S rho W := by
       obtain ⟨n, hn, -⟩ := Proofs.Bridges.stateBeforeTime_eq_stateBefore
         S adm.toNamedScheduleWellFormed (S.a c)
@@ -424,7 +424,7 @@ theorem voteDutyPreparedAnchor_bandDescendant_processed
       have htree : (rho.storeBeforeTime S w (S.a (c - 1))).core.T =
           (rho.storeBeforeTime S w (S.a (c - 1))).bodies.image
             NamedBlock.erase := by
-        simpa only [Run.storeBeforeTime] using
+        simpa only [Run.storeBeforeTime] using!
           (Proofs.NamedRuntime.stateBeforeTime_invariants S rho
             (S.a (c - 1)) w).1.1.1.1
       rw [htree]
@@ -548,12 +548,12 @@ theorem voteDutyPreparedAnchor_bandDescendant_processed
         NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
         NamedActionReads.confirmationReadFrom,
         NamedActionReads.preparedCache, NamedRun.stateBeforeTime,
-        Run.storeBeforeTime] using hWT
+        Run.storeBeforeTime] using! hWT
     have hWcore : W.erase ∈ (rho.storeBeforeTime S u (S.a (c - 1))).core.T := by
       have htree : (rho.storeBeforeTime S u (S.a (c - 1))).core.T =
           (rho.storeBeforeTime S u (S.a (c - 1))).bodies.image
             NamedBlock.erase := by
-        simpa only [Run.storeBeforeTime] using
+        simpa only [Run.storeBeforeTime] using!
           (Proofs.NamedRuntime.stateBeforeTime_invariants S rho
             (S.a (c - 1)) u).1.1.1.1
       rw [htree]

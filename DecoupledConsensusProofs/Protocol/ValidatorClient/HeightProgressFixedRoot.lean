@@ -275,7 +275,7 @@ private theorem fixedRootNamedGradeProcessedAtAction
     have hfiltered := (hforms v hv).1
     have htree := Proofs.Records.get_filtered_block_tree_subset _ hfiltered
     simpa only [PhaseGrades.filteredTree, PhaseGrades.readAt,
-      Run.storeBeforeTime] using htree
+      Run.storeBeforeTime] using! htree
   rw [storeBeforeTime_eq_storeAt_sub_one_recovery] at hsource ⊢
   apply StoreFinality.stateAt_T_subset
     S adm.toNamedAdmissibleCore.toNamedScheduleWellFormed v
@@ -519,7 +519,7 @@ private theorem fixedRootConeRootLock_at_windowRound
       (hJ'erase.trans rfl)
     have hJbody : Jn ∈
         (rho.storeBeforeTime S u (S.a (q - 1))).bodies := by
-      simpa only [hJ'eq] using hJ'body
+      simpa only [hJ'eq] using! hJ'body
     have hJactive : Jn.erase ∈ PhaseGrades.filteredTree
         (actionReadAt S rho u (q - 1)) := by
       have hfiltered := mem_filtered_of_mem_tree_of_exactFGRoot_heightCap
@@ -528,7 +528,7 @@ private theorem fixedRootConeRootLock_at_windowRound
       simpa only [PhaseGrades.filteredTree, PhaseGrades.readAt, actionReadAt,
         NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
         NamedActionReads.confirmationReadFrom,
-        NamedActionReads.preparedCache] using hfiltered
+        NamedActionReads.preparedCache] using! hfiltered
     exact preceq_actionSGBlockAt_of_namedGradeFormsAt
       S adm.toNamedAdmissibleCore hqPredPos hnextHor hformsNamed hu hJactive
   have hrq : r < q :=
@@ -663,13 +663,13 @@ private theorem fixedRootActionFinalityPair_certificate
     simpa only [ast, actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using
+      NamedRun.stateBeforeTime] using!
         Proofs.NamedStoreBridge.justifiedInTree_stateBeforeTime S rho (S.a r) v
   have hF : ast.st.core.F ∈ ast.st.core.T := by
     simpa only [ast, actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using
+      NamedRun.stateBeforeTime] using!
         Proofs.NamedStoreBridge.finalizedInTree_stateBeforeTime S rho (S.a r) v
   have hpair' :
       (Protocol.NamedActions.round_action_with
@@ -677,7 +677,7 @@ private theorem fixedRootActionFinalityPair_certificate
         (S.node v) ast.st.core.toHealing ast.record).2.finality_pair =
           some ⟨H, T⟩ := by
     simpa only [ast, actionAttestationAt, actionStoreAt, actionReadAt,
-      Protocol.NamedDuties.attest_with] using hpair
+      Protocol.NamedDuties.attest_with] using! hpair
   obtain ⟨Hd, hHdDef, heq⟩ := Proofs.round_action_finality_pair
     (DecoupledConsensusModel.Protocol.frameContract ast.cache) S.E S.hc (S.node v)
     ast.st.core.toHealing ast.record
@@ -713,7 +713,7 @@ private theorem fixedRootActionFinalityPair_certificate
     simpa only [ast, actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      Run.storeBeforeTime] using hD
+      Run.storeBeforeTime] using! hD
   have hDjust : Internal.NamedJustifiedAt S.E S.cfg D
       (Protocol.derive_named S.E S.cfg D).J H := by
     refine ⟨rfl, ?_⟩
@@ -869,7 +869,7 @@ private theorem fixedRootActionOwnLock_at_fixedHeight_none_or_target
               subst target
               exact fixedRootActionFinalityPair_certificate S adm hv r hHne hfp
             · refine hcertOfRecordLock ?_
-              simpa only [Protocol.own_lock, hfp, hh] using hlock
+              simpa only [Protocol.own_lock, hfp, hh] using! hlock
       rw [hfix.fixedTarget.uniqueAtHeight locked hcert]
 
 /-- The honest action row at a window round, from the round's own height-pair
@@ -942,7 +942,7 @@ private theorem fixedRootFresh_actionBody_runBlock
   have hDpre : D ∈ (rho.storeBeforeTime S v (S.a r)).bodies := by
     simpa only [actionStoreAt, actionReadAt, NamedActionReads.actionReadAt,
       NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hD
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hD
   exact fixedRootRunBlock_of_body_at_read S adm hv hDpre
 
 private theorem fixedRootFresh_namedSource_witness
@@ -1272,7 +1272,7 @@ private theorem fixedRootLifecycleRows_at_pred
         simpa only [actionReadAt, NamedActionReads.actionReadAt,
           NamedActionReads.actionReadFrom,
           NamedActionReads.confirmationReadFrom,
-          NamedActionReads.preparedCache, Run.storeBeforeTime] using hD))
+          NamedActionReads.preparedCache, Run.storeBeforeTime] using! hD))
       hlifecycle.runBlock hDerase
   have hsigma : (actionReadAt S rho v q1).st.core.σ B1.erase =
       Protocol.derive_named S.E S.cfg B1 := by
@@ -1591,7 +1591,7 @@ theorem fixedRootProgress_of_lifecycle
       change B.erase ∈ Protocol.get_filtered_block_tree
         (NamedRun.stateBeforeTime S rho
           (DecoupledConsensusModel.Protocol.domain S.E S.hc q .g2) w).st.core.toHealing.toFG
-      simpa only [hprevAdd] using hmem
+      simpa only [hprevAdd] using! hmem
     -- the duty store at the opening keeps the fixed root and frontier
     have hproposalAction : Protocol.proposal_time S.E
         (S.hc.opening_slot q) ≤ S.a q := by
@@ -1781,7 +1781,7 @@ theorem fixedRootProgress_of_lifecycle
               (S.hc.opening_slot q2)).toHealing.toFG =
               (rho.storeBeforeTime S u read).J := by
           simpa only [Protocol.proposerDutyStore,
-            Proofs.Optimistic.tickStore] using hfixedProposal2.1
+            Proofs.Optimistic.tickStore] using! hfixedProposal2.1
         have hmaxDuty2 : (Protocol.proposerDutyStore S rho
             (S.hc.opening_slot q2)).h_max = M := by
           simpa only [Protocol.proposerDutyStore,
@@ -1839,7 +1839,7 @@ theorem fixedRootProgress_of_lifecycle
                 (S.hc.opening_slot q3)).toHealing.toFG =
                 (rho.storeBeforeTime S u read).J := by
             simpa only [Protocol.proposerDutyStore,
-              Proofs.Optimistic.tickStore] using hfixedProposal3.1
+              Proofs.Optimistic.tickStore] using! hfixedProposal3.1
           have hmaxDuty3 : (Protocol.proposerDutyStore S rho
               (S.hc.opening_slot q3)).h_max = M := by
             simpa only [Protocol.proposerDutyStore,
@@ -1976,7 +1976,7 @@ theorem fixedRootProgress_of_lifecycle
             simpa only [actionStoreAt, actionReadAt,
               NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
               NamedActionReads.confirmationReadFrom,
-              NamedActionReads.preparedCache, Run.storeBeforeTime] using
+              NamedActionReads.preparedCache, Run.storeBeforeTime] using!
               fixedRootNamedGradeProcessedAtAction S adm
                 (by rw [hJnErase]; exact hformsJAction) hv
           have hq1SuccEnd : q1 + 1 ≤ endpointRound := by
@@ -2016,7 +2016,7 @@ theorem fixedRootProgress_of_lifecycle
           have hwindowB1 : ∀ v ∈ rho.honest,
               FinalityFilterRetainedAtRead S rho v (S.a (q2 - 1)) B1.erase := by
             intro v hv
-            simpa only [FinalityFilterRetainedAtRead, healStoreAt] using
+            simpa only [FinalityFilterRetainedAtRead, healStoreAt] using!
               hactionB1 v hv
           have hpostQ2Pred : S.E.t_GST ≤ S.a (q2 - 1) := by
             have hq1Le : q1 ≤ q2 - 1 :=
@@ -2092,7 +2092,7 @@ theorem fixedRootProgress_of_lifecycle
             (S.hc.opening_slot q2)).toHealing.toFG =
             (rho.storeBeforeTime S u read).J := by
         simpa only [Protocol.proposerDutyStore,
-          Proofs.Optimistic.tickStore] using hfixedProposal2.1
+          Proofs.Optimistic.tickStore] using! hfixedProposal2.1
       have hmaxDuty2 : (Protocol.proposerDutyStore S rho
           (S.hc.opening_slot q2)).h_max = M := by
         simpa only [Protocol.proposerDutyStore,

@@ -164,29 +164,29 @@ private theorem checked_new_block_stamp (E : Env V) (hc : Protocol.HealConfig)
       hc st B).timestamp_block B = some (st.t : Stamp) := by
   dsimp only [Protocol.on_block_checked_using] at hpost ⊢
   by_cases hvalid : Protocol.carried_attestations_admissible hc B = true
-  · simp only [hvalid, if_true] at hpost ⊢
+  · simp only [hvalid, ite_true] at hpost ⊢
     by_cases hfirst : st.s < B.slot ∨ B ∈ st.T ∨ B.parent ∉ st.T
-    · simp only [Protocol.on_block_using, if_pos hfirst] at hpost
+    · simp only [Protocol.on_block_using, ite_eq_left hfirst] at hpost
       exact False.elim (hpre hpost)
     · by_cases hfinal : (!Block.preceq st.F B) = true
-      · simp only [Protocol.on_block_using, if_neg hfirst, if_pos hfinal] at hpost
+      · simp only [Protocol.on_block_using, ite_eq_right hfirst, ite_eq_left hfinal] at hpost
         exact False.elim (hpre hpost)
       · by_cases hproposer : B.proposer? ≠ some (E.proposer B.slot)
-        · simp only [Protocol.on_block_using, if_neg hfirst, if_neg hfinal,
-            if_pos hproposer] at hpost
+        · simp only [Protocol.on_block_using, ite_eq_right hfirst, ite_eq_right hfinal,
+            ite_eq_left hproposer] at hpost
           exact False.elim (hpre hpost)
         · by_cases hparent : ¬ B.parent.slot < B.slot
-          · simp only [Protocol.on_block_using, if_neg hfirst, if_neg hfinal,
-              if_neg hproposer, if_pos hparent] at hpost
+          · simp only [Protocol.on_block_using, ite_eq_right hfirst, ite_eq_right hfinal,
+              ite_eq_right hproposer, ite_eq_left hparent] at hpost
             exact False.elim (hpre hpost)
-          · simp only [Protocol.on_block_using, if_neg hfirst, if_neg hfinal,
-              if_neg hproposer, if_neg hparent,
+          · simp only [Protocol.on_block_using, ite_eq_right hfirst, ite_eq_right hfinal,
+              ite_eq_right hproposer, ite_eq_right hparent,
               Protocol.update_finality_timestamp_block,
               Protocol.foldl_on_goldfish_vote_checked_timestamp_block]
             simp
   · have hfalse : Protocol.carried_attestations_admissible hc B = false :=
       Bool.eq_false_of_not_eq_true hvalid
-    simp only [hfalse, Bool.false_eq_true, if_false] at hpost
+    simp only [hfalse, Bool.false_eq_true, ite_false] at hpost
     exact False.elim (hpre hpost)
 
 private theorem core_new_body_stamp (S : Setup V) (st : Protocol.NamedStore V)
@@ -198,7 +198,7 @@ private theorem core_new_body_stamp (S : Setup V) (st : Protocol.NamedStore V)
   by_cases hp : B.parent ∉ st.bodies
   · simp only [hp] at hpost
     exact False.elim (hpre hpost)
-  · rw [if_neg hp] at hpost ⊢
+  · rw [ite_eq_right hp] at hpost ⊢
     let after := Protocol.on_block_checked_using
       (fun current => Protocol.on_block_using S.E current B.erase
         (fun parentState => Protocol.named_transition S.E S.cfg parentState B))
@@ -207,10 +207,10 @@ private theorem core_new_body_stamp (S : Setup V) (st : Protocol.NamedStore V)
     change (Protocol.NamedStore.commitBlock st after B).core.timestamp_block B.erase = _
     by_cases hfresh : B.erase ∉ st.core.T ∧ B.erase ∈ after.T
     · unfold Protocol.NamedStore.commitBlock
-      rw [if_pos hfresh]
+      rw [ite_eq_left hfresh]
       exact checked_new_block_stamp S.E S.hc st.core B.erase _ hfresh.1 hfresh.2
     · unfold Protocol.NamedStore.commitBlock at hpost ⊢
-      rw [if_neg hfresh] at hpost
+      rw [ite_eq_right hfresh] at hpost
       exact False.elim (hpre hpost)
 
 private theorem block_new_body_stamp (S : Setup V) (st : Protocol.NamedStore V)
@@ -438,7 +438,7 @@ private theorem emitted_block_due (gc : Protocol.GradeContract V)
   by_contra hnot
   rw [NamedTick.tick_computed_duties] at hB
   dsimp only at hB
-  simp only [if_neg hnot] at hB
+  simp only [ite_eq_right hnot] at hB
   split_ifs at hB <;>
     simp only [List.mem_append, List.mem_map, List.mem_cons, List.not_mem_nil,
       reduceCtorEq, or_false, and_false, exists_false] at hB
@@ -553,7 +553,7 @@ private theorem timedBodies_prefix (S : Setup V) (rho : NamedRun V)
                 (Protocol.NamedDuties.propose_block_with gc S.E S.hc S.cfg
                   (S.node reader) before).1.bodies := by
               rw [hstage.1] at hB
-              simpa only [if_pos hdue] using hB
+              simpa only [ite_eq_left hdue] using hB
             have hcallStore :
                 (Protocol.NamedDuties.propose_block_with gc S.E S.hc S.cfg
                   (S.node reader) before).1 =
@@ -575,7 +575,7 @@ private theorem timedBodies_prefix (S : Setup V) (rho : NamedRun V)
                 _ = (Protocol.NamedDuties.propose_block_with gc S.E S.hc S.cfg
                     (S.node reader) before).1.core.timestamp_block B.erase := by
                       rw [hstage.2]
-                      simp only [if_pos hdue]
+                      simp only [ite_eq_left hdue]
                       rfl
                 _ = (Protocol.NamedAdmission.on_block_with
                     .alsoCarried S.E S.hc S.cfg before B).core.timestamp_block B.erase := by

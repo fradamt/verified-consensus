@@ -191,7 +191,7 @@ theorem stateBefore_target_none_recoveryHeight_named
                     (Proofs.Optimistic.emits_attest_shape S hemit).2
                   have hrow : a.height_pair.erase.height? = some blocked :=
                     by
-                      simpa only [NamedAttestation.erase] using
+                      simpa only [NamedAttestation.erase] using!
                         congrArg HeightPair.height? hpair
                   have hval : a.val_index = v :=
                     (Proofs.Optimistic.emits_attest_shape S hemit).1

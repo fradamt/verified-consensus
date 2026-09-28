@@ -382,7 +382,7 @@ theorem foldl_step_time (S : Setup V) : Execution.NamedFoldStepTimeQuery S := by
                 simp only [Execution.NamedWorld.step, Function.update_self]
                 exact (on_tick_emit_time S u (w u) t').1
               · simp only [Execution.NamedWorld.step,
-                  Function.update_of_ne (Ne.symm hu), if_neg hu]
+                  Function.update_of_ne (Ne.symm hu), ite_eq_right hu]
           | deliver u o t' =>
               by_cases hu : u = v
               · subst hu

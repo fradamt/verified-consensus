@@ -278,7 +278,7 @@ theorem witnesses_of_equivocation_before
           (match Protocol.batch_first? ts different with
           | none => none
           | some second => ts second) Gamma = true := by
-        simpa only [hfirst, different] using hbefore
+        simpa only [hfirst, different] using! hbefore
       cases hsecond : Protocol.batch_first? ts different with
       | none =>
           have : False := by
@@ -617,7 +617,7 @@ theorem finalizedBelowAtDeliveries_of_active
     Protocol.BlockFinalizedBelowAtDeliveriesBefore
       S rho w H GammaOut := by
   apply finalizedBelowAtDeliveries_of_activeAtRead S adm houtRead ?_ hBH
-  simpa only [gradeViewAt, healStoreAt] using hactive
+  simpa only [gradeViewAt, healStoreAt] using! hactive
 
 /- Run-wide root collision freedom makes a source-resolved block resolve to
 the same block in an arbitrary target pre-time store once target membership is

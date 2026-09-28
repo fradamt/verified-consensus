@@ -38,12 +38,12 @@ theorem PreparedProtectedProposalPivot.frozenBandInputs
   have hproposalFiltered : B.erase ∈
       Protocol.get_filtered_block_tree st.toHealing.toFG := by
     apply frozenVoterCandidateTree_subset_filtered S.E st.toHealing
-    simpa only [st, read, voterCandidateTreeAt] using hcandidate
+    simpa only [st, read, voterCandidateTreeAt] using! hcandidate
   have hcoh : Proofs.NamedStore.Coherent S.E S.cfg read.st := by
     simpa only [read, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock, Run.storeBeforeTime] using
+      Protocol.NamedStore.setClock, Run.storeBeforeTime] using!
       (Proofs.NamedRuntime.stateBeforeTime_invariants S rho
         (Protocol.vote_time S.E (d + 1)) v).1.1.1
   have hpivotT : A.erase ∈ st.T := by
@@ -63,7 +63,7 @@ theorem PreparedProtectedProposalPivot.frozenBandInputs
         (S.hc.round_of st.s)
         (DecoupledConsensusModel.Protocol.readFrame read.cache st.toHealing
           (S.hc.round_of st.s)).g1)
-      (by simpa only [st, read, voterAnchorAt] using hpivot.targetAnchor)
+      (by simpa only [st, read, voterAnchorAt] using! hpivot.targetAnchor)
   have hFJ : Block.Preceq st.F st.J := by
     simpa only [st, read, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt,

@@ -102,16 +102,16 @@ private theorem tick_new_body_origin (gc : Protocol.GradeContract V) (E : Env V)
   · cases hp : Protocol.NamedActions.proposal_with gc .poolAndCarried E hc nd st0 with
     | none =>
       have he := NamedDuties.propose_none gc E hc cfg nd st0 hp
-      exact False.elim (hpre (by simpa only [st1, proposed, if_pos hd, he] using hpost))
+      exact False.elim (hpre (by simpa only [st1, proposed, ite_eq_left hd, he] using! hpost))
     | some C =>
       have he := NamedDuties.propose_some gc E hc cfg nd st0 C hp
       have hC : B ∈ (Protocol.NamedAdmission.on_block_with .alsoCarried E hc cfg st0 C).bodies := by
-        simpa only [st1, proposed, if_pos hd, he] using hpost
+        simpa only [st1, proposed, ite_eq_left hd, he] using hpost
       have hBC := new_body_eq_input E hc cfg st0 C B hpre hC
       subst B
       apply hemit (.block C)
-      simp only [emitted1, proposed, if_pos hd, he, List.mem_singleton]
-  · exact False.elim (hpre (by simpa only [st1, if_neg hd] using hpost))
+      simp only [emitted1, proposed, ite_eq_left hd, he, List.mem_singleton]
+  · exact False.elim (hpre (by simpa only [st1, ite_eq_right hd] using! hpost))
 
 private theorem new_vote_eq_input (E : Env V) (st : Protocol.Store V)
     (input u : GoldfishVote V) (hpre : u ∉ st.pool u.slot)

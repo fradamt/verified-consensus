@@ -432,7 +432,7 @@ theorem gateOff_openingLifecycle_of_roundCeiling
         hwindow.confirmationFrontier v hv)
       (by simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using
         hwindow.confirmationGateOff v hv)
-    simpa only [confTree, Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using
+    simpa only [confTree, Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using!
       hfiltered
   have hread : ∀ v ∈ rho.honest,
       RecoveryProposalConfirmationRead S rho (S.hc.opening_slot q) v P := by
@@ -474,10 +474,10 @@ theorem gateOff_openingLifecycle_of_roundCeiling
     relativeCarrierWindowAt_of_gateOff S adm hfb hwindow.roundPositive
       hwindow.postPreviousAction hprevFrontier
       (fun w hw => by
-        simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using
+        simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using!
           hwindow.confirmationFrontier w hw)
       (fun w hw => by
-        simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using
+        simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using!
           hwindow.confirmationGateOff w hw)
       ((seedAdoption_domain_le_action S q .g0).trans hactionHor)
   have hbatch : ∀ v ∈ rho.honest,
@@ -488,10 +488,10 @@ theorem gateOff_openingLifecycle_of_roundCeiling
     actionBatchAlignedAt_of_gateOff S adm hfb hwindow.roundPositive
       hwindow.postPreviousAction hactionHor hprevFrontier
       (fun x hx => by
-        simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using
+        simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using!
           hwindow.confirmationFrontier x hx)
       (fun x hx => by
-        simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using
+        simpa only [Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using!
           hwindow.confirmationGateOff x hx)
       (fun u hu => Block.preceq_trans
         (haligned.previousCarriersBelowParent u hu) hHP)

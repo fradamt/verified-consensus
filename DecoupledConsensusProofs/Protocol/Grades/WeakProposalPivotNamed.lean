@@ -55,7 +55,7 @@ private theorem preparedVoterAnchor_preceq_voteDutyHead_of_gstZero
     simpa only [read, t, s, voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      voteDutyHead] using
+      voteDutyHead] using!
       fgRootAtRead_preceq_voteDutyHead_of_gstZero_named
         S h.core h.committees h.gstZero h.windows hhor hd hupper
           (t := t) (le_refl _) hw hx
@@ -83,7 +83,7 @@ private theorem preparedVoterAnchor_preceq_voteDutyHead_of_gstZero
       have hno := confirmationRead_g1_round_zero_no_root
         S h.core w t (by simpa only [hr0] using hroundT) htne (root := raw)
       exact False.elim (hno (by
-        simpa only [read, voteDutyRead, t, hr0] using hframeR))
+        simpa only [read, voteDutyRead, t, hr0] using! hframeR))
     · have hr : 0 < r := Nat.pos_of_ne_zero hr0
       have hgrade := WeakSG.phaseGrade_of_preparedFrame_g1
         S rho h.core w hw r hr t hroundT hdomain htop hdomainHor
@@ -143,7 +143,7 @@ private theorem preparedVoterAnchor_preceq_voteDutyHead_of_gstZero
               (NamedRun.stateBeforeTime S rho (domain S.E S.hc r .g1) y).st.core.F
               (voterHeadAt S rho x d) :=
             Block.preceq_trans hFrootY (by
-              simpa only [Run.storeBeforeTime, voteDutyHead] using hfgY)
+              simpa only [Run.storeBeforeTime, voteDutyHead] using! hfgY)
           exact NamedOutageClosure.honestRoundVote_interpreted_at_reader_of_twoCutoff_compatible
             S rho h.core h.gstZero hdelivery r k .g1 hk y hy hdomainHor hdeadline
               ((Proofs.NamedOutageInputs.honestRoundVoters_iff S rho u k).mpr
@@ -264,7 +264,7 @@ theorem exists_preparedProtectedProposalPivot_of_gstZero
       simpa only [R, s, voteDutyRead,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        voteDutyHead] using
+        voteDutyHead] using!
         fgRootAtRead_preceq_voteDutyHead_of_gstZero_named
           S h.core h.committees h.gstZero h.windows hhor hd hupper
             (t := tv) (by rfl) hw hx
@@ -294,7 +294,7 @@ theorem exists_preparedProtectedProposalPivot_of_gstZero
     have hpc := Proofs.NamedStoreBridge.parentClosed_stateBeforeTime S rho time w
     have hAT : A.erase ∈ (rho.storeBeforeTime S w time).core.T :=
       Proofs.Records.mem_of_preceq ((parentClosed_iff _).mp hpc).2
-        A.erase X0.erase hX0T (by simpa only [hAerased] using hGX0)
+        A.erase X0.erase hX0T (by simpa only [hAerased] using! hGX0)
     obtain ⟨A', hA'body, hA'erase⟩ :=
       Proofs.NamedStoreBridge.exists_named_of_mem_stateBeforeTime S rho time w hAT
     obtain ⟨n, hn, -⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix S rho
@@ -316,14 +316,14 @@ theorem exists_preparedProtectedProposalPivot_of_gstZero
   have hsourceBody : A ∈ source.st.bodies := by
     simpa only [source, proposerReadAt, tp, p, s,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       hsourceBody0
   have htargetBody0 := bodyAt v hv tv
     (by simpa only [tv, s] using support_cutoff_le_vote_time_succ S.E d)
   have htargetBody : A ∈ target.st.bodies := by
     simpa only [target, voteDutyRead, tv, s,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       htargetBody0
   have bandAt (w : V) (hw : w ∈ rho.honest) (time : Time)
       (htime : time ≤ tv) :
@@ -370,14 +370,14 @@ theorem exists_preparedProtectedProposalPivot_of_gstZero
       (Protocol.derive_named S.E S.cfg A).h := by
     simpa only [source, proposerReadAt, tp, p, s,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       hsourceBand0
   have htargetBand0 := bandAt v hv tv (le_refl _)
   have htargetBand : target.st.core.h_max - 1 ≤
       (Protocol.derive_named S.E S.cfg A).h := by
     simpa only [target, voteDutyRead, tv, s,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       htargetBand0
   have hparent := protected_preceq_proposedParent_of_gstZero_named
     S h hhor hd hupper hproposalHor hprop hAprotected

@@ -239,7 +239,7 @@ theorem w4uFgRoot_preceq_openingProposal_at_read
             Proofs.NamedRuntime.blockInRun_of_ancestor S rho hCrun hJC
           obtain ⟨hTrun, hTheight⟩ := hreg.checkpoint_runBlock adm
           rcases (show Block.Preceq R T.erase ∨ Block.Preceq T.erase R by
-            simpa only [Block.compatible, Bool.or_eq_true] using hRT) with
+            simpa only [Block.compatible, Bool.or_eq_true] using! hRT) with
             hRT | hTR
           · exact hRT
           · have hTJ : NamedBlock.Preceq T J :=

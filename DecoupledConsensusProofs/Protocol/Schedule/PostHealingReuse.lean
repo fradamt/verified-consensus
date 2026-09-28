@@ -181,7 +181,7 @@ theorem eq_opening_or_next_of_confirmation_in_boundary_window
     have hlower : o + 1 ≤ s := Nat.succ_le_iff.mpr hlt
     have hupper : s ≤ o + 1 := by
       have hp := Nat.le_pred_of_lt hso
-      simpa only [Nat.add_sub_cancel] using hp
+      simpa only [Nat.add_sub_cancel] using! hp
     simpa only [o] using Nat.le_antisymm hupper hlower
 
 end Protocol

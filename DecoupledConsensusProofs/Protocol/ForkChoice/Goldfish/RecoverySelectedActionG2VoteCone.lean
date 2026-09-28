@@ -67,11 +67,8 @@ private theorem preparedVoteHead_runBlock_and_emits
     dsimp only [tree]
     rw [← Proofs.Optimistic.voter_candidate_tree_eq_protocol_voter_filtered_block_tree]
     intro C hC
-    simp only [Proofs.Optimistic.voter_candidate_tree,
-      Protocol.get_filtered_block_tree_from,
-      Protocol.viable_tree, Protocol.finalized_descendants,
-      Protocol.voter_processed_block_tree, Finset.mem_filter] at hC
-    exact hC.1.1.1.1
+    exact Finset.mem_of_mem_filter _ (Finset.mem_of_mem_filter _
+      (Finset.mem_of_mem_filter _ (Finset.mem_of_mem_filter _ hC)))
   have hanchor : Protocol.get_sg_root_with gc S.E S.hc n.st.core.toHealing
       (S.hc.round_of n.st.core.s) ∈ n.st.core.T := by
     exact Proofs.NamedConfirmationMembership.runtime_anchor_mem n.cache
@@ -91,7 +88,7 @@ private theorem preparedVoteHead_runBlock_and_emits
       some ⟨(S.node w).val_index, n.st.core.s, head.root⟩ := by
     simp only [Protocol.NamedDuties.goldfish_vote_with,
       Protocol.goldfish_vote_with]
-    rw [if_pos hcommittee']
+    rw [ite_eq_left hcommittee']
     rfl
   have ho : Object.gfVote ⟨(S.node w).val_index, n.st.core.s, head.root⟩ ∈
       (on_tick_emit S w pre t).2 := by
@@ -136,7 +133,7 @@ theorem honestVotesCone_of_selectedActionG2_of_readDisposition
           (Protocol.get_fg_root n.st.core.toHealing.toFG)
           (Protocol.get_sg_root_with (NamedProfile.gradeContract n.cache)
             S.E S.hc n.st.core.toHealing (S.hc.round_of n.st.core.s)) := by
-        simpa only [n] using
+        simpa only [n] using!
           fg_root_preceq_get_sg_root_with_frame n.cache S.E S.hc
             n.st.core.toHealing (S.hc.round_of n.st.core.s)
       have hanchor : Block.Preceq Q (voterAnchorAt S rho w s) := by

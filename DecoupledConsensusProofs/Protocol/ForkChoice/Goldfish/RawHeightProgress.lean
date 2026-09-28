@@ -175,7 +175,7 @@ private theorem exactHeightCarrier_finalizedBelowAtPrefix
     (hcap : (rho.storeBeforeTime S w cutoff).h_max ≤ H) :
     Block.Preceq (rho.stateBefore S i w).st.core.F D.erase := by
   let n := strictEventIndex rho cutoff
-  have hiN : i ≤ n := by simpa only [strictEventIndex] using hi
+  have hiN : i ≤ n := by simpa only [strictEventIndex] using! hi
   have hstore : rho.storeBeforeTime S w cutoff =
       (rho.stateBefore S n w).st := by
     rw [storeBeforeTime_eq_stateBefore_strictEventIndex

@@ -87,7 +87,7 @@ theorem exists_namedCommonPreviousHeadAncestor_in_frontierBand_through_confirmat
     rw [← hfilter] at hmem
     have haround : a.round ≤ deadline := by
       apply (action_strictMono S).le_iff_le.mp
-      simpa only [Event.time, hreg.seed.actionTime_eq, decide_eq_true_eq] using
+      simpa only [Event.time, hreg.seed.actionTime_eq, decide_eq_true_eq] using!
         (List.mem_filter.mp hmem).2
     obtain ⟨hTrun, hTheight⟩ := hreg.checkpoint_runBlock adm
     refine ⟨T, hTrun, ?_, ?_⟩

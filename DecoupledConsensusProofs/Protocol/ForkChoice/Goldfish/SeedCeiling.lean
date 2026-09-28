@@ -289,7 +289,7 @@ theorem roundCeiling_readSupport_of_inputs
             exact Nat.mul_pos hq
               (lt_of_lt_of_le Nat.zero_lt_two S.hc.R_ge_two)) hdlo
         exact frozenVoterCandidateTree_subset_filtered S.E _
-          (by simpa only [Nat.sub_add_cancel (Nat.succ_le_iff.mpr hdpos)] using
+          (by simpa only [Nat.sub_add_cancel (Nat.succ_le_iff.mpr hdpos)] using!
             (hvote d hdlo hdhi w hw).candidate)
       confirmation := by
         intro s hslo hshi w hw
@@ -305,7 +305,7 @@ theorem roundCeiling_readSupport_of_inputs
             unfold Protocol.HealConfig.opening_slot
             exact Nat.mul_pos hq
               (lt_of_lt_of_le Nat.zero_lt_two S.hc.R_ge_two)) hdlo
-        simpa only [Nat.sub_add_cancel (Nat.succ_le_iff.mpr hdpos)] using
+        simpa only [Nat.sub_add_cancel (Nat.succ_le_iff.mpr hdpos)] using!
           (hvote d hdlo hdhi w hw).root
       confirmation := by
         intro s hslo hshi w hw
@@ -337,7 +337,7 @@ theorem seedVoteDutyHead_emits
             (voterHeadAt S rho w d).root⟩ := by
     simp only [Protocol.NamedDuties.goldfish_vote_with,
       Protocol.goldfish_vote_with]
-    rw [if_pos]
+    rw [ite_eq_left]
     · rfl
     · rw [S.node_val_index, hslot]
       exact hwCommittee
@@ -370,7 +370,7 @@ theorem seedVoteDutyHead_runBlock
       (Protocol.vote_time S.E d) w).1
   have hinv : Proofs.NamedConfirmationMembership.Invariant S.E S.cfg read.st := by
     simpa only [read, Internal.NamedRecoveryRead.voteDutyRead,
-      NamedActionReads.confirmationReadAt] using
+      NamedActionReads.confirmationReadAt] using!
       Proofs.NamedConfirmationMembership.invariant_clock S.E S.cfg _ _ hinvPre
   have hroot : Protocol.get_fg_root st.toHealing.toFG ∈ st.T :=
     Proofs.NamedStoreRoots.fg_root_mem read.st hinv.1.2
@@ -618,7 +618,7 @@ theorem seedOpeningVotes_of_cone
       exact Nat.mul_pos hq
         (lt_of_lt_of_le Nat.zero_lt_two S.hc.R_ge_two))
     hwcommittee (by simpa only [← heq] using hvoteHor)
-  simpa only [hXerase, heq] using hem
+  simpa only [hXerase, heq] using! hem
 
 /-- Every genuine honest opening confirmation is above the protected block, from
 the boundary cone data alone. -/
@@ -789,7 +789,7 @@ theorem votePathAt_of_candidate
   have hCraw : C ∈ voter_candidate_tree S.E duty.toHealing := by
     simpa only [voterCandidateTreeAt, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock, duty, voteDutyStore] using hC
+      Protocol.NamedStore.setClock, duty, voteDutyStore] using! hC
   have hCfull : C ∈ Protocol.get_filtered_block_tree duty.toHealing.toFG :=
     frozenVoterCandidateTree_subset_filtered S.E duty.toHealing hCraw
   have hCT : C ∈ duty.T :=
@@ -797,13 +797,13 @@ theorem votePathAt_of_candidate
   have hpc : ParentClosed duty := by
     simpa only [duty, voteDutyStore, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock] using
+      Protocol.NamedStore.setClock] using!
       Proofs.NamedStoreBridge.parentClosed_stateBeforeTime S rho
         (Protocol.vote_time S.E (s + 1)) w
   have hFJ : Block.Preceq duty.F duty.J := by
     simpa only [duty, voteDutyStore, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock] using
+      Protocol.NamedStore.setClock] using!
       Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime S rho
         (Protocol.vote_time S.E (s + 1)) w
   have hrootAnchor : Block.Preceq
@@ -812,7 +812,7 @@ theorem votePathAt_of_candidate
     simpa only [duty, voterAnchorAt, Internal.PhaseGrades.nodeAnchor,
       Internal.PhaseGrades.nodeRead,
       Internal.NamedRecoveryRead.voteDutyRead, NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       fg_root_preceq_get_sg_root_with_frame
         (Internal.NamedRecoveryRead.voteDutyRead S rho w (s + 1)).cache S.E S.hc
         duty.toHealing (S.hc.round_of duty.toHealing.s)
@@ -851,7 +851,7 @@ theorem votePathAt_of_candidate
       Block.preceq_trans hDC hCW, hheight⟩, hDdata.2⟩
   simpa only [voterCandidateTreeAt, Internal.NamedRecoveryRead.voteDutyRead,
     NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
-    Protocol.NamedStore.setClock, duty, voteDutyStore] using hDcandidate'
+    Protocol.NamedStore.setClock, duty, voteDutyStore] using! hDcandidate'
 
 /-- Relay a preceding honest vote cone to the next vote duty. The cone target
 may be below the frontier band: its activity comes from a thin honest head of
@@ -889,7 +889,7 @@ theorem seedRelayVoteFacts
       (Protocol.vote_time S.E (s + 1))).T := by
     have hdata := hHprocessed
     simp only [Protocol.voter_processed_block_tree, Finset.mem_filter] at hdata
-    simpa only [voteDutyStore, voteStore, tickStore] using hdata.1
+    simpa only [voteDutyStore, voteStore, tickStore] using! hdata.1
   have hvoteHor : Protocol.vote_time S.E (s + 1) ≤ rho.horizon := by
     apply le_trans (le_of_lt ?_) hhor
     rw [← Protocol.vote_time_succ_add_delta_eq_confirmation_time S.E s]
@@ -901,10 +901,10 @@ theorem seedRelayVoteFacts
     S adm hsb hw hvoteHor hHmem rfl hHrun hCH hHheight hM
       (by simpa only [voteDutyStore, voteStore, tickStore] using hfrontier)
       (by simpa only [voteDutyStore, voteStore, tickStore] using hgate)
-      (by simpa only [voteDutyStore, voteStore, tickStore] using hroot)
+      (by simpa only [voteDutyStore, voteStore, tickStore] using! hroot)
   have hfiltered : C ∈ Protocol.get_filtered_block_tree
       (voteDutyStore S rho w (s + 1)).toHealing.toFG := by
-    simpa only [voteDutyStore, voteStore, tickStore] using hfilteredPre
+    simpa only [voteDutyStore, voteStore, tickStore] using! hfilteredPre
   have hmax : (voteDutyStore S rho w (s + 1)).h_max ≤
       (derive_named S.E S.cfg H).h + 1 := by
     rw [hfrontier]
@@ -912,13 +912,13 @@ theorem seedRelayVoteFacts
   have hCcandidate : C ∈ voterCandidateTreeAt S rho w (s + 1) := by
     simpa only [voterCandidateTreeAt, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock, voteDutyStore] using
+      Protocol.NamedStore.setClock, voteDutyStore] using!
       (namedAncestorCandidate_of_processedDescendant_and_hMax
         S adm hw hHprocessed hHrun hCH hfiltered hmax)
   refine ⟨by
     simpa only [voterCandidateTreeAt, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock, voteDutyStore] using hCcandidate, ?_⟩
+      Protocol.NamedStore.setClock, voteDutyStore] using! hCcandidate, ?_⟩
   intro D hanchor hne hDC hDneC
   have hDfiltered := votePathAt_of_candidate
     S adm hw hCcandidate D hanchor hne hDC hDneC
@@ -972,14 +972,14 @@ theorem seedRelayConfirmationFacts
     S adm hsb hw hhor hHpre rfl hHrun hCH hHheight hM
       (by simpa only [confStore, tickStore] using hfrontier)
       (by simpa only [confStore, tickStore] using hgate)
-      (by simpa only [confRoot, confStore, tickStore] using hroot)
+      (by simpa only [confRoot, confStore, tickStore] using! hroot)
   have hfiltered : C ∈ confTree (confStore S rho w s) := by
-    simpa only [confTree, confStore, tickStore] using hfilteredPre
+    simpa only [confTree, confStore, tickStore] using! hfilteredPre
   have hCT : C ∈
       (rho.stateBeforeTime S (Protocol.confirmation_time S.E s) w).st.core.T := by
     have hmem := Proofs.Records.get_filtered_block_tree_subset
       (confStore S rho w s).toHealing.toFG hfiltered
-    simpa only [confStore, tickStore] using hmem
+    simpa only [confStore, tickStore] using! hmem
   obtain ⟨Cn, _, hCnerase⟩ :=
     Proofs.NamedStoreBridge.exists_named_of_mem_stateBeforeTime S rho
       (Protocol.confirmation_time S.E s) w hCT
@@ -1014,7 +1014,7 @@ theorem seedHonestVotesCone_succ
   refine ⟨H, ?_, hHrun, ?_⟩
   · rw [hHerase]
     exact hhead
-  · simpa only [hHerase] using
+  · simpa only [hHerase] using!
       seedVoteDutyHead_emits S adm hw (Nat.succ_pos s) hwcommittee hvoteHor
 
 /-! ## Prepared genuine-confirmation supporter -/
@@ -1058,7 +1058,7 @@ theorem genuineConfirmation_exists_honestVoteSupporter_ceiling
     apply Finset.card_pos.mpr
     exact ⟨_, Finset.mem_filter.mpr ⟨hraw, rfl⟩⟩
   have hvalid : Protocol.VoteSetValid S.E s late := by
-    simpa only [late, source, confStore, tickStore] using
+    simpa only [late, source, confStore, tickStore] using!
       voteSetValid_confLate_stateBeforeTime S
         adm.toNamedAdmissibleCore.toNamedScheduleWellFormed v
         (Protocol.confirmation_time S.E s) s
@@ -1114,7 +1114,7 @@ theorem genuineConfirmation_exists_honestVoteSupporter_ceiling
     Proofs.NamedStoreBridge.runBlock_of_mem_core_T_stateBeforeTime S
       adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hv
       (Protocol.confirmation_time S.E s) (by
-        simpa only [source, confStore, tickStore] using
+        simpa only [source, confStore, tickStore] using!
           Proofs.HealingLemmas.find?_mem hfind)
   obtain ⟨X, hXerase, hXrun⟩ := seedVoteDutyHead_runBlock S adm hxHon s
   have hrootNamed : D.root = X.root := by
@@ -1507,7 +1507,7 @@ theorem roundCeiling_openingOutput_genuine_or_preceq
         (confirmationAnchorAt S rho v (S.hc.opening_slot q)) := by
       simpa only [confirmationAnchorAt, namedConfirmationAnchor,
         Internal.NamedRecoveryRead.confirmationInputRead,
-        confStore, tickStore, Protocol.NamedStore.setClock] using
+        confStore, tickStore, Protocol.NamedStore.setClock] using!
         fg_root_preceq_get_sg_root_with_frame
           (Internal.NamedRecoveryRead.confirmationInputRead S rho v
             (S.hc.opening_slot q)).cache S.E S.hc
@@ -1799,10 +1799,9 @@ private theorem seedCeiling_currentSlot_voterCandidate_of_filtered
       (voteDutyStore S rho v s).toHealing := by
   let duty := voteDutyStore S rho v s
   have hdata := hB
-  simp only [Protocol.get_filtered_block_tree,
-    Protocol.get_filtered_block_tree_from,
-    Protocol.viable_tree, Protocol.finalized_descendants,
-    Protocol.viable, Finset.mem_filter, decide_eq_true_eq] at hdata
+  simp only [Protocol.get_filtered_block_tree, Protocol.get_filtered_block_tree_from,
+    Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter] at hdata
+  simp only [Protocol.viable, decide_eq_true_eq] at hdata
   obtain ⟨⟨⟨hBT, hFB⟩, W, hWT, hBW, hheight⟩, hroot⟩ := hdata
   have hWB : W = B :=
     Protocol.voteDutyStore_terminal_of_preceq
@@ -1885,7 +1884,7 @@ private theorem seedProposerConeSupport_of_namedCone
     simpa only [Protocol.proposerDutyStore, Proofs.Optimistic.tickStore,
       Internal.NamedRecoveryRead.proposalDutyRead, proposerReadAt,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       hroot
   have hresolve0 := Protocol.headsResolveIn_proposerDutyStore_of_postHealingCone
     S adm hpost hhor hprop hrootDuty hnames
@@ -1893,7 +1892,7 @@ private theorem seedProposerConeSupport_of_namedCone
     simpa only [st, n, Internal.NamedRecoveryRead.proposalDutyRead, proposerReadAt,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      Protocol.proposerDutyStore, Proofs.Optimistic.tickStore] using hresolve0
+      Protocol.proposerDutyStore, Proofs.Optimistic.tickStore] using! hresolve0
   have hss : support ⊆ raw := by
     intro u hu
     simp only [support, raw, Protocol.proposer_support_view,
@@ -1954,14 +1953,14 @@ private theorem seedProposerConeSupport_of_namedCone
       exact List.mem_toFinset.mpr hpool'
     have hfind' : Block.find? st.toHealing.T
         (⟨x, s, X.erase.root⟩ : GoldfishVote V).head = some X.erase := by
-      simpa only [st, n] using hfind
+      simpa only [st, n] using! hfind
     have hXmem : X.erase ∈
         (rho.storeBeforeTime S (S.E.proposer (s + 1))
           (Protocol.proposal_time S.E (s + 1))).T := by
       simpa only [st, n, Internal.NamedRecoveryRead.proposalDutyRead,
         Statements.Instantiation.proposerReadAt,
         NamedActionReads.confirmationReadAt,
-        NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+        NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
         (Proofs.HealingLemmas.find?_mem hfind)
     have hXslot : X.erase.slot ≤ s :=
       Proofs.Optimistic.emitted_vote_head_slot_le_of_store_mem S
@@ -1972,15 +1971,13 @@ private theorem seedProposerConeSupport_of_namedCone
       refine ⟨?_, ?_⟩
       · simpa only [Protocol.proposer_view, hprev,
           Protocol.Store.toHealing] using List.mem_toFinset.mp hraw
-      · change decide (Protocol.resolved st.toHealing.T
-          (⟨x, s, X.erase.root⟩ : GoldfishVote V) = true) = true
-        simp [Protocol.resolved, hfind', hXslot]
+      · simp [Protocol.resolved, hfind', hXslot]
     exact ⟨X.erase, hX, hXslot, hsupport, hfind⟩
   have hcone := Proofs.Optimistic.coneSupport_of_named_votes (E := S.E) (T := st.T)
     (votes := raw) (support := support) (late := raw) (s := s)
     (Hon := rho.honest) (tgt := fun X => Block.Preceq T X)
     (hcom s) (subset_refl _) hss hne hvote
-  simpa only [raw, support, st, n, hslot, hprev] using hcone
+  simpa only [raw, support, st, n, hslot, hprev] using! hcone
 
 
 /-- A post-GST honest named vote cone whose target is active in the opening
@@ -2019,7 +2016,7 @@ theorem coneTarget_preceq_nextProposedParent_named
     simpa only [tree, st, n, Internal.NamedRecoveryRead.proposalDutyRead,
       proposerReadAt, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      Protocol.proposerDutyStore, Proofs.Optimistic.tickStore] using hactive
+      Protocol.proposerDutyStore, Proofs.Optimistic.tickStore] using! hactive
   have hroot : Block.Preceq (Protocol.get_fg_root st.toHealing.toFG) T :=
     Proofs.Records.preceq_get_fg_root_of_mem_filtered hactive'
   have hsupport := seedProposerConeSupport_of_namedCone S adm hcom hs hpost
@@ -2031,7 +2028,7 @@ theorem coneTarget_preceq_nextProposedParent_named
     simpa only [st, n, votes, Internal.NamedRecoveryRead.proposalDutyRead,
       proposerReadAt, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      Protocol.proposerDutyStore, Proofs.Optimistic.tickStore] using
+      Protocol.proposerDutyStore, Proofs.Optimistic.tickStore] using!
       Protocol.proposerDutyStore_proposer_view_valid S adm (s + 1)
   have hpc : ParentClosed st := by
     have hpc0 := Proofs.NamedStoreBridge.parentClosed_stateBeforeTime S rho
@@ -2071,10 +2068,10 @@ theorem coneTarget_preceq_nextProposedParent_named
         Protocol.get_head_in_tree_with_layer gc S.E S.hc st.toHealing tree votes
           support (st.s - 1) from rfl,
       Proofs.Optimistic.get_head_in_tree_split_with]
-    simpa only [tree, votes, support] using hhead
+    simpa only [tree, votes, support] using! hhead
   simpa only [proposedParent, proposalInputAt,
     Internal.NamedRecoveryRead.proposalDutyRead, n, st, gc, tree, votes, support,
-    DutyInputDefaults.proposal_input_parent] using hfinal
+    DutyInputDefaults.proposal_input_parent] using! hfinal
 
 /-! ## Common-ceiling opening alignment -/
 
@@ -2321,7 +2318,7 @@ private theorem seedCeiling_proposalCandidateAtVote
   have hfiltered : P.erase ∈ Protocol.get_filtered_block_tree
       (voteDutyStore S rho v (S.hc.opening_slot q)).toHealing.toFG := by
     simpa only [voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore] using
+      Proofs.Optimistic.tickStore] using!
       frontierBlock_filtered_of_gateOff S adm hsb hv hvoteHor
         (by simpa only [voteDutyStore, Proofs.Optimistic.voteStore,
           Proofs.Optimistic.tickStore] using hproposalAtVote)

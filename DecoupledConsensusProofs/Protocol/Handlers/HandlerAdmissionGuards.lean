@@ -69,7 +69,7 @@ theorem fresh_receipt_derived_and_admitted
   have hp : B.parent ∈ before.bodies := by
     by_contra hn
     have hsame : (postCore S before B).core = before.core := by
-      simp only [postCore, Protocol.NamedStore.process_block_core, if_pos hn]
+      simp only [postCore, Protocol.NamedStore.process_block_core, ite_eq_left hn]
     exact hnew (hsame ▸ hpost)
   have hne : B ≠ NamedBlock.genesis := by
     intro heq
@@ -86,7 +86,7 @@ theorem fresh_receipt_derived_and_admitted
       simp [Protocol.on_block_using, hfalse]
     have hsame : (postCore S before B).core = before.core := by
       simp only [postCore, Protocol.NamedStore.process_block_core,
-        if_neg (not_not_intro hp), NamedStore.commit_core,
+        ite_eq_right (not_not_intro hp), NamedStore.commit_core,
         Protocol.on_block_checked_using]
       split_ifs
       · exact hreject
@@ -94,15 +94,13 @@ theorem fresh_receipt_derived_and_admitted
     exact hnew (hsame ▸ hpost)
   have fields := gf_fold_state_fields S.E stored B.gf_votes
   constructor
-  · change U.σ B.erase = _
-    rw [fields.1]
+  · rw [fields.1]
     change (if B.erase = B.erase then
       named_transition S.E S.cfg (before.core.σ B.erase.parent) B
       else before.core.σ B.erase) = _
-    rw [if_pos rfl, Proofs.NamedWire.erase_parent, hcoh.2.2.2.2 B.parent hp]
+    rw [ite_eq_left rfl, Proofs.NamedWire.erase_parent, hcoh.2.2.2.2 B.parent hp]
     exact (BlockProcessingDefaults.derive_named_of_not_genesis S.E S.cfg B hne).symm
-  · change Block.Preceq U.F B.erase
-    rw [fields.2]
+  · rw [fields.2]
     exact hadmit
 
 

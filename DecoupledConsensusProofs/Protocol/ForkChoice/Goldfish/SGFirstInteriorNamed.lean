@@ -88,7 +88,7 @@ private theorem preceq_voterHeadAt_of_namedNextVoteAdoption
       (NamedProfile.gradeContract read.cache) S.E S.hc st.toHealing
       tree votes support (st.s - 1))
   rw [Proofs.Optimistic.get_head_in_tree_split_with, hprev]
-  simpa only [Protocol.Store.toHealing, read, st] using
+  simpa only [Protocol.Store.toHealing, read, st] using!
     (Protocol.goldfish_fork_choice_captures_of_confirmation
       S.E st.σ st.h_max source.T st.T tree st.s
       (confEarly S.E source s) (confLate S.E source s)
@@ -167,7 +167,7 @@ theorem actionSGBlock_preceq_firstInteriorHead_of_genuine_after_GST_named
       (firstInterior_vote_add_delta_le_horizon S hhor) hv hw
   rcases (show Block.Preceq (voterAnchorAt S rho w (s + 1)) B ∨
       Block.Preceq B (voterAnchorAt S rho w (s + 1)) by
-    simpa only [Block.compatible, Bool.or_eq_true] using hanchorCompat) with
+    simpa only [Block.compatible, Bool.or_eq_true] using! hanchorCompat) with
     hanchorB | hBanchor
   · have hrootB : Block.Preceq
         (Protocol.get_fg_root
@@ -189,7 +189,7 @@ theorem actionSGBlock_preceq_firstInteriorHead_of_genuine_after_GST_named
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
         Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-        Proofs.Optimistic.tickStore] using hrootB
+        Proofs.Optimistic.tickStore] using! hrootB
     have hCprocessed :=
       Protocol.voterProcessedTarget_of_genuineConfirmation_after_gst
         S adm hv hw hpostOpening hsourceHor hCg

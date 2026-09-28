@@ -75,7 +75,7 @@ private theorem raw_block_carrier (E : Env V) (st : Protocol.Store V) (B : Block
          obtain ⟨D, hD, hDF⟩ := h
          have hDB : D ≠ B := by intro heq; subst D; exact hFresh hD
          exact ⟨D, Finset.mem_insert_of_mem hD,
-           by simpa [stored, if_neg hDB] using hDF⟩
+           by simpa [stored, ite_eq_right hDB] using hDF⟩
        have fields := gf_fold_fields E stored B.gf_votes
        change CoreFinality (Protocol.update_finality unpacked (unpacked.σ B))
        have hsigma : unpacked.σ B = sigma := by

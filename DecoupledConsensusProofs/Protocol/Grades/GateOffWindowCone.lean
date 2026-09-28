@@ -70,11 +70,11 @@ theorem selectedQ2_openingVotesCone
   have hvoteHorizon :
       Protocol.vote_time S.E (S.hc.opening_slot c) ≤ rho.horizon := by
     simpa only [domain, Phase.domainOffset, opening,
-      Protocol.vote_time, one_mul] using ready.2
+      Protocol.vote_time, one_mul] using! ready.2
   have hsource : Protocol.grade2_block_with
       (NamedProfile.gradeContract (actionDutyRead S rho v c).cache)
       S.E S.hc (actionDutyRead S rho v c).st.core.toHealing c = some Q := by
-    simpa only [nodeQ2, nodeRead, actionDutyRead] using hQ
+    simpa only [nodeQ2, nodeRead, actionDutyRead] using! hQ
   have hG2 := selectedQ2_storeGrade_at_g2Domain S adm hQ
   apply honestVotesCone_of_selectedActionG2_of_readDisposition
     S adm hc ready hv hsource hopenPos hround hread hvoteAction

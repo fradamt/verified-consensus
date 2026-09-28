@@ -411,7 +411,7 @@ theorem outageCap_seed_clauses'
       simpa only [JointAt, checkpoint, roundConfirmationRead,
         Internal.NamedOutageEntry.confirmationReadAt,
         NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
-        Protocol.NamedStore.setClock] using hpair
+        Protocol.NamedStore.setClock] using! hpair
     have hcarriers := carriersAbove_of_sg_clause S rho b0 b1 Pn r
       hexec hr hsg hjoint
     exact ⟨hentry, hsg, hcarriers⟩
@@ -570,7 +570,7 @@ private theorem coverage_mutual_fg_compatibility
   have h := fg_compatible_at_read_of_entry S rho b0 b1 s r Pn hexec
     hslash hmargin hsleep hscope hno hentry hheld0 w hw u hb0 hu
   simpa only [NamedActionReads.confirmationReadAt,
-    NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using h
+    NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using! h
 
 /-- Carry the stable floor from one G2 domain to the next. This is the
 pointwise form of `stable_above_P_through_succ_of_floor`; its premise is only
@@ -645,7 +645,7 @@ private theorem coverage_mutual_stable_at_next_g2
         S rho stop w
       have hFroot := Proofs.Records.preceq_get_fg_root_of_F
         (st := (NamedRun.stateBeforeTime S rho stop w).st.core.toHealing.toFG)
-        (by simpa only [Protocol.Store.toHealing] using hFJ)
+        (by simpa only [Protocol.Store.toHealing] using! hFJ)
       have hroot' : Block.Preceq P
           (Protocol.get_fg_root
             (NamedRun.stateBeforeTime S rho stop w).st.core.toHealing.toFG) := by
@@ -922,7 +922,7 @@ theorem stable_chain_outage_resilience_of_clauses''
             simpa only [NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
               NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
               Protocol.NamedStore.setClock, Protocol.NamedDuties.update_confirmation_with]
-              using hh.2.1
+              using! hh.2.1
           have hfg : ∀ q, r0 + 1 ≤ q → ∀ w ∈ rho.honest, ∀ u,
               domain S.E S.hc (q + 1) .g2 ≤ u →
               u < domain S.E S.hc (q + 2) .g2 →

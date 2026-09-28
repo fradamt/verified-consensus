@@ -28,7 +28,7 @@ theorem viable_on_block_using (E : Env V) (st : Protocol.Store V) (B : Block V)
     have hWB : W ≠ B := fun hEq => hfresh (hEq ▸ hW)
     rw [finalizedViable_iff, huT, husigma, huF, humax]
     exact ⟨Finset.mem_insert_of_mem hFT, W, Finset.mem_insert_of_mem hW, hFW, by
-      simpa only [if_neg hWB] using hh⟩
+      simpa only [ite_eq_right hWB] using hh⟩
   refine finalizedViable_update_finality u (u.σ B) ?_ rfl ?_ hu
   · rw [huT]
     exact Finset.mem_insert_self _ _

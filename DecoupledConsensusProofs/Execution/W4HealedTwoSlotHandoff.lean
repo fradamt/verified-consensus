@@ -276,7 +276,7 @@ theorem w4_openingBoundaryOutput_of_headsSucc
         (voterHeadAt S rho v start) := by
       simpa only [confirmationInputRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Protocol.voteDutyHead] using hrootHead
+        Protocol.voteDutyHead] using! hrootHead
     simpa only [hheads0 v hv] using hrootHead'
   have hlocal : ∀ v ∈ rho.honest,
       Block.Preceq
@@ -309,7 +309,7 @@ theorem w4_openingBoundaryOutput_of_headsSucc
   have hlater := genuineConfirmationWith_preceq_laterVoterHeads_after_GST
     S adm hcom hbelow hrec hdelay hpost hc hsucc hconf0 hv hgenuine
     (start + 1) (le_refl _) hvote1 v hv
-  simpa only [hheadsSucc v hv] using hlater
+  simpa only [hheadsSucc v hv] using! hlater
 
 #print axioms w4_openingBoundaryOutput_of_headsSucc
 
@@ -374,7 +374,7 @@ theorem w4_preparedGenuineSelection_of_namedFacts
     intro w hw hcommittee
     obtain ⟨X, hXhead, hXrun, hXemit⟩ :=
       voteDutyHead_runBlock_and_emits S adm hspos hvoteHor hw hcommittee
-    exact ⟨X, by simpa only [hXhead] using hheads w hw, hXrun, hXemit⟩
+    exact ⟨X, by simpa only [hXhead] using! hheads w hw, hXrun, hXemit⟩
   have hroot : ∀ v ∈ rho.honest,
       Block.Preceq
         (Protocol.get_fg_root
@@ -389,14 +389,14 @@ theorem w4_preparedGenuineSelection_of_namedFacts
         (voterHeadAt S rho v s) := by
       simpa only [confirmationInputRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Protocol.voteDutyHead] using hrootHead
+        Protocol.voteDutyHead] using! hrootHead
     simpa only [hheads v hv] using hrootHead'
   intro v hv
   have hsupport := honestSupport_confVotes_after_gst_of_names
     S adm hcom hspos hpostVote hhor hrun hnames hv (hroot v hv) (hreads v hv).2
   have hvalid : Protocol.VoteSetValid S.E s
       (confLate S.E (Proofs.Optimistic.confStore S rho v s) s) := by
-    simpa only [confStore, tickStore] using
+    simpa only [confStore, tickStore] using!
       voteSetValid_confLate_stateBeforeTime S adm.toNamedScheduleWellFormed v
         (Protocol.confirmation_time S.E s) s
   have hcandidate : P.erase ∈ confTree (Proofs.Optimistic.confStore S rho v s) := by
@@ -423,9 +423,9 @@ theorem w4_preparedGenuineSelection_of_namedFacts
     (NamedProfile.gradeContract (confirmationInputRead S rho v s).cache)
     S.E S.hc (Proofs.Optimistic.confStore S rho v s) s rho.honest P.erase
       (by simpa only [confStore_eq_confirmationInputRead, confVotes,
-        confirmationVotes] using hsupport) hvalid hanchor' hpath
+        confirmationVotes] using! hsupport) hvalid hanchor' hpath
   refine ⟨?_, ?_⟩
-  · rw [update_confirmation_with_live_confirmed, hwalk, if_pos helig]
+  · rw [update_confirmation_with_live_confirmed, hwalk, ite_eq_left helig]
   · rw [hwalk]
     exact helig
 
@@ -479,7 +479,7 @@ private theorem w4_rootCase_candidate
       (voteDutyRead S rho w (s + 1)).st.core.F Dn.erase := by
     refine Block.preceq_trans ?_ hroot
     simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       (Proofs.Records.preceq_get_fg_root_of_F
         (st := (rho.storeBeforeTime S w
           (Protocol.vote_time S.E (s + 1))).core.toHealing.toFG) hFJ)
@@ -500,10 +500,9 @@ private theorem w4_rootCase_candidate
         using hsigma
     rw [hsigmaRead]
     exact Nat.sub_le_iff_le_add.mpr hmaxRead
-  simp only [Proofs.Optimistic.voter_candidate_tree,
-    Protocol.get_filtered_block_tree_from,
-    Protocol.viable_tree, Protocol.finalized_descendants,
-    Protocol.viable, Finset.mem_filter, decide_eq_true_eq]
+  simp only [Proofs.Optimistic.voter_candidate_tree, Protocol.get_filtered_block_tree_from,
+    Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter]
+  simp only [Protocol.viable, decide_eq_true_eq]
   have hslot : (voteDutyRead S rho w (s + 1)).st.core.toHealing.s = s + 1 := by
     simpa only [Protocol.Store.toHealing] using voteDutyRead_slot S rho w (s + 1)
   rw [hslot]
@@ -570,7 +569,7 @@ theorem w4_adoptionAt_slot_of_frontierCap
       hw hpostVote hcutHor hcutGamma (by
         simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-          using hroot) hcone
+          using! hroot) hcone
   obtain ⟨hmem, hstamp⟩ := storeBeforeTime_mem_stamp_of_cone S adm hcom
     havail hcutGamma hcone (Block.preceq_self Dn.erase)
   have hanchor := nextVoteDutyAnchor_compatible_of_honestPreviousHead_after_SG_healing_named
@@ -590,10 +589,10 @@ theorem w4_adoptionAt_slot_of_frontierCap
     refine ⟨?_, Or.inl ?_⟩
     · simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Protocol.Store.toHealing] using hmem
+        Protocol.Store.toHealing] using! hmem
     · simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Protocol.Store.toHealing, Nat.add_sub_cancel] using hstampFreeze
+        Protocol.Store.toHealing, Nat.add_sub_cancel] using! hstampFreeze
   have hsDead : S.hc.opening_slot
       (fgSafetyProgressDeadline S rho rGST gap delayExtra) + 1 ≤ s := by
     refine Nat.le_trans ?_ hs
@@ -617,7 +616,7 @@ theorem w4_adoptionAt_slot_of_frontierCap
         (show Block.Preceq Dn.erase (voterHeadAt S rho w s) from by
           rw [hheads w hw]
           exact Block.preceq_self Dn.erase) hproc with hcand | hle
-    · simpa only [voterCandidateTreeAt] using hcand
+    · simpa only [voterCandidateTreeAt] using! hcand
     · exact w4_rootCase_candidate S adm hw hrunD hmem hproc _of_frontierCap hroot hle
   exact nextVoteAdoption_of_frozenCandidateAtRead_compatibleAnchor
     S adm hcarrierHon hpostProp hhor hw

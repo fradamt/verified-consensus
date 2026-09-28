@@ -217,8 +217,8 @@ private theorem round_entry_compatible (S : Setup V) (rho : NamedRun V)
         else none) = some q := hQ
       by_cases hclosed : DecoupledConsensusModel.Protocol.allClosed
           (DecoupledConsensusModel.Protocol.readFrame n.cache n.st.core.toHealing a.round) = true
-      · rwa [if_pos hclosed] at hQ'
-      · rw [if_neg hclosed] at hQ'
+      · rwa [ite_eq_left hclosed] at hQ'
+      · rw [ite_eq_right hclosed] at hQ'
         exact absurd hQ' (by simp)
     have hact : activeG2 S (confirmationReadFrom S before (S.a a.round)) = some q := by
       show ((DecoupledConsensusModel.Protocol.readFrame
@@ -304,7 +304,7 @@ theorem entry_compatible_of_carrierAbove
         (DecoupledConsensusModel.Protocol.frameGradeRead n.cache S.E S.hc
           n.st.core.toHealing a.round).anchor := by
       rw [hnAction]
-      simpa only [Internal.PhaseGrades.nodeAnchor, Internal.PhaseGrades.nodeRead] using hQA0
+      simpa only [Internal.PhaseGrades.nodeAnchor, Internal.PhaseGrades.nodeRead] using! hQA0
     have hcarrierSource0 := Proofs.HealingSurface.frame_sg_vote_preceq_source
       S n a.round (by simpa only [gc] using hQ) hQA
         (by simpa only [gc] using hfgsrc0)

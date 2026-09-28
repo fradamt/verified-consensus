@@ -120,7 +120,7 @@ theorem w4_actionSGBlockAt_eq_liveConfirmed
   have hwalk : Protocol.deepest_clear (some (nodeAnchor S ast r))
       ast.st.core.toHealing.live_confirmed
       (nodeClear S ast r) = some ast.st.core.live_confirmed :=
-    w4_prepared_deepest_clear_eq_tip (by simpa using hanchorLive) hclearLive
+    w4_prepared_deepest_clear_eq_tip (by simpa using! hanchorLive) hclearLive
   have hround : S.hc.round_of ast.st.core.toHealing.s = r := by
     simpa only [ast, Protocol.Store.toHealing] using actionStoreAt_round S rho v r
   change Protocol.get_sg_vote_with (NamedProfile.gradeContract ast.cache)
@@ -133,7 +133,7 @@ theorem w4_actionSGBlockAt_eq_liveConfirmed
     DecoupledConsensusModel.Protocol.frameContract
   change Protocol.currentSGVote ast.st.core.toHealing
       { nodeRead S ast r with Q2 := nodeQ2 S ast r } = D
-  letI := (nodeRead S ast r).rawG2_decidable
+  let := (nodeRead S ast r).rawG2_decidable
   unfold Protocol.currentSGVote
   change (match Protocol.deepest_clear (some (nodeAnchor S ast r))
       ast.st.core.toHealing.live_confirmed (nodeClear S ast r) with
@@ -208,7 +208,7 @@ theorem w4_voteDutyHead_mem_voteDutyStore
       (Protocol.vote_time S.E s) v).1
   have hinv : Proofs.NamedConfirmationMembership.Invariant S.E S.cfg read.st := by
     simpa only [read, Internal.NamedRecoveryRead.voteDutyRead,
-      NamedActionReads.confirmationReadAt] using
+      NamedActionReads.confirmationReadAt] using!
       Proofs.NamedConfirmationMembership.invariant_clock S.E S.cfg _ _ hinvPre
   have hroot : Protocol.get_fg_root st.toHealing.toFG ∈ st.T :=
     Proofs.NamedStoreRoots.fg_root_mem read.st hinv.1.2
@@ -469,7 +469,7 @@ theorem w4_fgRootAtConfirmationRead_preceq_voteDutyHead_of_gstZero
       rw [htime] at hat
       exact (action_time_lt_proposal_of_lt_previous_confirmation S
         (Nat.zero_lt_succ d)
-        (by simpa only [Nat.add_sub_cancel] using hat.trans_le ht)).trans
+        (by simpa only [Nat.add_sub_cancel] using! hat.trans_le ht)).trans
         (Protocol.proposal_time_lt_vote_time S.E (d + 1))
     exact ((WeakGenesis.actionSources_preceq_voteDutyHead_of_gstZero
       S adm hcom hgst hawake hhor hd hupper hx a.round haTime).2 a.val_index ha).2 _ hT
@@ -589,7 +589,7 @@ theorem w4_proposalViableAtDutyRound_of_bandHeadAt
   · simpa only [hn, ht, w4StableDutyTime_eq_dutyTime,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-      using hcompat
+      using! hcompat
 
 #print axioms w4_proposalViableAtDutyRound_of_bandHeadAt
 
@@ -932,10 +932,10 @@ theorem w4_anchor_preceq_liveConfirmed_or_fgRoot
   by_cases helig : Protocol.confEligible S.E st (S.hc.opening_slot k)
       (Protocol.confWalkWith contract S.E S.hc st (S.hc.opening_slot k))
   · refine Or.inl ?_
-    rw [hlive, if_pos helig, ← w4_confAnchorWith_eq_nodeAnchor S rho v k]
+    rw [hlive, ite_eq_left helig, ← w4_confAnchorWith_eq_nodeAnchor S rho v k]
     exact Protocol.ghost_preceq _ _ _ _
   · refine Or.inr ?_
-    rw [hlive, if_neg helig]
+    rw [hlive, ite_eq_right helig]
     have hstore : st =
         (NamedActionReads.confirmationReadAt S rho v (S.a k)).st.core := by
       have hread : Internal.NamedRecoveryRead.confirmationInputRead S rho v
@@ -953,6 +953,7 @@ theorem w4_anchor_preceq_liveConfirmed_or_fgRoot
         Protocol.NamedDuties.update_confirmation_with,
         Protocol.update_confirmation_with, Protocol.get_fg_root,
         Protocol.Store.toHealing]
+      rfl
     simp only [Protocol.confRoot]
     exact hfg.symm
 
@@ -985,9 +986,9 @@ theorem w4_fgRoot_preceq_anchor
             (Protocol.get_fg_root st.toFG))
       cases hp : DecoupledConsensusModel.Protocol.activePrefix
           (Protocol.get_filtered_block_tree st.toFG) root with
-      | none => simpa only [hp, Option.getD_none] using Block.preceq_self _
+      | none => simpa only [hp, Option.getD_none] using! Block.preceq_self _
       | some X =>
-        simpa only [hp, Option.getD_some] using
+        simpa only [hp, Option.getD_some] using!
           Proofs.Records.preceq_get_fg_root_of_mem_filtered
             (NamedProposalParent.activePrefix_mem _ root X hp)
 

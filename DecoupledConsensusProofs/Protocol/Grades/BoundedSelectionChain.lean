@@ -177,7 +177,7 @@ theorem protectedVoteSlots_before
     (Nat.zero_le _) (by decide) (by simp [Protocol.HealConfig.opening_slot])
     hconfCap hconfHor hseed hnoOldFrontier hsgBoot hconfBoot
     (by simpa only [Nat.sub_add_cancel hd] using hlegacyActionRoots)
-    (by simpa only [Nat.sub_add_cancel hd] using hlegacyReadRoots)
+    (by simpa only [Nat.sub_add_cancel hd] using! hlegacyReadRoots)
     (by simpa only [Nat.sub_add_cancel hd] using hwindow)
     (by simpa only [Nat.sub_add_cancel hd] using hreadWindow)
     (by simpa only [Nat.sub_add_cancel hd] using hcapDomain)

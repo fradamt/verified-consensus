@@ -139,7 +139,7 @@ private theorem preparedG1Raw_preceq_voterHeadAt_same_of_gstZero
         simpa only [NamedRecoveryRead.confirmationInputRead,
           NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-          t] using hfg))
+          t] using! hfg))
     have hprevHor : S.a (r - 1) ≤ rho.horizon := by
       have hprev : S.a (r - 1) + S.E.Δ ≤ early S.E S.hc r .g1 :=
         (NamedOutageClosure.action_delta_le_early S S.hc.R_ge_three
@@ -194,7 +194,7 @@ private theorem preparedG1Raw_preceq_voterHeadAt_same_of_gstZero
             simpa only [NamedRecoveryRead.confirmationInputRead,
               NamedActionReads.confirmationReadAt,
               NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-              t] using hfgY))
+              t] using! hfgY))
         exact NamedOutageClosure.honestRoundVote_interpreted_at_reader_of_twoCutoff_compatible
           S rho h.core h.gstZero hdelivery r k .g1 hk y hy hdomainHor hdeadline
             ((Proofs.NamedOutageInputs.honestRoundVoters_iff S rho u k).mpr

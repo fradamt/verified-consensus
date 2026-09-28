@@ -107,7 +107,7 @@ theorem honestSGVote_actionEmission_of_mem_storeBeforeTime
     exact List.mem_of_getElem? hi
   have hactionHor : S.a k ≤ rho.horizon := by
     have h := (adm.in_horizon (Event.tick v ta) hiMem).2
-    simpa only [Event.time, htime] using h
+    simpa only [Event.time, htime] using! h
   have hexact := honest_emits_exact_actionAttestationAt_of_awake S
     adm.toNamedScheduleWellFormed hv k
     (by simpa only [hrowRound] using Proofs.Optimistic.emits_attest_awake S hemitV)

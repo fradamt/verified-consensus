@@ -53,7 +53,7 @@ private theorem coreVoterHeadRunBlock (S : Setup V) {rho : Run V}
       (Protocol.vote_time S.E d) w).1
   have hinv : Proofs.NamedConfirmationMembership.Invariant S.E S.cfg read.st := by
     simpa only [read, Internal.NamedRecoveryRead.voteDutyRead,
-      NamedActionReads.confirmationReadAt] using
+      NamedActionReads.confirmationReadAt] using!
       Proofs.NamedConfirmationMembership.invariant_clock S.E S.cfg _ _ hinvPre
   have hroot : Protocol.get_fg_root st.toHealing.toFG ∈ st.T :=
     Proofs.NamedStoreRoots.fg_root_mem read.st hinv.1.2
@@ -118,7 +118,7 @@ theorem emittedHead_mem_voteDutyRead_of_core (S : Setup V) {rho : Run V}
       Protocol.goldfish_vote_with] at hduty'
     split at hduty'
     · simpa only [Internal.voterHeadAt, voterCandidateTreeAt,
-        Internal.NamedRecoveryRead.voteDutyRead] using
+        Internal.NamedRecoveryRead.voteDutyRead] using!
         congrArg GoldfishVote.head (Option.some.inj hduty')
     · simp at hduty'
   obtain ⟨H, hHerase, hHmem, hHrun⟩ :=

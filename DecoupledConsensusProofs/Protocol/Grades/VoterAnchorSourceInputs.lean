@@ -35,7 +35,7 @@ private theorem actionBody_runBlock_k6
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hD
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hD
   obtain ⟨i, hi, -⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix
     S rho adm.toNamedScheduleWellFormed.sorted (S.a r)
   have hDi : D ∈ (rho.stateBefore S i v).st.bodies := by
@@ -164,7 +164,7 @@ theorem sourceG0Finalized_preceq_firstInteriorActive
     simpa only [filteredTree, voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      vote] using hL
+      vote] using! hL
   exact Block.preceq_trans hrelay (Block.preceq_trans hmono hvoteL)
 
 #print axioms sourceG0Finalized_preceq_firstInteriorActive
@@ -214,7 +214,7 @@ theorem activeVoterAnchor_namedBody_at_g1Domain
         some ((storeRoot S.E S.hc domainRead.st r .g1).map
           (fun X => DecoupledConsensusModel.Protocol.clipGrade X
             before.st.core.F)) := by
-    simpa only [before, domainRead, storeRoot, phaseRoot, PhaseGrades.readAt] using hbase
+    simpa only [before, domainRead, storeRoot, phaseRoot, PhaseGrades.readAt] using! hbase
   have hprepared := NamedOutageClosure.frame_phase_prepared_eq
     S rho w r .g1 t hround _ hbase'
   have hreadFrame :
@@ -225,7 +225,7 @@ theorem activeVoterAnchor_namedBody_at_g1Domain
             read.st.core.F)) := by
     simpa only [read, before, t, voteDutyRead,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom] using hprepared
+      NamedActionReads.confirmationReadFrom] using! hprepared
   cases hstore : storeRoot S.E S.hc domainRead.st r .g1 with
   | none =>
       simp only [hstore, Option.map_none] at hreadFrame
@@ -337,7 +337,7 @@ theorem activeVoterAnchor_namedBody_at_sourceG0_and_action
   · simpa only [actionDutyRead, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hLnAction
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hLnAction
 
 #print axioms activeVoterAnchor_namedBody_at_sourceG0_and_action
 
@@ -381,7 +381,7 @@ private theorem activeVoterAnchor_carrierBody_at_sourceG0_and_action
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hWbody
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hWbody
   have hWrun : RunBlock S rho W := by
     obtain ⟨i, hi, -⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix
       S rho adm.toNamedScheduleWellFormed.sorted (S.a (r - 1))
@@ -434,7 +434,7 @@ private theorem activeVoterAnchor_carrierBody_at_sourceG0_and_action
   · simpa only [actionDutyRead, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hWAction
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hWAction
 /-- A prepared G1 anchor remains viable at the source G0 read and source
 action under the fully named height-regime frame. -/
 theorem activeVoterAnchor_filtered_at_sourceReads_of_sgWindowNamed
@@ -497,7 +497,7 @@ theorem activeVoterAnchor_filtered_at_sourceReads_of_sgWindowNamed
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hBmem
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hBmem
   have hBLower : blocked + 1 ≤
       (rho.storeBeforeTime S p (S.a r)).h_max := by
     rw [← hBheight]
@@ -563,7 +563,7 @@ theorem activeVoterAnchor_filtered_at_sourceReads_of_sgWindowNamed
     have hFL := sourceG0Finalized_preceq_firstInteriorActive
       S adm hbelow ready hactionHor hp hw hLvote
     simpa only [PhaseGrades.readAt, Protocol.get_fg_root,
-      Protocol.Store.toHealing, if_neg hsourceGate] using hFL
+      Protocol.Store.toHealing, ite_eq_right hsourceGate] using! hFL
   have hrootActionW : Block.Preceq
       (Protocol.get_fg_root
         (rho.storeBeforeTime S p (S.a r)).toHealing.toFG) W.erase :=
@@ -596,7 +596,7 @@ theorem activeVoterAnchor_filtered_at_sourceReads_of_sgWindowNamed
     simpa only [actionDutyRead, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hWAction
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hWAction
   constructor
   · have hpath := storeBeforeTime_path_mem_filtered_of_band S adm
       (t := domain S.E S.hc r .g0) (v := p) (A := W) (D := Ln)
@@ -607,7 +607,7 @@ theorem activeVoterAnchor_filtered_at_sourceReads_of_sgWindowNamed
         exact hWheight)
       (by simpa only [hLnErase] using hrootSourceL)
       (by simpa only [hLnErase] using hLW)
-    simpa only [filteredTree, PhaseGrades.readAt, hLnErase] using hpath
+    simpa only [filteredTree, PhaseGrades.readAt, hLnErase] using! hpath
   · have hpath := storeBeforeTime_path_mem_filtered_of_band S adm
       (t := S.a r) (v := p) (A := W) (D := Ln)
       hWActionPre (by
@@ -617,7 +617,7 @@ theorem activeVoterAnchor_filtered_at_sourceReads_of_sgWindowNamed
       (by simpa only [hLnErase] using hrootActionL)
       (by simpa only [hLnErase] using hLW)
     simpa only [filteredTree, actionDutyRead, actionReadAt, hLnErase]
-      using hpath
+      using! hpath
 
 /-- The selected-Q2 branch from the fully named regime frame and the exact
 named action source. -/
@@ -721,7 +721,7 @@ theorem voterAnchorSourceQ2Inputs_of_namedHeightRegimeFrame_at_source
     simpa only [filteredTree, voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      vote] using hfiltered.2
+      vote] using! hfiltered.2
 
 #print axioms voterAnchorSourceQ2Inputs_of_namedHeightRegimeFrame_at_source
 
@@ -805,7 +805,7 @@ theorem voterAnchorSourceQ2Inputs_of_frame
     simpa only [filteredTree, voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      vote] using hfiltered
+      vote] using! hfiltered
 
 /-- The selected-Q2 branch with a named predecessor frame. -/
 theorem voterAnchorSourceQ2Inputs_of_frameN
@@ -886,7 +886,7 @@ theorem voterAnchorSourceQ2Inputs_of_frameN
     simpa only [filteredTree, voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      vote] using hfiltered
+      vote] using! hfiltered
 
 
 

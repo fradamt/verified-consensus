@@ -49,14 +49,14 @@ private theorem update_confirmation_with_latest_confirmed_of_eligible_p7
   cases hmode : contract.confirmationSG with
   | optional select =>
       have hval' := hval
-      simp only [hmode, if_pos helig] at hval'
+      simp only [hmode, ite_eq_left helig] at hval'
       rw [hval']
       unfold Protocol.floor_on_stable
       have hfirst' : Block.preceq
           (Protocol.update_confirmation_with contract E hc st s).latest_stable
           (Protocol.advance_confirmed st.latest_confirmed
             (confWalkWith contract E hc st s)) = true := hfirst
-      rw [if_pos hfirst']
+      rw [ite_eq_left hfirst']
 
 
 
@@ -94,7 +94,7 @@ theorem honestProposal_confirmationSeedPrepared_latest_after_SG_healing_named
       simpa only [D, L, Nat.add_assoc] using hm)
     simpa only [Nat.add_assoc] using hold
   have hmTwo : D + 2 ≤ m := by
-    have hlag : 1 ≤ L := by simpa only [L] using progressLag'_pos gap
+    have hlag : 1 ≤ L := by simpa only [L] using! progressLag'_pos gap
     have htwolag : 2 ≤ 2 * L := by
       simpa only [Nat.mul_one] using Nat.mul_le_mul_left 2 hlag
     have htail : 2 ≤ 2 * L + 1 + S.hc.η_SG :=
@@ -184,7 +184,7 @@ theorem honestProposal_confirmationSeedPrepared_latest_after_SG_healing_named
         (voterHeadAt S rho v start) := by
       simpa only [confirmationInputRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Protocol.voteDutyHead] using hrootHead
+        Protocol.voteDutyHead] using! hrootHead
     simpa only [hheads v hv] using hrootHead'
   have hgenuineSelected := genuineConfirmationAndPreceq_of_postHealingCone
     S adm hcom hstartPos hpostVote hhor hv hcone hroot hanchor hcandidate
@@ -198,7 +198,7 @@ theorem honestProposal_confirmationSeedPrepared_latest_after_SG_healing_named
   have hliveFormula := update_confirmation_with_live_confirmed
     contract S.E S.hc st start
   have hwalk : confWalkWith contract S.E S.hc st start = P.erase := by
-    rw [if_pos (by simpa only [contract, st] using hgenuine.genuine)] at hliveFormula
+    rw [ite_eq_left (by simpa only [contract, st] using hgenuine.genuine)] at hliveFormula
     exact hliveFormula.symm.trans (by
       simpa only [contract, st] using hgenuine.selected)
   have hstableSome : ∃ G : Block V,
@@ -261,7 +261,7 @@ theorem honestProposal_confirmationSeedPrepared_latest_after_SG_healing_named
       (Protocol.advance_confirmed st.latest_confirmed
         (confWalkWith contract S.E S.hc st start)) := by
     rw [hstableEq, hwalk, hadvance]
-    simpa only [st] using hstableP
+    simpa only [st] using! hstableP
   have hlatest := update_confirmation_with_latest_confirmed_of_eligible_p7
     contract S.E S.hc st start hfirst
       (by simpa only [contract, st] using hgenuine.genuine)

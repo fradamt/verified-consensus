@@ -56,7 +56,7 @@ private theorem p6_compatible_checkpoint_below {L T C : Block V}
     (hLC : Block.compatible L C = true) (hTC : Block.Preceq T C) :
     Block.compatible L T = true := by
   rcases (show Block.Preceq L C ∨ Block.Preceq C L by
-    simpa only [Block.compatible, Bool.or_eq_true] using hLC) with hLC | hCL
+    simpa only [Block.compatible, Bool.or_eq_true] using! hLC) with hLC | hCL
   · exact Block.compatible_of_preceq_common hLC hTC
   · simp only [Block.compatible, Bool.or_eq_true]
     exact Or.inr (Block.preceq_trans hTC hCL)
@@ -217,7 +217,7 @@ private theorem PrefixFGSelectorConeAt.checkpointVoteStep_beforeNextAction_of_fr
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom,
         Protocol.NamedStore.setClock, Proofs.Optimistic.voteDutyStore,
-        Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using hupper
+        Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using! hupper
     rw [hPheight] at hhigh
     exact False.elim ((Nat.not_lt_of_ge hband) hhigh)
   · intro w hw
@@ -229,7 +229,7 @@ private theorem PrefixFGSelectorConeAt.checkpointVoteStep_beforeNextAction_of_fr
       NamedActionReads.confirmationReadFrom,
       Protocol.NamedStore.setClock, Proofs.Optimistic.voteDutyStore,
       Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore,
-      Block.compatible, Bool.or_eq_true] using Or.inl hroot
+      Block.compatible, Bool.or_eq_true] using! Or.inl hroot
   · intro w hw
     rcases voterAnchorAt_cases S rho w (s + 1) with
       hroot | ⟨root, L, hframeL, hactiveL, hanchorL⟩
@@ -242,7 +242,7 @@ private theorem PrefixFGSelectorConeAt.checkpointVoteStep_beforeNextAction_of_fr
         NamedActionReads.confirmationReadFrom,
         Protocol.NamedStore.setClock, Proofs.Optimistic.voteDutyStore,
         Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore,
-        Block.compatible, Bool.or_eq_true] using Or.inl hroot'
+        Block.compatible, Bool.or_eq_true] using! Or.inl hroot'
     · rw [hanchorL]
       obtain ⟨Q, hQ⟩ : ∃ Q : Block V, PhaseGrades.nodeQ2
           S (actionReadAt S rho a.val_index a.round) a.round = some Q := by
@@ -450,7 +450,7 @@ private theorem PrefixFGSelectorConeAt.relativeCarrierWindow_source_beforeNextAc
           some (actionSGBlockAt S rho u a.round)
   rcases (show Block.Preceq Hb.erase T.erase ∨
       Block.Preceq T.erase Hb.erase by
-    simpa only [Block.compatible, Bool.or_eq_true] using hcarrierT) with
+    simpa only [Block.compatible, Bool.or_eq_true] using! hcarrierT) with
     hHbT | hTHb
   · simpa only [hbround, hHbErase, hHbRoot] using
       (interpretedInputs_exact_of_honest_window_vote_after_gst_common_upper
@@ -646,7 +646,7 @@ theorem PrefixFGSelectorConeAt.checkpointProtection_nextOpening_of_frame_named
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
       Protocol.NamedStore.setClock, Proofs.Optimistic.voteDutyStore,
-      Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using
+      Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using!
       (hseed.fgRoot_preceq_before_nextAction_of_frame_named
         adm hcom hbelow hfirst hframe hc0 ready hpostPrev hG1 hpred
           hminimal hread hnext hw)
@@ -688,12 +688,12 @@ theorem PrefixFGSelectorConeAt.checkpointProtection_nextOpening_of_frame_named
             NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom,
             Protocol.NamedStore.setClock, Proofs.Optimistic.voteDutyStore,
-            Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using hupper
+            Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using! hupper
         rw [hPheight] at hhigh
         exact False.elim ((Nat.not_lt_of_ge hband) hhigh))
       (by
         intro w hw
-        simpa only [Block.compatible, Bool.or_eq_true] using
+        simpa only [Block.compatible, Bool.or_eq_true] using!
           Or.inl (hroot w hw)) hanchors
   simpa only [hb.2.2.2] using hstep
 

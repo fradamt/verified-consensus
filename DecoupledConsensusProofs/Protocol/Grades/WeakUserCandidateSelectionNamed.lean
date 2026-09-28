@@ -38,8 +38,8 @@ theorem genuineConfirmationAt_positive_of_weakGenesis
   · rw [live_confirmed_eq_update S h.core.toNamedScheduleWellFormed hv s hhor]
     change (Protocol.update_confirmation_with contract S.E S.hc n.st.core s).live_confirmed =
       namedConfirmationWalk S n s
-    rw [update_confirmation_with_live_confirmed, if_pos (by
-      simpa only [n] using hwalk.2)]
+    rw [update_confirmation_with_live_confirmed, ite_eq_left (by
+      simpa only [n] using! hwalk.2)]
     rfl
   · simpa only [n] using hwalk.2
 

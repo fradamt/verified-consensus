@@ -106,9 +106,10 @@ theorem mem_filtered_of_mem_tree_of_exactFGRoot_heightCap
     exact (Nat.sub_le_iff_le_add.mpr hcap).trans
       (Protocol.derived_h_mono E cfg hJB)
   have hV: B ∈ Protocol.V_tree st.toHealing.toFG:= by
-    simp only [Protocol.V_tree, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, decide_eq_true_eq, Protocol.Store.toHealing]
+    simp only [Protocol.V_tree, Protocol.viable_tree, Protocol.finalized_descendants,
+      Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
+    simp only [Protocol.Store.toHealing]
     exact ⟨⟨hB, hFB⟩, B, hB, Block.preceq_self B, hheight⟩
   exact Proofs.Records.mem_filtered_of_mem_V_tree hV hrootB
 
@@ -150,14 +151,15 @@ theorem mem_filtered_of_mem_tree_of_exactFGRoot_heightCap
   have hFB : Block.Preceq st.F B := Block.preceq_trans hFroot hrootB
   have hview := Proofs.NamedStoreBridge.derivedView_stateBeforeTime S rho read w Bn hBn
   have hσ : st.σ B = Protocol.derive_named S.E S.cfg Bn := by
-    simpa only [st, hB] using hview
+    simpa only [st, hB] using! hview
   have hheight : st.h_max - 1 ≤ (st.σ B).h := by
     rw [hσ]
     exact Nat.sub_le_iff_le_add.mpr hcap
   have hV : B ∈ Protocol.V_tree st.toHealing.toFG := by
-    simp only [Protocol.V_tree, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, decide_eq_true_eq, Protocol.Store.toHealing]
+    simp only [Protocol.V_tree, Protocol.viable_tree, Protocol.finalized_descendants,
+      Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
+    simp only [Protocol.Store.toHealing]
     exact ⟨⟨hBmem, hFB⟩, B, hBmem, Block.preceq_self B, hheight⟩
   exact Proofs.Records.mem_filtered_of_mem_V_tree hV hrootB
 
@@ -545,7 +547,7 @@ theorem actionSGBlockAt_clear_or_selectedG2
       left
       refine ⟨T, ?_, ?_⟩
       · simpa only [PhaseGrades.nodeAnchor, PhaseGrades.nodeRead, n, st,
-          grades, hgrades] using hclear
+          grades, hgrades] using! hclear
       · rw [heq]
         unfold Protocol.currentSGVote
         rw [hclear]
@@ -814,7 +816,7 @@ private theorem finalized_preceq_at_delivery_of_laterVoteDutyRoot
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
       Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore,
-      pre, Gamma] using hroot
+      pre, Gamma] using! hroot
   exact Block.preceq_trans hmono (Block.preceq_trans hFroot hroot')
 
 /-- A genuine source confirmation persists into any later vote duty once the
@@ -913,7 +915,7 @@ theorem voterProcessedTarget_of_genuineConfirmation_at_laterVoteDuty_after_gst
       have hDposErase : 0 < D.erase.slot :=
         Nat.zero_lt_of_lt (parent_slot_lt_of_acceptsAt_block S hacc)
       have hDpos : 0 < D.slot := by
-        cases D <;> simpa using hDposErase
+        cases D <;> simpa using! hDposErase
       have hfreezeHor : Protocol.view_freeze S.E k ≤ rho.horizon :=
         (le_of_lt (view_freeze_lt_vote_time_succ S.E k)).trans hhor
       have hpostCut : S.E.t_GST ≤ Protocol.support_cutoff S.E source := by
@@ -949,12 +951,12 @@ theorem voterProcessedTarget_of_genuineConfirmation_at_laterVoteDuty_after_gst
                   NamedActionReads.confirmationReadAt,
                   NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
                   Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-                  Proofs.Optimistic.tickStore] using
+                  Proofs.Optimistic.tickStore] using!
                     (show Block.Preceq
                       (Protocol.get_fg_root
                         (Internal.NamedRecoveryRead.voteDutyRead S rho w
                           (k + 1)).st.core.toHealing.toFG) B by
-                      simpa only [duty] using hroot)
+                      simpa only [duty] using! hroot)
               exact Block.preceq_trans
                 (finalized_preceq_at_prefix_of_storeBeforeRoot_preceq
                   S rho adm.toNamedAdmissibleCore.toNamedScheduleWellFormed.sorted
@@ -1126,15 +1128,14 @@ private theorem rootLock_selectedFGRoot_deriveHeight_lt_hMax
     NamedJustificationBound.justificationBelowMax_stateBeforeTime S rho read w
   by_cases hgate : st.core.h_max = st.core.h_j + 1
   · have hRJ : R.erase = st.core.J := by
-      simpa only [Protocol.get_fg_root, Protocol.Store.toHealing,
-        if_pos hgate] using hroot'
+      exact hroot'.trans (ite_eq_left hgate)
     obtain ⟨C, hCmem, hCJ, hChj⟩ :=
       Proofs.Bridges.storeJustificationOnChain_stateBeforeTime S rho read w
-    have hCmem' : C ∈ st.bodies := by simpa only [st] using hCmem
+    have hCmem' : C ∈ st.bodies := by simpa only [st] using! hCmem
     have hCJ' : (Protocol.derive_named S.E S.cfg C).J = st.core.J := by
-      simpa only [st] using hCJ
+      simpa only [st] using! hCJ
     have hChj' : (Protocol.derive_named S.E S.cfg C).h_j = st.core.h_j := by
-      simpa only [st] using hChj
+      simpa only [st] using! hChj
     rcases NamedCheckpointHeights.justified_ancestor_height
         S.E S.cfg C with hz | ⟨J, hJC, hJerase, hJheight⟩
     · have hJgen : st.core.J = Block.genesis := by
@@ -1156,15 +1157,14 @@ private theorem rootLock_selectedFGRoot_deriveHeight_lt_hMax
         _ = st.core.h_j := hChj'
         _ < st.core.h_max := hbelow
   · have hRF : R.erase = st.core.F := by
-      simpa only [Protocol.get_fg_root, Protocol.Store.toHealing,
-        if_neg hgate] using hroot'
+      exact hroot'.trans (ite_eq_right hgate)
     obtain ⟨C, hCmem, hCF, hCFbelow⟩ :=
       Proofs.Bridges.storeFinalizationOnChain_stateBeforeTime S rho read w
-    have hCmem' : C ∈ st.bodies := by simpa only [st] using hCmem
+    have hCmem' : C ∈ st.bodies := by simpa only [st] using! hCmem
     have hCF' : (Protocol.derive_named S.E S.cfg C).F = st.core.F := by
-      simpa only [st] using hCF
+      simpa only [st] using! hCF
     have hCFbelow' : (Protocol.derive_named S.E S.cfg C).h_F < st.core.h_max := by
-      simpa only [st] using hCFbelow
+      simpa only [st] using! hCFbelow
     rcases NamedCheckpointHeights.finalized_ancestor_height
         S.E S.cfg C with hz | ⟨F, hFC, hFerase, hFheight⟩
     · have hFgen : st.core.F = Block.genesis := by
@@ -1243,7 +1243,7 @@ theorem openingVoteFGRoot_preceq_of_fixedFrontier_noninterference
     · exact Proofs.Records.preceq_get_fg_root_of_mem_filtered hfiltered
   simpa only [root, st, read, Internal.NamedRecoveryRead.voteDutyRead,
     NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
-    Protocol.NamedStore.setClock] using hrootPre
+    Protocol.NamedStore.setClock] using! hrootPre
 
 private theorem rootLock_commonActionPrefix_preceq
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)

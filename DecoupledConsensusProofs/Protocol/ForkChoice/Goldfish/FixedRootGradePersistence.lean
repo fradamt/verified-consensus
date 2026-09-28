@@ -67,21 +67,21 @@ theorem fixedRootGrade_mem_filtered_of_exactRoot
       (Or.inl (Proofs.NamedAncestry.named_self D))
       (Or.inr (Proofs.NamedAncestry.named_self B)) hrootEq
   have hBbody : B ∈ st.bodies := by
-    simpa only [hDB, st] using hDbody
+    simpa only [hDB, st] using! hDbody
   have hview : st.core.σ B.erase =
       Protocol.derive_named S.E S.cfg B := by
-    simpa only [st] using
+    simpa only [st] using!
       Proofs.NamedStoreBridge.derivedView_stateBeforeTime S rho target w B hBbody
   have hFJ : Block.Preceq st.core.F st.core.J := by
-    simpa only [st] using
+    simpa only [st] using!
       Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime
         S rho target w
   have hFroot : Block.Preceq st.core.F
       (Protocol.get_fg_root st.core.toHealing.toFG) := by
-    simpa only [Protocol.Store.toHealing] using
+    simpa only [Protocol.Store.toHealing] using!
       (Proofs.Records.preceq_get_fg_root_of_F
         (st := st.core.toHealing.toFG) (by
-          simpa only [Protocol.Store.toHealing] using hFJ))
+          simpa only [Protocol.Store.toHealing] using! hFJ))
   have hrootB : Block.Preceq
       (Protocol.get_fg_root st.core.toHealing.toFG) B.erase := by
     rw [show Protocol.get_fg_root st.core.toHealing.toFG =
@@ -91,9 +91,10 @@ theorem fixedRootGrade_mem_filtered_of_exactRoot
   have hFB : Block.Preceq st.core.F B.erase :=
     Block.preceq_trans hFroot hrootB
   have hV : B.erase ∈ Protocol.V_tree st.core.toHealing.toFG := by
-    simp only [Protocol.V_tree, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, Protocol.Store.toHealing, decide_eq_true_eq]
+    simp only [Protocol.V_tree, Protocol.viable_tree, Protocol.finalized_descendants,
+      Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
+    simp only [Protocol.Store.toHealing]
     refine ⟨⟨hprocessed, hFB⟩, B.erase, hprocessed,
       Block.preceq_self B.erase, ?_⟩
     rw [show st.core.h_max = M by simpa only [st] using hmax, hview]

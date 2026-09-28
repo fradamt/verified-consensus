@@ -181,7 +181,7 @@ theorem confirmationSelectionAt_slot_core
     exact hC'
   · have hhor := (core.toNamedScheduleWellFormed.in_horizon
       (Event.tick v time) (List.mem_of_getElem? hi)).2
-    simpa only [Event.time, hconfirmation] using hhor
+    simpa only [Event.time, hconfirmation] using! hhor
 
 #print axioms confirmationSelectionAt_slot_core
 

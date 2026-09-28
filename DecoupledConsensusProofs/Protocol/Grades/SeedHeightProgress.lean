@@ -948,8 +948,8 @@ private theorem seedGradedAndClear_of_covers
     have hread := hframe (S.a k) (Assembly.a_mono S hlo)
       (Assembly.a_mono S hhi) w hw
     exact ⟨(Assembly.a_mono S hhi).trans hhor,
-      by simpa only [healStoreAt] using hread.2,
-      by simpa only [healStoreAt] using hread.1⟩
+      by simpa only [healStoreAt] using! hread.2,
+      by simpa only [healStoreAt] using! hread.1⟩
   exact seedRoundGraded_of_bandGrade S adm hfb
     (hframeStore hle21 (hle1.trans (Nat.le_succ q)))
     (hframeStore hle2 (Nat.le_succ q)) hgradePrev hgradeCur

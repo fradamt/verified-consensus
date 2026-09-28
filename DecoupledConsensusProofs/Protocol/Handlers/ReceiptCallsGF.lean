@@ -57,7 +57,7 @@ private theorem core_fresh_or_eq (S : Setup V) (before : Protocol.NamedStore V)
       (B.erase ∉ before.core.T ∧ B.erase ∈ (postCore S before B).core.T) := by
   by_cases hp : B.parent ∈ before.bodies
   · simp only [postCore, Protocol.NamedStore.process_block_core,
-      if_neg (not_not_intro hp), NamedStore.commit_core]
+      ite_eq_right (not_not_intro hp), NamedStore.commit_core]
     simp only [Protocol.on_block_checked_using, Protocol.on_block_using]
     split_ifs <;> first
       | exact Or.inl rfl
@@ -67,7 +67,7 @@ private theorem core_fresh_or_eq (S : Setup V) (before : Protocol.NamedStore V)
            simp_all
          · rw [Proofs.update_finality_T, Proofs.foldl_on_goldfish_vote_checked_T S.E]
            exact Finset.mem_insert_self _ _)
-  · simp only [postCore, Protocol.NamedStore.process_block_core, if_pos hp]
+  · simp only [postCore, Protocol.NamedStore.process_block_core, ite_eq_left hp]
     exact Or.inl trivial
 
 /-- The fresh core-T gate selects the accepted shared-handler branch.
@@ -85,7 +85,7 @@ theorem post_core_stored (S : Setup V) (before : Protocol.NamedStore V) (B : Nam
     (postCore S before B).core = Protocol.update_finality unpacked (unpacked.σ B.erase) := by
   by_cases hp : B.parent ∈ before.bodies
   · simp only [postCore, Protocol.NamedStore.process_block_core,
-      if_neg (not_not_intro hp), NamedStore.commit_core] at hpost ⊢
+      ite_eq_right (not_not_intro hp), NamedStore.commit_core] at hpost ⊢
     dsimp only [Protocol.on_block_checked_using] at hpost ⊢
     split_ifs at hpost ⊢ <;> first
       | exact False.elim (hnew hpost)
@@ -93,7 +93,7 @@ theorem post_core_stored (S : Setup V) (before : Protocol.NamedStore V) (B : Nam
          split_ifs at hpost ⊢ <;> first
            | exact False.elim (hnew hpost)
            | (rw [Proofs.NamedWire.erase_goldfish_votes]))
-  · simp only [postCore, Protocol.NamedStore.process_block_core, if_pos hp] at hpost
+  · simp only [postCore, Protocol.NamedStore.process_block_core, ite_eq_left hp] at hpost
     exact False.elim (hnew hpost)
 
 
@@ -252,26 +252,26 @@ theorem tick_new_vote_origin (gc : Protocol.GradeContract V) (E : Env V)
       | none =>
         have he := NamedDuties.propose_none gc E hc cfg nd st0 hp
         have h0 : u ∈ st0.core.pool u.slot := by
-          simpa only [st1, proposed, if_pos hd, he] using hin1
+          simpa only [st1, proposed, ite_eq_left hd, he] using hin1
         exact False.elim (hpre h0)
       | some B =>
         have he := NamedDuties.propose_some gc E hc cfg nd st0 B hp
         refine Or.inr ⟨B, hemit1 (.block B) ?_, hpre, ?_⟩
-        · simp only [emitted1, proposed, if_pos hd, he]
+        · simp only [emitted1, proposed, ite_eq_left hd, he]
           simp
-        · simpa only [st1, proposed, if_pos hd, he] using hin1
+        · simpa only [st1, proposed, ite_eq_left hd, he] using hin1
     · have h0 : u ∈ st0.core.pool u.slot := by
-        simpa only [st1, if_neg hd] using hin1
+        simpa only [st1, ite_eq_right hd] using hin1
       exact False.elim (hpre h0)
   · by_cases hv : voteDue
     · have hvpost : u ∈ (Protocol.NamedDuties.goldfish_vote_with gc E hc nd st1).1.core.pool
           u.slot := by
-        simpa only [st2, voted, if_pos hv] using hafter2
+        simpa only [st2, voted, ite_eq_left hv] using hafter2
       have he := named_vote_new_output gc E hc nd st1 u hin1 hvpost
       apply Or.inl
       apply hemit2 (.gfVote u)
       simp [emitted2, voted, hv, he]
-    · exact False.elim (hin1 (by simpa only [st2, if_neg hv] using hafter2))
+    · exact False.elim (hin1 (by simpa only [st2, ite_eq_right hv] using hafter2))
 
 #print axioms tick_new_vote_origin
 end DecoupledConsensusModel.Proofs.NamedReceiptCallsGF

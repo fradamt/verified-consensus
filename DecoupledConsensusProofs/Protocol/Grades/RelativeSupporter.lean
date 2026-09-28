@@ -548,7 +548,7 @@ theorem interpretedInputs_exact_of_honest_window_vote_after_gst_common_upper
       simp [DecoupledConsensusModel.Protocol.bodyReady, hvoteConfirmed, hfind] at hready
   | some X =>
       have hXmem : X ∈ (NamedRun.stateBeforeTime S rho t w).st.core.T :=
-        by simpa only using Proofs.HealingLemmas.find?_mem hfind
+        by simpa only using! Proofs.HealingLemmas.find?_mem hfind
       obtain ⟨Xn, hXerase, hXrun⟩ :=
         Proofs.NamedStoreBridge.runBlock_of_mem_core_T_stateBeforeTime S
           core.toNamedScheduleWellFormed hw t hXmem

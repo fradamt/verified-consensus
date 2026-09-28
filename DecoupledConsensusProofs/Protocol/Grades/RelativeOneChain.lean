@@ -108,7 +108,7 @@ theorem relativeGrade_has_roundCarrier
     refine Or.inl ⟨DecoupledConsensusModel.Protocol.token y, ?_, ?_, ?_⟩
     · exact Finset.mem_image_of_mem DecoupledConsensusModel.Protocol.token
         (NamedOutageClosure.q10_interpreted_cut gv F S.hc.η_SG (r + 1)
-          hcut u (by simpa only [n, gv, F, ea] using hy))
+          hcut u (by simpa only [n, gv, F, ea] using! hy))
     · intro x hx
       obtain ⟨z, hz, rfl⟩ := Finset.mem_image.mp hx
       have hzraw := (Finset.mem_filter.mp hz).1
@@ -286,7 +286,7 @@ theorem relativeGradeCarrierAt_of_awakeWindowMajority
   have hhead : head = actionSGBlockAt S rho u y.round := by
     apply Option.some.inj
     rw [← hfind, hroot]
-    simpa only [n, Protocol.Store.toHealing] using hzFind
+    simpa only [n, Protocol.Store.toHealing] using! hzFind
   refine ⟨y.round, hk, u, hu, ?_, ?_⟩
   · exact hemitAction
   · simpa only [hhead] using hBhead

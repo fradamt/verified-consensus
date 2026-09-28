@@ -118,7 +118,7 @@ theorem w4d1_baseCoreVoterHeadRunBlock
     (Proofs.NamedRuntime.stateBeforeTime_invariants S rho
       (Protocol.vote_time S.E d) w).1
   have hinv : Proofs.NamedConfirmationMembership.Invariant S.E S.cfg read.st := by
-    simpa only [read, voteDutyRead, NamedActionReads.confirmationReadAt] using
+    simpa only [read, voteDutyRead, NamedActionReads.confirmationReadAt] using!
       Proofs.NamedConfirmationMembership.invariant_clock S.E S.cfg _ _ hinvPre
   have hroot : Protocol.get_fg_root st.toHealing.toFG ∈ st.T :=
     Proofs.NamedStoreRoots.fg_root_mem read.st hinv.1.2
@@ -182,7 +182,7 @@ theorem w4d1_baseCoreVoterHeadEmits
           (voterHeadAt S rho w s).root⟩ := by
     simp only [Protocol.NamedDuties.goldfish_vote_with,
       Protocol.goldfish_vote_with]
-    rw [if_pos]
+    rw [ite_eq_left]
     · rfl
     · exact hcommittee'
   have ho : Object.gfVote

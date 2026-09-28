@@ -126,7 +126,7 @@ theorem namedHeight_le_finalizedHeight_of_preceq
     intro hgenesis
     apply hPne
     apply Block.preceq_antisymm
-    · simpa only [hgenesis] using hPF
+    · simpa only [hgenesis] using! hPF
     · exact Protocol.preceq_genesis P.erase
   have himg : (rho.storeAt S v t).core.F ∈
       (rho.storeAt S v t).bodies.image NamedBlock.erase := by
@@ -144,7 +144,7 @@ theorem namedHeight_le_finalizedHeight_of_preceq
       adm.toNamedAdmissibleCore.toNamedRootCollisionFree hPrun hFNrun).mpr
       (by rw [hFNe]; exact hPF)
   unfold Protocol.Store.finalized_height
-  rw [if_neg hFne, hsigma]
+  rw [ite_eq_right hFne, hsigma]
   exact Proofs.NamedEntryHeight.derive_height_mono S.E S.cfg hnamed
 
 /-! ## 3. The pin -/

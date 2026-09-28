@@ -45,7 +45,7 @@ private theorem emittedVote_head_eq_voteDutyHead_v4
       Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock, slotOf_vote_time] using
+      Protocol.NamedStore.setClock, slotOf_vote_time] using!
       (congrArg GoldfishVote.head (Option.some.inj hduty)).symm
   · simp at hduty
 

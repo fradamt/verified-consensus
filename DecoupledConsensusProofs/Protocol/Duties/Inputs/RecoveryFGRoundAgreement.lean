@@ -94,7 +94,7 @@ private theorem compatible_ancestors {B C X Y : Block V}
     (hBX : Block.Preceq B X) (hCY : Block.Preceq C Y)
     (hXY : Block.compatible X Y = true) : Block.compatible B C = true := by
   rcases (show Block.Preceq X Y ∨ Block.Preceq Y X by
-    simpa only [Block.compatible, Bool.or_eq_true] using hXY) with h | h
+    simpa only [Block.compatible, Bool.or_eq_true] using! hXY) with h | h
   · exact Block.compatible_of_preceq_common (Block.preceq_trans hBX h) hCY
   · exact Block.compatible_of_preceq_common hBX (Block.preceq_trans hCY h)
 
@@ -132,7 +132,7 @@ private theorem actionBody_runBlock_named
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hD
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hD
   obtain ⟨i, hi, -⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix S rho
     adm.toNamedAdmissibleCore.toNamedScheduleWellFormed.sorted (S.a r)
   have hDi : D ∈ (rho.stateBefore S i v).st.bodies := by
@@ -151,13 +151,13 @@ private theorem actionStoreDerived_named_local
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hD
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hD
   have hview := Proofs.NamedStoreBridge.derivedView_stateBeforeTime
     S rho (S.a r) v D hDpre
   simpa only [actionStoreAt, actionReadAt,
     NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
     NamedActionReads.confirmationReadFrom,
-    NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hview
+    NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hview
 
 private theorem nodeQ2_of_nodeFGSource
     (S : Setup V) (rho : Run V) (v : V) (r : Round) {B : Block V}
@@ -528,7 +528,7 @@ private theorem selectedQ2_preceq_voteDutyHead_of_frame
       (NamedProfile.gradeContract (actionReadAt S rho p r).cache)
       S.E S.hc (actionReadAt S rho p r).st.core.toHealing r = some Q.erase := by
     simpa only [PhaseGrades.nodeQ2, PhaseGrades.nodeRead,
-      Internal.NamedRecoveryRead.actionDutyRead] using hselected
+      Internal.NamedRecoveryRead.actionDutyRead] using! hselected
   have hQread : Q.erase ∈ PhaseGrades.filteredTree
       (PhaseGrades.readAt S rho
         (Protocol.vote_time S.E (S.hc.opening_slot r)) w) := by
@@ -536,7 +536,7 @@ private theorem selectedQ2_preceq_voteDutyHead_of_frame
       Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, Protocol.NamedStore.setClock] using
+      NamedActionReads.preparedCache, Protocol.NamedStore.setClock] using!
       hQvote.openingTarget w hw
   have hactiveVote : Q.erase ∈ Protocol.get_filtered_block_tree
       (Internal.NamedRecoveryRead.voteDutyRead S rho w
@@ -589,7 +589,7 @@ private theorem selectedQ2_preceq_voteDutyHead_of_frameN
       (NamedProfile.gradeContract (actionReadAt S rho p r).cache)
       S.E S.hc (actionReadAt S rho p r).st.core.toHealing r = some Q.erase := by
     simpa only [PhaseGrades.nodeQ2, PhaseGrades.nodeRead,
-      Internal.NamedRecoveryRead.actionDutyRead] using hselected
+      Internal.NamedRecoveryRead.actionDutyRead] using! hselected
   have hQread : Q.erase ∈ PhaseGrades.filteredTree
       (PhaseGrades.readAt S rho
         (Protocol.vote_time S.E (S.hc.opening_slot r)) w) := by
@@ -597,7 +597,7 @@ private theorem selectedQ2_preceq_voteDutyHead_of_frameN
       Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, Protocol.NamedStore.setClock] using
+      NamedActionReads.preparedCache, Protocol.NamedStore.setClock] using!
       hQvote.openingTarget w hw
   have hactiveVote : Q.erase ∈ Protocol.get_filtered_block_tree
       (Internal.NamedRecoveryRead.voteDutyRead S rho w
@@ -635,7 +635,7 @@ private theorem nodeQ2_of_actionFGSource_local
     ∃ Q, PhaseGrades.nodeQ2 S (actionReadAt S rho v r) r = some Q := by
   have hround : S.hc.round_of
       (actionReadAt S rho v r).st.core.toHealing.s = r := by
-    simpa only [Protocol.Store.toHealing] using actionStoreAt_round S rho v r
+    simpa only [Protocol.Store.toHealing] using! actionStoreAt_round S rho v r
   have hsource : Protocol.fg_source_with
       (NamedProfile.gradeContract (actionReadAt S rho v r).cache) S.E S.hc
       (actionReadAt S rho v r).st.core.toHealing r
@@ -978,7 +978,7 @@ theorem actionFGSources_compatible_of_recoveryPrefix
           Internal.NamedRecoveryRead.voteDutyRead,
           NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom,
-          NamedActionReads.preparedCache, Protocol.NamedStore.setClock] using
+          NamedActionReads.preparedCache, Protocol.NamedStore.setClock] using!
           (hBfiltered hv).2
       have hBQg0 : Qp ∈ PhaseGrades.filteredTree
           (PhaseGrades.readAt S rho
@@ -992,7 +992,7 @@ theorem actionFGSources_compatible_of_recoveryPrefix
           Internal.NamedRecoveryRead.voteDutyRead,
           NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom,
-          NamedActionReads.preparedCache, Protocol.NamedStore.setClock] using
+          NamedActionReads.preparedCache, Protocol.NamedStore.setClock] using!
           (hCfiltered hv).2
       have hCQg0 : Qw ∈ PhaseGrades.filteredTree
           (PhaseGrades.readAt S rho
@@ -1272,7 +1272,7 @@ theorem PrefixFGSelectorConeAt.checkpoint_eq_of_sameRound_beforeFirst
   have hhor : S.a a.round ≤ rho.horizon := by
     have hin := (adm.in_horizon (Event.tick a.val_index ta)
       (List.mem_of_getElem? hseed.exactTick)).2
-    simpa only [Event.time, hseed.actionTime_eq] using hin
+    simpa only [Event.time, hseed.actionTime_eq] using! hin
   have hsource' : actionFGSource S
       (actionStoreAt S rho b.val_index a.round) = some Cfg'.erase := by
     simpa only [hround] using hseed'.exactFGSource
@@ -1336,7 +1336,7 @@ theorem PrefixFGSelectorConeAt.confirmationWitness_of_sameRound_honestHeightRow
   have hhor : S.a a.round ≤ rho.horizon := by
     have hin := (adm.in_horizon (Event.tick a.val_index ta)
       (List.mem_of_getElem? hseed.exactTick)).2
-    simpa only [Event.time, hseed.actionTime_eq] using hin
+    simpa only [Event.time, hseed.actionTime_eq] using! hin
   have hsourceAtRound : actionFGSource S
       (actionStoreAt S rho b.val_index a.round) = some Cfg'.erase := by
     simpa only [hround] using hsource'

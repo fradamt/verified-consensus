@@ -200,14 +200,14 @@ private theorem cap_fold_count_le (rows acc : List (NamedAttestation V))
                 decide (2 ≤ (acc.filter (fun a =>
                   decide (a.val_index = next.val_index ∧ a.round = next.round))).length)) =
                 true := Bool.or_eq_true_iff.mpr (Or.inl (decide_eq_true hmem))
-          simpa only [acc', hguard, if_true] using hacc v r
+          simpa only [acc', hguard, ite_true] using hacc v r
         · by_cases hlimit : 2 ≤ (acc.filter (fun a =>
               decide (a.val_index = next.val_index ∧ a.round = next.round))).length
           · have hguard : (decide (next ∈ acc) ||
                   decide (2 ≤ (acc.filter (fun a =>
                     decide (a.val_index = next.val_index ∧ a.round = next.round))).length)) =
                   true := Bool.or_eq_true_iff.mpr (Or.inr (decide_eq_true hlimit))
-            simpa only [acc', hguard, if_true] using hacc v r
+            simpa only [acc', hguard, ite_true] using hacc v r
           · have hguard : (decide (next ∈ acc) ||
                 decide (2 ≤ (acc.filter (fun a =>
                   decide (a.val_index = next.val_index ∧ a.round = next.round))).length)) =
@@ -226,7 +226,7 @@ private theorem cap_fold_count_le (rows acc : List (NamedAttestation V))
                   decide (a.val_index = v ∧ a.round = r))) = [] := by
                 simp [hkey]
               simp only [acc', hguard]
-              simp only [Bool.false_eq_true, if_false]
+              simp only [Bool.false_eq_true, ite_false]
               rw [List.filter_append, hsingle]
               simpa using hacc v r
       simpa only [List.foldl_cons] using ih acc' hacc'
@@ -250,7 +250,7 @@ private theorem length_le_two_mul_keys {α β : Type} [DecidableEq β]
       apply Finset.sum_le_sum
       intro b hb
       simpa [List.count, List.countP_map, Function.comp_def,
-        List.countP_eq_length_filter, beq_iff_eq, List.filter_map] using h b
+        List.countP_eq_length_filter, beq_iff_eq, List.filter_map] using! h b
     _ = 2 * (l.map key).toFinset.card := by simp [mul_comm]
 
 /-- The cap's length is at most twice the number of distinct signer and round

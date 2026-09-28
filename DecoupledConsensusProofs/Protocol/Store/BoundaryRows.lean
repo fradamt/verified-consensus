@@ -296,7 +296,7 @@ theorem exists_low_round_of_staleAt_at (S : Setup V) (rho : NamedRun V)
     ∃ x ∈ Internal.OutageEntryRevision.latest (Internal.OutageEntryRevision.retainedRaw S
       (NamedRun.stateBeforeTime S rho tau reader).st.core sr tau u), x.round < s := by
   by_contra hcon
-  push_neg at hcon
+  push Not at hcon
   have := staleAt_false_of_rounds_ge_at S rho sch auth roots b0 tau htau hgrid s P hconf hhead
     reader hreader u hu hFP sr hcon
   rw [this] at hstale

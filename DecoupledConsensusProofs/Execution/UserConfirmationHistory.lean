@@ -74,7 +74,7 @@ theorem selectionAt_slot (S : Setup V) {rho : Run V}
       exact Or.inl hwalk
     · exact Or.inr (by simpa only [hconfirmation] using hsg)
   · have hhor := (sch.in_horizon (Event.tick v time) (List.mem_of_getElem? hi)).2
-    simpa only [Event.time, hconfirmation] using hhor
+    simpa only [Event.time, hconfirmation] using! hhor
 
 
 /-- A tick that is not a confirmation tick leaves `latest_confirmed` unchanged.
@@ -97,7 +97,7 @@ theorem on_tick_emit_latest_of_ne
       S.E S.hc S.cfg (S.node v) n.st n.record t).1.latest_confirmed =
       n.st.latest_confirmed
   simp only [Protocol.NamedTick.tick, Protocol.TickScheduler.runWith,
-    Protocol.NamedTick.namedOps, if_neg h]
+    Protocol.NamedTick.namedOps, ite_eq_right h]
   split_ifs <;>
     simp only [attest_with_latest, propose_block_with_latest, named_goldfish_vote_with_latest]
 

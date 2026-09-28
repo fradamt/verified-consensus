@@ -124,7 +124,7 @@ theorem fgConfirmationWitness_compatible_sgVote
   have hk : S.hc.round_of st.s = r := by
     have ht := NamedActionSources.action_timing S
       (NamedRun.stateBeforeTime S rho (S.a r) v) r
-    simpa only [n, actionReadAt, st] using ht.2.2
+    simpa only [n, actionReadAt, st] using! ht.2.2
   obtain ⟨Cfg, hsource, hT⟩ := Option.map_eq_some_iff.mp hwitness
   have hsource' : Protocol.fg_source_with gc S.E S.hc st r
       (Protocol.grade2_block_with gc S.E S.hc st r) = some Cfg := by
@@ -155,7 +155,7 @@ theorem fgConfirmationWitness_compatible_sgVote
       S rho adm.toNamedAdmissibleCore v hv 0 r
       ⟨hr, Proofs.HealingLemmas.a_nonneg S r, hhor⟩ Q hQcheck
     simpa only [Internal.NamedJointOutage.checkpoint, n, st,
-      actionRead_readFrame_eq_checkpoint S rho v r] using hpre
+      actionRead_readFrame_eq_checkpoint S rho v r] using! hpre
   have hsg := frame_sg_vote_preceq_source S n r hQ hQA hsource'
   have hTCfg : Block.preceq T Cfg = true := by
     have hinv : Proofs.NamedConfirmationMembership.Invariant S.E S.cfg n.st := by

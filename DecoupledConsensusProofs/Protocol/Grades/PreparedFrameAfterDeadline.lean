@@ -47,7 +47,7 @@ theorem exists_common_floor_of_compatible_with
     intro v hv
     have hvCases : Block.Preceq (actionSGBlockAt S rho v c) T ∨
         Block.Preceq T (actionSGBlockAt S rho v c) := by
-      simpa only [Block.compatible, Bool.or_eq_true] using hcompat v hv
+      simpa only [Block.compatible, Bool.or_eq_true] using! hcompat v hv
     rcases hvCases with hvT | hTv
     · have hvBelow : v ∈ below := Finset.mem_filter.mpr ⟨hv, hvT⟩
       have huv : Block.Preceq (actionSGBlockAt S rho u c)
@@ -64,7 +64,7 @@ theorem exists_common_floor_of_compatible_with
     intro v hv
     have hvCases : Block.Preceq (actionSGBlockAt S rho v c) T ∨
         Block.Preceq T (actionSGBlockAt S rho v c) := by
-      simpa only [Block.compatible, Bool.or_eq_true] using hcompat v hv
+      simpa only [Block.compatible, Bool.or_eq_true] using! hcompat v hv
     exact hvCases.resolve_left (fun hvT =>
       hne ⟨v, Finset.mem_filter.mpr ⟨hv, hvT⟩⟩)
 
@@ -141,7 +141,7 @@ theorem relativeCarrierWindowAt_after_recovery_deadline
           (Protocol.get_fg_root
             (rho.storeBeforeTime S w
               (domain S.E S.hc (c + 1) .g2)).toHealing.toFG) by
-      simpa only [Block.compatible, Bool.or_eq_true] using hrootCompat) with
+      simpa only [Block.compatible, Bool.or_eq_true] using! hrootCompat) with
       hrootCarrier | hcarrierRoot
     · simp only [Block.compatible, Bool.or_eq_true]
       exact Or.inl (Block.preceq_trans hFroot hrootCarrier)
@@ -216,7 +216,7 @@ theorem relativeCarrierWindowAt_after_recovery_deadline
         Block.Preceq (actionSGBlockAt S rho u c)
           (NamedRun.stateBeforeTime S rho
             (domain S.E S.hc (c + 1) .g2) w).st.core.F by
-      simpa only [Block.compatible, Bool.or_eq_true] using hcompat) with
+      simpa only [Block.compatible, Bool.or_eq_true] using! hcompat) with
       hFCarrier | hcarrierF
     · exact action_vote_mem_interpretedInputs_after_gst_common_upper
         S adm.toNamedAdmissibleCore .g2 hk huHon hw
@@ -493,10 +493,10 @@ theorem nodeRawG2_at_action_after_recovery_deadline
   intro v hv
   have hgrade := p6_storeGrade_g2_of_relativeCarrierWindow_and_cover
     S adm (Nat.succ_pos c)
-      (by simpa only [Nat.add_sub_cancel] using hpostc)
+      (by simpa only [Nat.add_sub_cancel] using! hpostc)
       hdomainHor hforming
-      (by simpa only [Nat.add_sub_cancel] using hwindow)
-      (by simpa only [Nat.add_sub_cancel] using hvotes) hv
+      (by simpa only [Nat.add_sub_cancel] using! hwindow)
+      (by simpa only [Nat.add_sub_cancel] using! hvotes) hv
   obtain ⟨u, hu⟩ := Protocol.honest_nonempty_of_honestCommittees hcom
   have huVoter : u ∈ Internal.NamedOutageEntry.honestRoundVoters S rho c := by
     apply (Proofs.NamedOutageInputs.honestRoundVoters_iff S rho u c).mpr
@@ -523,7 +523,7 @@ theorem nodeRawG2_at_action_after_recovery_deadline
       (domain S.E S.hc (c + 1) .g2) v).st.core.F
     S.hc.η_SG (c + 1)
     (NamedOutageClosure.q10_early_le_late S (c + 1) .g2)
-    hPmem (by simpa only [storeGrade] using hgrade)
+    hPmem (by simpa only [storeGrade] using! hgrade)
   have hstoreRoot : PhaseGrades.storeRoot S.E S.hc
       (NamedRun.stateBeforeTime S rho
         (domain S.E S.hc (c + 1) .g2) v).st (c + 1) .g2 = some raw := by
@@ -590,12 +590,12 @@ theorem actionQ2_preceq_fgRoot_or_activeAtVoteDuty_after_deadline
         Internal.NamedRecoveryRead.voteDutyRead,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom,
-        Protocol.NamedStore.setClock, Run.storeBeforeTime] using hactive)
+        Protocol.NamedStore.setClock, Run.storeBeforeTime] using! hactive)
   · exact Or.inl (by
       simpa only [hQnerase, Internal.NamedRecoveryRead.voteDutyRead,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom,
-        Protocol.NamedStore.setClock, Run.storeBeforeTime] using hroot)
+        Protocol.NamedStore.setClock, Run.storeBeforeTime] using! hroot)
 
 #print axioms exists_common_floor_of_compatible_with
 #print axioms relativeCarrierWindowAt_after_recovery_deadline

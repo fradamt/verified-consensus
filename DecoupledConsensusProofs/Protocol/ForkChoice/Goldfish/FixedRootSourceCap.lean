@@ -58,7 +58,7 @@ private theorem fixedRootSource_compatible_left
     {A K C : Block V} (hAK : Block.Preceq A K)
     (hKC : Block.compatible K C = true) : Block.compatible A C = true := by
   rcases (show Block.Preceq K C ∨ Block.Preceq C K by
-    simpa only [Block.compatible, Bool.or_eq_true] using hKC) with hKC | hCK
+    simpa only [Block.compatible, Bool.or_eq_true] using! hKC) with hKC | hCK
   · simpa only [Block.compatible, Bool.or_eq_true] using
       Or.inl (Block.preceq_trans hAK hKC)
   · exact Block.compatible_of_preceq_common hAK hCK
@@ -104,7 +104,7 @@ private theorem fixedRootSource_runBlock_of_actionBody
   have hBpre : B ∈ (rho.storeBeforeTime S v (S.a r)).bodies := by
     simpa only [actionReadAt, NamedActionReads.actionReadAt,
       NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hB
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hB
   obtain ⟨i, hi, -⟩ := Proofs.Bridges.stateBeforeTime_eq_stateBefore S
     adm.toNamedAdmissibleCore.toNamedScheduleWellFormed (S.a r)
   apply Proofs.Bridges.runBlock_of_stateBefore_mem S hv (i := i)
@@ -256,7 +256,7 @@ private theorem fixedRootSource_proposalAnchor_preceq_of_previousCarriers
           simpa only [read, PhaseGrades.readAt, proposerReadAt,
             NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom, hopen,
-            Protocol.NamedStore.setClock] using
+            Protocol.NamedStore.setClock] using!
             (Proofs.Records.preceq_get_fg_root_of_F
               (st := (NamedRun.stateBeforeTime S rho
                 (Protocol.proposal_time S.E o) (S.E.proposer o)).st.core.toHealing.toFG)
@@ -477,7 +477,7 @@ private theorem fixedRootSource_proposalAnchor_preceq_of_previousCarriers
             adm.toNamedAdmissibleCore.toNamedRootCollisionFree
             hHeadrun hCnrun hheadCnRoot
         have hAC : Block.Preceq A C :=
-          Block.preceq_trans (by simpa only [hheadCarrier] using hAhead)
+          Block.preceq_trans (by simpa only [hheadCarrier] using! hAhead)
             (hupper v hv)
         exact hAC
 
@@ -502,7 +502,7 @@ private theorem fixedRootSource_preceq_voterHeadAt_of_adoption
       (NamedProfile.gradeContract read.cache) S.E S.hc st.toHealing
       tree votes support (st.s - 1))
   rw [Proofs.Optimistic.get_head_in_tree_split_with, hprev]
-  simpa only [Protocol.Store.toHealing, read, st] using
+  simpa only [Protocol.Store.toHealing, read, st] using!
     (Protocol.goldfish_fork_choice_captures_of_confirmation
       S.E st.σ st.h_max source.T st.T tree st.s
       (confEarly S.E source s) (confLate S.E source s)
@@ -677,15 +677,15 @@ theorem fixedRootSource_mem_filtered_actionStore
           have hCL : Block.Preceq C
               (actionStoreAt S rho v r).live_confirmed :=
             Proofs.Engine.mem_chain_of_preceq (List.mem_toFinset.mp hchain)
-          have hQC' : Block.Preceq Q C := by simpa using hQC
+          have hQC' : Block.Preceq Q C := by simpa using! hQC
           have hLmem := liveConfirmed_mem_filtered_actionStore S adm v r
           have hQmem' := hQmem
           have hLmem' := hLmem
-          simp only [Protocol.get_filtered_block_tree,
-            Protocol.get_filtered_block_tree_from,
+          simp only [Protocol.get_filtered_block_tree, Protocol.get_filtered_block_tree_from,
             Protocol.viable_tree, Protocol.finalized_descendants,
-            Protocol.viable, Finset.mem_filter, Protocol.Store.toHealing,
-            decide_eq_true_eq] at hQmem' hLmem' ⊢
+            Finset.mem_filter] at hQmem' hLmem' ⊢
+          simp only [Protocol.viable, decide_eq_true_eq] at hQmem' hLmem' ⊢
+          simp only [Protocol.Store.toHealing] at hQmem' hLmem' ⊢
           obtain ⟨⟨⟨-, hFQ⟩, -⟩, hrootQ⟩ := hQmem'
           obtain ⟨⟨⟨hLT, -⟩, W, hWT, hLW, hWh⟩, -⟩ := hLmem'
           have hpc : ParentClosed (actionStoreAt S rho v r).st.core := by
@@ -693,7 +693,7 @@ theorem fixedRootSource_mem_filtered_actionStore
               S rho (S.a r) v
             have hT : (actionStoreAt S rho v r).st.core.T =
                 (rho.storeBeforeTime S v (S.a r)).core.T := rfl
-            simpa only [ParentClosed, Protocol.GoldfishStore.parent_closed, hT] using hpcPre
+            simpa only [ParentClosed, Protocol.GoldfishStore.parent_closed, hT] using! hpcPre
           refine ⟨⟨⟨?_, ?_⟩, W, hWT,
             Block.preceq_trans hCL hLW, hWh⟩, ?_⟩
           · exact Proofs.Records.mem_of_preceq hpc.2 C _ hLT hCL
@@ -1371,7 +1371,7 @@ theorem fixedRoot_sourceHeight_le_nextOpeningParent
                               (Internal.NamedRecoveryRead.voteDutyRead S rho x
                                 (S.hc.opening_slot (q' - 1) + 1)).st.core.s)) Cclear := by
                         simpa only [voterAnchorAt, PhaseGrades.nodeAnchor,
-                          PhaseGrades.nodeRead] using hanchorC
+                          PhaseGrades.nodeRead] using! hanchorC
                       have hanchor'' : Block.Preceq
                           (Protocol.get_sg_root_with
                             (NamedProfile.gradeContract
@@ -1512,7 +1512,7 @@ theorem fixedRoot_sourceHeight_le_nextOpeningParent
                   rw [hRroot, hconfRoot]
                 have hCeq : Cclear = Jn.erase :=
                   Block.preceq_antisymm
-                    (by simpa only [hRJ] using hCLroot) hJCclear
+                    (by simpa only [hRJ] using! hCLroot) hJCclear
                 intro x hx hcommittee
                 obtain ⟨X, hXhead, hXrun, hXemit⟩ := named_voter_head_emits
                   S adm hx hlastPos
@@ -1573,7 +1573,7 @@ theorem fixedRoot_sourceHeight_le_nextOpeningParent
             (Protocol.proposal_time S.E (S.hc.opening_slot q'))).toHealing.toFG =
           Jn.erase := by
         simpa only [Protocol.proposerDutyStore] using hrootDuty
-      simpa only [Proofs.Optimistic.tickStore, Protocol.Store.toHealing] using hrootTick
+      simpa only [Proofs.Optimistic.tickStore, Protocol.Store.toHealing] using! hrootTick
     have hrootProposalJ : Block.Preceq
         (Protocol.get_fg_root
           (proposerReadAt S rho (S.hc.opening_slot q')).st.core.toHealing.toFG)
@@ -1627,7 +1627,7 @@ theorem fixedRoot_sourceHeight_le_nextOpeningParent
       simpa only [Protocol.proposerDutyStore, proposerReadAt,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Proofs.Optimistic.tickStore, hCerase] using hactiveSource
+        Proofs.Optimistic.tickStore, hCerase] using! hactiveSource
     obtain ⟨K, ⟨v0, hv0, hKeq⟩, hupperK, hKcone⟩ :=
       fixedRootSource_commonActionCeiling S adm hcom (H := H) (q := q' - 1)
         (by simpa only [Nat.sub_add_cancel hq'pos] using hlock2)

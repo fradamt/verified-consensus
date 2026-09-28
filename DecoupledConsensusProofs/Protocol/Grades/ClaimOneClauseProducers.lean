@@ -46,7 +46,7 @@ theorem stableAt_nodeQ2_actionRead
     NamedProfile.gradeContract, DecoupledConsensusModel.Protocol.frameContract,
     DecoupledConsensusModel.Protocol.frameGradeRead]
   unfold DecoupledConsensusModel.Protocol.grade2Block
-  rw [if_pos hclosed]
+  rw [ite_eq_left hclosed]
   unfold Internal.NamedStableChainOutage.activeG2
     Internal.NamedStableChainOutage.roundConfirmationRead
     DecoupledConsensusModel.Protocol.frameSGCandidate at hG
@@ -60,7 +60,7 @@ theorem stableAt_nodeQ2_actionRead
     Protocol.NamedDuties.update_confirmation_with,
     Protocol.update_confirmation_with,
     DecoupledConsensusModel.Protocol.readFrame, DecoupledConsensusModel.Protocol.clipFrame,
-    DecoupledConsensusModel.Protocol.clipResult] using hG
+    DecoupledConsensusModel.Protocol.clipResult] using! hG
 
 /-- The public stable witness exposes the raw G2-domain root graded at the
 source reader. Clipping gives `P ⪯ G ⪯ raw`. -/

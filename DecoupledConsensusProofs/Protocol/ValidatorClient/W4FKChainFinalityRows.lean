@@ -52,7 +52,7 @@ theorem namedRoundAction_finality_pair_of_record_guard
         record.legacy.timeout h = false ∧
         (record.legacy.lock h = none ∨ record.legacy.lock h = some J) :=
     ⟨htarget, htimeout, hlock⟩
-  simp only [Protocol.finality_pair, if_pos hF, if_pos hguard]
+  simp only [Protocol.finality_pair, ite_eq_left hF, ite_eq_left hguard]
 
 #print axioms namedRoundAction_finality_pair_of_record_guard
 
@@ -105,7 +105,7 @@ theorem actionHead_namedBody_of_runBlock
   simpa only [actionStoreAt, actionReadAt, NamedActionReads.actionReadAt,
     NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
     NamedActionReads.preparedCache, NamedRun.stateBeforeTime,
-    Run.storeBeforeTime] using hbodies
+    Run.storeBeforeTime] using! hbodies
 
 /-- Named twin of the `hrows` block of
 `canonicalCarrier_commonFinalized_of_justifiedPrefix`

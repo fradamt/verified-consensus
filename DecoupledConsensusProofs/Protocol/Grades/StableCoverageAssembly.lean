@@ -44,7 +44,6 @@ private theorem coverage_domain_g0_lt_support_cutoff
   rw [hcut]
   unfold domain opening Protocol.proposal_time Protocol.support_cutoff Env.t slotStart
   simp only [Phase.domainOffset]
-  push_cast at hmul ⊢
   nlinarith [S.E.Δ_pos]
 
 /-- At a support-cutoff read, an active G2 candidate is below the same read's
@@ -101,7 +100,7 @@ theorem activeG2_preceq_sgRoot_at_confirmation
       (DecoupledConsensusModel.Protocol.readFrame n.cache n.st.core.toHealing q) = some G := by
     rw [activeG2_eq, hfr] at hG
     unfold grade2Block
-    rw [if_pos hclosed]
+    rw [ite_eq_left hclosed]
     exact hG
   have hFmono : Block.Preceq
       (NamedRun.stateBeforeTime S rho (domain S.E S.hc q .g1) w).st.core.F
@@ -188,7 +187,7 @@ theorem stableAt_confirmationCoverageBefore'
           (readAt S rho (domain S.E S.hc s .g1) w).st.core.toHealing.gradeView
           (readAt S rho (domain S.E S.hc s .g1) w).st.core.F
           S.hc.η_SG s (q10_early_le_late S s .g1) hrawTree
-          (by simpa only [storeGrade] using hgrade1 w hw)
+          (by simpa only [storeGrade] using! hgrade1 w hw)
         have hg1lt : domain S.E S.hc s .g1 < t := by
           rw [domain_g1_eq_opening]
           rw [← hqeq]
@@ -208,7 +207,7 @@ theorem stableAt_confirmationCoverageBefore'
         have hcompat : Block.compatible P
             (NamedRun.stateBeforeTime S rho t w).st.core.F = true := by
           simp only [Block.compatible, Bool.or_eq_true]
-          exact Or.inr (by simpa only [hPe, Protocol.Store.toHealing] using
+          exact Or.inr (by simpa only [hPe, Protocol.Store.toHealing] using!
             (q10_filtered_F htree))
         have hPclip : Block.Preceq P
             (DecoupledConsensusModel.Protocol.clipGrade root1
@@ -270,7 +269,7 @@ theorem stableAt_confirmationCoverageBefore'
         have hmono := incl_strict_F_mono S rho hexec.core.toNamedScheduleWellFormed w
           hdomainT.le
         exact Block.preceq_trans hmono (by
-          simpa only [hPe, Protocol.Store.toHealing] using q10_filtered_F htree)
+          simpa only [hPe, Protocol.Store.toHealing] using! q10_filtered_F htree)
       have hgrade := storeGrade_g2_of_honestCarriers_before_boundary_domain
         S rho b0 b1 r P hexec hforming hdomain hfloor w hw hFdomain
       obtain ⟨Pm, hPme, _, hheldDomain⟩ :=
@@ -309,7 +308,7 @@ theorem stableAt_confirmationCoverageBefore'
       have hcompat : Block.compatible P
           (NamedRun.stateBeforeTime S rho t w).st.core.F = true := by
         simp only [Block.compatible, Bool.or_eq_true]
-        exact Or.inr (by simpa only [hPe, Protocol.Store.toHealing] using
+        exact Or.inr (by simpa only [hPe, Protocol.Store.toHealing] using!
           (q10_filtered_F htree))
       have hPclip : Block.Preceq P
           (DecoupledConsensusModel.Protocol.clipGrade raw

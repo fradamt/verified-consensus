@@ -202,8 +202,8 @@ theorem FixedHeightJustificationRoot.fgRoot_eq_target
     {H : Height}
     (h : FixedHeightJustificationRoot S rho st H) :
     Protocol.get_fg_root st.toHealing.toFG = st.J := by
-  simp only [Protocol.get_fg_root, Protocol.Store.toHealing,
-    if_pos h.gate]
+  simp only [Protocol.get_fg_root]
+  exact ite_eq_left h.gate
 
 /-- Any run block certified at this fixed height is the stored target block. -/
 theorem FixedHeightJustificationRoot.certificateTarget_eq
@@ -366,9 +366,9 @@ private theorem finalizedCompatibleAtFixedHeightRead
   have hco : Proofs.NamedStore.Coherent S.E S.cfg st := coherent_stateBeforeTime S rho read w
   obtain ⟨Dst, hDstMem, hDstF, -⟩ :=
     Proofs.Bridges.storeFinalizationOnChain_stateBeforeTime S rho read w
-  have hDstMem' : Dst ∈ st.bodies := by simpa only [st] using hDstMem
+  have hDstMem' : Dst ∈ st.bodies := by simpa only [st] using! hDstMem
   have hDstF' : (Protocol.derive_named S.E S.cfg Dst).F = st.F := by
-    simpa only [st] using hDstF
+    simpa only [st] using! hDstF
   have hDrun : RunBlock S rho Dst :=
     runBlockOf_of_stateBeforeTime_mem S adm hw read hDstMem'
   have hnoHigh : Internal.NamedNoHighJustifications S.E S.cfg st :=
@@ -389,7 +389,7 @@ private theorem finalizedCompatibleAtFixedHeightRead
     S rho Pn Dst hsb adm.toNamedRootCollisionFree hPrun hDrun hcrossed
   rw [hDstF'] at hpreceq
   simp only [Block.compatible, Bool.or_eq_true]
-  exact Or.inl (by simpa only [st, hPnErase] using hpreceq)
+  exact Or.inl (by simpa only [st, hPnErase] using! hpreceq)
 
 /-- Construct the complete fixed-height target from a root interference at an
 actual honest strict read. -/
@@ -416,12 +416,12 @@ theorem fixedHeightRootInterferenceAtRead_of_interference
     by_contra hnot
     have hrootF : Protocol.get_fg_root st.toHealing.toFG = st.F := by
       simp only [Protocol.get_fg_root, Protocol.Store.toHealing,
-        if_neg hnot]
+        ite_eq_right hnot]
     rw [hrootF, hFsafe] at hrootBad
     contradiction
   have hrootJ : Protocol.get_fg_root st.toHealing.toFG = st.J := by
     simp only [Protocol.get_fg_root, Protocol.Store.toHealing,
-      if_pos hgate]
+      ite_eq_left hgate]
   have hJbad : Block.compatible st.J P = false := by
     rw [hrootJ] at hrootBad
     exact hrootBad
@@ -434,7 +434,7 @@ theorem fixedHeightRootInterferenceAtRead_of_interference
     simp [Block.compatible, Protocol.preceq_genesis] at hJbad
   obtain ⟨D, hDmem, hDJeq, hDhjeq⟩ :=
     Proofs.Bridges.storeJustificationOnChain_stateBeforeTime S rho read w
-  have hDmem' : D ∈ st.bodies := by simpa only [st] using hDmem
+  have hDmem' : D ∈ st.bodies := by simpa only [st] using! hDmem
   have hDrun : RunBlock S rho D := runBlockOf_of_stateBeforeTime_mem S adm hw read hDmem'
   have hhjne : st.h_j ≠ 0 := by
     intro hz
@@ -457,7 +457,7 @@ theorem fixedHeightRootInterferenceAtRead_of_interference
       interference := hint
       carrierExists :=
         ⟨D, by simpa only [st] using hDmem', hDrun,
-          by simpa only [st] using And.intro hDJeq hDhjeq⟩
+          by simpa only [st] using! And.intro hDJeq hDhjeq⟩
       targetHeightPositive := htargetPos
       fixedTarget :=
         { frontier := hfrontier

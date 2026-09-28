@@ -49,7 +49,7 @@ private theorem latestStable_preserves_prefix_of_compatible_roots_noReturn
         unfold Run.stateBefore NamedRun.stateBefore
         rw [List.take_add_one, List.foldl_append]
         cases hn : rho.events[n]? with
-        | none => simpa using hprev
+        | none => simpa using! hprev
         | some e =>
             simp only [Option.toList, List.foldl_cons, List.foldl_nil]
             cases e with
@@ -57,9 +57,9 @@ private theorem latestStable_preserves_prefix_of_compatible_roots_noReturn
                 by_cases hu : u = v
                 · subst u
                   simpa only [NamedWorld.step, Function.update_self,
-                    NamedOutageClosure.node_process_stable] using hprev
+                    NamedOutageClosure.node_process_stable] using! hprev
                 · simpa only [NamedWorld.step,
-                    Function.update_of_ne (Ne.symm hu)] using hprev
+                    Function.update_of_ne (Ne.symm hu)] using! hprev
             | tick u t =>
                 by_cases hu : u = v
                 · subst u
@@ -91,7 +91,7 @@ private theorem latestStable_preserves_prefix_of_compatible_roots_noReturn
                             S rho v n G := by
                           refine ⟨t, hn, hpos, ht, ?_⟩
                           simpa only [nd, root,
-                            NamedProfile.gradeContract] using hroot
+                            NamedProfile.gradeContract] using! hroot
                         exact Proofs.ConfirmationPolicy.prefix_preceq_advance_of_compatible
                           hprev (hroots n G hlon (Nat.lt_succ_self n) hrootAt)
                   · change Block.Preceq H
@@ -100,7 +100,7 @@ private theorem latestStable_preserves_prefix_of_compatible_roots_noReturn
                       S v (rho.stateBefore S n v) t hbranch]
                     exact hprev
                 · simpa only [NamedWorld.step,
-                    Function.update_of_ne (Ne.symm hu)] using hprev
+                    Function.update_of_ne (Ne.symm hu)] using! hprev
       · have heq : lo = n + 1 := by omega
         simpa only [heq] using hbase
 
@@ -282,11 +282,11 @@ theorem capBoundedStableRoot_not_retained_at_postRecoveryCarrier
       (NamedActionReads.confirmationReadAt S rho v th).cache S.E S.hc
       (NamedActionReads.confirmationReadAt S rho v th).st.core.toHealing
       (S.hc.round_of (S.E.slotOf th)) = some G := by
-    simpa only [d, hconf] using hG
+    simpa only [d, hconf] using! hG
   have hrootG : StableRecord.StableRootAt S rho v j G := by
     refine ⟨th, hjAction, hslotPos, hcut, ?_⟩
     rw [hstateTick]
-    simpa only [NamedActionReads.confirmationReadAt] using hframeAt
+    simpa only [NamedActionReads.confirmationReadAt] using! hframeAt
   obtain ⟨-, hstableTick⟩ :=
     ConfirmationOrigin.stateBefore_succ_of_confirmation_tick
       S rho v j hjAction hslotPos hcut
@@ -316,7 +316,7 @@ theorem capBoundedStableRoot_not_retained_at_postRecoveryCarrier
         (confirmationInputRead S rho v d).st.core.toHealing
         (S.hc.round_of (confirmationInputRead S rho v d).st.core.s) = some G by
       simpa only [confirmationInputRead, NamedActionReads.confirmationReadAt,
-        Protocol.NamedStore.setClock, hconf] using hframeAt]
+        Protocol.NamedStore.setClock, hconf] using! hframeAt]
   have hafter : (rho.stateBefore S (j + 1) v).st.latest_stable =
       Protocol.advance_confirmed
         (confirmationInputRead S rho v d).st.core.latest_stable G :=

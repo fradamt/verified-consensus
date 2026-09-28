@@ -160,7 +160,7 @@ theorem equivocation_instant_eq_none {ts : TimestampMap (SGVote V)}
       simp only [not_not]
       rw [Finset.card_le_one.mp hcard u hu first hfmem]
     simp only [hempty, Protocol.batch_first?, pickUnique?]
-    rw [dif_neg (by rintro ⟨a, ⟨ha, -⟩, -⟩; exact absurd ha (by simp))]
+    rw [dite_eq_right (by rintro ⟨a, ⟨ha, -⟩, -⟩; exact absurd ha (by simp))]
 
 omit [Fintype V] in
 /-- §6.2 `e_v` is `equivocation_instant` at `v`'s slice (PROTOCOL.md#the-complete-protocol).

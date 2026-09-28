@@ -81,9 +81,10 @@ theorem canonicalConeSegment_mem_filtered_of_root_preceq
       (Protocol.get_fg_root st.toHealing.toFG) D :=
     Block.preceq_trans hrootP hPD
   have hV : D ∈ Protocol.V_tree st.toHealing.toFG := by
-    simp only [Protocol.V_tree, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, decide_eq_true_eq, Protocol.Store.toHealing]
+    simp only [Protocol.V_tree, Protocol.viable_tree, Protocol.finalized_descendants,
+      Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
+    simp only [Protocol.Store.toHealing]
     exact ⟨⟨hDT, hFD⟩, W, hWT, hDW, hheight⟩
   exact Proofs.Records.mem_filtered_of_mem_V_tree hV hrootD
 

@@ -154,7 +154,7 @@ theorem on_goldfish_vote_insert (st : Protocol.Store V) (u : GoldfishVote V)
         (fun x => if x = u then some (st.t : Stamp) else st.timestamp_vote x) ∧
       (Protocol.on_goldfish_vote st u).t = st.t := by
   unfold Protocol.on_goldfish_vote
-  rw [if_neg h1, if_neg h2]
+  rw [ite_eq_right h1, ite_eq_right h2]
   exact ⟨rfl, rfl, rfl⟩
 
 omit [Fintype V] in
@@ -170,11 +170,11 @@ theorem poolStep_on_goldfish_vote (st : Protocol.Store V) (u : GoldfishVote V) :
   intro h
   by_cases h1 : u.slot < st.s - 1 ∨ st.s < u.slot ∨ u ∈ st.gf_votes u.slot
   · rw [show Protocol.on_goldfish_vote st u = st by
-      unfold Protocol.on_goldfish_vote; rw [if_pos h1]]
+      unfold Protocol.on_goldfish_vote; rw [ite_eq_left h1]]
     exact PoolStep.refl' st h
   by_cases h2 : Protocol.equivocates (st.pool u.slot) u.val_index = true
   · rw [show Protocol.on_goldfish_vote st u = st by
-      unfold Protocol.on_goldfish_vote; rw [if_neg h1, if_pos h2]]
+      unfold Protocol.on_goldfish_vote; rw [ite_eq_right h1, ite_eq_left h2]]
     exact PoolStep.refl' st h
   obtain ⟨hgf, hts, ht⟩ := on_goldfish_vote_insert st u h1 h2
   have hnot : u ∉ st.gf_votes u.slot := fun hmem => h1 (Or.inr (Or.inr hmem))
@@ -500,7 +500,7 @@ theorem mem_and_stamp_of_process (st : Protocol.Store V) (u : GoldfishVote V)
   · have hdup : u ∈ st.gf_votes u.slot := (h1.resolve_left hfresh).resolve_left hslot
     have heq : Protocol.on_goldfish_vote st u = st := by
       unfold Protocol.on_goldfish_vote
-      rw [if_pos h1]
+      rw [ite_eq_left h1]
     rw [heq]
     refine ⟨hdup, ?_⟩
     cases hcase : st.timestamp_vote u with
@@ -583,12 +583,12 @@ theorem gfFrom_on_goldfish_vote (st : Protocol.Store V) (u : GoldfishVote V) :
   by_cases h1 : u.slot < st.s - 1 ∨ st.s < u.slot ∨ u ∈ st.gf_votes u.slot
   · refine Or.inl ?_
     rw [show Protocol.on_goldfish_vote st u = st by
-      unfold Protocol.on_goldfish_vote; rw [if_pos h1]] at hx
+      unfold Protocol.on_goldfish_vote; rw [ite_eq_left h1]] at hx
     exact hx
   by_cases h2 : Protocol.equivocates (st.pool u.slot) u.val_index = true
   · refine Or.inl ?_
     rw [show Protocol.on_goldfish_vote st u = st by
-      unfold Protocol.on_goldfish_vote; rw [if_neg h1, if_pos h2]] at hx
+      unfold Protocol.on_goldfish_vote; rw [ite_eq_right h1, ite_eq_left h2]] at hx
     exact hx
   obtain ⟨hgf, -, -⟩ := on_goldfish_vote_insert st u h1 h2
   simp only [hgf] at hx
@@ -822,8 +822,8 @@ theorem gfFrom_named_tick (gc : Protocol.GradeContract V) (E : Env V) (hc : Heal
           have he : proposed = (st0, none) := by
             dsimp only [proposed]
             simp only [Protocol.NamedDuties.propose_block_with, hcase]
-          have hst1 : st1 = st0 := by dsimp only [st1]; rw [if_pos hd, he]
-          have hem1 : emitted1 = [] := by dsimp only [emitted1]; rw [if_pos hd, he]
+          have hst1 : st1 = st0 := by dsimp only [st1]; rw [ite_eq_left hd, he]
+          have hem1 : emitted1 = [] := by dsimp only [emitted1]; rw [ite_eq_left hd, he]
           rw [hst1, hem1]
           exact GfFrom.refl' st0.core []
       | some B =>
@@ -832,24 +832,24 @@ theorem gfFrom_named_tick (gc : Protocol.GradeContract V) (E : Env V) (hc : Heal
             dsimp only [proposed]
             simp only [Protocol.NamedDuties.propose_block_with, hcase]
           have hst1 : st1 = Protocol.NamedAdmission.on_block_with .alsoCarried E hc cfg st0 B := by
-            dsimp only [st1]; rw [if_pos hd, he]
+            dsimp only [st1]; rw [ite_eq_left hd, he]
           have hem1 : emitted1 = [Object.block B] := by
-            dsimp only [emitted1]; rw [if_pos hd, he]
+            dsimp only [emitted1]; rw [ite_eq_left hd, he]
           rw [hst1, hem1]
           exact gfFrom_on_block_with .alsoCarried E hc cfg st0 B
-    · have hst1 : st1 = st0 := by dsimp only [st1]; rw [if_neg hd]
-      have hem1 : emitted1 = [] := by dsimp only [emitted1]; rw [if_neg hd]
+    · have hst1 : st1 = st0 := by dsimp only [st1]; rw [ite_eq_right hd]
+      have hem1 : emitted1 = [] := by dsimp only [emitted1]; rw [ite_eq_right hd]
       rw [hst1, hem1]
       exact GfFrom.refl' st0.core []
   have h2 : GfFrom st1.core emitted2 st2.core := by
     by_cases hv : voteDue
-    · have hst2 : st2 = voted.1 := by dsimp only [st2]; rw [if_pos hv]
+    · have hst2 : st2 = voted.1 := by dsimp only [st2]; rw [ite_eq_left hv]
       have hem2 : emitted2 = voted.2.toList.map Object.gfVote := by
-        dsimp only [emitted2]; rw [if_pos hv]
+        dsimp only [emitted2]; rw [ite_eq_left hv]
       rw [hst2, hem2]
       exact gfFrom_goldfish_vote_with gc E hc nd st1.core
-    · have hst2 : st2 = st1 := by dsimp only [st2]; rw [if_neg hv]
-      have hem2 : emitted2 = [] := by dsimp only [emitted2]; rw [if_neg hv]
+    · have hst2 : st2 = st1 := by dsimp only [st2]; rw [ite_eq_right hv]
+      have hem2 : emitted2 = [] := by dsimp only [emitted2]; rw [ite_eq_right hv]
       rw [hst2, hem2]
       exact GfFrom.refl' st1.core []
   have h3eq : st3.core.gf_votes = st2.core.gf_votes := by dsimp only [st3]; split_ifs <;> rfl
@@ -895,7 +895,7 @@ theorem store_time_le_event_time (S : Setup V) {ρ : Run V} (sch : ScheduleWellF
       simpa using (sch.in_horizon _ (List.mem_of_getElem? he)).1
   | some p =>
       have hmem : Event.tick v p ∈ ρ.events.take n := tick_mem_of_lastTickIn v _ hl
-      simpa using time_le_of_mem_take S sch he _ hmem
+      simpa using! time_le_of_mem_take S sch he _ hmem
 
 /-- **Every honest store of every prefix carries the bundle**
 (PROTOCOL.md#the-complete-protocol). The initial store has empty pools and an
@@ -946,7 +946,7 @@ theorem poolStamps_stateBefore (S : Setup V) {ρ : Run V} (sch : ScheduleWellFor
               rw [hw, hgc]
               refine (poolStep_named_tick gc S.E S.hc S.cfg (S.node v) (ρ.stateBefore S n v).st
                 (ρ.stateBefore S n v).record t ?_ ih).2
-              simpa [Event.time] using store_time_le_event_time S sch hev v
+              simpa [Event.time] using! store_time_le_event_time S sch hev v
             · rw [hstep, hev]
               simpa only [Option.toList, List.foldl_cons, List.foldl_nil, World.step,
                 NamedWorld.step, Function.update_of_ne hu] using ih
@@ -1009,7 +1009,7 @@ theorem pool_carry (S : Setup V) {ρ : Run V} (sch : ScheduleWellFormed S ρ) (v
                   rw [hw, hgc]
                   refine (poolStep_named_tick gc S.E S.hc S.cfg (S.node v) (ρ.stateBefore S n v).st
                     (ρ.stateBefore S n v).record t ?_ (poolStamps_stateBefore S sch v n)).1
-                  simpa [Event.time] using store_time_le_event_time S sch hev v
+                  simpa [Event.time] using! store_time_le_event_time S sch hev v
                 · rw [hstep, hev]
                   simp only [Option.toList, List.foldl_cons, List.foldl_nil, World.step,
                     NamedWorld.step, Function.update_of_ne hu]

@@ -174,7 +174,7 @@ theorem confirmation_adoption
     (AdoptionTransport.participants_subset hT E s)
   have hparticipants' : Protocol.voters_count E targetVotes s ≤
       Protocol.voters_count E sourceLate s := by
-    simpa only [Protocol.voters_count] using hparticipants
+    simpa only [Protocol.voters_count] using! hparticipants
   have hsource : Protocol.voters_count E sourceLate s <
       2 * (Protocol.goldfishSupporters E sourceTree sourceVotes sourceVotes s B).card := by
     simpa only [hN.score_eq_supporters] using heligible
@@ -200,7 +200,7 @@ theorem walk_eq {E : Env V} {hc : Protocol.HealConfig} {st : Protocol.Store V}
     (h : GenuineConfirmation E hc st s B (contract := contract)) :
     confWalkWith contract E hc st s = B := by
   have hselected := h.selected
-  rw [update_confirmation_with_live_confirmed, if_pos h.genuine] at hselected
+  rw [update_confirmation_with_live_confirmed, ite_eq_left h.genuine] at hselected
   exact hselected
 
 /-- The selected block clears the source confirmation's strict-majority gate. -/
@@ -210,8 +210,8 @@ theorem eligible {E : Env V} {hc : Protocol.HealConfig} {st : Protocol.Store V}
     Protocol.voters_count E (confLate E st s) s <
       2 * Protocol.goldfish_score E st.T (confVotes E st s) (confVotes E st s) s B := by
   have hg := h.genuine
-  simp only [confEligible, decide_eq_true_eq, confCount, confScore] at hg
-  simpa only [h.walk_eq] using hg
+  simp only [confEligible, decide_eq_true_eq] at hg
+  simpa only [confCount, confScore, h.walk_eq] using hg
 
 end GenuineConfirmation
 

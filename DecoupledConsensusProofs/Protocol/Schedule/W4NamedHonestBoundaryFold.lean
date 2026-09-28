@@ -56,7 +56,7 @@ private theorem w4nhbf_preEntry_honest
       exact Nat.add_le_add_left (by decide : (1 : Nat) ≤ 3) _
     exact (Int.add_le_add_right
       (Protocol.proposal_time_mono S.E hslots) _).trans
-      (by simpa only [o] using hbaseTiming.2.2)
+      (by simpa only [o] using! hbaseTiming.2.2)
   have hvoteHor : Protocol.vote_time S.E (o + 2) ≤ rho.horizon := by
     have hslots : o + 2 ≤ o + 3 := by
       show o + 2 ≤ o + 3

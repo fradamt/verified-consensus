@@ -202,7 +202,7 @@ private theorem batchCompatibleAt_of_emittedSGWindow_at_read
     (hhistory k hk') huk (hraw.2.1 ▸ hv)
   have hfind' : Block.find? (rho.storeBeforeTime S w read).T head.root =
       some head := by
-    simpa only [Protocol.HealingStore.gradeView, Protocol.Store.toHealing] using hfind
+    simpa only [Protocol.HealingStore.gradeView, Protocol.Store.toHealing] using! hfind
   simp only [Proofs.HealingLemmas.rootCompatible, hconfirmed, hfind'] at hroot
   simpa only [Block.compatible, Bool.or_comm] using hroot
 
@@ -296,7 +296,7 @@ theorem interpretedInputs_nonempty_at_actionRead_of_domainRead
                 (NamedRun.stateBeforeTime S rho
                   (DecoupledConsensusModel.Protocol.domain S.E S.hc r .g1) w).st.core.timestamp_block
                 (DecoupledConsensusModel.Protocol.early S.E S.hc r .g1) Hn.erase = true := by
-              simpa only [hHe] using hready.1
+              simpa only [hHe] using! hready.1
             have hs1 : stampedBefore
                 (NamedRun.stateBeforeTime S rho (S.a r) w).st.core.timestamp_block
                 (DecoupledConsensusModel.Protocol.early S.E S.hc r .g1) Hn.erase = true := by
@@ -349,7 +349,7 @@ theorem actionReadG1FrameGrade_of_activePrefix
       NamedActionReads.confirmationReadFrom,
       Protocol.NamedDuties.update_confirmation_with,
       Protocol.update_confirmation_with,
-      Protocol.NamedStore.setClock] using hframe
+      Protocol.NamedStore.setClock] using! hframe
   have hdomainGrade := WeakSG.phaseGrade_of_preparedFrame_g1
     S rho adm w hw r hr (S.a r)
       (Proofs.HealingLemmas.round_of_slotOf_a S r)
@@ -386,7 +386,7 @@ theorem actionReadG1FrameGrade_of_activePrefix
     NamedActionReads.confirmationReadFrom,
     Protocol.NamedDuties.update_confirmation_with,
     Protocol.update_confirmation_with,
-    Protocol.NamedStore.setClock] using hpersist
+    Protocol.NamedStore.setClock] using! hpersist
 
 #print axioms actionReadG1FrameGrade_of_activePrefix
 
@@ -423,7 +423,7 @@ theorem previousSGReadSideAt_of_delivery
     have hkbase : base ≤ k :=
       hspan.trans (WeakSG.mem_latestWindow_lower_bound hk)
     have hpre := hcarriers k hkbase hklt u hu hemit
-    simpa only [Block.compatible, Bool.or_eq_true] using Or.inl hpre
+    simpa only [Block.compatible, Bool.or_eq_true] using! Or.inl hpre
   intro w hw
   unfold PreviousSGReadSideAt
   refine ⟨?_, ?_, ?_, ?_, ?_⟩
@@ -434,7 +434,7 @@ theorem previousSGReadSideAt_of_delivery
       NamedActionReads.confirmationReadFrom,
       Protocol.NamedDuties.update_confirmation_with,
       Protocol.update_confirmation_with,
-      Protocol.NamedStore.setClock] using hbatch
+      Protocol.NamedStore.setClock] using! hbatch
   · apply WeakSG.windowMajorityAt_of_awakeWindowMajority S hawake
     intro u hu
     obtain ⟨huHon, k, hk, huk⟩ := WeakSG.mem_honestAwakeWindow_iff.mp hu
@@ -466,7 +466,7 @@ theorem previousSGReadSideAt_of_delivery
         P = true := by
       have hpre := hrootsAction w hw
       rw [actionStoreAt_fgRoot_eq_storeBeforeTime] at hpre
-      simpa only [Block.compatible, Bool.or_eq_true] using Or.inl hpre
+      simpa only [Block.compatible, Bool.or_eq_true] using! Or.inl hpre
     obtain ⟨y, hy⟩ := interpretedInputs_nonempty_at_actionRead_of_domainRead
       S adm.toNamedAdmissibleCore hw hroot hcarrier
         (htoken .g1 (hcapDomain .g1) w hw u huHon k hk huk)
@@ -480,7 +480,7 @@ theorem previousSGReadSideAt_of_delivery
       NamedActionReads.confirmationReadFrom,
       Protocol.NamedDuties.update_confirmation_with,
       Protocol.update_confirmation_with,
-      Protocol.NamedStore.setClock] using hy'
+      Protocol.NamedStore.setClock] using! hy'
   · exact actionReadG1FrameGrade_of_activePrefix
       S adm.toNamedAdmissibleCore hr haHor w hw
   · exact batchCompatibleAt_of_emittedSGWindow_at_read
@@ -506,7 +506,7 @@ private theorem compatible_of_preceq_left {A B P : Block V}
     (hAB : Block.Preceq A B) (hBP : Block.compatible B P = true) :
     Block.compatible A P = true := by
   rcases (show Block.Preceq B P ∨ Block.Preceq P B by
-    simpa only [Block.compatible, Bool.or_eq_true] using hBP) with hBP' | hPB
+    simpa only [Block.compatible, Bool.or_eq_true] using! hBP) with hBP' | hPB
   · simpa only [Block.compatible, Bool.or_eq_true] using
       (Or.inl (Block.preceq_trans hAB hBP'))
   · exact Block.compatible_of_preceq_common hAB hPB
@@ -594,7 +594,7 @@ theorem actionSGBlock_compatible_of_previousSGHistory
     apply grade_compatible_of_batchCompatible_of_faulty_lt_m S.E
       hhistory.2.2.2.2.1 hhistory.2.2.2.2.2
     simpa only [PhaseGrades.storeGrade] using hgrade
-  · simpa only [hraw.2.2] using hroot
+  · simpa only [hraw.2.2] using! hroot
   · rw [hanchor.2.2]
     exact getSgRoot_compatible_of_activeWindowHistory_at_read S
       (actionReadAt S rho w (r + 1)) (r + 1) P
@@ -624,7 +624,7 @@ theorem actionSGBlock_compatible_of_previousSGHistory_at_round
     apply grade_compatible_of_batchCompatible_of_faulty_lt_m S.E
       hhistory.2.2.2.2.1 hhistory.2.2.2.2.2
     simpa only [PhaseGrades.storeGrade] using hgrade
-  · simpa only [hraw.2.2] using hroot
+  · simpa only [hraw.2.2] using! hroot
   · rw [hanchor.2.2]
     exact getSgRoot_compatible_of_activeWindowHistory_at_read S
       (actionReadAt S rho w r) r P

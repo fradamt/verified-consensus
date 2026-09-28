@@ -367,7 +367,7 @@ theorem w4Targets_of_heightSourceHistory
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using hQbody
+      NamedRun.stateBeforeTime] using! hQbody
   obtain ⟨N, hN, -⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix S rho
     adm.toNamedAdmissibleCore.toNamedScheduleWellFormed.sorted (S.a a.round)
   have hQrun : RunBlock S rho Q' := by
@@ -389,7 +389,7 @@ theorem w4Targets_of_heightSourceHistory
     simpa only [hCfgQ] using hCfgRoot
   have hTpre : Block.Preceq (derive_named S.E S.cfg Q).T_h Q.erase := by
     have h := NamedDerivationGeometry.chainOrder_derive_named S.E S.cfg Q
-    simpa only [NamedDerivationGeometry.derive_named_latest] using
+    simpa only [NamedDerivationGeometry.derive_named_latest] using!
       h.target_preceq_latest
   obtain ⟨A, hAQ, hAerase⟩ := Proofs.NamedAncestry.erased_ancestor_lift Q hTpre
   have hArun : RunBlock S rho A :=

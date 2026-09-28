@@ -100,7 +100,7 @@ theorem honestSGVote_actionEmission_of_mem_storeBeforeTime
   have hiMem : Event.tick v t' ∈ rho.events := List.mem_of_getElem? hi
   have hactionHor : S.a k ≤ rho.horizon := by
     have h := (adm.in_horizon (Event.tick v t') hiMem).2
-    simpa only [Event.time, htime] using h
+    simpa only [Event.time, htime] using! h
   have hrowAction : row = actionAttestationAt S rho v k := by
     have hcanonical := ((NamedActionSources.action_run_emission S rho
       adm.toNamedScheduleWellFormed v k row).mp

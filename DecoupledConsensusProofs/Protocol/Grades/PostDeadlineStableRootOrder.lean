@@ -67,7 +67,7 @@ theorem stableRootAt_preceq_laterVoterHead_after_progressDeadline
     have he : Event.tick v time =
         Event.tick v (Protocol.confirmation_time S.E q') :=
       Option.some.inj (hi.symm.trans hq')
-    simpa only [Event.time] using congrArg Event.time he
+    simpa only [Event.time] using! congrArg Event.time he
   have hstate : rho.stateBefore S i v = rho.stateBeforeTime S time v :=
     stateBefore_tick_eq_stateBeforeTime S adm.toNamedScheduleWellFormed hi
   let n := confirmationInputRead S rho v q'
@@ -192,7 +192,7 @@ theorem stableRootAt_preceq_laterVoterHead_after_progressDeadline
                     (fun B => DecoupledConsensusModel.Protocol.clipGrade B
                       (NamedRun.stateBeforeTime S rho
                         (Protocol.confirmation_time S.E q') v).st.core.F)) := by
-            simpa only [n, confirmationInputRead] using hg2Prepared
+            simpa only [n, confirmationInputRead] using! hg2Prepared
           have hg2Some :
               (DecoupledConsensusModel.Protocol.readFrame n.cache n.st.core.toHealing r).g2 =
                 some (some raw) := by

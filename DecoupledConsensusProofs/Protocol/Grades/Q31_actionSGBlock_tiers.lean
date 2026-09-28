@@ -106,12 +106,12 @@ theorem q31_actionsgblock_tiers (S : Setup V) (rho : Run V) :
     · by_cases hraw : grades.rawG2
       · have hval : Protocol.currentSGVote st grades = Protocol.get_fg_root st.toFG := by
           unfold Protocol.currentSGVote
-          simp only [hdc, hq2, if_pos hraw]
+          simp only [hdc, hq2, ite_eq_left hraw]
         rw [heq, hval]
         exact Or.inr (Or.inr (Or.inl ⟨hq2, hraw, rfl⟩))
       · have hval : Protocol.currentSGVote st grades = grades.anchor := by
           unfold Protocol.currentSGVote
-          simp only [hdc, hq2, if_neg hraw]
+          simp only [hdc, hq2, ite_eq_right hraw]
         rw [heq, hval]
         exact Or.inr (Or.inr (Or.inr ⟨hq2, hraw, rfl⟩))
     · have hval : Protocol.currentSGVote st grades = Q := by
@@ -124,7 +124,6 @@ theorem q31_actionsgblock_tiers (S : Setup V) (rho : Run V) :
       simp only [hdc]
     rw [heq, hval]
     have hmem := Proofs.Engine.deepest?_mem hdc
-    unfold Protocol.deepest_clear at hmem
     have hmem' := Finset.mem_filter.mp hmem
     refine Or.inl ⟨hmem'.2.1, Proofs.Engine.deepest_clear_preceq hdc, hmem'.2.2⟩
 

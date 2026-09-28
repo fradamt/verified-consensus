@@ -310,12 +310,12 @@ theorem concreteConsensus (S : Setup V) : Statements.Instantiation.Consensus S :
     · simpa [gC, gS, gF, Instantiation.interface, Statements.instance] using
         (prefix_iff S rho gS gC).mpr (unconditional_stableBelowConfirmed S rho)
   · intro c c' T T' hcf hfin hfin'
-    simpa [Block.Compatible, Instantiation.interface, Statements.instance] using
+    simpa [Block.Compatible, Instantiation.interface, Statements.instance] using!
       unconditional_pureFinality S c c' T T' hcf hfin hfin'
   · intro rho hwell
     have hstd := unconditional_finalizedAccountable S rho
       (finalityExecution_of_generic_runWellFormed S rho hwell)
-    simpa [gF, Instantiation.interface, Statements.instance] using
+    simpa [gF, Instantiation.interface, Statements.instance] using!
       (accountablyConsistentFrom_iff S rho gF gF 0).mpr hstd
   · intro rho hwell
     simpa [Instantiation.interface, Statements.instance] using
@@ -350,7 +350,7 @@ theorem concreteConsensus (S : Setup V) : Statements.Instantiation.Consensus S :
     · simpa [gS, Instantiation.interface, Statements.instance] using
         (safeFrom_iff S rho gS t₀).mpr
           (available_stableSafe S rho t₀ hs hr)
-    · simpa [stableInclusionDelay_eq_constant] using
+    · simpa [stableInclusionDelay_eq_constant] using!
         included_of_named S (available_stableIncluded_any S rho t₀ hs hr)
   · intro rho t₀ gap hlive
     have hs := sleepyRegime_of_generic S rho t₀ hlive.toSleepyRegime
@@ -366,7 +366,7 @@ theorem concreteConsensus (S : Setup V) : Statements.Instantiation.Consensus S :
         (DecoupledConsensusModel.Execution.spec S) (Statements.Instantiation.interface S) rho
         (Statements.Instantiation.interface S).confirmed t₀
           (Statements.Instantiation.constants S).confirmationDelay := by
-      simpa [gC, Instantiation.interface, Statements.instance] using
+      simpa [gC, Instantiation.interface, Statements.instance] using!
         (included_of_named S
           (available_confirmedIncluded S rho t₀ hs hr))
     have ht₀ : 0 ≤ t₀ := S.E.t_GST_nonneg.trans hlive.toSleepyRegime.gst
@@ -380,7 +380,7 @@ theorem concreteConsensus (S : Setup V) : Statements.Instantiation.Consensus S :
       (fun hAB hBC => Block.preceq_trans hAB hBC)
       (fun A => Block.preceq_self A)
       (fun hAC hBC => Block.compatible_of_preceq_common hAC hBC)
-    simpa [gC, Instantiation.interface, Statements.instance] using hlive'
+    simpa [gC, Instantiation.interface, Statements.instance] using! hlive'
   · intro rho t₀ gap hlive
     have hs := sleepyRegime_of_generic S rho t₀ hlive.toSleepyRegime
     have hr := recoveredBy_of_generic S rho t₀ hlive.start
@@ -395,7 +395,7 @@ theorem concreteConsensus (S : Setup V) : Statements.Instantiation.Consensus S :
         (DecoupledConsensusModel.Execution.spec S) (Statements.Instantiation.interface S) rho
         (Statements.Instantiation.interface S).stable t₀
           (Statements.Instantiation.constants S).stableInclusionDelay := by
-      simpa [stableInclusionDelay_eq_constant] using
+      simpa [stableInclusionDelay_eq_constant] using!
         included_of_named S (available_stableIncluded_any S rho t₀ hs hr)
     have ht₀ : 0 ≤ t₀ := S.E.t_GST_nonneg.trans hlive.toSleepyRegime.gst
     have hperiod : 0 < (Statements.Instantiation.constants S).period := by
@@ -416,7 +416,7 @@ theorem concreteConsensus (S : Setup V) : Statements.Instantiation.Consensus S :
     · have hlegacy := finalityRegime_of_generic S rho t₀ gap hreg
       have hhor : t₀ + (Statements.ourConstants S).finalityStartup
           gap S.extraRounds ≤ rho.horizon := by
-        simpa [Statements.Instantiation.constants, Statements.ourConstants] using
+        simpa [Statements.Instantiation.constants, Statements.ourConstants] using!
           hreg.longEnough
       exact included_of_named S
         (finalized_included S rho t₀ gap S.extraRounds hlegacy hhor)
@@ -430,9 +430,9 @@ theorem concreteConsensus (S : Setup V) : Statements.Instantiation.Consensus S :
         (readAt_eq S rho gS v T ▸ hpre))
       (by simpa [Statements.Instantiation.constants, Statements.ourConstants, add_assoc] using
         hreg.window.1)
-      (by simpa [Statements.Instantiation.constants, Statements.ourConstants] using
+      (by simpa [Statements.Instantiation.constants, Statements.ourConstants] using!
         hreg.window.2.1)
-      (by simpa [Statements.Instantiation.constants, Statements.ourConstants] using
+      (by simpa [Statements.Instantiation.constants, Statements.ourConstants] using!
         hreg.window.2.2)
     exact (inBy_iff S rho gS B t).mpr (hstd t ht htime)
 

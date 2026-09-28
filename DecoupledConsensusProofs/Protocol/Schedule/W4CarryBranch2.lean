@@ -388,7 +388,7 @@ private theorem w4c2_round_of_lt_of_lt_opening
   have hRpos : 0 < hc.R := lt_of_lt_of_le Nat.zero_lt_two hc.R_ge_two
   simp only [Protocol.HealConfig.round_of]
   rw [Nat.div_lt_iff_lt_mul hRpos]
-  simpa only [Nat.mul_comm] using h
+  simpa only [Nat.mul_comm] using! h
 
 private theorem w4c2_nat_pred_le_pred {a b : Nat} (h : a ≤ b) : a - 1 ≤ b - 1 :=
   Nat.sub_le_sub_right h 1
@@ -892,9 +892,9 @@ private theorem w4c2_votePhaseEventFacts
               S adm.toNamedAdmissibleCore.toNamedScheduleWellFormed _
               (Proofs.Optimistic.downward_lt (Protocol.support_cutoff S.E s))
               (by simpa only [strictEventIndex] using hhigh) hev
-            simpa only [decide_eq_true_eq, Event.time] using htrue
+            simpa only [decide_eq_true_eq, Event.time] using! htrue
           have hhonest : u ∈ rho.honest := by
-            simpa only [Event.node] using adm.honest_only _ hmem
+            simpa only [Event.node] using! adm.honest_only _ hmem
           rcases publicTime_slotWindow_cases S hpub hgt
             (le_of_lt (lt_of_lt_of_le hlt
               ((w4c2_support_cutoff_le_view_freeze_local S.E s).trans

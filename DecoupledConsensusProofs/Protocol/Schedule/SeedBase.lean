@@ -55,7 +55,8 @@ private theorem seedBase_fgRoot_eq_finalized
     apply Nat.ne_of_gt
     rw [hfrontier]
     exact Nat.lt_of_succ_le (by simpa only [Nat.add_assoc] using hgate)
-  simp only [Protocol.get_fg_root, Protocol.Store.toHealing, if_neg hne]
+  simp only [Protocol.get_fg_root]
+  exact ite_eq_right hne
 
 /-- The block-admission guard for a thin run block at a gate-off target. The
 target's finalized block only grows, and at the cutoff read it is already below
@@ -78,7 +79,7 @@ theorem seedBase_thinBlock_finalizedBelow
   have hmono : Block.Preceq (rho.stateBefore S i w).st.F
       (rho.stateBefore S n w).st.F :=
     Protocol.stateBefore_F_mono S rho w
-      (by simpa only [strictEventIndex] using hi)
+      (by simpa only [strictEventIndex] using! hi)
   have hcutRoot : Block.Preceq (rho.storeBeforeTime S w cut).F W.erase := by
     rw [← seedBase_fgRoot_eq_finalized S hfrontier hgate]
     exact frontierRoot_preceq_of_gateOff S adm hsb hw

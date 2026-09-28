@@ -14,7 +14,7 @@ namespace Proofs
 namespace ConfirmationOrigin
 
 open Internal Execution Internal.NamedRecoveryRead Protocol Proofs.Optimistic
-open StableRecord NamedOutageClosure
+open _root_.DecoupledConsensusModel.Proofs.ConfirmationOrigin.StableRecord NamedOutageClosure
 
 variable {V : Type} [DecidableEq V] [Fintype V]
 
@@ -150,7 +150,7 @@ theorem stateBefore_latest_confirmed_origin_after_prefix
                           t = Protocol.support_cutoff S.E (S.E.slotOf t)) := by
                         intro hc
                         exact hcase ⟨t, hn, hc.1, hc.2⟩
-                      simpa only [NamedWorld.step, Function.update_self] using
+                      simpa only [NamedWorld.step, Function.update_self] using!
                         on_tick_emit_latest_of_ne S v
                           (rho.stateBefore S n v) t hbranch
                     · simp only [NamedWorld.step,

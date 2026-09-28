@@ -178,9 +178,9 @@ private theorem tick_new_stamp (gc : Protocol.GradeContract V) (S : Setup V)
     by_cases hdue : due
     · have hap : a ∈
           (Protocol.NamedDuties.propose_block_with gc S.E S.hc S.cfg nd st0).1.sg_rows a.round := by
-        simpa only [st1, if_pos hdue] using ha3
-      simpa only [st1, if_pos hdue] using propose_new_stamp gc S nd st0 a hpre hap
-    · exact False.elim (hpre (by simpa only [st1, if_neg hdue] using ha3))
+        simpa only [st1, ite_eq_left hdue] using ha3
+      simpa only [st1, ite_eq_left hdue] using! propose_new_stamp gc S nd st0 a hpre hap
+    · exact False.elim (hpre (by simpa only [st1, ite_eq_right hdue] using! ha3))
   have hstore : (Protocol.NamedTick.tick gc S.E S.hc S.cfg nd st record t).1 =
       (if t = S.hc.a S.E.Δ (S.hc.round_of st3.core.s) ∧
           nd.awake (S.hc.round_of st3.core.s) = true

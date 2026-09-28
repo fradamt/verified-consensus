@@ -191,7 +191,7 @@ theorem actionPath_to_ancestor_of_candidate_core
     Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime
       S rho (S.a r) v
   have hFJ : Block.Preceq ast.F ast.J := by
-    simpa only [ast, pre] using hFJpre
+    simpa only [ast, pre] using! hFJpre
   intro C hAC _ hCB
   have hET : E ∈ ast.T := Proofs.Records.get_filtered_block_tree_subset _ hE
   have hETpre : E ∈ pre.T := by
@@ -278,7 +278,7 @@ theorem protectedBlock_preceq_actionHead_of_cone_compatible_core
   have hvalid0 := voteSetValid_pool_stateBeforeTime
     S core.toNamedScheduleWellFormed v (S.a r) q
   have hvalid : Protocol.VoteSetValid S.E q raw := by
-    simpa only [ast, raw, actionStoreAt_pool S rho v r q] using hvalid0
+    simpa only [ast, raw, actionStoreAt_pool S rho v r q] using! hvalid0
   have hhead : Block.Preceq B
       (Protocol.get_head_with gc S.E S.hc ast.toHealing raw support q) := by
     unfold Protocol.get_head_with

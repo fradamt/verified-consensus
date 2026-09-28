@@ -167,7 +167,7 @@ theorem relativeGradeCarrierAt_of_awakeWindowHistory_gstZero
       NamedActionReads.confirmationReadFrom,
       Protocol.NamedDuties.update_confirmation_with,
       Protocol.update_confirmation_with,
-      Protocol.NamedStore.setClock] using hroots w hw
+      Protocol.NamedStore.setClock] using! hroots w hw
   have hFD := Block.preceq_trans hFmono (Block.preceq_trans hFroot hrootD)
   have hcarrierD := hsg k hkbase hklt u hu hemit
   have hcompat : Block.compatible
@@ -295,7 +295,7 @@ theorem relativeCarrierWindowAt_of_awakeWindowHistory_of_delivery
         (NamedRun.stateBeforeTime S rho (S.a r) w).st.core.toHealing.toFG) :=
     Proofs.Records.preceq_get_fg_root_of_F
       (st := (NamedRun.stateBeforeTime S rho (S.a r) w).st.core.toHealing.toFG)
-      (by simpa only [Protocol.Store.toHealing] using hFJ)
+      (by simpa only [Protocol.Store.toHealing] using! hFJ)
   have hrootD : Block.Preceq
       (Protocol.get_fg_root
         (NamedRun.stateBeforeTime S rho (S.a r) w).st.core.toHealing.toFG) D := by
@@ -304,7 +304,7 @@ theorem relativeCarrierWindowAt_of_awakeWindowHistory_of_delivery
       NamedActionReads.confirmationReadFrom,
       Protocol.NamedDuties.update_confirmation_with,
       Protocol.update_confirmation_with,
-      Protocol.NamedStore.setClock] using hroots w hw
+      Protocol.NamedStore.setClock] using! hroots w hw
   have hFD := Block.preceq_trans hFmono (Block.preceq_trans hFroot hrootD)
   have hcarrierD := hsg k hkbase hklt u hu hemit
   have hinput := interpretedInputs_nonempty_of_honest_window_vote_of_delivery_common_upper
@@ -437,7 +437,7 @@ theorem relativeCarrierWindowAt_of_awakeWindowHistory_w
         (NamedRun.stateBeforeTime S rho (S.a r) w).st.core.toHealing.toFG) :=
     Proofs.Records.preceq_get_fg_root_of_F
       (st := (NamedRun.stateBeforeTime S rho (S.a r) w).st.core.toHealing.toFG)
-      (by simpa only [Protocol.Store.toHealing] using hFJ)
+      (by simpa only [Protocol.Store.toHealing] using! hFJ)
   have hrootD : Block.Preceq
       (Protocol.get_fg_root
         (NamedRun.stateBeforeTime S rho (S.a r) w).st.core.toHealing.toFG) D := by
@@ -446,7 +446,7 @@ theorem relativeCarrierWindowAt_of_awakeWindowHistory_w
       NamedActionReads.confirmationReadFrom,
       Protocol.NamedDuties.update_confirmation_with,
       Protocol.update_confirmation_with,
-      Protocol.NamedStore.setClock] using hroots w hw
+      Protocol.NamedStore.setClock] using! hroots w hw
   have hFD := Block.preceq_trans hFmono (Block.preceq_trans hFroot hrootD)
   have hcarrierD := hsg k hkbase hklt u hu hemit
   have hpostK : S.E.t_GST ≤ S.a k :=
@@ -515,7 +515,7 @@ theorem actionGradeFormationAt_of_awakeWindowMajority
             rw [show (DecoupledConsensusModel.Protocol.readFrame
                 (actionReadAt S rho w r).cache
                 (actionReadAt S rho w r).st.core.toHealing r).g1 = some none by
-              simpa only [hroot] using hframe]
+              simpa only [hroot] using! hframe]
             rfl
           exact Or.inr (Or.inl (hEq.trans hanchorEq))
       | some raw =>
@@ -563,7 +563,7 @@ theorem actionGradeFormationAt_of_awakeWindowMajority
                     (late S.E S.hc r .g1) raw = true :=
                 (Finset.mem_filter.mp (Proofs.Engine.deepest?_mem (by
                   simpa only [PhaseGrades.storeRoot, PhaseGrades.phaseRoot]
-                    using hroot))).2
+                    using! hroot))).2
               obtain ⟨k, hk, u, hu, hemit, hrawPre⟩ :=
                 hgrade .g1 ((FrameForward.domain_le_a S r .g1).trans hhor)
                   w hw raw hrawGrade
@@ -606,7 +606,7 @@ theorem actionGradeFormationAt_of_awakeWindowMajority
             (S.hc.round_of (actionStoreAt S rho w r).st.core.toHealing.s)) =
         some Cfg at hsource0
       rw [hround] at hsource0
-      simpa only [PhaseGrades.nodeFGSource, PhaseGrades.nodeRead] using hsource0
+      simpa only [PhaseGrades.nodeFGSource, PhaseGrades.nodeRead] using! hsource0
     cases hQ : PhaseGrades.nodeQ2 S (actionReadAt S rho w r) r with
     | none =>
         have hQ' : Protocol.grade2_block_with

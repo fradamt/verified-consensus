@@ -229,10 +229,8 @@ theorem voter_candidate_tree_terminal_of_preceq_core
       (Proofs.Optimistic.voteDutyStore S rho v s).toHealing)
     (hBX : Block.Preceq B X) : X = B := by
   refine voteDutyStore_terminal_of_preceq_core S adm (v := v) (s := s) hslot ?_ hBX
-  simp only [Proofs.Optimistic.voter_candidate_tree, Protocol.get_filtered_block_tree_from,
-    Protocol.viable_tree, Protocol.finalized_descendants,
-    Protocol.voter_processed_block_tree, Finset.mem_filter] at hX
-  exact hX.1.1.1.1
+  exact Finset.mem_of_mem_filter _ (Finset.mem_of_mem_filter _
+    (Finset.mem_of_mem_filter _ (Finset.mem_of_mem_filter _ hX)))
 
 
 theorem candidate_leaf_at_vote_core
@@ -244,10 +242,8 @@ theorem candidate_leaf_at_vote_core
       C.parent? ≠ some B := by
   intro C hC hparent
   have hCT : C ∈ (Proofs.Optimistic.voteDutyStore S rho v s).T := by
-    simp only [Proofs.Optimistic.voter_candidate_tree, Protocol.get_filtered_block_tree_from,
-      Protocol.viable_tree, Protocol.finalized_descendants,
-      Protocol.voter_processed_block_tree, Finset.mem_filter] at hC
-    exact hC.1.1.1.1
+    exact Finset.mem_of_mem_filter _ (Finset.mem_of_mem_filter _
+      (Finset.mem_of_mem_filter _ (Finset.mem_of_mem_filter _ hC)))
   have hle := block_slot_le_of_mem_voteStore_core S adm hCT
   have hlt := parent_slot_lt_of_mem_voteStore_core S adm hCT hparent
   rw [hslot] at hlt

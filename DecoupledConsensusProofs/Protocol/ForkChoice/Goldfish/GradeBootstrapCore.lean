@@ -289,7 +289,7 @@ theorem actionSGVote_mem_next_round_batch
     simpa only [Nat.succ_eq_add_one] using Nat.succ_ne_zero r
   apply Finset.mem_filter.mpr
   constructor
-  · simpa only [Protocol.round_batch, if_neg hr1,
+  · simpa only [Protocol.round_batch, ite_eq_right hr1,
       Nat.add_sub_cancel, gradeViewAt, healStoreAt, Run.storeBeforeTime,
       Protocol.HealingStore.gradeView] using hread
   · exact (actionSGVoteAt_shape S rho v r).1
@@ -316,7 +316,7 @@ theorem activeDomain_of_retainedAtDomainRead
       P ∈ filteredTree (relativeG2Read S rho (r + 1) w) := by
   intro w hw
   simpa only [relativeG2Read,
-    PhaseGrades.readAt, PhaseGrades.filteredTree] using hretainedAtRead w hw
+    PhaseGrades.readAt, PhaseGrades.filteredTree] using! hretainedAtRead w hw
 
 /-- The remaining producer condition for a clean action round.
 
@@ -765,8 +765,9 @@ theorem finalizedViable_iff (st : Protocol.Store V) :
       st.F ∈ st.T ∧ ∃ W ∈ st.T, Block.preceq st.F W = true ∧
         st.h_max - 1 ≤ (st.σ W).h := by
   simp only [FinalizedViable, Protocol.V_tree, Protocol.viable_tree,
-    Protocol.finalized_descendants, Protocol.viable, Finset.mem_filter,
-    decide_eq_true_eq, Protocol.Store.toHealing]
+    Protocol.finalized_descendants, Finset.mem_filter]
+  simp only [Protocol.viable, decide_eq_true_eq]
+  simp only [Protocol.Store.toHealing]
   constructor
   · rintro ⟨⟨hT, -⟩, W, hW, hFW, hh⟩
     exact ⟨hT, W, hW, hFW, hh⟩

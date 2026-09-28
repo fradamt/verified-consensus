@@ -193,7 +193,7 @@ theorem goldfishCone_confirmation
   have hsupport := coneSupport_confVotes_after_gst
     S adm hcom hs hpost hhor hnames hw hresolve
   have hvalid : Protocol.VoteSetValid S.E s (confLate S.E st s) := by
-    simpa only [st, Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using
+    simpa only [st, Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore] using!
       voteSetValid_confLate_stateBeforeTime S adm.toNamedScheduleWellFormed w
         (Protocol.confirmation_time S.E s) s
   have hcompat : Block.compatible
@@ -220,7 +220,7 @@ theorem goldfishCone_confirmation
   have horder : Block.Preceq
       (confAnchorWith contract S.E S.hc st) C ∨
       Block.Preceq C (confAnchorWith contract S.E S.hc st) := by
-    simpa only [Block.compatible, Bool.or_eq_true] using hcompat
+    simpa only [Block.compatible, Bool.or_eq_true] using! hcompat
   rcases horder with hanchorC | hCanchor
   · have hpre := Proofs.Optimistic.update_confirmation_preceq_with contract
         S.E S.hc st s rho.honest hsupport hvalid hanchorC hpath
@@ -235,7 +235,7 @@ theorem goldfishCone_confirmation
           (confScore S.E st s) (confEligible S.E st s)
     have hDwalk : D = confWalkWith contract S.E S.hc st s := by
       rw [← hgenuine.selected, update_confirmation_with_live_confirmed,
-        if_pos hgenuine.genuine]
+        ite_eq_left hgenuine.genuine]
     rw [hDwalk]
     exact Block.preceq_trans hCanchor hwalk
 

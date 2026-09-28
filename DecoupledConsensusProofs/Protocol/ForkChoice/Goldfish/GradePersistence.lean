@@ -142,7 +142,7 @@ theorem namedGradeFormsAt_processedAtRead_of_action_le
         (DecoupledConsensusModel.Protocol.domain S.E S.hc q .g2)).T := by
     have hfiltered := (hforms reader hreader).1
     have htree := Proofs.Records.get_filtered_block_tree_subset _ hfiltered
-    simpa only [PhaseGrades.filteredTree, Run.storeBeforeTime] using htree
+    simpa only [PhaseGrades.filteredTree, Run.storeBeforeTime] using! htree
   rw [storeBeforeTime_eq_storeAt_sub_one_recovery] at hsource ⊢
   apply StoreFinality.stateAt_T_subset
     S adm.toNamedAdmissibleCore.toNamedScheduleWellFormed reader ?_ hsource
@@ -157,7 +157,7 @@ theorem activeAtAction_of_retainedAtRead
       (healStoreAt S rho v r).toFG) :
     P ∈ PhaseGrades.filteredTree (actionReadAt S rho v r) := by
   simpa only [healStoreAt, PhaseGrades.filteredTree, actionReadAt,
-    Run.storeBeforeTime] using hretained
+    Run.storeBeforeTime] using! hretained
 
 /-! ## The one-round persistence theorem -/
 

@@ -176,7 +176,7 @@ private theorem actionSGBlockAt_mem_filtered_actionStore_core
     Proofs.NamedStoreBridge.parentClosed_stateBeforeTime S rho (S.a r) v
   have hpc : ParentClosed ast.st.core := by
     have hT : ast.st.core.T = pre.core.T := rfl
-    simpa only [hT] using hpcPre
+    simpa only [hT] using! hpcPre
   have hFJPre : Block.Preceq pre.core.F pre.core.J :=
     Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime S rho
       (S.a r) v
@@ -416,7 +416,8 @@ theorem frontierRoot_preceq_of_gateOff
     rw [hfrontier']
     exact Nat.lt_of_succ_le (by simpa only [Nat.add_assoc] using hgateOff')
   have hroot: Protocol.get_fg_root st.toHealing.toFG = st.F:= by
-    simp only [Protocol.get_fg_root, Protocol.Store.toHealing, if_neg hgate]
+    simp only [Protocol.get_fg_root]
+    exact if_neg hgate
   simpa only [st, hroot] using hFX
 
 /-- The filtered prior action carrier has a processed descendant in the thin
@@ -429,11 +430,10 @@ theorem actionSGBlockAt_frontierWitness
       Block.Preceq (actionSGBlockAt S rho v r) W ∧
         M - 1 ≤ (derived_state S.E S.cfg W).h:= by
   have hfiltered:= actionSGBlockAt_mem_filtered_actionStore S adm v r
-  simp only [Protocol.get_filtered_block_tree,
-    Protocol.get_filtered_block_tree_from,
-    Protocol.viable_tree, Protocol.finalized_descendants,
-    Protocol.viable, Finset.mem_filter, decide_eq_true_eq,
-    Protocol.Store.toHealing] at hfiltered
+  simp only [Protocol.get_filtered_block_tree, Protocol.get_filtered_block_tree_from,
+    Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter] at hfiltered
+  simp only [Protocol.viable, decide_eq_true_eq] at hfiltered
+  simp only [Protocol.Store.toHealing] at hfiltered
   obtain ⟨⟨⟨-, -⟩, W, hWT, hcarrierW, hheight⟩, -⟩:= hfiltered
   have hmax: (actionStoreAt S rho v r).h_max = M:= by
     have hfinality:= attestStore_finality S
@@ -728,13 +728,14 @@ theorem frontierRoot_preceq_of_gateOff
       S rho Xn C hsb adm.toNamedAdmissibleCore.toNamedRootCollisionFree
       hXrun hCrun hcrossed
     rw [hXerase] at hpre
-    simpa only [hF] using hpre
+    simpa only [hF] using! hpre
   have hgate : ¬ st.h_max = st.h_j + 1 := by
     apply Nat.ne_of_gt
     rw [hfrontier']
     exact Nat.lt_of_succ_le (by simpa only [Nat.add_assoc] using hgateOff')
   have hroot : Protocol.get_fg_root st.toHealing.toFG = st.F := by
-    simp only [Protocol.get_fg_root, Protocol.Store.toHealing, if_neg hgate]
+    simp only [Protocol.get_fg_root]
+    exact ite_eq_right hgate
   simpa only [st, hroot] using hFX
 
 /-- The filtered prior action carrier has a named processed descendant in the
@@ -748,27 +749,26 @@ theorem actionSGBlockAt_frontierWitness
         Block.Preceq (actionSGBlockAt S rho v r) W.erase ∧
           M - 1 ≤ (Protocol.derive_named S.E S.cfg W).h := by
   have hfiltered := actionSGBlockAt_mem_filtered_actionStore S adm v r
-  simp only [Protocol.get_filtered_block_tree,
-    Protocol.get_filtered_block_tree_from,
-    Protocol.viable_tree, Protocol.finalized_descendants,
-    Protocol.viable, Finset.mem_filter, decide_eq_true_eq,
-    Protocol.Store.toHealing] at hfiltered
+  simp only [Protocol.get_filtered_block_tree, Protocol.get_filtered_block_tree_from,
+    Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter] at hfiltered
+  simp only [Protocol.viable, decide_eq_true_eq] at hfiltered
+  simp only [Protocol.Store.toHealing] at hfiltered
   obtain ⟨⟨⟨-, -⟩, W, hWT, hcarrierW, hheight⟩, -⟩ := hfiltered
   have hmax : (actionStoreAt S rho v r).st.core.h_max = M := by
     rw [actionStoreAt_eq_update_confirmation_confStore]
     simp only [Protocol.update_confirmation_with]
-    simpa only [Run.storeBeforeTime] using hfrontier
+    simpa only [Run.storeBeforeTime] using! hfrontier
   rw [hmax] at hheight
   have hWTpre : W ∈ (rho.storeBeforeTime S v (S.a r)).core.T := by
     have hWT' := hWT
     rw [actionStoreAt_eq_update_confirmation_confStore] at hWT'
-    simpa only [Protocol.update_confirmation_with] using hWT'
+    simpa only [Protocol.update_confirmation_with] using! hWT'
   obtain ⟨D, hDbody, hDerase⟩ :=
     Proofs.NamedStoreBridge.exists_named_of_mem_stateBeforeTime S rho (S.a r) v hWTpre
   have hsig : (actionStoreAt S rho v r).st.core.σ D.erase =
       Protocol.derive_named S.E S.cfg D := by
     rw [actionStoreAt_eq_update_confirmation_confStore]
-    simpa only [Protocol.update_confirmation_with, hDerase] using
+    simpa only [Protocol.update_confirmation_with, hDerase] using!
       (Proofs.NamedStoreBridge.derivedView_stateBeforeTime S rho (S.a r) v D hDbody)
   refine ⟨D, ?_, ?_, ?_⟩
   · exact hDbody
@@ -802,7 +802,7 @@ theorem previousActionCarriersQuietAt_of_gateOff
     have hWpre : W ∈ (rho.storeBeforeTime S u (S.a (r - 1))).bodies := by
       simpa only [actionStoreAt, actionReadAt, NamedActionReads.actionReadAt,
         NamedActionReads.actionReadFrom, NamedActionReads.confirmationReadFrom,
-        NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hWbody
+        NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hWbody
     obtain ⟨n, hn, -⟩ := Proofs.Bridges.stateBeforeTime_eq_stateBefore S
       adm.toNamedAdmissibleCore.toNamedScheduleWellFormed (S.a (r - 1))
     apply Proofs.Bridges.runBlock_of_stateBefore_mem S hu (i := n)

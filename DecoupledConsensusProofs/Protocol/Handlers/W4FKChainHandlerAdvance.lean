@@ -95,16 +95,16 @@ theorem onBlockUsing_candidateFinality_preceq
         (fun ps => named_transition S.E S.cfg ps B) = st.core := by
   by_cases h1 : st.core.s < B.erase.slot ∨ B.erase ∈ st.core.T ∨
       B.erase.parent ∉ st.core.T
-  · exact Or.inr (by simp only [Protocol.on_block_using, if_pos h1])
+  · exact Or.inr (by simp only [Protocol.on_block_using, ite_eq_left h1])
   by_cases h2 : (!Block.preceq st.core.F B.erase) = true
-  · exact Or.inr (by simp only [Protocol.on_block_using, if_neg h1, if_pos h2])
+  · exact Or.inr (by simp only [Protocol.on_block_using, ite_eq_right h1, ite_eq_left h2])
   by_cases h3 : B.erase.proposer? ≠ some (S.E.proposer B.erase.slot)
   · exact Or.inr
-      (by simp only [Protocol.on_block_using, if_neg h1, if_neg h2, if_pos h3])
+      (by simp only [Protocol.on_block_using, ite_eq_right h1, ite_eq_right h2, ite_eq_left h3])
   by_cases h4 : ¬ (B.erase.parent.slot < B.erase.slot)
   · exact Or.inr (by
-      simp only [Protocol.on_block_using, if_neg h1, if_neg h2, if_neg h3,
-        if_pos h4])
+      simp only [Protocol.on_block_using, ite_eq_right h1, ite_eq_right h2, ite_eq_right h3,
+        ite_eq_left h4])
   left
   -- the write path
   have hslotLt : B.erase.parent.slot < B.erase.slot := not_not.mp h4
@@ -127,8 +127,8 @@ theorem onBlockUsing_candidateFinality_preceq
   have hhandler : Protocol.on_block_using S.E st.core B.erase
       (fun ps => named_transition S.E S.cfg ps B) =
       Protocol.update_finality unpacked (unpacked.σ B.erase) := by
-    simp only [Protocol.on_block_using, if_neg h1, if_neg h2, if_neg h3,
-      if_neg h4, hunpackedDef, hstoredDef]
+    simp only [Protocol.on_block_using, ite_eq_right h1, ite_eq_right h2, ite_eq_right h3,
+      ite_eq_right h4, hunpackedDef, hstoredDef]
   have hcore := coreEq_foldl_on_goldfish_vote_checked S.E
     B.erase.gf_votes stored
   -- the stored chain state at `B` is the named derivation
@@ -140,7 +140,7 @@ theorem onBlockUsing_candidateFinality_preceq
     show (if B.erase = B.erase then
       named_transition S.E S.cfg (st.core.σ B.erase.parent) B
       else st.core.σ B.erase) = sigma
-    rw [if_pos rfl, hparentSigma, hsigmaDef]
+    rw [ite_eq_left rfl, hparentSigma, hsigmaDef]
     exact (BlockProcessingDefaults.derive_named_of_not_genesis S.E S.cfg B hBne).symm
   rw [hhandler, hsigmaAt]
   -- the unpacked fields
@@ -154,7 +154,7 @@ theorem onBlockUsing_candidateFinality_preceq
   have huHj : unpacked.h_j = st.core.h_j := hcore.h_j_eq
   -- the two ancestors of `B`
   have hFB : Block.Preceq st.core.F B.erase := by
-    simpa only [Bool.not_eq_true', Bool.not_eq_false] using
+    simpa only [Bool.not_eq_true', Bool.not_eq_false] using!
       (Bool.not_eq_true _ ▸ h2 : ¬ ((!Block.preceq st.core.F B.erase) = true))
   have hparentT : B.erase.parent ∈ st.core.T := by
     by_contra hn
@@ -211,11 +211,11 @@ theorem onBlockUsing_candidateFinality_preceq
     by_cases hmerge : (Block.preceq afterMax.F sigma.J &&
         decide (Protocol.HeightId.mk afterMax.h_j afterMax.J.root <
           Protocol.HeightId.mk sigma.h_j sigma.J.root)) = true
-    · have hJ : afterJust.J = sigma.J := by rw [hafterJustDef, if_pos hmerge]
+    · have hJ : afterJust.J = sigma.J := by rw [hafterJustDef, ite_eq_left hmerge]
       rw [hJ]
       exact hchain.finalized_preceq_justified
     · have hJ : afterJust.J = st.core.J := by
-        rw [hafterJustDef, if_neg hmerge]
+        rw [hafterJustDef, ite_eq_right hmerge]
         exact hamJ
       rw [hJ]
       refine StoreFinality.upgrade_of_height_le hsb hcf hBrun hRun hprov
@@ -271,7 +271,7 @@ theorem onBlockUsing_candidateFinality_preceq
           show (if D.erase = B.erase then
             named_transition S.E S.cfg (st.core.σ B.erase.parent) B
             else st.core.σ D.erase) = derive_named S.E S.cfg D
-          rw [if_neg hDne]
+          rw [ite_eq_right hDne]
           exact hcoh.2.2.2.2 D hDb
         rw [hsigmaD, hDh, hajMax, max_eq_left (le_of_lt hhigh)]
         exact Nat.sub_le _ _
@@ -286,7 +286,7 @@ theorem onBlockUsing_candidateFinality_preceq
         afterJust.h_max afterJust.T)) = true := by
     rw [Bool.and_eq_true, Bool.and_eq_true]
     exact ⟨⟨hc1, hc2⟩, decide_eq_true hc3⟩
-  rw [hstep, if_pos hguard]
+  rw [hstep, ite_eq_left hguard]
   exact Block.preceq_self _
 
 #print axioms onBlockUsing_candidateFinality_preceq
@@ -320,7 +320,7 @@ theorem processBlockCore_advance
     have hproc : Protocol.NamedStore.process_block_core S.E S.hc S.cfg st B =
         Protocol.NamedStore.commitBlock st after B := by
       simp only [Protocol.NamedStore.process_block_core,
-        if_neg (not_not_intro hp), hafterDef]
+        ite_eq_right (not_not_intro hp), hafterDef]
     have hcoreEq : (Protocol.NamedStore.commitBlock st after B).core = after :=
       NamedStore.commit_core st after B
     have hmono : Block.Preceq st.core.F after.F := by
@@ -334,19 +334,19 @@ theorem processBlockCore_advance
           (Protocol.NamedStore.process_block_core S.E S.hc S.cfg st B).bodies := by
         rw [hproc]
         unfold Protocol.NamedStore.commitBlock
-        rw [if_pos ⟨hfresh, hpost⟩]
+        rw [ite_eq_left ⟨hfresh, hpost⟩]
         exact Finset.mem_insert_self _ _
       by_cases hadm : Protocol.carried_attestations_admissible S.hc B.erase = true
       · have hafter : after = Protocol.on_block_using S.E st.core B.erase
             (fun ps => named_transition S.E S.cfg ps B) := by
-          rw [hafterDef, Protocol.on_block_checked_using, if_pos hadm]
+          rw [hafterDef, Protocol.on_block_checked_using, ite_eq_left hadm]
         rcases onBlockUsing_candidateFinality_preceq S hsb hcf hcoh hmax hprov
           (hBrun hBmem) hRun hp with hgood | hnoop
         · rw [hafter]; exact hgood
         · exact absurd (by rw [hafter, hnoop] at hpost; exact hpost) hfresh
       · have hafter : after = st.core := by
           rw [hafterDef, Protocol.on_block_checked_using,
-            if_neg (by simpa using hadm)]
+            ite_eq_right (by simpa using hadm)]
         exact absurd (by rw [hafter] at hpost; exact hpost) hfresh
     rw [hproc, hcoreEq]
     intro D hD
@@ -356,7 +356,7 @@ theorem processBlockCore_advance
       · exact hnewF hgrow
       · exact Block.preceq_trans (hinv D hDold) hmono
     · exact Block.preceq_trans (hinv D hD) hmono
-  · rw [Protocol.NamedStore.process_block_core, if_pos hp]
+  · rw [Protocol.NamedStore.process_block_core, ite_eq_left hp]
     exact hinv
 
 #print axioms processBlockCore_advance

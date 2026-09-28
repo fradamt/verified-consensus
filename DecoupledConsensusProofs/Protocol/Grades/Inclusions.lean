@@ -151,7 +151,7 @@ theorem finalized_le_of_needsSG (S : Setup V) (rho : NamedRun V)
     Block.Preceq (NamedRun.stateBeforeTime S rho cut w).st.core.F Pn.erase := by
   rcases (show Block.Preceq Pn.erase (NamedRun.stateBeforeTime S rho cut w).st.core.F ∨
       Block.Preceq (NamedRun.stateBeforeTime S rho cut w).st.core.F Pn.erase by
-    simpa only [Block.compatible, Bool.or_eq_true] using hcompat) with hPle | hFle
+    simpa only [Block.compatible, Bool.or_eq_true] using! hcompat) with hPle | hFle
   · exfalso
     refine hneed ?_
     have hstage : NamedRun.readAt S rho (domain S.E S.hc r .g1) w =

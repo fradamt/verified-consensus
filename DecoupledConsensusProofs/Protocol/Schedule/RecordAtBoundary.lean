@@ -74,17 +74,17 @@ theorem node_tick_stable_cases (S : Setup V) (w : V) (n : NamedNodeState V) (t :
       exact Proofs.Optimistic.support_cutoff_ne_vote_time S.E (S.E.slotOf t) (hcut.2 ▸ hp)
     have h20 : st2 = st0 := by
       dsimp only [st2, st1]
-      rw [if_neg hvote, if_neg hprop]
+      rw [ite_eq_right hvote, ite_eq_right hprop]
     have h3 : st3 = Protocol.NamedDuties.update_confirmation_with gc S.E S.hc st0
         (S.E.slotOf t - 1) := by
       dsimp only [st3]
-      rw [if_pos hcut, h20]
+      rw [ite_eq_left hcut, h20]
     rw [hlast, h3]
     rfl
   · refine Or.inl ⟨hcut, ?_⟩
     have h3 : st3 = st2 := by
       dsimp only [st3]
-      rw [if_neg hcut]
+      rw [ite_eq_right hcut]
     rw [hlast, h3, h2, h1]
 
 /-- The support-cutoff form of `node_tick_stable_cases`. -/

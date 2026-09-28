@@ -148,7 +148,7 @@ private theorem interpretedInputs_nonempty_at_voteDuty_of_delivery
         simpa only [Internal.NamedRecoveryRead.voteDutyRead,
           NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom,
-          Protocol.NamedStore.setClock, Protocol.Store.toHealing] using
+          Protocol.NamedStore.setClock, Protocol.Store.toHealing] using!
           Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime S rho
             (Protocol.vote_time S.E d) w)
   have hrootCompat := hroots w hw
@@ -158,7 +158,7 @@ private theorem interpretedInputs_nonempty_at_voteDuty_of_delivery
       Block.Preceq B
         (Protocol.get_fg_root
           (Internal.NamedRecoveryRead.voteDutyRead S rho w d).st.core.toHealing.toFG) by
-    simpa only [Block.compatible, Bool.or_eq_true] using hrootCompat) with hFB | hBF
+    simpa only [Block.compatible, Bool.or_eq_true] using! hrootCompat) with hFB | hBF
   · have hinput := interpretedInputs_nonempty_of_honest_window_vote_of_delivery_common_upper
       S adm .g1 hdelivery hk hu hw
       (hvote := by
@@ -170,7 +170,7 @@ private theorem interpretedInputs_nonempty_at_voteDuty_of_delivery
       (by simpa only [actionAttestationAt_shape] using hdeadline) hearlyVote hcapEarly
     obtain ⟨y, hy, hyround, hyconfirmed, hyfind⟩ := hinput
     refine ⟨y, ?_, hyround, ?_, ?_⟩
-    · simpa only [hHErase] using hy
+    · simpa only [hHErase] using! hy
     · simpa only [hHErase] using hyconfirmed
     · have hKroot : K.root = (actionSGBlockAt S rho u k).root := by
         rw [← hDK, ← Proofs.NamedWire.erase_root D', hDerase]
@@ -192,7 +192,7 @@ private theorem interpretedInputs_nonempty_at_voteDuty_of_delivery
       (by simpa only [actionAttestationAt_shape] using hdeadline) hearlyVote hcapEarly
     obtain ⟨y, hy, hyround, hyconfirmed, hyfind⟩ := hinput
     refine ⟨y, ?_, hyround, ?_, ?_⟩
-    · simpa only [hHErase] using hy
+    · simpa only [hHErase] using! hy
     · simpa only [hHErase] using hyconfirmed
     · have hKroot : K.root = (actionSGBlockAt S rho u k).root := by
         rw [← hDK, ← Proofs.NamedWire.erase_root D', hDerase]
@@ -305,7 +305,7 @@ private theorem interpretedInputs_nonempty_at_voteDuty_w
         simpa only [Internal.NamedRecoveryRead.voteDutyRead,
           NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom,
-          Protocol.NamedStore.setClock, Protocol.Store.toHealing] using
+          Protocol.NamedStore.setClock, Protocol.Store.toHealing] using!
           Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime S rho
             (Protocol.vote_time S.E d) w)
   have hrootCompat := hroots w hw
@@ -315,7 +315,7 @@ private theorem interpretedInputs_nonempty_at_voteDuty_w
       Block.Preceq B
         (Protocol.get_fg_root
           (Internal.NamedRecoveryRead.voteDutyRead S rho w d).st.core.toHealing.toFG) by
-    simpa only [Block.compatible, Bool.or_eq_true] using hrootCompat) with hFB | hBF
+    simpa only [Block.compatible, Bool.or_eq_true] using! hrootCompat) with hFB | hBF
   · have hinput := interpretedInputs_exact_of_honest_window_vote_after_gst_common_upper
       S adm .g1 hk hu hw
       (hvote := by
@@ -334,7 +334,7 @@ private theorem interpretedInputs_nonempty_at_voteDuty_w
       hearlyVote (hearlyVote.trans hvoteHor)
     obtain ⟨y, hy, hyround, hyconfirmed, hyfind⟩ := hinput
     refine ⟨y, ?_, hyround, ?_, ?_⟩
-    · simpa only [hHErase] using hy
+    · simpa only [hHErase] using! hy
     · simpa only [hHErase] using hyconfirmed
     · have hKroot : K.root = (actionSGBlockAt S rho u k).root := by
         rw [← hDK, ← Proofs.NamedWire.erase_root D', hDerase]
@@ -363,7 +363,7 @@ private theorem interpretedInputs_nonempty_at_voteDuty_w
       hearlyVote (hearlyVote.trans hvoteHor)
     obtain ⟨y, hy, hyround, hyconfirmed, hyfind⟩ := hinput
     refine ⟨y, ?_, hyround, ?_, ?_⟩
-    · simpa only [hHErase] using hy
+    · simpa only [hHErase] using! hy
     · simpa only [hHErase] using hyconfirmed
     · have hKroot : K.root = (actionSGBlockAt S rho u k).root := by
         rw [← hDK, ← Proofs.NamedWire.erase_root D', hDerase]

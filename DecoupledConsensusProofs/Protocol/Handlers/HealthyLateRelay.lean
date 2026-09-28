@@ -329,7 +329,7 @@ private theorem emitted_block_due (gc : Protocol.GradeContract V)
   by_contra hnot
   rw [NamedTick.tick_computed_duties] at hB
   dsimp only at hB
-  simp only [if_neg hnot] at hB
+  simp only [ite_eq_right hnot] at hB
   split_ifs at hB <;>
     simp only [List.mem_append, List.mem_map, List.mem_cons, List.not_mem_nil,
       reduceCtorEq, or_false, and_false, exists_false] at hB
@@ -425,7 +425,7 @@ private theorem block_call_rows_after_event (S : Setup V) (rho : NamedRun V)
     rw [Proofs.NamedRuntime.stateBefore_tick S rho he]
     apply tick_rows_after_proposal (DecoupledConsensusModel.Protocol.frameContract c) S (S.node reader)
       n.st n.record t a
-    simp only [if_pos hdue]
+    simp only [ite_eq_left hdue]
     rw [congrArg Prod.fst hcallEq]
     exact ha
 
@@ -452,12 +452,12 @@ private theorem action_tick_store (S : Setup V) (reader : V) (before : NamedNode
   change (Protocol.NamedTick.tick (NamedProfile.gradeContract (preparedCache S before (S.a q)))
     S.E S.hc S.cfg (S.node reader) before.st before.record (S.a q)).1 = _
   rw [NamedTick.tick_computed_duties]
-  simp only [if_neg hp, if_neg hv, if_pos (And.intro hpos hs)]
+  simp only [ite_eq_right hp, ite_eq_right hv, ite_eq_left (And.intro hpos hs)]
   have hround : S.hc.round_of (Protocol.NamedDuties.update_confirmation_with
       (NamedProfile.gradeContract (preparedCache S before (S.a q))) S.E S.hc
       (Protocol.NamedStore.setClock S.E before.st (S.a q)) (S.E.slotOf (S.a q) - 1)).core.s = q :=
     Proofs.HealingLemmas.round_of_slotOf_a S q
-  simp only [hround, hawake, and_self, if_true]
+  simp only [hround, hawake, and_self, ite_true]
   rfl
 
 
@@ -543,7 +543,7 @@ private theorem new_row_round_floor (hc : Protocol.HealConfig) (st : Protocol.Na
   have hfuture : hc.round_of st.core.s < a.round := Nat.lt_of_not_ge hn
   have hcore : Protocol.on_sg_vote hc st.core a.erase = st.core := by
     unfold Protocol.on_sg_vote
-    exact if_pos (Or.inr (Or.inl hfuture))
+    exact ite_eq_left (Or.inr (Or.inl hfuture))
   rw [NamedAdmission.admit_row_of_core_noop hc st a hcore] at hpost
   exact hpre hpost
 
@@ -838,7 +838,7 @@ private theorem call_vote_or_equiv (S : Setup V) (rho : NamedRun V)
         dsimp only [Protocol.on_sg_vote]
         simp only [show a.erase.round = a.round from rfl,
           show a.erase.confirmed = a.confirmed from rfl]
-        rw [if_neg hguard]
+        rw [ite_eq_right hguard]
         simp [Protocol.Store.sg_pool]
       have ha := hpost a (NamedAdmission.admitted_original_row S.hc input a hpre hnew)
       exact Or.inl ⟨a, ha, rfl, rfl, rfl⟩

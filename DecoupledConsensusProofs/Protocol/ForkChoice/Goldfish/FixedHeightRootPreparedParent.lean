@@ -154,6 +154,7 @@ theorem fixedRoot_preparedAnchorGradeData_abstract
     rw [← hsource, Protocol.proposerDutyStore, hpre]
     simp only [Proofs.Optimistic.tickStore, Protocol.Store.toHealing,
       Protocol.NamedStore.toHealing, Protocol.get_fg_root]
+    rfl
   exact ⟨hAG1Pre, hAdata.1, hsourceRoot⟩
 
 
@@ -485,14 +486,14 @@ theorem fixedRoot_preparedParent_of_candidate_abstract
     rw [← hpre] at hrootCPre
     simpa only [proposalDutyRead, proposerReadAt,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       hrootCPre
   have hanchorC := fixedRoot_preparedProposalAnchor_preceq_of_previousCarriers
     S adm hfb hpostPreviousAction hcut
       (by simpa only [hqPredAdd] using hproposalHor)
       hdata.ceilingUpper
       (by simpa only [hqPredAdd] using hprop)
-      (by simpa only [hqPredAdd] using hrootC)
+      (by simpa only [hqPredAdd] using! hrootC)
   have hroundSt : S.hc.round_of
       (proposalDutyRead S rho (S.hc.opening_slot q)).st.core.s = q := by
     simpa only [proposalDutyRead, proposerReadAt,
@@ -527,7 +528,7 @@ theorem fixedRoot_preparedParent_of_candidate_abstract
         source.toHealing.toFG hdata.anchorFiltered
       rw [← hsource] at hAsub
       rw [← hpre]
-      simpa only [Protocol.proposerDutyStore, Proofs.Optimistic.tickStore] using hAsub
+      simpa only [Protocol.proposerDutyStore, Proofs.Optimistic.tickStore] using! hAsub
     · have htargetC : Block.Preceq Jn.erase C0 := by
         calc
           Jn.erase = Protocol.get_fg_root pre.toHealing.toFG := hrootPre.symm
@@ -605,13 +606,13 @@ theorem fixedRoot_preparedParent_of_candidate_abstract
       simpa only [proposalDutyRead, proposerReadAt,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom,
-        Protocol.NamedStore.setClock] using hCmem
+        Protocol.NamedStore.setClock] using! hCmem
     · exact Block.preceq_self C
     · rw [← hpre] at hheightC
       simpa only [proposalDutyRead, proposerReadAt,
         NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom,
-        Protocol.NamedStore.setClock] using hheightC
+        Protocol.NamedStore.setClock] using! hheightC
   have hsupportC := fixedRoot_preparedProposalConeSupport_of_namedCone
     S adm hcom hs hpostCone
       ((Protocol.support_cutoff_le_proposal_time_succ S.E
@@ -629,7 +630,7 @@ theorem fixedRoot_preparedParent_of_candidate_abstract
     simpa only [proposalDutyRead, proposerReadAt,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      Protocol.proposerDutyStore, Proofs.Optimistic.tickStore] using
+      Protocol.proposerDutyStore, Proofs.Optimistic.tickStore] using!
       Protocol.proposerDutyStore_proposer_view_valid S adm
         (S.hc.opening_slot q)
   have hcompat : Block.compatible

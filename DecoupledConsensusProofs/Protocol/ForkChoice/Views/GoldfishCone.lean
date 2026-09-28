@@ -114,7 +114,7 @@ private theorem finalized_preceq_at_delivery_of_voteDutyRoot_preceq_core
     simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
       Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore,
-      pre, Gamma] using hroot
+      pre, Gamma] using! hroot
   exact Block.preceq_trans hmono (Block.preceq_trans hFroot hroot')
 
 
@@ -177,7 +177,7 @@ theorem honestHeadsAvailableBefore_of_namedPostHealingCone_core
         simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
           Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-          Proofs.Optimistic.tickStore] using hroot
+          Proofs.Optimistic.tickStore] using! hroot
       have hFD := finalized_preceq_at_prefix_of_storeBeforeRoot_preceq
         S rho adm.toNamedScheduleWellFormed.sorted hroot' hqVote
       have hDX : D.erase = X := hDe.trans hCX
@@ -234,7 +234,7 @@ theorem honestHead_voterProcessed_at_nextDuty_of_postHealingCone
     simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
       Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore]
-      using hroot
+      using! hroot
   have havailable := honestHeadsAvailableBefore_of_namedPostHealingCone
     S adm hw hpost hcutHor hroot' hvotes
   have hslot : duty.toHealing.s = s + 1 := by
@@ -297,7 +297,7 @@ private theorem prepared_vote_view_valid_core
     (E := S.E) (st := (rho.stateBefore S n w).st.core)
     (s := read.st.core.s) hpool hcarried
   simpa only [read, t, voteDutyRead, NamedActionReads.confirmationReadAt,
-    NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock, hn] using hvalid
+    NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock, hn] using! hvalid
 
 
 private theorem named_voter_head_runBlock
@@ -330,23 +330,20 @@ private theorem named_voter_head_runBlock
     dsimp only [tree]
     rw [← Proofs.Optimistic.voter_candidate_tree_eq_protocol_voter_filtered_block_tree]
     intro D hD
-    simp only [Proofs.Optimistic.voter_candidate_tree,
-      Protocol.get_filtered_block_tree_from,
-      Protocol.viable_tree, Protocol.finalized_descendants,
-      Protocol.voter_processed_block_tree, Finset.mem_filter] at hD
-    exact hD.1.1.1.1
+    exact Finset.mem_of_mem_filter _ (Finset.mem_of_mem_filter _
+      (Finset.mem_of_mem_filter _ (Finset.mem_of_mem_filter _ hD)))
   have hHmem : H ∈ st.T := by
     dsimp only [H]
     rw [Proofs.Optimistic.get_head_in_tree_split_with]
     exact Proofs.Records.ghost_mem_of _ _ hanchor htree
   have hHpre : H ∈ pre.st.core.T := by
-    simpa only [read, st, NamedActionReads.confirmationReadFrom] using hHmem
+    simpa only [read, st, NamedActionReads.confirmationReadFrom] using! hHmem
   obtain ⟨C, hCe, hCrun⟩ :=
     Proofs.NamedStoreBridge.runBlock_of_mem_core_T_stateBeforeTime S
       adm.toNamedAdmissibleCore.toNamedScheduleWellFormed hw t hHpre
   refine ⟨C, ?_, hCrun⟩
   simpa only [voterHeadAt, H, tree, votes, support, read, st,
-    NamedActionReads.confirmationReadFrom] using hCe
+    NamedActionReads.confirmationReadFrom] using! hCe
 
 theorem named_voter_head_emits
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)
@@ -371,7 +368,7 @@ theorem named_voter_head_emits
           (voterHeadAt S rho w s).root⟩ := by
     simp only [Protocol.NamedDuties.goldfish_vote_with,
       Protocol.goldfish_vote_with]
-    rw [if_pos]
+    rw [ite_eq_left]
     · rfl
     · rw [S.node_val_index, hslot]
       exact hcommittee
@@ -440,7 +437,7 @@ theorem goldfishCone_pathEligible_core
     S adm hw s (Proofs.Optimistic.support_cutoff_le_vote_time_succ S.E s) havailable
   have hresolve : Proofs.Optimistic.HeadsResolveIn S rho s st.T st.timestamp_block := by
     simpa only [st, read, voteDutyRead, NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       hresolve0
   have hbase := Protocol.canonicalSuffixConeSupportVoterView_core
     S adm hcom hs hpost hcutHor hnames hw
@@ -452,7 +449,7 @@ theorem goldfishCone_pathEligible_core
   have hvalid := prepared_vote_view_valid_core S adm w (s + 1)
   have hcone : Proofs.Optimistic.ConeSupport S.E st.T votes support votes (st.s - 1)
       rho.honest (fun X => Block.Preceq C X) := by
-    simpa only [st, read, votes, support, hslot, Protocol.Store.toHealing] using hbase
+    simpa only [st, read, votes, support, hslot, Protocol.Store.toHealing] using! hbase
   have hmajority : Protocol.voters_count S.E votes (st.s - 1) <
       2 * (Protocol.goldfishSupporters S.E st.T votes support (st.s - 1) C).card :=
     Protocol.supporterMajority_of_cone S.E hcone hvalid
@@ -537,7 +534,7 @@ theorem goldfishCone_step
     (Protocol.get_head_in_tree_with_layer
       (NamedProfile.gradeContract read.cache) S.E S.hc st.toHealing
       (voterCandidateTreeAt S rho w (s + 1)) votes support (st.s - 1))
-  simpa only [get_head_in_tree_eq_voterHeadAt_of_anchor, read, st] using hhead
+  simpa only [get_head_in_tree_eq_voterHeadAt_of_anchor, read, st] using! hhead
 
 /-- The root-side named Goldfish step also handles a protected block below the
 prepared FG root. -/
@@ -570,7 +567,7 @@ theorem goldfishCone_step'
       (Protocol.get_head_in_tree_with_layer
         (NamedProfile.gradeContract read.cache) S.E S.hc st.toHealing
         (voterCandidateTreeAt S rho w (s + 1)) votes support (st.s - 1))
-    simpa only [get_head_in_tree_eq_voterHeadAt_of_anchor, read, st] using hhead
+    simpa only [get_head_in_tree_eq_voterHeadAt_of_anchor, read, st] using! hhead
 
 
 /-- Iterate the named root-below cone step and the prepared confirmation

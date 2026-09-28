@@ -68,7 +68,7 @@ private theorem recovery_core_new_body (S : Setup V) (st : Protocol.NamedStore V
   by_cases hp : B.parent ∉ st.bodies
   · simp only [hp] at hpost ⊢
     exact False.elim (hnew hpost)
-  · rw [if_neg hp] at hpost ⊢
+  · rw [ite_eq_right hp] at hpost ⊢
     let after := Protocol.on_block_checked_using
       (fun current => Protocol.on_block_using S.E current B.erase
         (fun parentState => Protocol.named_transition S.E S.cfg parentState B))
@@ -132,7 +132,7 @@ private theorem actual_gfVote_settled_before_deadline
     obtain ⟨i, hi, hmem, c, hc, hle⟩ :=
       Proofs.Optimistic.mem_pool_of_emits S adm hs hemitVote hus hval
     refine ⟨i, _, hi, ?_, ?_⟩
-    · simpa only [Event.time, htVote] using hdeadline
+    · simpa only [Event.time, htVote] using! hdeadline
     · rw [beforeCutoff, Finset.mem_filter]
       apply Or.inl
       refine ⟨?_, ?_⟩
@@ -183,7 +183,7 @@ private theorem actual_gfVote_settled_before_deadline
       rw [Proofs.NamedRuntime.stateBefore_deliver S rho hdeliver]
       show Protocol.on_goldfish_vote_checked S.E _ u = _
       unfold Protocol.on_goldfish_vote_checked
-      rw [if_neg (not_not.mpr hcommittee)]
+      rw [ite_eq_right (not_not.mpr hcommittee)]
     have hsettled :
         u ∈ (NamedRun.stateBefore S rho (j + 1) w).st.gf_votes u.slot ∧
           ∃ c : Stamp,
@@ -205,11 +205,11 @@ private theorem actual_gfVote_settled_before_deadline
         refine ⟨hmem, ?_⟩
         exact ⟨_, hc, le_refl _⟩
     have hprele : (NamedRun.stateBefore S rho j w).st.t ≤ t := by
-      simpa [Event.time] using
+      simpa [Event.time] using!
         Protocol.store_time_le_event_time S adm.toNamedScheduleWellFormed
           hdeliver w
     refine ⟨j, _, hdeliver, ?_, ?_⟩
-    · simpa only [Event.time] using hdeadline
+    · simpa only [Event.time] using! hdeadline
     · rw [beforeCutoff, Finset.mem_filter]
       apply Or.inl
       refine ⟨?_, ?_⟩
@@ -254,7 +254,7 @@ private theorem actual_gfVote_settled_before_deadline
           (le_trans hlo (adm.in_horizon _ (List.mem_of_getElem? hdeliver)).2)
       have hclockUp : before.core.t ≤ t := by
         rw [hbefore]
-        simpa [Event.time] using
+        simpa [Event.time] using!
           Protocol.store_time_le_event_time S adm.toNamedScheduleWellFormed
             hdeliver w
       have hslot : before.core.s = s := by
@@ -309,7 +309,7 @@ private theorem actual_gfVote_settled_before_deadline
           exact Proofs.Optimistic.proposal_with_gf_votes _ .poolAndCarried
             S.E S.hc (S.node w) _ hB'
       have hgf' : B.gf_votes = before.core.gf_votes (before.core.s - 1) := by
-        simpa [hbefore] using hgf0
+        simpa [hbefore] using! hgf0
       have hslot : before.core.s = s := by
         have hslot' := Proofs.Optimistic.slotOf_of_between S.E s hlo hcut
         simpa [hbefore, Protocol.NamedStore.setClock] using hslot'
@@ -318,7 +318,7 @@ private theorem actual_gfVote_settled_before_deadline
         have hrawStamps := Protocol.poolStamps_stateBefore
           S adm.toNamedScheduleWellFormed w j
         have htle : (NamedRun.stateBefore S rho j w).st.core.t ≤ t := by
-          simpa [Event.time] using
+          simpa [Event.time] using!
             Protocol.store_time_le_event_time S adm.toNamedScheduleWellFormed
               htick w
         exact (Protocol.poolStep_tickStore _ _ _ htle hrawStamps).2
@@ -392,7 +392,7 @@ private theorem actual_gfVote_settled_before_view_freeze
       lt_of_le_of_lt
         (by
           show (NamedRun.stateBefore S rho j w).st.t ≤ t
-          simpa [Event.time] using
+          simpa [Event.time] using!
             (Protocol.store_time_le_event_time S
               adm.toNamedScheduleWellFormed hdeliver w)) hdeadline
     have hlocal := Protocol.on_goldfish_vote_checked_beforeCutoff_or_equivocates
@@ -405,7 +405,7 @@ private theorem actual_gfVote_settled_before_view_freeze
       rw [Proofs.NamedRuntime.stateBefore_deliver S rho hdeliver]
       rfl
     refine ⟨j, _, hdeliver, ?_, ?_⟩
-    · simpa only [Event.time] using hdeadline
+    · simpa only [Event.time] using! hdeadline
     · change u ∈ beforeCutoff
           (NamedRun.stateBefore S rho (j + 1) w).st.core.timestamp_vote Gamma
           ((NamedRun.stateBefore S rho (j + 1) w).st.core.pool u.slot) ∨
@@ -458,7 +458,7 @@ private theorem actual_gfVote_settled_before_view_freeze
       have hclock : before.core.t < Gamma := by
         have hle : before.core.t ≤ t := by
           rw [hbefore]
-          simpa [Event.time] using
+          simpa [Event.time] using!
             Protocol.store_time_le_event_time S adm.toNamedScheduleWellFormed
               hdeliver w
         exact lt_of_le_of_lt hle hdeadline
@@ -496,13 +496,13 @@ private theorem actual_gfVote_settled_before_view_freeze
           exact Proofs.Optimistic.proposal_with_gf_votes _ .poolAndCarried
             S.E S.hc (S.node w) _ hB'
       have hgf : B.gf_votes = before.core.gf_votes (before.core.s - 1) := by
-        simpa [hbefore] using hgf0
+        simpa [hbefore] using! hgf0
       have hstamps : Protocol.PoolStamps before.core := by
         rw [hbefore]
         have hrawStamps := Protocol.poolStamps_stateBefore
           S adm.toNamedScheduleWellFormed w j
         have htle : (NamedRun.stateBefore S rho j w).st.core.t ≤ t := by
-          simpa [Event.time] using
+          simpa [Event.time] using!
             Protocol.store_time_le_event_time S adm.toNamedScheduleWellFormed
               htick w
         exact (Protocol.poolStep_tickStore _ _ _ htle hrawStamps).2
@@ -548,7 +548,7 @@ private theorem actual_gfVote_settled_before_view_freeze
         exact Nat.not_lt.mpr (Nat.le_add_right s 1)
       have hclock : before.core.t < Gamma := by
         rw [hbefore]
-        simpa [Event.time] using hdeadline
+        simpa [Event.time] using! hdeadline
       have hpostBodies := recovery_on_block_new_body S before B hnew hcore
       have hlocal := Proofs.Optimistic.block_carried_before_deadline_or_equivocates
         S before B u Gamma hstamps (by
@@ -556,7 +556,7 @@ private theorem actual_gfVote_settled_before_view_freeze
           apply hnew
           have hcoh := (Proofs.NamedRuntime.stateBefore_invariants S rho j w).1.1.1
           have hB' : B ∈ (NamedRun.stateBefore S rho j w).st.bodies := by
-            simpa [hbefore] using hB
+            simpa [hbefore] using! hB
           have hcoreB : B.erase ∈
               (NamedRun.stateBefore S rho j w).st.core.T := by
             rw [hcoh.1]
@@ -575,7 +575,7 @@ private theorem actual_gfVote_settled_before_view_freeze
             (S.node w) before).1 = final := by
         have hpair := congrArg Prod.fst
           (Proofs.NamedReceiptCallsBase.self_proposal_call S rho htick hBemit)
-        simpa only [gc, pre, final, hbefore] using hpair
+        simpa only [gc, pre, final, hbefore] using! hpair
       have hstate : NamedRun.stateBefore S rho (j + 1) w =
           (NamedNode.tick S w pre t).1 := Proofs.NamedRuntime.stateBefore_tick S rho htick
       have hgcstep : (NamedNode.tick S w pre t).1.st =
@@ -591,7 +591,7 @@ private theorem actual_gfVote_settled_before_view_freeze
             S.E.proposer (S.E.slotOf t) = (S.node w).val_index := by
           simpa only [S.node_val_index] using hguard
         dsimp only at hfields
-        rw [if_pos hguard'] at hfields
+        rw [ite_eq_left hguard'] at hfields
         have hproposalStage' :
             (Protocol.NamedDuties.propose_block_with gc S.E S.hc S.cfg
               (S.node w) (Protocol.NamedStore.setClock S.E pre.st t)).1 = final := by
@@ -680,13 +680,13 @@ private theorem gfVote_processes_settled_at_voteDuty_after_gst
   rcases hsettled with hmem | hequiv
   · apply Or.inl
     rw [hstore]
-    simpa only [Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using
+    simpa only [Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using!
       beforeCutoff_subset_of_poolCarry hcarry s (Protocol.view_freeze S.E s) hmem
   · apply Or.inr
     apply equivocates_mono _ u.val_index hequiv
     intro x hx
     rw [hstore]
-    simpa only [Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using
+    simpa only [Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using!
       beforeCutoff_subset_of_poolCarry hcarry s (Protocol.view_freeze S.E s) hx
 
 #print axioms gfVote_processes_settled_at_voteDuty_after_gst

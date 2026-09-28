@@ -56,14 +56,14 @@ private theorem update_confirmation_with_latest_confirmed_of_eligible
   cases hmode : contract.confirmationSG with
   | optional select =>
       have hval' := hval
-      simp only [hmode, if_pos helig] at hval'
+      simp only [hmode, ite_eq_left helig] at hval'
       rw [hval']
       unfold Protocol.floor_on_stable
       have hfirst' : Block.preceq
           (Protocol.update_confirmation_with contract E hc st s).latest_stable
           (Protocol.advance_confirmed st.latest_confirmed
             (confWalkWith contract E hc st s)) = true := hfirst
-      rw [if_pos hfirst']
+      rw [ite_eq_left hfirst']
 
 private theorem named_update_latest_mem
     (S : Setup V) (nd : NamedNodeState V) (s : Slot)
@@ -117,7 +117,7 @@ private theorem latest_slot_le_prefix_no_heads
       rw [List.take_add_one, List.foldl_append]
       cases hn : rho.events[n]? with
       | none =>
-          simpa using ih (fun i e hi he =>
+          simpa using! ih (fun i e hi he =>
             hprefix i e (Nat.lt_succ_of_lt hi) he)
       | some e =>
           simp only [Option.toList_some, List.foldl_cons, List.foldl_nil]
@@ -166,7 +166,7 @@ private theorem latest_slot_le_prefix_no_heads
                         (S.E.slotOf t - 1)).core.latest_confirmed ∈
                         (rho.stateBeforeTime S t v).st.core.T
                     rw [← hstate]
-                    simpa only [nd, NamedActionReads.confirmationReadFrom] using hmem
+                    simpa only [nd, NamedActionReads.confirmationReadFrom] using! hmem
                   have hslotlt := block_slot_lt_of_mem_beforeTime_of_le_proposal
                     S adm (s := S.E.slotOf t + 1) (t := t) (Nat.succ_pos _)
                     (by
@@ -247,7 +247,7 @@ theorem update_confirmation_latest_eq_of_duty
   let st := Proofs.Optimistic.confStore S rho v s
   have hG := genuineConfirmation_of_dutyExecution S hcom hduty hv
   have hlc := update_confirmation_with_live_confirmed contract S.E S.hc st s
-  rw [if_pos hG.genuine] at hlc
+  rw [ite_eq_left hG.genuine] at hlc
   have hwalk : confWalkWith contract S.E S.hc st s = B.erase := by
     exact hlc.symm.trans hG.selected
   have hfirst : Block.Preceq

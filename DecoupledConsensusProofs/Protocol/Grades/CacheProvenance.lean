@@ -50,7 +50,7 @@ private theorem retained_prefix (g F B : Block V) (hBF : Block.compatible B F = 
           · subst B
             exact False.elim (hGF hBF)
           · exact hBp
-        simpa only [clipGrade, hGF, Bool.eq_false_iff.mpr hGF, ↓reduceIte] using ih hBp
+        simpa only [clipGrade, hGF, Bool.eq_false_iff.mpr hGF, ↓reduceIte] using! ih hBp
 
 private theorem compatible_ancestors {A B C D : Block V}
     (hAB : Block.Preceq A B) (hCD : Block.Preceq C D)

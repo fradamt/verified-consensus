@@ -303,7 +303,7 @@ theorem preceq_voterAnchorAt_of_dutyReadGrade
             (NamedRun.stateBeforeTime S rho
               (Protocol.vote_time S.E d) w).st.core.F)) := by
     simpa only [PhaseGrades.storeRoot, PhaseGrades.phaseRoot,
-      PhaseGrades.readAt] using hbase
+      PhaseGrades.readAt] using! hbase
   have hprepared := NamedOutageClosure.frame_phase_prepared_eq
     S rho w c .g1 (Protocol.vote_time S.E d) hround' _ hbase'
   have hreadFrame :
@@ -318,7 +318,7 @@ theorem preceq_voterAnchorAt_of_dutyReadGrade
             (Internal.NamedRecoveryRead.voteDutyRead S rho w d).st.core.F)) := by
     simpa only [Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom] using hprepared
+      NamedActionReads.confirmationReadFrom] using! hprepared
   obtain ⟨raw, hraw, hQraw⟩ := NamedOutageClosure.q10_freeze_of_graded S.E
     (PhaseGrades.readAt S rho
       (DecoupledConsensusModel.Protocol.domain S.E S.hc c .g1) w).st.core.toHealing.gradeView

@@ -309,7 +309,7 @@ theorem on_tick_emit_confirmation (S : Setup V) (v : V) (n : NodeState V)
   simp only [NamedNode.tick, NamedProfile.tick, Protocol.NamedTick.tick,
     Protocol.TickScheduler.runWith, Protocol.NamedTick.namedOps, hslot,
     support_cutoff_ne_proposal_time S.E s, support_cutoff_ne_vote_time S.E s, hs,
-    and_true, and_false, false_and, if_true, if_false,
+    and_true, and_false, false_and, ite_true, ite_false,
     NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
     Protocol.NamedStore.setClock]
   split
@@ -324,7 +324,7 @@ theorem on_tick_emit_live_confirmed_of_ne (S : Setup V) (v : V) (n : NodeState V
     (h : ¬ (0 < S.E.slotOf t ∧ t = Protocol.support_cutoff S.E (S.E.slotOf t))) :
     (on_tick_emit S v n t).1.st.live_confirmed = n.st.live_confirmed := by
   simp only [NamedNode.tick, NamedProfile.tick, Protocol.NamedTick.tick,
-    Protocol.TickScheduler.runWith, Protocol.NamedTick.namedOps, if_neg h,
+    Protocol.TickScheduler.runWith, Protocol.NamedTick.namedOps, ite_eq_right h,
     apply_ite (fun p : Protocol.NamedStore V × Protocol.NamedRecord ×
       List (NamedObject V) => p.1.live_confirmed)]
   split_ifs <;>
@@ -585,7 +585,7 @@ theorem on_tick_emit_vote_mem (S : Setup V) (v : V) (n : NodeState V) (s : Slot)
     Protocol.TickScheduler.runWith, Protocol.NamedTick.namedOps, hslot,
     NamedActionReads.preparedCache, Protocol.NamedStore.setClock,
     vote_time_ne_proposal_time S.E s, vote_time_ne_support_cutoff S.E s, hs,
-    and_false, false_and, if_false, and_true, if_true]
+    and_false, false_and, ite_false, and_true, ite_true]
   rw [hu]
   split <;> simp
 
@@ -832,7 +832,7 @@ theorem on_tick_emit_proposal_mem (S : Setup V) (v : V) (n : NodeState V) (s : S
     Protocol.TickScheduler.runWith, Protocol.NamedTick.namedOps, hslot,
     NamedActionReads.preparedCache, Protocol.NamedStore.setClock,
     proposal_time_ne_vote_time S.E s, proposal_time_ne_support_cutoff S.E s, hpr, hs,
-    and_false, if_false, and_true, if_true]
+    and_false, ite_false, and_true, ite_true]
   rw [hB]
   split <;> simp
 
@@ -1171,14 +1171,14 @@ private theorem runWith_sg_pool_mem
       ops.confirmation st2 (E.slotOf t - 1) else st2) with hst3
   have hpeel23 : st3.core.sg_pool r = st1.core.sg_pool r := by
     by_cases hP3 : 0 < E.slotOf t ∧ t = Protocol.support_cutoff E (E.slotOf t)
-    · rw [hst3, if_pos hP3, hconf st2 (E.slotOf t - 1) r]
+    · rw [hst3, ite_eq_left hP3, hconf st2 (E.slotOf t - 1) r]
       by_cases hP2 : 0 < E.slotOf t ∧ t = Protocol.vote_time E (E.slotOf t)
-      · rw [hst2, if_pos hP2, hvote st1 r]
-      · rw [hst2, if_neg hP2]
-    · rw [hst3, if_neg hP3]
+      · rw [hst2, ite_eq_left hP2, hvote st1 r]
+      · rw [hst2, ite_eq_right hP2]
+    · rw [hst3, ite_eq_right hP3]
       by_cases hP2 : 0 < E.slotOf t ∧ t = Protocol.vote_time E (E.slotOf t)
-      · rw [hst2, if_pos hP2, hvote st1 r]
-      · rw [hst2, if_neg hP2]
+      · rw [hst2, ite_eq_left hP2, hvote st1 r]
+      · rw [hst2, ite_eq_right hP2]
   have hstep1 : b ∈ st1.core.sg_pool r →
       b ∈ st.core.sg_pool r ∨
         ∃ B : NamedBlock V, (ops.proposal (ops.clock st t (E.slotOf t))).2 = some B ∧
@@ -1188,15 +1188,15 @@ private theorem runWith_sg_pool_mem
     intro hb1
     by_cases hP1 : 0 < E.slotOf t ∧ t = Protocol.proposal_time E (E.slotOf t) ∧
         E.proposer (E.slotOf t) = nd.val_index
-    · rw [hst1, if_pos hP1] at hb1
+    · rw [hst1, ite_eq_left hP1] at hb1
       rcases hprop (ops.clock st t (E.slotOf t)) r hb1 with h0 | ⟨B, hBeq, hrow⟩
       · left; rw [hclock st t (E.slotOf t) r] at h0; exact h0
       · right; exact ⟨B, hBeq, hP1, hrow⟩
-    · rw [hst1, if_neg hP1, hclock st t (E.slotOf t) r] at hb1
+    · rw [hst1, ite_eq_right hP1, hclock st t (E.slotOf t) r] at hb1
       left; exact hb1
   by_cases hP4 : t = hc.a E.Δ (hc.round_of (ops.slot st3)) ∧
       nd.awake (hc.round_of (ops.slot st3)) = true
-  · rw [if_pos hP4] at hb ⊢
+  · rw [ite_eq_left hP4] at hb ⊢
     rcases hatt st3 record r hb with h3 | heq
     · rw [hpeel23] at h3
       rcases hstep1 h3 with h | ⟨B, hBeq, hP1, hrow⟩
@@ -1204,17 +1204,17 @@ private theorem runWith_sg_pool_mem
       · refine Or.inr ⟨NamedObject.block B, ?_, hrow⟩
         apply List.mem_append_left
         apply List.mem_append_left
-        rw [if_pos hP1, hBeq]
+        rw [ite_eq_left hP1, hBeq]
         exact List.mem_cons_self ..
     · exact Or.inr ⟨NamedObject.attest (ops.attestation st3 record).2.2,
         List.mem_append_right _ (List.mem_cons_self ..), heq⟩
-  · rw [if_neg hP4] at hb ⊢
+  · rw [ite_eq_right hP4] at hb ⊢
     rw [hpeel23] at hb
     rcases hstep1 hb with h | ⟨B, hBeq, hP1, hrow⟩
     · exact Or.inl h
     · refine Or.inr ⟨NamedObject.block B, ?_, hrow⟩
       apply List.mem_append_left
-      rw [if_pos hP1, hBeq]
+      rw [ite_eq_left hP1, hBeq]
       exact List.mem_cons_self ..
 
 /-- **The scheduler composition**: an attestation in the tick's SG pool was already there, or

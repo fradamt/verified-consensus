@@ -137,7 +137,7 @@ theorem SettledBootstrapPreparedV4.preparedProposalAnchor_preceq_voteDutyHead_co
       (voterHeadAt S rho x d) := by
     simpa only [read, t, w, s, proposerReadAt,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       SettledBootstrapPreparedV4.fgRootAtRead_preceq_voteDutyHead_core
         S adm hcom hboot hawake hfinality hhor hd hupper hread
           (proposal_time_lt_vote_time S.E s).le hw hx
@@ -184,7 +184,7 @@ theorem SettledBootstrapPreparedV4.preparedProposalAnchor_preceq_voteDutyHead_co
         simpa only [read, proposerReadAt, t, w,
           NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-          using hfg))
+          using! hfg))
     have hprevHor : S.a (r - 1) ≤ rho.horizon := by
       have hprev : S.a (r - 1) + S.E.Δ ≤ early S.E S.hc r .g1 :=
         (NamedOutageClosure.action_delta_le_early S S.hc.R_ge_three
@@ -383,7 +383,7 @@ theorem SettledBootstrapPreparedV4.protected_preceq_proposedParent_core
     intro y hy
     simpa only [Internal.NamedRecoveryRead.voteDutyStore, voteDutyRead,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       SettledBootstrapPreparedV4.fgRootAtRead_preceq_voteDutyHead_core
         S adm hcom hboot hawake hfinality hhor hd hupper
           (t := Protocol.vote_time S.E (d + 1))
@@ -398,7 +398,7 @@ theorem SettledBootstrapPreparedV4.protected_preceq_proposedParent_core
         S adm hy hdPos hyCommittee hvoteHor
     refine ⟨Y, ?_, hYrun, hYemit⟩
     rw [hYerase]
-    simpa only [R, Internal.NamedRecoveryRead.voteDutyStore] using hroots y hy
+    simpa only [R, Internal.NamedRecoveryRead.voteDutyStore] using! hroots y hy
   have havailable : HonestHeadsAvailableBefore S rho d p
       (Protocol.support_cutoff S.E d) :=
     honestHeadsAvailableBefore_of_namedPostHealingCone_core
@@ -408,7 +408,7 @@ theorem SettledBootstrapPreparedV4.protected_preceq_proposedParent_core
   have hresolve : HeadsResolveIn S rho d st.T st.timestamp_block := by
     simpa only [st, read, proposerReadAt, t, p,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       hresolve0
   have hslot : st.s = d + 1 := by
     simpa only [st, read, proposerReadAt,
@@ -477,9 +477,7 @@ theorem SettledBootstrapPreparedV4.protected_preceq_proposedParent_core
       · simpa only [votes, Protocol.proposer_view, hslot,
           Nat.add_sub_cancel, Protocol.Store.toHealing] using
           List.mem_toFinset.mp hraw
-      · change decide (Protocol.resolved st.toHealing.T
-          (⟨y, d, X.erase.root⟩ : GoldfishVote V) = true) = true
-        simp only [Protocol.resolved, Protocol.Store.toHealing, hfind]
+      · simp only [Protocol.resolved, Protocol.Store.toHealing, hfind]
         simp [hXslot]
     exact ⟨X.erase, hBX, hXslot, hsupport, hfind⟩
   have hcone : ConeSupport S.E st.T votes support votes (st.s - 1)
@@ -492,7 +490,7 @@ theorem SettledBootstrapPreparedV4.protected_preceq_proposedParent_core
     simpa only [hslot, Nat.add_sub_cancel] using hcone0
   have hvalid : Protocol.VoteSetValid S.E (st.s - 1) votes := by
     simpa only [st, read, votes, Internal.NamedRecoveryRead.proposalDutyStore,
-      proposalDutyRead] using
+      proposalDutyRead] using!
       (Protocol.proposerDutyStore_proposer_view_valid_core
         S adm (d + 1))
   have hpos : 0 < ((S.E.committee d) ∩ rho.honest).card := by
@@ -550,7 +548,7 @@ theorem SettledBootstrapPreparedV4.protected_preceq_proposedParent_core
           simpa only [st, read, proposerReadAt, t, p,
             NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-            using hlarge)
+            using! hlarge)
       have haTime : S.a a.round < Protocol.vote_time S.E (d + 1) := by
         have htime : ta = S.a a.round := (emits_attest_shape S hemit).2
         rw [← htime]
@@ -581,7 +579,7 @@ theorem SettledBootstrapPreparedV4.protected_preceq_proposedParent_core
             simpa only [st, read, proposerReadAt, t, p,
               NamedActionReads.confirmationReadAt,
               NamedActionReads.confirmationReadFrom,
-              Protocol.NamedStore.setClock] using hbound
+              Protocol.NamedStore.setClock] using! hbound
           exact hbound'.trans (hboot.heightCap.trans hPheight)
         · have hKP := hboot.fgAll a ta _
               (Protocol.derive_named S.E S.cfg K).T_h
@@ -603,7 +601,7 @@ theorem SettledBootstrapPreparedV4.protected_preceq_proposedParent_core
             simpa only [st, read, proposerReadAt, t, p,
               NamedActionReads.confirmationReadAt,
               NamedActionReads.confirmationReadFrom,
-              Protocol.NamedStore.setClock] using hKheight
+              Protocol.NamedStore.setClock] using! hKheight
           rw [← hKheight']
           apply Proofs.NamedEntryHeight.derive_height_mono S.E S.cfg
           rw [← hK'eq]
@@ -629,7 +627,7 @@ theorem SettledBootstrapPreparedV4.protected_preceq_proposedParent_core
           simpa only [st, read, proposerReadAt, t, p,
             NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom,
-            Protocol.NamedStore.setClock] using hKheight
+            Protocol.NamedStore.setClock] using! hKheight
         rw [← hKheight']
         apply Proofs.NamedEntryHeight.derive_height_mono S.E S.cfg
         rw [← hK'eq]
@@ -646,7 +644,7 @@ theorem SettledBootstrapPreparedV4.protected_preceq_proposedParent_core
     simpa only [st, read, proposerReadAt, t, p,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      hXerase] using
+      hXerase] using!
       SettledBootstrapPreparedV4.fgRootAtRead_preceq_voteDutyHead_core
         S adm hcom hboot hawake hfinality hhor hd hupper hread
           (proposal_time_lt_vote_time S.E (d + 1)).le hp hxHonest
@@ -654,15 +652,14 @@ theorem SettledBootstrapPreparedV4.protected_preceq_proposedParent_core
     Block.preceq_trans
       (Proofs.Records.preceq_get_fg_root_of_F (st := st.toHealing.toFG) hFJ) hrootX
   have hXcandidate : X.erase ∈ tree := by
-    simp only [tree, Protocol.get_filtered_block_tree,
-      Protocol.get_filtered_block_tree_from,
-      Protocol.viable_tree, Protocol.finalized_descendants,
-      Protocol.viable, Finset.mem_filter, decide_eq_true_eq]
+    simp only [tree, Protocol.get_filtered_block_tree, Protocol.get_filtered_block_tree_from,
+      Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
     exact ⟨⟨⟨hXT, hFX⟩, X.erase, hXT, Block.preceq_self _, hband⟩, hrootX⟩
   have hpc : ParentClosed st := by
     simpa only [st, read, proposerReadAt, t, p,
       NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       Proofs.NamedStoreBridge.parentClosed_stateBeforeTime S rho t p
   have hrootAnchor : Block.Preceq
       (Protocol.get_fg_root st.toHealing.toFG)
@@ -703,7 +700,7 @@ theorem SettledBootstrapPreparedV4.protected_preceq_proposedParent_core
       tree votes support (st.s - 1))
   rw [Proofs.Optimistic.get_head_in_tree_split_with]
   simpa only [Internal.PhaseGrades.nodeAnchor, Internal.PhaseGrades.nodeRead,
-    tree, votes, support] using hhead
+    tree, votes, support] using! hhead
 
 #print axioms SettledBootstrapPreparedV4.protected_preceq_proposedParent_core
 #print axioms SettledBootstrapPreparedV4.fgRootAtRead_preceq_voteDutyHead_core

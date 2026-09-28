@@ -80,7 +80,7 @@ theorem w4_block_slot_lt_of_mem_storeAt
   · subst D
     simp only [NamedBlock.erase] at hDe
     subst C
-    simpa using hs
+    simpa using! hs
   · obtain ⟨i, hin, atime, haccepts⟩ := hacc
     obtain ⟨-, e, he, -, het⟩ := haccepts.1
     have hatime : atime < Protocol.proposal_time S.E s := by

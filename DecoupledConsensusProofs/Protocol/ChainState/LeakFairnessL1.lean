@@ -34,7 +34,7 @@ private theorem w4_named_height_pair_counts_of_lock_agreement
           (Protocol.height_pair record (some (H, entry, nu)) fp) =
             .vote H entry true := by
   by_cases htimeout : record.timeout H = true
-  · exact Or.inr (by simp only [Protocol.height_pair, if_pos htimeout,
+  · exact Or.inr (by simp only [Protocol.height_pair, ite_eq_left htimeout,
       Protocol.NamedRecord.encodeHeight])
   · cases hlock : Protocol.own_lock record H fp with
     | some locked =>
@@ -135,7 +135,7 @@ private theorem w4_named_mem_progress_foldl_of_matching
       rcases List.mem_cons.mp ha with rfl | htail
       · apply w4_named_progress_subset_foldl
         rw [(TargetedTimeoutBinding.process_height_fields sigma a).1,
-          if_pos hmatch]
+          ite_eq_left hmatch]
         exact Finset.mem_insert_self _ _
       · apply ih _ htail
         have hfields := TimeoutBindingDefaults.process_context_fields
@@ -162,11 +162,11 @@ private theorem w4_named_height_events_progress_of_same_height
   rw [Protocol.process_height_events_eq]
   split_ifs with ht hp
   · have hbad := hh
-    rw [Protocol.process_height_events_eq, if_pos ht, Protocol.advance_height_h,
+    rw [Protocol.process_height_events_eq, ite_eq_left ht, Protocol.advance_height_h,
       Protocol.afterFin_h] at hbad
     exact False.elim (Nat.succ_ne_self pre.h hbad)
   · have hbad := hh
-    rw [Protocol.process_height_events_eq, if_neg ht, if_pos hp,
+    rw [Protocol.process_height_events_eq, ite_eq_right ht, ite_eq_left hp,
       Protocol.advance_height_h, Protocol.afterFin_h] at hbad
     exact False.elim (Nat.succ_ne_self pre.h hbad)
   · exact Protocol.afterFin_progress E
@@ -315,7 +315,7 @@ private theorem w4_same_height_extension_l1_zero
       rcases hBC with hEq | hBparentRaw
       · have hBrun : RunBlock S rho B := hBRun
         have hroot : B.root = C.root := by
-          have hEq' : B.erase = C.erase := by simpa only [C] using hEq
+          have hEq' : B.erase = C.erase := by simpa only [C] using! hEq
           calc
             B.root = B.erase.root := (Proofs.NamedWire.erase_root B).symm
             _ = C.erase.root := congrArg Block.root hEq'

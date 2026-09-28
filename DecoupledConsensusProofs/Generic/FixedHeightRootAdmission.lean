@@ -451,7 +451,7 @@ theorem fixedHeightJustificationRoot_laterFGRoot_eq_target_of_carrier_mem_of_hMa
   have hrootLater :
       Protocol.get_fg_root later.toHealing.toFG = later.J := by
     simp only [Protocol.get_fg_root, Protocol.Store.toHealing,
-      if_pos hlaterGate]
+      ite_eq_left hlaterGate]
   simpa only [later] using hrootLater.trans htargetEq
 
 

@@ -34,7 +34,7 @@ theorem on_block_using_F (E : Env V) (st : Protocol.Store V) (B : Block V)
        have h := Proofs.update_finality_F
          (B.gf_votes.foldl (Protocol.on_goldfish_vote_checked E) stored)
          ((B.gf_votes.foldl (Protocol.on_goldfish_vote_checked E) stored).σ B)
-       simpa only [Proofs.foldl_on_goldfish_vote_checked_F E] using h)
+       simpa only [Proofs.foldl_on_goldfish_vote_checked_F E] using! h)
 
 private theorem checked_using_F (E : Env V) (hc : HealConfig)
     (st : Protocol.Store V) (B : Block V)
@@ -61,11 +61,11 @@ theorem process_block_core_F (E : Env V) (hc : HealConfig)
     Block.Preceq st.core.F
       (Protocol.NamedStore.process_block_core E hc cfg st B).core.F := by
   by_cases hp : B.parent ∈ st.bodies
-  · simp only [Protocol.NamedStore.process_block_core, if_neg (not_not_intro hp)]
+  · simp only [Protocol.NamedStore.process_block_core, ite_eq_right (not_not_intro hp)]
     rw [commitBlock_F]
     exact checked_using_F E hc st.core B.erase
       (fun parentState => Protocol.named_transition E cfg parentState B)
-  · simp only [Protocol.NamedStore.process_block_core, if_pos hp]
+  · simp only [Protocol.NamedStore.process_block_core, ite_eq_left hp]
     exact Block.preceq_self _
 
 omit [Fintype V] in
@@ -293,7 +293,7 @@ theorem stateBefore_F_mono
         | some e =>
             simp only [Option.toList, List.foldl_cons, List.foldl_nil]
             exact step_F_mono S _ e v
-      exact Block.preceq_trans hIH (by simpa [Nat.add_assoc] using hstep)
+      exact Block.preceq_trans hIH (by simpa [Nat.add_assoc] using! hstep)
 
 end Protocol
 end DecoupledConsensusModel

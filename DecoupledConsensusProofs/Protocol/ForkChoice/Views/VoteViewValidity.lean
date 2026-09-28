@@ -63,7 +63,7 @@ theorem carriedVote_committee_of_mem_T_core (S : Setup V) {rho : Run V}
         have hu' : u ∈ (rho.stateBefore S i w).st.core.gf_votes
             (S.E.slotOf e.time - 1) := by
           simpa only [NamedActionReads.confirmationReadFrom,
-            Protocol.NamedStore.setClock] using hu
+            Protocol.NamedStore.setClock] using! hu
         have hslot := (poolStamps_stateBefore S
           adm.toNamedScheduleWellFormed w i).slot
           (S.E.slotOf e.time - 1) u hu'

@@ -207,9 +207,10 @@ theorem proposedBlock_candidateAtOpeningConfirmation_of_gradeFormsAt_and_heightC
     simpa only [RecoveryProposalConfirmationHeightCap, st,
       Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore, pre, read, s, B] using hcap
   have hV: B ∈ Protocol.V_tree pre.toHealing.toFG:= by
-    simp only [Protocol.V_tree, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, decide_eq_true_eq, Protocol.Store.toHealing]
+    simp only [Protocol.V_tree, Protocol.viable_tree, Protocol.finalized_descendants,
+      Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
+    simp only [Protocol.Store.toHealing]
     exact ⟨⟨hBT, hFB⟩, B, hBT, Block.preceq_self B, hheight⟩
   have hfiltered:= Proofs.Records.mem_filtered_of_mem_V_tree hV hrootB
   simpa only [confTree, st, Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore,

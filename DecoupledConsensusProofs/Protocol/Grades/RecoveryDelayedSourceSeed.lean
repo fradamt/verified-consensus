@@ -36,7 +36,7 @@ private theorem delayedSource_compatible_ancestor_left
     {A B C : Block V} (hAB : Block.Preceq A B)
     (hBC : Block.compatible B C = true) : Block.compatible A C = true := by
   rcases (show Block.Preceq B C ∨ Block.Preceq C B by
-    simpa only [Block.compatible, Bool.or_eq_true] using hBC) with hBC | hCB
+    simpa only [Block.compatible, Bool.or_eq_true] using! hBC) with hBC | hCB
   · simp only [Block.compatible, Bool.or_eq_true]
     exact Or.inl (Block.preceq_trans hAB hBC)
   · exact Block.compatible_of_preceq_common hAB hCB
@@ -442,7 +442,7 @@ theorem voterAnchorAt_compatible_of_previousRelativeCarrier
     Block.compatible (voterAnchorAt S rho w d) T = true := by
   rcases voterAnchorAt_cases S rho w d with hfg | hactive
   · rw [hfg]
-    simpa only [Block.compatible, Bool.or_eq_true] using Or.inl hroot
+    simpa only [Block.compatible, Bool.or_eq_true] using! Or.inl hroot
   · obtain ⟨root, A, hframe, hactive, hanchor⟩ := hactive
     rw [hanchor]
     have hslo : S.hc.opening_slot (q + 1) ≤ d := by
@@ -526,14 +526,14 @@ theorem PrefixFGSelectorConeAt.checkpointVoteStep_beforeFirst_k6free
     have hmax : (Internal.NamedRecoveryRead.voteDutyRead S rho w (s + 1)).st.core.h_max = blocked + 1 := by
       simpa only [Internal.NamedRecoveryRead.voteDutyRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using
+        Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using!
         (hreads w hw).1
     have hroot : Block.Preceq
         (Protocol.get_fg_root
           (Internal.NamedRecoveryRead.voteDutyRead S rho w (s + 1)).st.core.toHealing.toFG) T := by
       simpa only [Internal.NamedRecoveryRead.voteDutyRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using
+        Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using!
         (hreads w hw).2.1
     have hpositive : 0 < ((S.E.committee s) ∩ rho.honest).card := by
       have hc := hcom s
@@ -549,7 +549,7 @@ theorem PrefixFGSelectorConeAt.checkpointVoteStep_beforeFirst_k6free
           (Proofs.Optimistic.voteDutyStore S rho w (s + 1)).toHealing.toFG) T := by
       simpa only [Internal.NamedRecoveryRead.voteDutyRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using hroot
+        Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using! hroot
     have hprocessed := honestHead_voterProcessed_at_nextDuty_of_postHealingCone
       S adm hpost hhor hvotes hXhead hw hrootDuty
     obtain ⟨K', hK'X, hK'erase⟩ :=
@@ -572,7 +572,7 @@ theorem PrefixFGSelectorConeAt.checkpointVoteStep_beforeFirst_k6free
       have hmem := (Finset.mem_filter.mp hprocessed).1
       simpa only [Internal.NamedRecoveryRead.voteDutyRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using hmem
+        Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using! hmem
     have hstored := WeakJoint.storedHeight_of_runBlock_mem_voteDutyRead
       S adm hw hXrun hXmem
     have hband :
@@ -858,11 +858,11 @@ theorem PrefixFGSelectorConeAt.selectedG2ActiveRead_heads_and_cone_named
     · intro w hw
       exact Block.preceq_trans hTcarrier
         (Block.preceq_trans (by
-          simpa only [hpredSucc] using hC.previousCarriers u huHon)
+          simpa only [hpredSucc] using! hC.previousCarriers u huHon)
           (hprotected.1 w hw))
     · exact delayedSource_cone_mono
         (Block.preceq_trans hTcarrier (by
-          simpa only [hpredSucc] using hC.previousCarriers u huHon))
+          simpa only [hpredSucc] using! hC.previousCarriers u huHon))
         hprotected.2
   · have hone : a.round = 1 :=
       Nat.le_antisymm (Nat.lt_succ_iff.mp (Nat.lt_of_not_ge htwo)) hpred
@@ -1158,7 +1158,7 @@ theorem PrefixFGSelectorConeAt.checkpointProtection_and_SGHistory_beforeFirst_of
                   NamedActionReads.confirmationReadAt,
                   NamedActionReads.confirmationReadFrom,
                   Protocol.NamedStore.setClock, Proofs.Optimistic.voteDutyStore,
-                  Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using hb
+                  Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore] using! hb
               apply hseed.checkpointVoteStep_beforeFirst_k6free
                 adm hcom hbelow hfirst hcap hrec ready
                 (hlastPos.trans_le hn) hnPost hnHor hnSourceRead
@@ -1273,7 +1273,7 @@ private theorem delayedSource_actionBody_runBlock
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hD
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hD
   obtain ⟨j, hj, -⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix S rho
     adm.toNamedAdmissibleCore.toNamedScheduleWellFormed.sorted (S.a r)
   have hDj : D ∈ (rho.stateBefore S j v).st.bodies := by
@@ -1463,9 +1463,9 @@ theorem PrefixFGSelectorConeAt.confirmationWitness_beforeFirst_of_G2_cover_named
     simp only [NamedBlock.compatible, Bool.or_eq_true]
     rcases hsourceCompat with hDK | hKD
     · exact Or.inr (Protocol.namedPreceq_of_runBlock_erase_preceq
-        adm hDrun hKrun (by simpa only [hKerase] using hDK))
+        adm hDrun hKrun (by simpa only [hKerase] using! hDK))
     · exact Or.inl (Protocol.namedPreceq_of_runBlock_erase_preceq
-        adm hKrun hDrun (by simpa only [hKerase] using hKD))
+        adm hKrun hDrun (by simpa only [hKerase] using! hKD))
   have hKheight : (Protocol.derive_named S.E S.cfg K).h = blocked + 1 :=
     hKh.trans hseed.sourceDerivedHeight
   have hKtarget : (Protocol.derive_named S.E S.cfg K).T_h = T :=

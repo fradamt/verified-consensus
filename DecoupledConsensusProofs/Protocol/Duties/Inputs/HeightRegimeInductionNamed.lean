@@ -344,7 +344,7 @@ theorem PrefixFGSelectorConeAt.fgRoot_compatible_of_recentWitnessHistory_of_fram
         simpa only [actionStoreAt, actionReadAt,
           NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
           NamedActionReads.confirmationReadFrom,
-          NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using
+          NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using!
             hactionPre
       · have hselectedCfg : PhaseGrades.nodeQ2
             S (actionReadAt S rho a.val_index a.round) a.round =
@@ -360,7 +360,7 @@ theorem PrefixFGSelectorConeAt.fgRoot_compatible_of_recentWitnessHistory_of_fram
       simpa only [actionStoreAt, actionReadAt,
         NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
         NamedActionReads.confirmationReadFrom,
-        NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using
+        NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using!
           hsourceAt
     have heqSource := congrFun
       (stateBeforeTime_eq_stateBefore_strictEventIndex
@@ -469,7 +469,7 @@ theorem PrefixFGSelectorConeAt.sourceMem_at_action_of_frame_named
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using!
         hactionPre
   · have hselectedCfg : PhaseGrades.nodeQ2
         S (actionReadAt S rho a.val_index a.round) a.round =
@@ -501,7 +501,7 @@ theorem PrefixFGSelectorConeAt.localFrontier_ge_from_source_of_frame_named
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hsource
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hsource
   have heqSource := congrFun
     (stateBeforeTime_eq_stateBefore_strictEventIndex
       S adm.toNamedScheduleWellFormed (S.a a.round)) w
@@ -516,7 +516,7 @@ theorem PrefixFGSelectorConeAt.localFrontier_ge_from_source_of_frame_named
       (strictEventIndex_mono rho hread) hsourcePre
   have hheight := Proofs.NamedStoreBridge.heights_le_hMax_stateBeforeTime
     S rho read w Cfg hCfgRead
-  simpa only [hseed.sourceDerivedHeight] using hheight
+  simpa only [hseed.sourceDerivedHeight] using! hheight
 
 #print axioms PrefixFGSelectorConeAt.localFrontier_ge_from_source_of_frame_named
 

@@ -89,7 +89,7 @@ private theorem voteDutyHead_mem_voteDutyStore_local
       (Protocol.vote_time S.E s) v).1
   have hinv : Proofs.NamedConfirmationMembership.Invariant S.E S.cfg read.st := by
     simpa only [read, Internal.NamedRecoveryRead.voteDutyRead,
-      NamedActionReads.confirmationReadAt] using
+      NamedActionReads.confirmationReadAt] using!
       Proofs.NamedConfirmationMembership.invariant_clock S.E S.cfg _ _ hinvPre
   have hroot : Protocol.get_fg_root st.toHealing.toFG ∈ st.T :=
     Proofs.NamedStoreRoots.fg_root_mem read.st hinv.1.2
@@ -149,7 +149,7 @@ private theorem emitted_vote_head_eq_voterHeadAt
       Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock, slotOf_vote_time] using
+      Protocol.NamedStore.setClock, slotOf_vote_time] using!
       (congrArg GoldfishVote.head (Option.some.inj hduty)).symm
   · simp at hduty
 
@@ -230,7 +230,7 @@ theorem mem_pool_of_delivery (S : Setup V) (rho : NamedRun V)
     rw [hstep]
     show Protocol.on_goldfish_vote_checked S.E st u = _
     unfold Protocol.on_goldfish_vote_checked
-    rw [if_neg hcheck]
+    rw [ite_eq_right hcheck]
   obtain ⟨hgf, hts, -⟩ := Protocol.on_goldfish_vote_insert st u hguard hequiv
   refine ⟨?_, ?_⟩
   · show u ∈ (NamedRun.stateBefore S rho (i + 1) w).st.core.gf_votes u.slot
@@ -257,7 +257,7 @@ theorem delivery_store_slot_core (S : Setup V) {rho : NamedRun V}
     refine adm.tick_total w hw _ (publicTime_vote_time S s) (vote_time_nonneg S.E s) ?_
     exact le_trans hlo (adm.in_horizon _ (List.mem_of_getElem? hi)).2
   have hup : (NamedRun.stateBefore S rho i w).st.t ≤ t' := by
-    simpa [Event.time] using
+    simpa [Event.time] using!
       Protocol.store_time_le_event_time S adm.toNamedScheduleWellFormed hi w
   have hslot := Proofs.NamedStoreBridge.slotOfClock_stateBefore S rho i w
   unfold Proofs.Optimistic.SlotOfClock at hslot
@@ -453,7 +453,7 @@ theorem mem_pool_of_emits_core (S : Setup V) {rho : NamedRun V}
   -- The clock write is a `PoolStep`, so `PoolStamps` transports from the
   -- pre-tick store to the post-clock, pre-duty store `st0`.
   have hclockle : n.st.core.t ≤ t := by
-    simpa [Event.time] using
+    simpa [Event.time] using!
       Protocol.store_time_le_event_time S adm.toNamedScheduleWellFormed hi w
   have hstamps0 : Protocol.PoolStamps st0.core := by
     have hstamp := Protocol.poolStep_tickStore n.st.core t (S.E.slotOf t) hclockle
@@ -490,10 +490,10 @@ theorem mem_pool_of_emits_core (S : Setup V) {rho : NamedRun V}
     rw [hproposalDuedef]
     rintro ⟨-, hteq, -⟩
     exact Proofs.Optimistic.vote_time_ne_proposal_time S.E s' (by rw [← hteq, htdef, hs'eq])
-  have hst1eq : st1 = st0 := by rw [hst1def, if_neg hpne]
+  have hst1eq : st1 = st0 := by rw [hst1def, ite_eq_right hpne]
   have hvd : voteDue := by rw [hvoteDuedef, hs'eq]; exact ⟨hs, htdef⟩
   have hst2eq : st2.core = Protocol.on_goldfish_vote st0.core u := by
-    rw [hst2def, if_pos hvd, hvoteddef, hst1eq]
+    rw [hst2def, ite_eq_left hvd, hvoteddef, hst1eq]
     exact hfst
   have hst3fields : st3.core.gf_votes = st2.core.gf_votes ∧
       st3.core.timestamp_vote = st2.core.timestamp_vote := by
@@ -577,13 +577,13 @@ theorem tick_fields_from_proposal
     with hst3def
   have hst1 : st1 = proposed.1 := by
     rw [hst1def]
-    exact if_pos hguard
+    exact ite_eq_left hguard
   have hvote : ¬ voteDue := by
     rw [hvoteDuedef]
     intro hv
     exact Proofs.Optimistic.proposal_time_ne_vote_time S.E s
       (by rw [← hv.2, ← hguard.2.1])
-  have hst2 : st2 = st1 := by rw [hst2def, if_neg hvote]
+  have hst2 : st2 = st1 := by rw [hst2def, ite_eq_right hvote]
   have hst3fields : st3.core.gf_votes = st2.core.gf_votes ∧
       st3.core.timestamp_vote = st2.core.timestamp_vote := by
     rw [hst3def]
@@ -639,24 +639,24 @@ private theorem checked_carried_settled
         u.val_index = true := by
   dsimp only [Protocol.on_block_checked_using] at hpost ⊢
   by_cases hvalid : Protocol.carried_attestations_admissible hc B = true
-  · simp only [hvalid, if_true] at hpost ⊢
+  · simp only [hvalid, ite_true] at hpost ⊢
     by_cases hfirst : st.s < B.slot ∨ B ∈ st.T ∨ B.parent ∉ st.T
     · rw [show Protocol.on_block_using E st B buildState = st by
-        simp only [Protocol.on_block_using, if_pos hfirst]] at hpost
+        simp only [Protocol.on_block_using, ite_eq_left hfirst]] at hpost
       exact absurd hpost hpre
     · by_cases hadmit : (!Block.preceq st.F B) = true
       · rw [show Protocol.on_block_using E st B buildState = st by
-          simp only [Protocol.on_block_using, if_neg hfirst, if_pos hadmit]] at hpost
+          simp only [Protocol.on_block_using, ite_eq_right hfirst, ite_eq_left hadmit]] at hpost
         exact absurd hpost hpre
       · by_cases hprop : B.proposer? ≠ some (E.proposer B.slot)
         · rw [show Protocol.on_block_using E st B buildState = st by
-            simp only [Protocol.on_block_using, if_neg hfirst, if_neg hadmit,
-              if_pos hprop]] at hpost
+            simp only [Protocol.on_block_using, ite_eq_right hfirst, ite_eq_right hadmit,
+              ite_eq_left hprop]] at hpost
           exact absurd hpost hpre
         · by_cases hparent : ¬ B.parent.slot < B.slot
           · rw [show Protocol.on_block_using E st B buildState = st by
-              simp only [Protocol.on_block_using, if_neg hfirst, if_neg hadmit,
-                if_neg hprop, if_pos hparent]] at hpost
+              simp only [Protocol.on_block_using, ite_eq_right hfirst, ite_eq_right hadmit,
+                ite_eq_right hprop, ite_eq_left hparent]] at hpost
             exact absurd hpost hpre
           · let stored : Protocol.Store V :=
               { st with
@@ -669,7 +669,8 @@ private theorem checked_carried_settled
             have hout : Protocol.on_block_using E st B buildState =
                 Protocol.update_finality unpacked (unpacked.σ B) := by
               unfold Protocol.on_block_using
-              rw [if_neg hfirst, if_neg hadmit, if_neg hprop, if_neg hparent]
+              rw [ite_eq_right hfirst, ite_eq_right hadmit, ite_eq_right hprop,
+                ite_eq_right hparent]
             have hstored : Protocol.PoolStamps stored :=
               ⟨hstamps.slot, hstamps.stamped, hstamps.pooled, hstamps.bounded⟩
             have hsettled := Protocol.foldl_on_goldfish_vote_checked_beforeCutoff_or_equivocates
@@ -680,7 +681,7 @@ private theorem checked_carried_settled
               Protocol.update_finality_gf_votes, unpacked] using hsettled
   · have hfalse : Protocol.carried_attestations_admissible hc B = false :=
       Bool.eq_false_of_not_eq_true hvalid
-    simp only [hfalse, Bool.false_eq_true, if_false] at hpost
+    simp only [hfalse, Bool.false_eq_true, ite_false] at hpost
     exact absurd hpost hpre
 
 private theorem core_carried_settled (S : Setup V) (st : Protocol.NamedStore V)
@@ -702,7 +703,7 @@ private theorem core_carried_settled (S : Setup V) (st : Protocol.NamedStore V)
   by_cases hp : B.parent ∉ st.bodies
   · simp only [hp] at hpost
     exact absurd hpost hpre
-  · rw [if_neg hp] at hpost ⊢
+  · rw [ite_eq_right hp] at hpost ⊢
     let after := Protocol.on_block_checked_using
       (fun current => Protocol.on_block_using S.E current B.erase
         (fun parentState => Protocol.named_transition S.E S.cfg parentState B))
@@ -716,7 +717,7 @@ private theorem core_carried_settled (S : Setup V) (st : Protocol.NamedStore V)
     · exact checked_carried_settled S.E S.hc st.core B.erase _ u Γ hstamps hfreshB.1
         hfreshB.2 hu hcommittee hfresh hfuture hclock
     · unfold Protocol.NamedStore.commitBlock at hpost
-      rw [if_neg hfreshB] at hpost
+      rw [ite_eq_right hfreshB] at hpost
       exact absurd hpost hpre
 
 private theorem admit_rows_bodies_of (hc : Protocol.HealConfig)

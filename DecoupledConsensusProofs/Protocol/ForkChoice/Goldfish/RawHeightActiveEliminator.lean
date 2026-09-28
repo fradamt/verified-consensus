@@ -73,21 +73,20 @@ private theorem selectedFGRoot_deriveHeight_lt_hMax
   have hco : Proofs.NamedStore.Coherent S.E S.cfg st :=
     (Proofs.NamedRuntime.stateBeforeTime_invariants S rho read w).1.1.1
   have hbelow : st.core.h_j < st.core.h_max := by
-    simpa only [st] using
+    simpa only [st] using!
       NamedJustificationBound.justificationBelowMax_stateBeforeTime
         S rho read w
   by_cases hgate : st.core.h_max = st.core.h_j + 1
   · have hRJ : R.erase = st.core.J := by
-      simpa only [Protocol.get_fg_root, Protocol.Store.toHealing,
-        if_pos hgate] using hroot'
+      exact hroot'.trans (ite_eq_left hgate)
     obtain ⟨C, hCmem, hCJ, hChj⟩ :=
       Proofs.Bridges.storeJustificationOnChain_stateBeforeTime S rho read w
-    have hCmem' : C ∈ st.bodies := by simpa only [st] using hCmem
+    have hCmem' : C ∈ st.bodies := by simpa only [st] using! hCmem
     have hCJ' : (Protocol.derive_named S.E S.cfg C).J = st.core.J := by
-      simpa only [st] using hCJ
+      simpa only [st] using! hCJ
     have hChj' :
         (Protocol.derive_named S.E S.cfg C).h_j = st.core.h_j := by
-      simpa only [st] using hChj
+      simpa only [st] using! hChj
     rcases NamedCheckpointHeights.justified_ancestor_height
         S.E S.cfg C with hz | ⟨J, hJC, hJerase, hJheight⟩
     · have hJgen : st.core.J = Block.genesis := by
@@ -110,16 +109,15 @@ private theorem selectedFGRoot_deriveHeight_lt_hMax
         _ = st.core.h_j := hChj'
         _ < st.core.h_max := hbelow
   · have hRF : R.erase = st.core.F := by
-      simpa only [Protocol.get_fg_root, Protocol.Store.toHealing,
-        if_neg hgate] using hroot'
+      exact hroot'.trans (ite_eq_right hgate)
     obtain ⟨C, hCmem, hCF, hCFbelow⟩ :=
       Proofs.Bridges.storeFinalizationOnChain_stateBeforeTime S rho read w
-    have hCmem' : C ∈ st.bodies := by simpa only [st] using hCmem
+    have hCmem' : C ∈ st.bodies := by simpa only [st] using! hCmem
     have hCF' : (Protocol.derive_named S.E S.cfg C).F = st.core.F := by
-      simpa only [st] using hCF
+      simpa only [st] using! hCF
     have hCFbelow' :
         (Protocol.derive_named S.E S.cfg C).h_F < st.core.h_max := by
-      simpa only [st] using hCFbelow
+      simpa only [st] using! hCFbelow
     rcases NamedCheckpointHeights.finalized_ancestor_height
         S.E S.cfg C with hz | ⟨F, hFC, hFerase, hFheight⟩
     · have hFgen : st.core.F = Block.genesis := by
@@ -170,7 +168,7 @@ theorem activeExactHeightProposalRootCarrierAt_false
     simpa only [pre, proposer, read, s, proposerReadAt,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock] using h.root_eq
+      Protocol.NamedStore.setClock] using! h.root_eq
   have hrootBelow :
       (Protocol.derive_named S.E S.cfg root).h < pre.core.h_max :=
     selectedFGRoot_deriveHeight_lt_hMax

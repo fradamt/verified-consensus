@@ -218,8 +218,8 @@ private theorem w4b_succ_of_eventFacts_named
   refine ⟨End', ?_, ?_, ?_⟩
   · intro j hji
     have hjne : j ≠ i + 1 := by omega
-    simp only [End', if_neg hjne]
-  · simp only [End', if_pos rfl]
+    simp only [End', ite_eq_right hjne]
+  · simp only [End', ite_eq_left rfl]
   · refine
       { historyStart := h.historyStart
         start_le := h.start_le.trans (Nat.le_succ i)
@@ -235,71 +235,71 @@ private theorem w4b_succ_of_eventFacts_named
             Nat.ne_of_lt (h.start_le.trans_lt (Nat.lt_succ_self i))
           intro j a time ha hevent hemit hj hh hrow E hE hErun
           have hE' : E.erase = End n0 := by
-            simpa only [End', if_neg hn0ne] using hE
-          simpa only [End', if_neg hn0ne] using
+            simpa only [End', ite_eq_right hn0ne] using hE
+          simpa only [End', ite_eq_right hn0ne] using
             h.oldRows_named ha hevent hemit hj hh hrow E hE' hErun
         frontierFloor := h.frontierFloor
         boundaryTargets := by
           have hn0ne : n0 ≠ i + 1 := by
             have hn0le : n0 ≤ i := h.start_le
             omega
-          simpa only [End', if_neg hn0ne] using h.boundaryTargets }
+          simpa only [End', ite_eq_right hn0ne] using h.boundaryTargets }
     · intro j hj hjupper
       by_cases hji : j = i + 1
       · subst j
-        simpa only [End', if_pos rfl] using hNextRun
+        simpa only [End', ite_eq_left rfl] using hNextRun
       · have hjold : j ≤ i := by omega
-        simpa only [End', if_neg hji] using h.endpointRun j hj hjold
+        simpa only [End', ite_eq_right hji] using h.endpointRun j hj hjold
     · intro j hj hjupper
       by_cases hji : j = i
       · subst j
         have hine : i ≠ i + 1 := by omega
-        simp only [End', if_neg hine, if_pos rfl]
+        simp only [End', ite_eq_right hine, ite_eq_left rfl]
         exact hEndNext
       · have hjold : j < i := by omega
         have hjne : j ≠ i + 1 := by omega
         have hjsne : j + 1 ≠ i + 1 := by omega
-        simpa only [End', if_neg hjne, if_neg hjsne] using
+        simpa only [End', ite_eq_right hjne, ite_eq_right hjsne] using
           h.endpointMono j hj hjold
     · intro j hj hjupper
       by_cases hji : j = i
       · subst j
         have hine : i ≠ i + 1 := by omega
-        simpa only [End', if_neg hine, if_pos rfl] using hproposal
+        simpa only [End', ite_eq_right hine, ite_eq_left rfl] using hproposal
       · have hjold : j < i := by omega
         have hjne : j ≠ i + 1 := by omega
         have hjsne : j + 1 ≠ i + 1 := by omega
-        simpa only [End', if_neg hjne, if_neg hjsne] using
+        simpa only [End', ite_eq_right hjne, ite_eq_right hjsne] using
           h.proposalChain j hj hjold
     · intro j hj hjupper
       by_cases hji : j = i
       · subst j
-        simpa only [End', if_pos rfl] using hconfirmations
+        simpa only [End', ite_eq_left rfl] using hconfirmations
       · have hjold : j < i := by omega
         have hjsne : j + 1 ≠ i + 1 := by omega
-        simpa only [End', if_neg hjsne] using
+        simpa only [End', ite_eq_right hjsne] using
           h.genuineConfirmations j hj hjold
     · intro j hj hjupper
       by_cases hji : j = i
       · subst j
-        simpa only [End', if_pos rfl] using hsg
+        simpa only [End', ite_eq_left rfl] using hsg
       · have hjold : j < i := by omega
         have hjsne : j + 1 ≠ i + 1 := by omega
-        simpa only [End', if_neg hjsne] using h.sgCarriers j hj hjold
+        simpa only [End', ite_eq_right hjsne] using h.sgCarriers j hj hjold
     · intro j hj hjupper
       by_cases hji : j = i
       · subst j
-        simpa only [End', if_pos rfl] using hout
+        simpa only [End', ite_eq_left rfl] using hout
       · have hjold : j < i := by omega
         have hjsne : j + 1 ≠ i + 1 := by omega
-        simpa only [End', if_neg hjsne] using h.outputs j hj hjold
+        simpa only [End', ite_eq_right hjsne] using h.outputs j hj hjold
     · intro j hj hjupper
       by_cases hji : j = i
       · subst j
-        simpa only [End', if_pos rfl] using hanchors
+        simpa only [End', ite_eq_left rfl] using hanchors
       · have hjold : j < i := by omega
         have hjsne : j + 1 ≠ i + 1 := by omega
-        simpa only [End', if_neg hjsne] using h.anchors j hj hjold
+        simpa only [End', ite_eq_right hjsne] using h.anchors j hj hjold
 
 private theorem w4b_succ_proposalInstant_named
     (S : Setup V) {rho : Run V} (adm : Admissible S rho)
@@ -376,7 +376,7 @@ theorem movingBoundaryHistoryN_toProposal_honest
     have htrue := Proofs.Optimistic.filter_true_of_index_lt
       S adm.toNamedAdmissibleCore.toNamedScheduleWellFormed _
       (Proofs.Optimistic.downward_lt (Protocol.proposal_time S.E (c + 1 + 1)))
-      (by simpa only [strictEventIndex] using Nat.lt_of_not_ge hnot) hpevent
+      (by simpa only [strictEventIndex] using! Nat.lt_of_not_ge hnot) hpevent
     simp only [decide_eq_true_eq, Event.time] at htrue
     exact lt_irrefl _ htrue
   have hcfp : cf ≤ p := hcfsn.trans hsnp

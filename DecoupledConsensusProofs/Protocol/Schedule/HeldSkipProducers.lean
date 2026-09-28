@@ -171,21 +171,21 @@ theorem tick_new_body_core (gc : Protocol.GradeContract V) (E : Env V)
   · cases hp : Protocol.NamedActions.proposal_with gc .poolAndCarried E hc nd st0 with
     | none =>
       have he := NamedDuties.propose_none gc E hc cfg nd st0 hp
-      exact False.elim (hpre (by simpa only [st1, proposed, if_pos hd, he] using hpost))
+      exact False.elim (hpre (by simpa only [st1, proposed, ite_eq_left hd, he] using! hpost))
     | some C =>
       have he := NamedDuties.propose_some gc E hc cfg nd st0 C hp
       have hC : B ∈ (Protocol.NamedAdmission.on_block_with .alsoCarried E hc cfg st0 C).bodies := by
-        simpa only [st1, proposed, if_pos hd, he] using hpost
+        simpa only [st1, proposed, ite_eq_left hd, he] using hpost
       have hpre0 : B ∉ st0.bodies := hpre
       have hBC := new_body_eq_input E hc cfg st0 C B hpre0 hC
       subst B
       have hst1 : st1 = Protocol.NamedAdmission.on_block_with .alsoCarried E hc cfg st0 C := by
-        simp only [st1, proposed, if_pos hd, he]
+        simp only [st1, proposed, ite_eq_left hd, he]
       refine ⟨?_, ?_⟩
       · rw [← block_with_bodies E hc cfg st0 C]
         exact hC
       · rw [hFtick, hst1, block_with_core_F]
-  · exact False.elim (hpre (by simpa only [st1, if_neg hd] using hpost))
+  · exact False.elim (hpre (by simpa only [st1, ite_eq_right hd] using! hpost))
 
 /-! ## Gap 1: the fresh core gate from actual bodies -/
 

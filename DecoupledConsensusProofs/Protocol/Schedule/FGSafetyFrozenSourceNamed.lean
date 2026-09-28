@@ -32,7 +32,7 @@ private theorem frozen_runBlock_of_action_body
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hD
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hD
   obtain ⟨j, hj, _⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix S rho
     adm.toNamedScheduleWellFormed.sorted (S.a r)
   have hDj : D ∈ (rho.stateBefore S j v).st.bodies := by
@@ -59,7 +59,7 @@ private theorem NamedHeightRegimeRun.frozenSourceMem_at_read
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hsource
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hsource
   have heqSource := congrFun
     (stateBeforeTime_eq_stateBefore_strictEventIndex
       S adm.toNamedScheduleWellFormed (S.a a.round)) w
@@ -166,10 +166,10 @@ theorem voterProcessed_mem_of_mem_previousFreeze_named
       exact admittedBefore_mem_and_stamp_at S sch
         ⟨D, hDerase, i, t, hacc, ht⟩
         (previousFreeze_lt_vote_named S hs).le
+  simp only [Protocol.voter_processed_block_tree, Finset.mem_filter]
   simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
     NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-    Run.storeBeforeTime, Protocol.voter_processed_block_tree,
-    Finset.mem_filter] using ⟨htransport.1, Or.inl htransport.2⟩
+    Run.storeBeforeTime] using ⟨htransport.1, Or.inl htransport.2⟩
 
 namespace NamedHeightRegimeBaseRun
 
@@ -268,7 +268,7 @@ theorem exists_frozen_descendant_at_crossing_of_previousHead_named
   have hCfgProcessed := voterProcessed_mem_of_mem_previousFreeze_named
     S adm.toNamedScheduleWellFormed
       (Nat.succ_le_succ (Nat.zero_le s))
-      (by simpa only [Nat.add_sub_cancel] using hCfgFreeze)
+      (by simpa only [Nat.add_sub_cancel] using! hCfgFreeze)
   exact ⟨Cfg,
     frozen_runBlock_of_action_body S adm hreg.seed.signerHonest
       hreg.seed.sourceMem,

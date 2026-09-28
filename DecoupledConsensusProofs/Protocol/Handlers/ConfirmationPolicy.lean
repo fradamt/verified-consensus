@@ -39,7 +39,7 @@ theorem advance_eq_old_or_candidate (old candidate : Block V) :
 theorem advance_eq_old (old candidate : Block V)
     (h : Block.Preceq candidate old) :
     Protocol.advance_confirmed old candidate = old := by
-  exact if_pos h
+  exact ite_eq_left h
 
 
 
@@ -72,7 +72,7 @@ theorem prefix_preceq_advance_of_result_compatible {B old candidate : Block V}
     Block.Preceq B (Protocol.advance_confirmed old candidate) := by
   by_cases hretain : Block.Preceq candidate old
   · simpa only [advance_eq_old old candidate hretain] using hold
-  · have hreplace : Protocol.advance_confirmed old candidate = candidate := if_neg hretain
+  · have hreplace : Protocol.advance_confirmed old candidate = candidate := ite_eq_right hretain
     rw [hreplace] at hresult ⊢
     simp only [Block.compatible, Bool.or_eq_true] at hresult
     rcases hresult with h | h

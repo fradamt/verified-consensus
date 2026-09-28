@@ -185,20 +185,21 @@ theorem blockStep_on_block_using (E : Env V) (st : Protocol.Store V) (B : Block 
   intro hs
   by_cases hfirst : st.s < B.slot ∨ B ∈ st.T ∨ B.parent ∉ st.T
   · rw [show Protocol.on_block_using E st B buildState = st by
-      simp only [Protocol.on_block_using, if_pos hfirst]]
+      simp only [Protocol.on_block_using, ite_eq_left hfirst]]
     exact ⟨⟨fun _ hB => hB, fun _ _ hc => hc⟩, hs⟩
   by_cases hadmit : (!Block.preceq st.F B) = true
   · rw [show Protocol.on_block_using E st B buildState = st by
-      simp only [Protocol.on_block_using, if_neg hfirst, if_pos hadmit]]
+      simp only [Protocol.on_block_using, ite_eq_right hfirst, ite_eq_left hadmit]]
     exact ⟨⟨fun _ hB => hB, fun _ _ hc => hc⟩, hs⟩
   by_cases hprop : B.proposer? ≠ some (E.proposer B.slot)
   · rw [show Protocol.on_block_using E st B buildState = st by
-      simp only [Protocol.on_block_using, if_neg hfirst, if_neg hadmit, if_pos hprop]]
+      simp only [Protocol.on_block_using, ite_eq_right hfirst, ite_eq_right hadmit,
+        ite_eq_left hprop]]
     exact ⟨⟨fun _ hB => hB, fun _ _ hc => hc⟩, hs⟩
   by_cases hslot : ¬ B.parent.slot < B.slot
   · rw [show Protocol.on_block_using E st B buildState = st by
-      simp only [Protocol.on_block_using, if_neg hfirst, if_neg hadmit, if_neg hprop,
-        if_pos hslot]]
+      simp only [Protocol.on_block_using, ite_eq_right hfirst, ite_eq_right hadmit,
+        ite_eq_right hprop, ite_eq_left hslot]]
     exact ⟨⟨fun _ hB => hB, fun _ _ hc => hc⟩, hs⟩
   let stored : Protocol.Store V :=
     { st with
@@ -211,7 +212,7 @@ theorem blockStep_on_block_using (E : Env V) (st : Protocol.Store V) (B : Block 
   have hout : Protocol.on_block_using E st B buildState =
       Protocol.update_finality unpacked (unpacked.σ B) := by
     unfold Protocol.on_block_using
-    rw [if_neg hfirst, if_neg hadmit, if_neg hprop, if_neg hslot]
+    rw [ite_eq_right hfirst, ite_eq_right hadmit, ite_eq_right hprop, ite_eq_right hslot]
   have hBnot : B ∉ st.T := fun hB => hfirst (Or.inr (Or.inl hB))
   have hTu : unpacked.T = insert B st.T := by
     simp only [unpacked, Proofs.foldl_on_goldfish_vote_checked_T, stored]
@@ -314,7 +315,7 @@ theorem blockStep_process_block_core (S : Setup V) (st : Protocol.NamedStore V)
     BlockStep st.core (Protocol.NamedStore.process_block_core S.E S.hc S.cfg st B).core := by
   by_cases hp : B.parent ∉ st.bodies
   · rw [show Protocol.NamedStore.process_block_core S.E S.hc S.cfg st B = st by
-      simp only [Protocol.NamedStore.process_block_core, if_pos hp]]
+      simp only [Protocol.NamedStore.process_block_core, ite_eq_left hp]]
     exact BlockStep.refl' st.core
   · rw [show Protocol.NamedStore.process_block_core S.E S.hc S.cfg st B =
         Protocol.NamedStore.commitBlock st
@@ -322,7 +323,7 @@ theorem blockStep_process_block_core (S : Setup V) (st : Protocol.NamedStore V)
             (fun current => Protocol.on_block_using S.E current B.erase
               (fun parentState => Protocol.named_transition S.E S.cfg parentState B))
             S.hc st.core B.erase) B by
-      simp only [Protocol.NamedStore.process_block_core, if_neg hp]]
+      simp only [Protocol.NamedStore.process_block_core, ite_eq_right hp]]
     rw [commitBlock_core]
     exact blockStep_on_block_checked_using
       (fun current => Protocol.on_block_using S.E current B.erase
@@ -501,7 +502,7 @@ theorem block_store_time_le_event_time (S : Setup V) {ρ : Run V}
   | some p =>
       have hmem : Event.tick v p ∈ ρ.events.take n :=
         tick_mem_of_lastTickIn v _ hl
-      simpa using time_le_of_mem_take S sch he _ hmem
+      simpa using! time_le_of_mem_take S sch he _ hmem
 
 /-- After one indexed event, every store clock is still no later than that
 event. -/
@@ -576,7 +577,7 @@ theorem blockStep_event (S : Setup V) {ρ : Run V}
           simp only [World.step, NamedWorld.step, Function.update_self]
         rw [heq]
         refine blockStep_on_tick_emit S v _ t ?_
-        simpa [Event.time] using block_store_time_le_event_time S sch he v
+        simpa [Event.time] using! block_store_time_le_event_time S sch he v
       · have heq : World.step S (ρ.stateBefore S n) (Event.tick u t) v =
             ρ.stateBefore S n v := by
           simp only [World.step, NamedWorld.step, Function.update_of_ne (Ne.symm hu)]
@@ -590,7 +591,7 @@ theorem blockStamps_stateBefore (S : Setup V) {ρ : Run V}
     ∀ n : Nat, BlockStamps (ρ.stateBefore S n v).st.core := by
   intro n
   induction n with
-  | zero => simpa [Run.stateBefore, World.init] using blockStamps_init (V := V)
+  | zero => simpa [Run.stateBefore, World.init] using! blockStamps_init (V := V)
   | succ n ih =>
       have hstep : ρ.stateBefore S (n + 1) =
           (ρ.events[n]?.toList).foldl (World.step S) (ρ.stateBefore S n) := by
@@ -685,7 +686,7 @@ theorem on_block_with_new_body (adm : Protocol.CarriedAdmission) (S : Setup V)
     have hcoreeq : core = before := by
       rw [hcoredef]
       unfold Protocol.NamedStore.process_block_core
-      rw [if_pos hcon]
+      rw [ite_eq_left hcon]
     exact hpre (hcoreeq ▸ hcorepost)
   have hcorecall : core = Protocol.NamedStore.commitBlock before
       (Protocol.on_block_checked_using
@@ -694,7 +695,7 @@ theorem on_block_with_new_body (adm : Protocol.CarriedAdmission) (S : Setup V)
         S.hc before.core B'.erase) B' := by
     rw [hcoredef]
     unfold Protocol.NamedStore.process_block_core
-    rw [if_neg (not_not_intro hprebody)]
+    rw [ite_eq_right (not_not_intro hprebody)]
   rw [hcorecall] at hcorepost
   unfold Protocol.NamedStore.commitBlock at hcorepost
   by_cases hfresh : B'.erase ∉ before.core.T ∧
@@ -702,7 +703,7 @@ theorem on_block_with_new_body (adm : Protocol.CarriedAdmission) (S : Setup V)
         (fun current => Protocol.on_block_using S.E current B'.erase
           (fun parentState => Protocol.named_transition S.E S.cfg parentState B'))
         S.hc before.core B'.erase).T
-  · rw [if_pos hfresh] at hcorepost
+  · rw [ite_eq_left hfresh] at hcorepost
     have hCeq : C = B' := by
       rcases Finset.mem_insert.mp hcorepost with h | h
       · exact h
@@ -710,9 +711,9 @@ theorem on_block_with_new_body (adm : Protocol.CarriedAdmission) (S : Setup V)
     refine ⟨hCeq, ?_⟩
     rw [hwrap.2, hcorecall]
     unfold Protocol.NamedStore.commitBlock
-    rw [if_pos hfresh, hCeq]
+    rw [ite_eq_left hfresh, hCeq]
     exact hfresh.2
-  · rw [if_neg hfresh] at hcorepost
+  · rw [ite_eq_right hfresh] at hcorepost
     exact absurd hcorepost hpre
 
 /-- The final store of a named tick has the proposal-stage `.bodies`, and its
@@ -825,7 +826,7 @@ theorem admittedBefore_mem_and_stamp (S : Setup V) {ρ : Run V}
         simpa only [hst0def, Protocol.NamedStore.setClock] using hpreB
       by_cases hcond : 0 < S.E.slotOf t' ∧ t' = Protocol.proposal_time S.E (S.E.slotOf t') ∧
           S.E.proposer (S.E.slotOf t') = (S.node v).val_index
-      · simp only [if_pos hcond] at hpostbody
+      · simp only [ite_eq_left hcond] at hpostbody
         unfold Protocol.NamedDuties.propose_block_with at hpostbody
         cases hpw : Protocol.NamedActions.proposal_with gc .poolAndCarried S.E S.hc
             (S.node v) st0 with
@@ -836,14 +837,14 @@ theorem admittedBefore_mem_and_stamp (S : Setup V) {ρ : Run V}
             have hcoreTfin : C.erase ∈
                 (Protocol.NamedTick.tick gc S.E S.hc S.cfg (S.node v) (ρ.stateBefore S i v).st
                   (ρ.stateBefore S i v).record t').1.core.T := by
-              rw [hstage.2, if_pos hcond]
+              rw [hstage.2, ite_eq_left hcond]
               unfold Protocol.NamedDuties.propose_block_with
               rw [hpw]
               exact hnew.2
             rw [hpoststate]
             simpa only [on_tick_emit, NamedNode.tick, NamedProfile.tick, ← hgcdef] using
               hcoreTfin
-      · simp only [if_neg hcond] at hpostbody
+      · simp only [ite_eq_right hcond] at hpostbody
         exact absurd hpostbody hpre0
     · have hworld : ρ.stateBefore S (i + 1) v =
           World.step S (ρ.stateBefore S i) (Event.deliver v (Object.block C) t') v := by

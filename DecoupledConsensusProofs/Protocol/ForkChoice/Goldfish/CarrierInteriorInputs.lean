@@ -117,7 +117,7 @@ theorem interiorProposal_candidateAndPivotPath
     Block.preceq_trans hpivotParent hparentPre
   have hFJ : Block.Preceq duty.F duty.J := by
     simpa only [duty, voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore]
-      using Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime
+      using! Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime
         S rho (Protocol.vote_time S.E s) v
   have hFP1 : Block.Preceq duty.F P1.erase :=
     Block.preceq_trans (Proofs.Records.preceq_get_fg_root_of_F
@@ -127,25 +127,25 @@ theorem interiorProposal_candidateAndPivotPath
       (Protocol.get_fg_root duty.toHealing.toFG) P1.erase :=
     Block.preceq_trans hrootPivot hpivotP1
   have hcandidate : P1.erase ∈ voterCandidateTreeAt S rho v s := by
-    simp only [voterCandidateTreeAt, Internal.NamedRecoveryRead.voteDutyRead,
-      NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock, Protocol.voter_filtered_block_tree,
-      Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, decide_eq_true_eq]
+    simp only [voterCandidateTreeAt, Protocol.voter_filtered_block_tree,
+      Protocol.get_filtered_block_tree_from, Protocol.viable_tree, Protocol.finalized_descendants,
+      Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
+    simp only [Internal.NamedRecoveryRead.voteDutyRead, NamedActionReads.confirmationReadAt,
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
     exact ⟨⟨⟨hprocessed, hFP1⟩, P1.erase, hprocessed,
       Block.preceq_self _, hband⟩, hrootP1⟩
   have hpivotCandidate : pivot ∈ voterCandidateTreeAt S rho v s := by
     have hpivotProcessed := WeakGoldfish.ancestorProcessed_of_voterProcessed
-      S adm.toNamedAdmissibleCore hv (s := s - 1) (B := P1.erase) (by simpa only [Nat.sub_add_cancel hs] using hprocessed)
+      S adm.toNamedAdmissibleCore hv (s := s - 1) (B := P1.erase) (by simpa only [Nat.sub_add_cancel hs] using! hprocessed)
       pivot hpivotP1
-    simp only [voterCandidateTreeAt, Internal.NamedRecoveryRead.voteDutyRead,
-      NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock, Protocol.voter_filtered_block_tree,
-      Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, decide_eq_true_eq]
-    exact ⟨⟨⟨by simpa only [Nat.sub_add_cancel hs] using hpivotProcessed,
+    simp only [voterCandidateTreeAt, Protocol.voter_filtered_block_tree,
+      Protocol.get_filtered_block_tree_from, Protocol.viable_tree, Protocol.finalized_descendants,
+      Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
+    simp only [Internal.NamedRecoveryRead.voteDutyRead, NamedActionReads.confirmationReadAt,
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
+    exact ⟨⟨⟨by simpa only [Nat.sub_add_cancel hs] using! hpivotProcessed,
       Block.preceq_trans (Proofs.Records.preceq_get_fg_root_of_F
         (st := duty.toHealing.toFG) hFJ)
         hrootPivot⟩, P1.erase, hprocessed, hpivotP1, hband⟩, hrootPivot⟩
@@ -158,7 +158,7 @@ theorem interiorProposal_candidateAndPivotPath
     simpa only [duty, voterAnchorAt, Internal.PhaseGrades.nodeAnchor,
       Internal.PhaseGrades.nodeRead, Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock] using
+      Protocol.NamedStore.setClock] using!
       NamedOutageClosure.fg_root_preceq_anchor S.E S.hc
         (Internal.NamedRecoveryRead.voteDutyRead S rho v s).st.core.toHealing
         (S.hc.round_of
@@ -169,16 +169,16 @@ theorem interiorProposal_candidateAndPivotPath
           (S.hc.round_of
             (Internal.NamedRecoveryRead.voteDutyRead S rho v s).st.core.s)).g1
   have hDprocessed := WeakGoldfish.ancestorProcessed_of_voterProcessed
-    S adm.toNamedAdmissibleCore hv (s := s - 1) (B := P1.erase) (by simpa only [Nat.sub_add_cancel hs] using hprocessed)
+    S adm.toNamedAdmissibleCore hv (s := s - 1) (B := P1.erase) (by simpa only [Nat.sub_add_cancel hs] using! hprocessed)
     D hDP1
   have hDcandidate : D ∈ voterCandidateTreeAt S rho v s := by
-    simp only [voterCandidateTreeAt, Internal.NamedRecoveryRead.voteDutyRead,
-      NamedActionReads.confirmationReadAt, NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock, Protocol.voter_filtered_block_tree,
-      Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
-      Protocol.finalized_descendants, Protocol.viable,
-      Finset.mem_filter, decide_eq_true_eq]
-    exact ⟨⟨⟨by simpa only [Nat.sub_add_cancel hs] using hDprocessed,
+    simp only [voterCandidateTreeAt, Protocol.voter_filtered_block_tree,
+      Protocol.get_filtered_block_tree_from, Protocol.viable_tree, Protocol.finalized_descendants,
+      Finset.mem_filter]
+    simp only [Protocol.viable, decide_eq_true_eq]
+    simp only [Internal.NamedRecoveryRead.voteDutyRead, NamedActionReads.confirmationReadAt,
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
+    exact ⟨⟨⟨by simpa only [Nat.sub_add_cancel hs] using! hDprocessed,
       Block.preceq_trans (Proofs.Records.preceq_get_fg_root_of_F
         (st := duty.toHealing.toFG) hFJ)
         (Block.preceq_trans hrootAnchor hAD)⟩,

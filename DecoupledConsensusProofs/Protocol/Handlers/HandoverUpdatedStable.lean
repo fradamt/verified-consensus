@@ -186,7 +186,7 @@ theorem updatedStable_preceq_walk_at_openingConfirmation
         (voterHeadAt S rho v start) := by
       simpa only [confirmationInputRead, NamedActionReads.confirmationReadAt,
         NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-        Protocol.voteDutyHead] using hrootHead
+        Protocol.voteDutyHead] using! hrootHead
     rw [hheads v hv] at hrootHead'
     exact hrootHead'
   have hgenuine := genuineConfirmationAndPreceq_of_postHealingCone
@@ -200,12 +200,12 @@ theorem updatedStable_preceq_walk_at_openingConfirmation
     let st := confStore S rho v start
     have hliveFormula := update_confirmation_with_live_confirmed
       contract S.E S.hc st start
-    rw [if_pos (by simpa only [contract, st] using hgenuine.1.genuine)] at hliveFormula
+    rw [ite_eq_left (by simpa only [contract, st] using hgenuine.1.genuine)] at hliveFormula
     have hselected :
         (Protocol.update_confirmation_with contract S.E S.hc st start).live_confirmed =
           P.erase := by simpa only [contract, st, start] using hlive
     exact (by simpa only [contract, st, namedConfirmationWalk,
-      confWalkWith, confStore_eq_confirmationInputRead] using
+      confWalkWith, confStore_eq_confirmationInputRead] using!
         hliveFormula.symm.trans hselected)
   have hGle : Block.Preceq G P.erase := by
     let rr := S.hc.round_of (S.E.slotOf t)
@@ -234,7 +234,7 @@ theorem updatedStable_preceq_walk_at_openingConfirmation
     have hrootWalk := WeakGenesis.preparedStableRoot_preceq_confWalk_positive
       S adm.toNamedAdmissibleCore hv hrr (rfl : S.hc.round_of (S.E.slotOf t) = rr)
         hopen htop (by simpa only [t, start] using hhor) start
-        (by simpa only [t, start, rr] using hG)
+        (by simpa only [t, start, rr] using! hG)
     have hreadEq : NamedActionReads.confirmationReadAt S rho v t =
         confirmationInputRead S rho v start := by
       simp only [t, confirmationInputRead]
@@ -245,7 +245,7 @@ theorem updatedStable_preceq_walk_at_openingConfirmation
       let nidx := strictEventIndex rho t
       have hstate : NamedRun.stateBeforeTime S rho t v =
           NamedRun.stateBefore S rho nidx v := by
-        simpa only [nidx] using congrFun
+        simpa only [nidx] using! congrFun
           (NamedOutageClosure.strict_read_eq_index S rho
             adm.toNamedScheduleWellFormed.sorted t) v
       have hcurrent : old = (rho.stateBefore S nidx v).st.latest_stable := by
@@ -330,11 +330,11 @@ theorem updatedStable_preceq_walk_at_openingConfirmation
                 (by simpa only [D, rr] using hlate) hqstart
     change Block.Preceq (Protocol.advance_confirmed old G) P.erase
     unfold Protocol.advance_confirmed
-    rw [if_pos (show Block.preceq G old = true from hkeep)]
+    rw [ite_eq_left (show Block.preceq G old = true from hkeep)]
     exact hold
   · change Block.Preceq (Protocol.advance_confirmed old G) P.erase
     unfold Protocol.advance_confirmed
-    rw [if_neg (show Block.preceq G old ≠ true from hkeep)]
+    rw [ite_eq_right (show Block.preceq G old ≠ true from hkeep)]
     exact hGle
 
 

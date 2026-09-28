@@ -131,7 +131,7 @@ theorem w4_proposal_mem_actionFilteredTree_gstZero
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      Protocol.NamedStore.setClock] using
+      Protocol.NamedStore.setClock] using!
       Proofs.NamedStoreBridge.parentClosed_stateBeforeTime S rho (S.a k) v
   have hliveTree : (actionStoreAt S rho v k).st.core.live_confirmed ∈
       (actionStoreAt S rho v k).st.core.T :=
@@ -144,7 +144,7 @@ theorem w4_proposal_mem_actionFilteredTree_gstZero
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      Protocol.NamedStore.setClock] using
+      Protocol.NamedStore.setClock] using!
       Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime S rho
         (S.a k) v
   have hactiveStore : P.erase ∈
@@ -199,7 +199,7 @@ private theorem w4_preceq_actionQ2_of_domainGrade_mem
       (DecoupledConsensusModel.Protocol.readFrame (actionReadAt S rho v r).cache
         (actionReadAt S rho v r).st.core.toHealing r) = some Q
   unfold DecoupledConsensusModel.Protocol.grade2Block
-  rw [if_pos (Proofs.HealingSurface.actionFrame_allClosed S core hv hr hhor),
+  rw [ite_eq_left (Proofs.HealingSurface.actionFrame_allClosed S core hv hr hhor),
     Proofs.HealingSurface.actionFrame_g2 S core hv hr hhor,
     show PhaseGrades.storeRoot S.E S.hc
         (NamedRun.stateBeforeTime S rho
@@ -434,14 +434,14 @@ theorem w4_gstZeroGradeStep
           (nodeAnchor S (actionReadAt S rho u k) k) P.erase ∨
           Block.Preceq P.erase
             (nodeAnchor S (actionReadAt S rho u k) k) by
-        simpa only [Block.compatible, Bool.or_eq_true] using hanchorComp) with
+        simpa only [Block.compatible, Bool.or_eq_true] using! hanchorComp) with
       hAP | hPA
       · exact Or.inr (Block.preceq_trans hrootAnchor hAP)
       · have hrootComp : Block.compatible R P.erase = true :=
           Block.compatible_of_preceq_common hrootAnchor hPA
         have hrootComp' : Block.Preceq R P.erase ∨
             Block.Preceq P.erase R := by
-          simpa only [Block.compatible, Bool.or_eq_true] using hrootComp
+          simpa only [Block.compatible, Bool.or_eq_true] using! hrootComp
         rcases hrootComp' with hRP | hPR
         · exact Or.inr hRP
         · exact Or.inl hPR

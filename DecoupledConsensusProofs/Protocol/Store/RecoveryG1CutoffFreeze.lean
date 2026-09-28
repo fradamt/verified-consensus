@@ -53,7 +53,7 @@ theorem projected_vote_reflects_to_opening
     have hround := GradeDeliveryRun.projected_rounds_storeBeforeTime
       S adm.toNamedAdmissibleCore.toNamedScheduleWellFormed v read k
       (Protocol.sgVote a.erase) hu
-    simpa only [Protocol.sgVote] using hround
+    simpa only [Protocol.sgVote] using! hround
   have hΓa : S.hc.Γ_0 S.E.Δ q < S.a q :=
     lt_of_lt_of_le
       (lt_trans
@@ -116,7 +116,7 @@ theorem projected_vote_persists_from_opening
     have hround := GradeDeliveryRun.projected_rounds_storeBeforeTime
       S adm.toNamedAdmissibleCore.toNamedScheduleWellFormed v (S.a q) k
       (Protocol.sgVote a.erase) hu
-    simpa only [Protocol.sgVote] using hround
+    simpa only [Protocol.sgVote] using! hround
   have hΓa : S.hc.Γ_0 S.E.Δ q < S.a q :=
     lt_of_lt_of_le
       (lt_trans
@@ -183,12 +183,12 @@ theorem summary_equivocation_reflects_to_opening
   have huLater : u ∈
       (rho.storeBeforeTime S v read).toHealing.sg_votes (q - 1) := by
     simpa only [laterBatch, later, Protocol.round_batch,
-      if_neg (Nat.ne_of_gt hq), Protocol.HealingStore.gradeView,
+      ite_eq_right (Nat.ne_of_gt hq), Protocol.HealingStore.gradeView,
       Protocol.Store.toHealing] using huData.1
   have hcLater : c ∈
       (rho.storeBeforeTime S v read).toHealing.sg_votes (q - 1) := by
     simpa only [laterBatch, later, Protocol.round_batch,
-      if_neg (Nat.ne_of_gt hq), Protocol.HealingStore.gradeView,
+      ite_eq_right (Nat.ne_of_gt hq), Protocol.HealingStore.gradeView,
       Protocol.Store.toHealing] using hcData.1
   have huOpening := projected_vote_reflects_to_opening S adm hv hread huLater
     (by simpa only [later, Protocol.HealingStore.gradeView,
@@ -202,13 +202,13 @@ theorem summary_equivocation_reflects_to_opening
     apply Finset.mem_filter.mpr
     refine ⟨?_, huData.2⟩
     simpa only [openingBatch, opening, Protocol.round_batch,
-      if_neg (Nat.ne_of_gt hq), gradeViewAt, healStoreAt,
+      ite_eq_right (Nat.ne_of_gt hq), gradeViewAt, healStoreAt,
       Protocol.HealingStore.gradeView, Protocol.Store.toHealing] using huOpening.1
   have hcOpen : c ∈ openingBatch := by
     apply Finset.mem_filter.mpr
     refine ⟨?_, hcData.2⟩
     simpa only [openingBatch, opening, Protocol.round_batch,
-      if_neg (Nat.ne_of_gt hq), gradeViewAt, healStoreAt,
+      ite_eq_right (Nat.ne_of_gt hq), gradeViewAt, healStoreAt,
       Protocol.HealingStore.gradeView, Protocol.Store.toHealing] using hcOpening.1
   have hfibre : ∀ y ∈ openingBatch, y.val_index = x ∧ y.round = q - 1 := by
     intro y hy
@@ -217,7 +217,7 @@ theorem summary_equivocation_reflects_to_opening
     have hyRaw : y ∈
         (rho.storeBeforeTime S v (S.a q)).toHealing.sg_votes (q - 1) := by
       simpa only [openingBatch, opening, Protocol.round_batch,
-        if_neg (Nat.ne_of_gt hq), gradeViewAt, healStoreAt,
+        ite_eq_right (Nat.ne_of_gt hq), gradeViewAt, healStoreAt,
         Protocol.HealingStore.gradeView, Protocol.Store.toHealing] using hyData.1
     exact GradeDeliveryRun.projected_rounds_storeBeforeTime
       S adm.toNamedAdmissibleCore.toNamedScheduleWellFormed v (S.a q) (q - 1) y hyRaw
@@ -301,7 +301,7 @@ theorem G1_persists_from_opening
         (rho.storeBeforeTime S v (S.a q)).toHealing.sg_votes (q - 1) := by
       simpa only [opening, gradeViewAt, healStoreAt,
         Protocol.HealingStore.gradeView, Protocol.Store.toHealing,
-        Protocol.round_batch, if_neg hq] using (Finset.mem_filter.mp hu).1
+        Protocol.round_batch, ite_eq_right hq] using (Finset.mem_filter.mp hu).1
     have hutOpen : occurrenceBefore
         (Protocol.sg_resolution_time opening.T opening.timestamp_block
           opening.timestamp_sg_vote u) (S.hc.Γ_0 S.E.Δ q) = true := by
@@ -353,7 +353,7 @@ theorem G1_persists_from_opening
         (Protocol.round_batch later q) x := by
       apply Finset.mem_filter.mpr
       refine ⟨?_, huv⟩
-      simpa only [later, Protocol.round_batch, if_neg hq,
+      simpa only [later, Protocol.round_batch, ite_eq_right hq,
         Protocol.HealingStore.gradeView, Protocol.Store.toHealing] using huLater
     have huLaterReceipt : occurrenceBefore (later.timestamp_sg_vote u)
         (S.hc.Γ_0 S.E.Δ q) = true := by

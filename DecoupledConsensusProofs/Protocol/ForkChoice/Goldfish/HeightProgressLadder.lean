@@ -291,7 +291,7 @@ theorem gradeFormsAt_persist_of_fixedRoot_noRise
                         hendpoint)
                       hformsPrev hv (by
                         simpa only [FinalityFilterRetainedAtRead,
-                          actionReadAt, Run.storeBeforeTime] using
+                          actionReadAt, Run.storeBeforeTime] using!
                           hactiveAction r hbasePrev hrendPrev v hv)
               have hpostPrev : S.E.t_GST ≤ S.a r :=
                 hpostRoot.trans
@@ -397,7 +397,7 @@ theorem exactHeightAttempt_rise_of_rebased_of_fixedRoot_noRise
     change B.erase ∈ Protocol.get_filtered_block_tree
       (NamedRun.stateBeforeTime S rho
         (DecoupledConsensusModel.Protocol.domain S.E S.hc q .g2) v).st.core.toHealing.toFG
-    simpa only [hpred] using hmem
+    simpa only [hpred] using! hmem
   have hactive : ∀ v ∈ rho.honest,
       B.erase ∈ Protocol.get_filtered_block_tree
         (healStoreAt S rho v q).toFG := by

@@ -57,8 +57,8 @@ theorem SettledBootstrapPreparedV4.genuineConfirmationAt_core_of_pins
       S adm.toNamedScheduleWellFormed hv s hhor]
     change (Protocol.update_confirmation_with contract S.E S.hc
       read.st.core s).live_confirmed = namedConfirmationWalk S read s
-    rw [update_confirmation_with_live_confirmed, if_pos (by
-      simpa only [read] using hwalk.2)]
+    rw [update_confirmation_with_live_confirmed, ite_eq_left (by
+      simpa only [read] using! hwalk.2)]
     rfl
   · simpa only [read] using hwalk.2
 
@@ -154,8 +154,8 @@ theorem SettledBootstrapPreparedV4.liveConfirmed_preceq_at_confirmation_core_of_
         S.E S.hc
         (Internal.NamedRecoveryRead.confirmationInputRead S rho v s).st.core s) = true
     at helig
-  rw [update_confirmation_with_live_confirmed, if_pos helig]
-  simpa only [namedConfirmationWalk] using hwalk.1
+  rw [update_confirmation_with_live_confirmed, ite_eq_left helig]
+  simpa only [namedConfirmationWalk] using! hwalk.1
 
 #print axioms SettledBootstrapPreparedV4.liveConfirmed_preceq_at_confirmation_core_of_pins
 

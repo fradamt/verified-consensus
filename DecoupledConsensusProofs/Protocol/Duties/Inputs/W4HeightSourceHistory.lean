@@ -111,7 +111,7 @@ theorem w4PreparedFgSource_preceq_laterVoterHead_of_pin
         (Nat.mul_le_mul_right S.hc.R (Nat.sub_le r 1)) 1).trans hd
     rw [hBQ]
     apply Block.preceq_trans hAu
-    simpa only [hprev2] using actionSGBlock_preceq_voterHeadAt_after_GST
+    simpa only [hprev2] using! actionSGBlock_preceq_voterHeadAt_after_GST
       S adm hcom hbelow hrec hdelay hpost (c := r - 2)
         (Nat.le_sub_of_add_le ((Nat.le_succ (_ + 2)).trans hr))
       (by simpa only [hprev2] using hprevSlot) hhor hu hw
@@ -148,7 +148,7 @@ theorem canonicalHeightSourceHistoryAt_laterHead_after_SG_healing_named
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      NamedRun.stateBeforeTime] using hmem
+      NamedRun.stateBeforeTime] using! hmem
   obtain ⟨N, hN, -⟩ := Proofs.NamedRuntime.stateBeforeTime_eq_prefix S rho
     adm.toNamedAdmissibleCore.toNamedScheduleWellFormed.sorted (S.a k)
   have hQrun : RunBlock S rho Q := by

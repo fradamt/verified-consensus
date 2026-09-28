@@ -55,12 +55,12 @@ theorem ancestorProcessed_of_voterProcessed
   · have hBTtime : B ∈
         (rho.stateBeforeTime S (Protocol.vote_time S.E (s + 1)) w).st.core.T := by
       simpa only [duty, Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-        Proofs.Optimistic.tickStore, Run.storeBeforeTime] using hBT
+        Proofs.Optimistic.tickStore, Run.storeBeforeTime] using! hBT
     have hstampTime : stampedBefore
         (rho.stateBeforeTime S (Protocol.vote_time S.E (s + 1)) w).st.core.timestamp_block
         (Protocol.view_freeze S.E s) B = true := by
       simpa only [duty, Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-        Proofs.Optimistic.tickStore, Run.storeBeforeTime] using hstamp
+        Proofs.Optimistic.tickStore, Run.storeBeforeTime] using! hstamp
     obtain ⟨Bn, hBn, hBnErase⟩ :=
       Proofs.NamedStoreBridge.exists_named_of_mem_stateBeforeTime S rho
         (Protocol.vote_time S.E (s + 1)) w hBTtime
@@ -109,7 +109,7 @@ theorem ancestorProcessed_of_voterProcessed
     have hCstamp : stampedBefore duty.toHealing.toFG.toSG.toGoldfishStore.timestamp_block
         (Protocol.view_freeze S.E s) C = true := by
       simpa only [duty, Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-        Proofs.Optimistic.tickStore, Run.storeBeforeTime] using hCstampTime
+        Proofs.Optimistic.tickStore, Run.storeBeforeTime] using! hCstampTime
     exact ⟨by simpa only [Protocol.Store.toHealing] using hCtree,
       Or.inl hCstamp⟩
   · have hPT : P ∈ duty.T := by

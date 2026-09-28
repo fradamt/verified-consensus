@@ -213,7 +213,7 @@ theorem step_clock_eq (S : Setup V) (w : NamedWorld V) (e : NamedEvent V) (v : V
     · subst v
       simp only [step_tick]
       exact (Proofs.NamedNode.tick_clock S u (w u) t).1
-    · rw [step_other S w (.tick u t) v hv, if_neg hv]
+    · rw [step_other S w (.tick u t) v hv, ite_eq_right hv]
   | deliver u o t =>
     by_cases hv : v = u
     · subst v
@@ -407,8 +407,8 @@ theorem tick_prefix_eq_strict (S : Setup V) (rho : NamedRun V)
       rw [hfilter]
       exact List.mem_of_getElem? (by rw [List.getElem?_take_of_lt hlt]; exact hi)
     have hp := (List.mem_filter.mp hmem).2
-    simp only [decide_eq_true_eq, NamedEvent.time] at hp
-    exact lt_irrefl _ hp
+    simp only [NamedEvent.time] at hp
+    exact lt_irrefl _ (of_decide_eq_true hp)
   have hread : stateBeforeTime S rho t =
       stateBefore S rho (rho.events.filter (fun e => decide (e.time < t))).length := by
     exact congrArg (fun events => events.foldl (NamedWorld.step S) NamedWorld.init) hfilter

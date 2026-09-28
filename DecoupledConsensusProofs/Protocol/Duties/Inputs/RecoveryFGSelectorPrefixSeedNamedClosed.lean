@@ -32,7 +32,7 @@ private theorem namedClosed_nodeQ2_exists_of_actionFGSource
     ∃ A, nodeQ2 S (actionReadAt S rho v r) r = some A := by
   have hround : S.hc.round_of
       (actionReadAt S rho v r).st.core.toHealing.s = r := by
-    simpa only [Protocol.Store.toHealing] using actionStoreAt_round S rho v r
+    simpa only [Protocol.Store.toHealing] using! actionStoreAt_round S rho v r
   have hsource' : nodeFGSource S (actionReadAt S rho v r) r =
       some B.erase := by
     have h := hsource
@@ -77,7 +77,7 @@ theorem voterAnchorSourceQ2Inputs_of_namedHeightRegimeFrame
   simpa only [filteredTree, PhaseGrades.readAt, voteDutyRead,
     NamedActionReads.confirmationReadAt,
     NamedActionReads.confirmationReadFrom,
-    NamedActionReads.preparedCache, Protocol.NamedStore.setClock] using hG0
+    NamedActionReads.preparedCache, Protocol.NamedStore.setClock] using! hG0
 
 #print axioms voterAnchorSourceQ2Inputs_of_namedHeightRegimeFrame
 
@@ -118,7 +118,7 @@ theorem honestHeightRow_prefixFGSelectorCone_of_namedHeightRegimeFrame
   have hactionHorizon : S.a a.round ≤ rho.horizon := by
     have hin := (adm.in_horizon (Event.tick a.val_index ta)
       (List.mem_of_getElem? hiEvent)).2
-    simpa only [Event.time, hta] using hin
+    simpa only [Event.time, hta] using! hin
   have hroundFromStart : r0 ≤ a.round := by
     by_contra hnot
     have htimeLt : ta < S.a r0 := by
@@ -141,7 +141,7 @@ theorem honestHeightRow_prefixFGSelectorCone_of_namedHeightRegimeFrame
     intro hzero
     have hnone : nodeQ2 S
         (actionReadAt S rho a.val_index 0) 0 = none := by
-      simpa only [nodeQ2, nodeRead] using
+      simpa only [nodeQ2, nodeRead] using!
         WeakGenesis.actionGrade2Block_zero
           S adm.toNamedAdmissibleCore a.val_index
     rw [hzero, hnone] at hselected
@@ -243,7 +243,7 @@ theorem honestHeightRow_prefixFGSelectorCone_of_namedHeightRegimeFrame
     simpa only [actionStoreAt, actionReadAt,
       NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
       NamedActionReads.confirmationReadFrom,
-      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hBmem
+      NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hBmem
   have hview := Proofs.NamedStoreBridge.derivedView_stateBeforeTime
     S rho (S.a a.round) a.val_index B hBpre
   have hcheckpoint : J =
@@ -254,7 +254,7 @@ theorem honestHeightRow_prefixFGSelectorCone_of_namedHeightRegimeFrame
       simpa only [actionStoreAt, actionReadAt,
         NamedActionReads.actionReadAt, NamedActionReads.actionReadFrom,
         NamedActionReads.confirmationReadFrom,
-        NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using hview
+        NamedActionReads.preparedCache, NamedRun.stateBeforeTime] using! hview
     calc
       J = (Protocol.derive_named S.E S.cfg B).T_h := hJderived
       _ = ((actionStoreAt S rho a.val_index a.round).st.core.σ

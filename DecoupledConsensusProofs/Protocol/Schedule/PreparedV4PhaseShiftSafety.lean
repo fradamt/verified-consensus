@@ -151,7 +151,7 @@ private theorem VoteSourcesSafeAt.live_at_read
       (voterHeadAt S rho x d) := by
     have h := hsafe.live q0 (le_refl _) hq0d hq0Hor v hv x hx
     simpa only [Run.storeAt,
-      stateAt_eq_take S adm.toNamedScheduleWellFormed, m] using h
+      stateAt_eq_take S adm.toNamedScheduleWellFormed, m] using! h
   rw [Run.storeAt, stateAt_eq_take S adm.toNamedScheduleWellFormed]
   apply preparedV4_liveField_preceq_at_prefix_of_suffixSelections
     S rho v _ hbase _ (filter_le_length_mono rho hlo)
@@ -184,7 +184,7 @@ private theorem VoteSourcesSafeAt.live_at_read
       Protocol.confirmation_time S.E q := by
     have h := filter_false_of_index_ge S adm.toNamedScheduleWellFormed _
       (downward_le (Protocol.confirmation_time S.E q0)) hmi hqevent
-    simpa only [decide_eq_false_iff_not, not_le, Event.time] using h
+    simpa only [decide_eq_false_iff_not, not_le, Event.time] using! h
   have hqlo : q0 ≤ q := by
     by_contra h
     exact (not_lt_of_ge
@@ -328,12 +328,12 @@ private theorem SettledBootstrapPreparedV4.headExtendsStable_at_seed_core
     rw [hlatest v hv] at h'
     simpa only [read, contract, updated, confirmationStableWrite,
       Protocol.NamedDuties.update_confirmation_with,
-      Proofs.Optimistic.confStore_eq_confirmationInputRead] using h'
+      Proofs.Optimistic.confStore_eq_confirmationInputRead] using! h'
   have hg := SettledBootstrapPreparedV4.genuineConfirmationAt_core
     S adm hcom hboot hawake hfinality (le_refl start) hstartHor hv
   have hwalk : updated.live_confirmed = namedConfirmationWalk S read start := by
     rw [Protocol.update_confirmation_with_live_confirmed,
-      if_pos (by simpa only [read] using hg.2)]
+      ite_eq_left (by simpa only [read] using! hg.2)]
     rfl
   have hPwalk : P.erase = namedConfirmationWalk S read start :=
     (hboot.confirmationSeedPrepared v hv).symm.trans hwalk
@@ -484,7 +484,7 @@ private theorem SettledBootstrapPreparedV4.headExtendsStable_after_start_core
             NamedActionReads.confirmationReadAt, t, r,
             slotOf_confirmation_time,
             NamedActionReads.confirmationReadFrom,
-            Protocol.NamedStore.setClock] using hroot
+            Protocol.NamedStore.setClock] using! hroot
   exact StableRecord.preceq_advance_of_nesting hnew hnest hcompat
 
 private theorem SettledBootstrapPreparedV4.honestHeadExtendsStable_core

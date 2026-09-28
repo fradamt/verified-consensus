@@ -69,7 +69,7 @@ theorem deepest?_isSome_of_chain {T : Finset (Block V)} {C : Block V}
     exact eq_of_depth_eq_of_chain hchain hL'mem hLmem
       (le_antisymm (hLmax L' hL'mem) hLL'.1)
   unfold Block.deepest? pickUnique?
-  rw [dif_pos hex]
+  rw [dite_eq_left hex]
   rfl
 
 omit [Fintype V] in
@@ -170,7 +170,7 @@ theorem frame_sg_vote_preceq_source
       | none => some Q) = some C := by
     simpa only [Protocol.fg_source_with, Protocol.grade2_block_with,
       NamedProfile.gradeContract, DecoupledConsensusModel.Protocol.frameContract,
-      hQread, grades, st] using hsource
+      hQread, grades, st] using! hsource
   cases hw : Protocol.deepest_clear (some Q)
       st.live_confirmed grades.clear with
   | none =>
@@ -189,7 +189,7 @@ theorem frame_sg_vote_preceq_source
             Block.preceq_trans hanchor hmem.2.1
           have hsome := deepest_clear_isSome_of_mem
             (floor := some Q) (C := st.live_confirmed) (B := B)
-            (by simpa using hQB) (List.mem_toFinset.mp hmem.1) hmem.2.2
+            (by simpa using! hQB) (List.mem_toFinset.mp hmem.1) hmem.2.2
           simp [hw] at hsome
   | some Cfg =>
       have hsourceCfg : C = Cfg := by

@@ -73,7 +73,7 @@ variable {V : Type} [DecidableEq V] [Fintype V]
 /-- Named twin of `Proofs.Records.derived_state_T_h_preceq`. -/
 theorem derive_named_T_h_preceq (E : Env V) (cfg : HeightConfig) (B : NamedBlock V) :
     Block.Preceq (Protocol.derive_named E cfg B).T_h B.erase := by
-  simpa only [Proofs.NamedDerivationGeometry.derive_named_latest] using
+  simpa only [Proofs.NamedDerivationGeometry.derive_named_latest] using!
     (Proofs.NamedDerivationGeometry.chainOrder_derive_named E cfg B).target_preceq_latest
 
 

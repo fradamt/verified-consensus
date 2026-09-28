@@ -72,7 +72,7 @@ theorem freshAnchor_preceq_of_previousActionCarriersPreceq_at_read
     refine ⟨?_, ?_⟩
     · simpa only [st, Protocol.round_batch, Nat.succ_ne_zero q,
         Nat.add_sub_cancel, Run.storeBeforeTime,
-        Protocol.HealingStore.gradeView, Protocol.Store.toHealing] using hactionPool
+        Protocol.HealingStore.gradeView, Protocol.Store.toHealing] using! hactionPool
     · exact (actionSGVoteAt_shape S rho v q).1
   have hcard :
       (Protocol.sg_votes_by

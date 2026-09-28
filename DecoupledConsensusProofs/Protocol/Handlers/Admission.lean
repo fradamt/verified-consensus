@@ -40,7 +40,7 @@ private theorem sg_outcome (hc : Protocol.HealConfig) (st : Protocol.Store V)
          if r = a.round then st.sg_votes r ++ [a] else st.sg_votes r) := by
   by_cases hguard : a.round < hc.round_of st.s - hc.η_SG ∨ hc.round_of st.s < a.round ∨
       a.confirmed ∈ Protocol.round_votes st a ∨ (Protocol.round_votes st a).card = 2
-  · exact Or.inl (if_pos hguard)
+  · exact Or.inl (ite_eq_left hguard)
   · right
     refine ⟨?_, ?_, ?_⟩
     · intro ha
@@ -50,7 +50,7 @@ private theorem sg_outcome (hc : Protocol.HealConfig) (st : Protocol.Store V)
       exact Finset.mem_image.mpr ⟨a, Finset.mem_filter.mpr ⟨ha, rfl⟩, rfl⟩
     · simp [Protocol.on_sg_vote, hguard, Protocol.Store.sg_pool]
     · intro r
-      simp only [Protocol.on_sg_vote, if_neg hguard]
+      simp only [Protocol.on_sg_vote, ite_eq_right hguard]
 
 /-- Pool projection gives membership of the selected original named row's erasure. -/
 theorem pool_view_mem (st : Protocol.NamedStore V) (hPool : NamedStore.PoolView st)
@@ -121,7 +121,7 @@ theorem carried_row_prefix (hc : Protocol.HealConfig) (before after : Protocol.N
     (hnew : B ∉ before.bodies) (hheld : B ∈ after.bodies) :
     admit_carried .alsoCarried hc before after B =
       admit_rows hc (admit_row hc (admit_rows hc after earlierRows) row) suffix := by
-  simp only [admit_carried, if_pos (And.intro hnew hheld), hrows, admit_rows,
+  simp only [admit_carried, ite_eq_left (And.intro hnew hheld), hrows, admit_rows,
     List.foldl_append, List.foldl_cons]
 
 
@@ -170,7 +170,7 @@ theorem coherent_admit_row (E : Env V) (hc : Protocol.HealConfig)
         if r = row.round then st.core.sg_votes r ++ [row.erase] else st.core.sg_votes r at hRows
       intro r
       rw [admit_row_core, hRows r]
-      simp only [admit_row, if_pos (And.intro hpre hpost)]
+      simp only [admit_row, ite_eq_left (And.intro hpre hpost)]
       by_cases hr : r = row.round
       · simp [hr, h.2.2.2.1 row.round, List.map_append]
       · simp [hr, h.2.2.2.1 r]
@@ -223,7 +223,7 @@ theorem process_block_clock (E : Env V) (hc : Protocol.HealConfig)
     (Protocol.NamedStore.process_block_core E hc cfg st B).core.t = st.core.t ∧
     (Protocol.NamedStore.process_block_core E hc cfg st B).core.s = st.core.s := by
   by_cases hp : B.parent ∈ st.bodies
-  · simpa only [Protocol.NamedStore.process_block_core, if_neg (not_not.mpr hp),
+  · simpa only [Protocol.NamedStore.process_block_core, ite_eq_right (not_not.mpr hp),
       NamedStore.commit_core] using checked_clock E hc st.core B.erase
         (fun parentState => Protocol.named_transition E cfg parentState B)
   · simp [Protocol.NamedStore.process_block_core, hp]

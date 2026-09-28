@@ -161,7 +161,7 @@ theorem MovingSlotPreEntryN.genuineConfirmation_preceq_voteDutyHead_of_ceiling_n
     simpa only [Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      Run.storeBeforeTime] using hrootVoteRaw
+      Run.storeBeforeTime] using! hrootVoteRaw
   have havailable :=
     WeakGoldfish.honestHeadsAvailableBefore_of_postHealingCone_atVoteDuty
       S adm.toNamedAdmissibleCore hw hpostVote hcutHor hrootVote hprevVotes
@@ -180,7 +180,7 @@ theorem MovingSlotPreEntryN.genuineConfirmation_preceq_voteDutyHead_of_ceiling_n
     have hdata := hprocessed
     simp only [Protocol.voter_processed_block_tree, Finset.mem_filter] at hdata
     simpa only [Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore,
-      Proofs.Optimistic.tickStore, Run.storeBeforeTime] using hdata.1
+      Proofs.Optimistic.tickStore, Run.storeBeforeTime] using! hdata.1
   have hbandRaw :
       (rho.storeBeforeTime S w (Protocol.vote_time S.E (c + 1))).core.h_max - 1 ≤
         ((rho.storeBeforeTime S w
@@ -196,7 +196,7 @@ theorem MovingSlotPreEntryN.genuineConfirmation_preceq_voteDutyHead_of_ceiling_n
     simpa only [Internal.NamedRecoveryRead.voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
-      Run.storeBeforeTime] using hbandRaw
+      Run.storeBeforeTime] using! hbandRaw
   have hanchorEnd : Block.Preceq
       (voterAnchorAt S rho w (c + 1)) Prev :=
     w4cx_movingSlotPreEntryN_voterAnchorAt_preceq_prev_of_ceiling
@@ -213,7 +213,7 @@ theorem MovingSlotPreEntryN.genuineConfirmation_preceq_voteDutyHead_of_ceiling_n
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
       Proofs.Optimistic.voteDutyStore, Proofs.Optimistic.voteStore, Proofs.Optimistic.tickStore,
-      Run.storeBeforeTime] using hprocessed
+      Run.storeBeforeTime] using! hprocessed
   have hgenuineN : GenuineConfirmationWith
       (NamedProfile.gradeContract
         (Internal.NamedRecoveryRead.confirmationInputRead S rho v c).cache)
@@ -226,7 +226,7 @@ theorem MovingSlotPreEntryN.genuineConfirmation_preceq_voteDutyHead_of_ceiling_n
   have hfinal := genuineConfirmation_preceq_nextVoteDutyHead_of_endpointBand
     S adm hv hw hpostProp hslotHor hgenuineN hEndB hanchorEnd hprocessed' hband
   rw [hDn] at hfinal
-  simpa only [voterHeadAt] using hfinal
+  simpa only [voterHeadAt] using! hfinal
 
 #print axioms MovingSlotPreEntryN.genuineConfirmation_preceq_voteDutyHead_of_ceiling_named
 

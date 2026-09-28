@@ -38,8 +38,8 @@ theorem process_height_events_actual_F
     out.F = σ.J ∧ out.h_F = σ.h_j := by
   dsimp only
   constructor
-  · rw [Protocol.process_height_events_F, Protocol.afterFin_F, if_pos hready]
-  · rw [Protocol.process_height_events_h_F, Protocol.afterFin_h_F, if_pos hready]
+  · rw [Protocol.process_height_events_F, Protocol.afterFin_F, ite_eq_left hready]
+  · rw [Protocol.process_height_events_h_F, Protocol.afterFin_h_F, ite_eq_left hready]
 
 
 /-! ## Live parent-or-child target coverage -/

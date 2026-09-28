@@ -113,7 +113,7 @@ theorem phaseGrade_voteDuty_of_preparedFrame_g1_of_finalizedBelow
     hdomainVote.le.trans hhor
   have hdomainGrade := phaseGrade_of_preparedFrame_g1 S rho adm w hw
     r hr (Protocol.vote_time S.E d) hround hdomainVote hnext hdomainHor
-    (by simpa only [← hread] using hframe)
+    (by simpa only [← hread] using! hframe)
   have hearly : DecoupledConsensusModel.Protocol.early S.E S.hc r .g1 ≤
       DecoupledConsensusModel.Protocol.domain S.E S.hc r .g1 :=
     NamedOutageHistory.GuardedHelpers.early_g1_le_domain_g1 S r
@@ -132,7 +132,7 @@ theorem phaseGrade_voteDuty_of_preparedFrame_g1_of_finalizedBelow
   simpa only [← hread, Internal.NamedRecoveryRead.voteDutyRead,
     NamedActionReads.confirmationReadAt,
     NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock]
-    using hpersist
+    using! hpersist
 
 #print axioms phaseGrade_voteDuty_of_preparedFrame_g1_of_finalizedBelow
 
@@ -140,7 +140,7 @@ private theorem persistentAncestorCompatible {A C B : Block V}
     (hAC : Block.Preceq A C) (hCB : Block.compatible C B = true) :
     Block.compatible A B = true := by
   have hcases : Block.Preceq C B ∨ Block.Preceq B C := by
-    simpa only [Block.compatible, Bool.or_eq_true] using hCB
+    simpa only [Block.compatible, Bool.or_eq_true] using! hCB
   rcases hcases with h | h
   · simp only [Block.compatible, Bool.or_eq_true]
     exact Or.inl (Block.preceq_trans hAC h)

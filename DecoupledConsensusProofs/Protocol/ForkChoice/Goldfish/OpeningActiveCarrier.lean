@@ -45,7 +45,7 @@ theorem selectedOpeningProposedParent_mem_filtered
   have hroot : Protocol.get_fg_root st.toFG ∈
       Protocol.get_filtered_block_tree st.toFG := by
     simpa only [n, st, proposerReadAt, NamedActionReads.confirmationReadAt,
-      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using
+      NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock] using!
       (named_fgRoot_mem_filtered_stateBeforeTime S rho
         (Protocol.proposal_time S.E s) (S.E.proposer s))
   have hanchor : Protocol.get_sg_root_with gc S.E S.hc st
@@ -76,7 +76,7 @@ theorem selectedOpeningProposedParent_mem_filtered
     exact Proofs.Records.ghost_mem_of _ _ hanchor (Finset.Subset.refl _)
   simpa only [proposedParent, proposalInputAt, Protocol.proposal_input_with,
     Protocol.with_proposal_input, DutyInputDefaults.proposal_input_parent,
-    n, st, gc, votes, support] using hhead
+    n, st, gc, votes, support] using! hhead
 
 
 

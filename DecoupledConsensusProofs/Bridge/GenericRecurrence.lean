@@ -189,8 +189,8 @@ theorem proposerRecurrence_of_generic (S : Setup V) (rho : Run V)
     (∀ k < 3, S.E.proposer (s + k) ∈ rho.honest) at hcarrier
   obtain ⟨r', hs⟩ := hcarrier.1
   rw [hs] at hlo hhi
-  have hbounds := opening_round_bounds S (by simpa [I] using hlo.le)
-    (by simpa [I, C] using hhi)
+  have hbounds := opening_round_bounds S (by simpa [I] using! hlo.le)
+    (by simpa [I, C] using! hhi)
   refine ⟨r', hbounds.1, hbounds.2, ?_⟩
   exact carrier_named_of_generic S rho hs
     (by exact ⟨⟨r', hs⟩, hcarrier.2⟩)
@@ -252,9 +252,9 @@ theorem openingCarrierRecurrence_of_generic (S : Setup V) (rho : Run V)
         rw [round_period_eq S]
         exact NamedOutageClosure.roundLength_pos S
       exact mul_nonneg (by norm_num) hperiod.le
-    exact (le_add_of_nonneg_right hnonneg).trans (by simpa [I] using hlo)
+    exact (le_add_of_nonneg_right hnonneg).trans (by simpa [I] using! hlo)
   have hbounds := opening_round_bounds S
-    (by simpa [I] using hlo0) (by simpa [I, C] using hhi)
+    (by simpa [I] using hlo0) (by simpa [I, C] using! hhi)
   have hcarrier' := carrier_named_of_generic S rho hs
     (by exact ⟨⟨r', hs⟩, hcarrier.2⟩)
   have hopen' : ∀ s', (I S).opening s' →
@@ -263,7 +263,7 @@ theorem openingCarrierRecurrence_of_generic (S : Setup V) (rho : Run V)
       Protocol.proposal_time S.E s' <
         Protocol.proposal_time S.E (S.hc.opening_slot r') →
       S.E.proposer s' ∈ rho.honest := by
-    simpa [hs, I, C] using hopen
+    simpa [hs, I, C] using! hopen
   have hk2 : k + 2 ≤ r' := by
     have htime := hlo
     change Protocol.proposal_time S.E (S.hc.opening_slot k) +

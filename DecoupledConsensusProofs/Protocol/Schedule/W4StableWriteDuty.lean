@@ -236,7 +236,7 @@ theorem stable_preceq_at_duty
           (NamedActionReads.confirmationReadFrom S
             (NamedRun.stateBefore S rho i v) duty).st
           (S.hc.opening_slot r)).core.latest_stable := by
-      simpa only [duty, dutyTime] using
+      simpa only [duty, dutyTime] using!
         (StableRecord.on_tick_emit_confirmation_stable S v
           (NamedRun.stateBefore S rho i v) (S.hc.opening_slot r)
           (Nat.mul_pos hr (lt_of_lt_of_le Nat.zero_lt_two S.hc.R_ge_two)))

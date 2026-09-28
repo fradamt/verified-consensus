@@ -36,7 +36,7 @@ theorem voteSetValid_proposer_view {E : Env V} {st : Protocol.Store V}
     (hslots : PoolStamps st) (hcommittee : CommitteePools E st) (s : Slot) :
     Protocol.VoteSetValid E (s - 1)
       (Protocol.proposer_view st.toHealing.toFG.toSG.toGoldfishStore s).toFinset := by
-  simpa only [Protocol.proposer_view, Protocol.Store.pool] using
+  simpa only [Protocol.proposer_view, Protocol.Store.pool] using!
     voteSetValid_pool hslots hcommittee (s - 1)
 
 

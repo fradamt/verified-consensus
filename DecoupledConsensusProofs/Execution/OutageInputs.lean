@@ -109,7 +109,7 @@ theorem emitted_attestation_stages (S : Setup V) (rho : NamedRun V)
   change NamedObject.attest a ∈
     (Execution.NamedNode.tick S v (NamedRun.stateBefore S rho i v) (S.a a.round)).2 at ha
   rw [tick_at_action] at ha
-  simp only [if_pos hawake, List.mem_singleton, NamedObject.attest.injEq] at ha
+  simp only [ite_eq_left hawake, List.mem_singleton, NamedObject.attest.injEq] at ha
   exact ⟨i, hi, ho, ha.symm, hval, (action_read_round S _ a.round).symm, rfl, hawake⟩
 
 theorem emitted_attestation_head (S : Setup V) (rho : NamedRun V)
@@ -148,7 +148,7 @@ theorem emittedInRound_iff (S : Setup V) (rho : NamedRun V) (v : V) (k : Round) 
       | deliver u o t => simp [he] at hs
       | tick u t =>
         by_cases hg : u = v ∧ t = S.a k
-        · simp only [he, if_pos hg] at hs
+        · simp only [he, ite_eq_left hg] at hs
           obtain ⟨o, ho, hrow⟩ := List.any_eq_true.mp hs
           cases o with
           | block B => cases hrow
@@ -158,7 +158,7 @@ theorem emittedInRound_iff (S : Setup V) (rho : NamedRun V) (v : V) (k : Round) 
             refine ⟨a, hf.1, hf.2, ?_⟩
             obtain ⟨rfl, rfl⟩ := hg
             exact ⟨i, he, ho⟩
-        · simp only [he, if_neg hg, Bool.false_eq_true] at hs
+        · simp only [he, ite_eq_right hg, Bool.false_eq_true] at hs
   · rintro ⟨a, hval, hr, i, hi, ho⟩
     apply List.any_eq_true.mpr
     refine ⟨i, List.mem_range.mpr (List.getElem?_eq_some_iff.mp hi).1, ?_⟩

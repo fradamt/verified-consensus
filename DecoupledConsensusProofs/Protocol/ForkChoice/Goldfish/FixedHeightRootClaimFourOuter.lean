@@ -130,35 +130,35 @@ private theorem openingProposal_mem_filteredTree_voteRead_of_fixedRoot
       adm.toNamedScheduleWellFormed (hadmit v hv) (le_refl _)).1
     simpa only [target, voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock] using hmem
+      Protocol.NamedStore.setClock] using! hmem
   have hroot : Protocol.get_fg_root target.st.core.toHealing.toFG =
       (rho.storeBeforeTime S w read).J := by
     simpa only [target, voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock] using hrootMax.1
+      Protocol.NamedStore.setClock] using! hrootMax.1
   have hmax : target.st.core.h_max = H := by
     simpa only [target, voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock] using hrootMax.2
+      Protocol.NamedStore.setClock] using! hrootMax.2
   have hraw := fixedRootGrade_mem_filtered_of_exactRoot S adm hv hPrun
     (by simpa only [target, voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock] using hPtree)
+      Protocol.NamedStore.setClock] using! hPtree)
     hJP hPheight
     (by simpa only [target, voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock] using hroot)
+      Protocol.NamedStore.setClock] using! hroot)
     (by simpa only [target, voteDutyRead,
       NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock] using hmax)
+      Protocol.NamedStore.setClock] using! hmax)
   have hPfiltered : P.erase ∈ Protocol.get_filtered_block_tree
       target.st.core.toHealing.toFG := by
     simpa only [target, voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom,
-      Protocol.NamedStore.setClock] using hraw
+      Protocol.NamedStore.setClock] using! hraw
   have hslot : target.st.core.s = S.hc.opening_slot q := by
     simpa only [target] using
       Proofs.Optimistic.voteDutyRead_slot S rho v (S.hc.opening_slot q)
@@ -185,35 +185,35 @@ private theorem openingProposal_mem_filteredTree_voteRead_of_fixedRoot
         ((S.hc.opening_slot q - 1) + 1)).toHealing.s := by
     simpa only [target, voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      hopen] using hPprocessed
+      hopen] using! hPprocessed
   have hPfilteredStore : P.erase ∈ Protocol.get_filtered_block_tree
       (Internal.NamedRecoveryRead.voteDutyStore S rho v
         ((S.hc.opening_slot q - 1) + 1)).toHealing.toFG := by
     simpa only [target, voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      hopen] using hPfiltered
+      hopen] using! hPfiltered
   have hmaxPStore : (Internal.NamedRecoveryRead.voteDutyStore S rho v
       ((S.hc.opening_slot q - 1) + 1)).h_max ≤
         (Protocol.derive_named S.E S.cfg P).h + 1 := by
     simpa only [target, voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      hopen] using hmaxP
+      hopen] using! hmaxP
   have hrootStore : Protocol.get_fg_root
       (Internal.NamedRecoveryRead.voteDutyStore S rho v
         ((S.hc.opening_slot q - 1) + 1)).toHealing.toFG =
       (rho.storeBeforeTime S w read).J := by
     simpa only [target, voteDutyRead, NamedActionReads.confirmationReadAt,
       NamedActionReads.confirmationReadFrom, Protocol.NamedStore.setClock,
-      hopen] using hroot
+      hopen] using! hroot
   have hFJ : Block.Preceq
       (Internal.NamedRecoveryRead.voteDutyStore S rho v ((S.hc.opening_slot q - 1) + 1)).F
       (Internal.NamedRecoveryRead.voteDutyStore S rho v ((S.hc.opening_slot q - 1) + 1)).J := by
-    simpa only [Internal.NamedRecoveryRead.voteDutyStore, hopen] using
+    simpa only [Internal.NamedRecoveryRead.voteDutyStore, hopen] using!
       (Proofs.NamedStoreBridge.finalized_preceq_justified_stateBeforeTime
         S rho (Protocol.vote_time S.E (S.hc.opening_slot q)) v)
   have hpc : ParentClosed
       (Internal.NamedRecoveryRead.voteDutyStore S rho v ((S.hc.opening_slot q - 1) + 1)) := by
-    simpa only [Internal.NamedRecoveryRead.voteDutyStore, hopen] using
+    simpa only [Internal.NamedRecoveryRead.voteDutyStore, hopen] using!
       (Proofs.NamedStoreBridge.parentClosed_stateBeforeTime
         S rho (Protocol.vote_time S.E (S.hc.opening_slot q)) v)
   have hPT : P.erase ∈
@@ -240,7 +240,7 @@ private theorem openingProposal_mem_filteredTree_voteRead_of_fixedRoot
       ((S.hc.opening_slot q - 1) + 1) := by
     simpa only [voterCandidateTreeAt,
       Proofs.Optimistic.voter_candidate_tree_eq_protocol_voter_filtered_block_tree]
-      using hcand
+      using! hcand
   rw [hopen] at hcand' hCfiltered
   exact ⟨hCfiltered, hcand'⟩
 
@@ -472,12 +472,12 @@ theorem fixedHeightJustificationRoot_boundedProposalLifecycle_closed
       have hactiveAtProposalPre : J ∈ Protocol.get_filtered_block_tree
           pre.toHealing.toFG := by
         rw [← hrootPreJ]
-        simpa only [pre, Protocol.NamedStore.toHealing] using
+        simpa only [pre, Protocol.NamedStore.toHealing] using!
           named_fgRoot_mem_filtered_stateBeforeTime S rho proposalRead p
       have hactiveAtProposal : J ∈ Protocol.get_filtered_block_tree
           duty.toHealing.toFG := by
         simpa only [duty, Protocol.proposerDutyStore, Proofs.Optimistic.tickStore,
-          pre, p, proposalRead] using hactiveAtProposalPre
+          pre, p, proposalRead] using! hactiveAtProposalPre
       have hactionDelayQ : read + S.E.Δ ≤ S.a q :=
         hproposalDelay.trans hproposalLeAction
       have hactiveAtAction : ∀ v ∈ rho.honest,
@@ -493,7 +493,7 @@ theorem fixedHeightJustificationRoot_boundedProposalLifecycle_closed
         change J ∈ Protocol.get_filtered_block_tree
           (rho.storeBeforeTime S v (S.a q)).toHealing.toFG
         rw [← hrootJ]
-        simpa only [Protocol.NamedStore.toHealing] using
+        simpa only [Protocol.NamedStore.toHealing] using!
           named_fgRoot_mem_filtered_stateBeforeTime S rho (S.a q) v
       have hprevActionLe : S.a (q - 1) ≤ S.a q :=
         Assembly.a_mono S (Nat.sub_le q 1)
@@ -615,7 +615,7 @@ theorem fixedHeightJustificationRoot_boundedProposalLifecycle_closed
         sgOpeningConfirmationReads_of_fixedJustificationRootNoRise
           S adm hfb hfix hP hqPos hpost hconfirmationDelay hconfirmationHor
             hconfirmationCap hpostOpeningProposal hpostPreviousAction hcarrier.1
-              (by simpa only [J] using Block.preceq_self J) hJparent hparents
+              (by simpa only [J] using! Block.preceq_self J) hJparent hparents
       have hopenPosQ : 0 < S.hc.opening_slot q :=
         Nat.mul_pos hqPos
           (lt_of_lt_of_le Nat.zero_lt_two S.hc.R_ge_two)
@@ -694,7 +694,7 @@ theorem fixedHeightJustificationRoot_boundedProposalLifecycle_closed
             Internal.NamedRecoveryRead.voteDutyRead,
             NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom,
-            Protocol.NamedStore.setClock, hsucc] using hbase
+            Protocol.NamedStore.setClock, hsucc] using! hbase
         have hanchorP := voterAnchorAt_preceq_of_previousCarriers S adm hfb
           hroundVote hpostPreviousAction
           (by simpa only [hqPredAdd] using hcutQ)
@@ -720,7 +720,7 @@ theorem fixedHeightJustificationRoot_boundedProposalLifecycle_closed
           (proposerReadAt S rho (S.hc.opening_slot q)).st.core.h_max = H := by
         simpa only [proposerReadAt, NamedActionReads.confirmationReadAt,
           NamedActionReads.confirmationReadFrom,
-          Protocol.NamedStore.setClock, p] using
+          Protocol.NamedStore.setClock, p] using!
           (fixedHeightJustificationRoot_laterFGRoot_eq_target_and_hMax_eq_of_oneDelay_of_noRise
             S adm hsb hfix hprop hpost hproposalDelay hproposalHor
               hproposalCap).2
@@ -734,7 +734,7 @@ theorem fixedHeightJustificationRoot_boundedProposalLifecycle_closed
           simpa only [Internal.NamedRecoveryRead.voteDutyRead,
             NamedActionReads.confirmationReadAt,
             NamedActionReads.confirmationReadFrom,
-            Protocol.NamedStore.setClock] using
+            Protocol.NamedStore.setClock] using!
             (fixedHeightJustificationRoot_laterFGRoot_eq_target_and_hMax_eq_of_oneDelay_of_noRise
               S adm hsb hfix hv hpost hvoteDelay hvoteHor hvoteCap).2
         exact namedProposalPivotSuffixTransfer_of_frozenProposalNoRise
@@ -790,7 +790,7 @@ theorem fixedHeightJustificationRoot_boundedProposalLifecycle_closed
               have hA : Internal.PhaseGrades.storeGrade S.E S.hc
                   (proposerReadAt S rho (S.hc.opening_slot q)).st q .g1 A =
                   true := by
-                simpa only [p, proposerReadAt] using hgrade
+                simpa only [p, proposerReadAt] using! hgrade
               simpa only [hqPredAdd, hsucc] using hA
             actionTargetParent := by
               intro v hv
@@ -946,7 +946,7 @@ theorem fixedHeightJustificationRoot_boundedProposalLifecycle_closed
             · exact hbatch v hv
             · exact Block.preceq_self _
             · rfl
-            · simpa only [nodeAnchor, nodeRead] using
+            · simpa only [nodeAnchor, nodeRead] using!
                 actionRootPreceq_of_namedConfirmationRead S
                   (hconfirmation v hv)
             · exact hg0 v hv

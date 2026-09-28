@@ -66,7 +66,7 @@ private theorem process_core_order (S : Setup V) (st : Protocol.NamedStore V)
       change NamedBlock.genesis ∈ st.bodies
       exact hco.2.2.1.1
     rw [Protocol.NamedStore.process_block_core,
-      if_neg (not_not.mpr hpgen), NamedStore.commit_core]
+      ite_eq_right (not_not.mpr hpgen), NamedStore.commit_core]
     dsimp only [Protocol.on_block_checked_using]
     split_ifs
     · change CoreOrder (Protocol.on_block_using S.E st.core Block.genesis _)
@@ -77,7 +77,8 @@ private theorem process_core_order (S : Setup V) (st : Protocol.NamedStore V)
    change CoreOrder
      (Protocol.NamedStore.process_block_core S.E S.hc S.cfg st B).core
    by_cases hp : B.parent ∈ st.bodies
-   · rw [Protocol.NamedStore.process_block_core, if_neg (not_not.mpr hp), NamedStore.commit_core]
+   · rw [Protocol.NamedStore.process_block_core, ite_eq_right (not_not.mpr hp),
+       NamedStore.commit_core]
      dsimp only [Protocol.on_block_checked_using]
      split_ifs
      · exact raw_block_order S.E st.core B.erase _ h
@@ -441,7 +442,7 @@ theorem finalized_compatible_after_boundary (S : Setup V) (rho : NamedRun V)
     order_stateBeforeTime S rho t reader
   rcases (show Block.Preceq Pn.erase (NamedRun.stateBeforeTime S rho t reader).st.core.J ∨
       Block.Preceq (NamedRun.stateBeforeTime S rho t reader).st.core.J Pn.erase by
-    simpa only [Block.compatible, Bool.or_eq_true] using hJ) with hPJ | hJP
+    simpa only [Block.compatible, Bool.or_eq_true] using! hJ) with hPJ | hJP
   · exact Block.compatible_of_preceq_common hPJ hFJ
   · simp only [Block.compatible, Bool.or_eq_true]
     exact Or.inr (Block.preceq_trans hFJ hJP)
@@ -530,7 +531,7 @@ theorem viable_after_boundary
         exact hLow hBand
       have hPD : NamedBlock.Preceq Pn D := by
         rcases (show NamedBlock.Preceq Pn D ∨ NamedBlock.Preceq D Pn by
-          simpa only [NamedBlock.compatible, Bool.or_eq_true] using hDcompatible) with
+          simpa only [NamedBlock.compatible, Bool.or_eq_true] using! hDcompatible) with
             hAbove | hAncestor
         · exact hAbove
         · have hle := Proofs.NamedEntryHeight.derive_height_mono S.E S.cfg hAncestor
@@ -585,7 +586,7 @@ theorem fg_noninterference_after_boundary
     hmargin hsleep hentry w hw t ht
   rcases (show Block.Preceq Pn.erase (Protocol.get_fg_root st.core.toHealing.toFG) ∨
       Block.Preceq (Protocol.get_fg_root st.core.toHealing.toFG) Pn.erase by
-    simpa only [Block.compatible, Bool.or_eq_true] using hcompatible) with hPast | hRoot
+    simpa only [Block.compatible, Bool.or_eq_true] using! hcompatible) with hPast | hRoot
   · exact Or.inl hPast
   · right
     have hFRoot : Block.Preceq st.core.F (Protocol.get_fg_root st.core.toHealing.toFG) :=

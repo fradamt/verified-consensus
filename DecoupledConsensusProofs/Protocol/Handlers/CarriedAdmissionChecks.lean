@@ -52,7 +52,7 @@ theorem on_sg_vote_new_receipt_stamp (hc : Protocol.HealConfig)
   split at hpost
   · exact False.elim (hpre hpost)
   · rename_i hguard
-    rw [if_neg hguard]
+    rw [ite_eq_right hguard]
     simp
 
 private theorem projection_in_round_votes (st : Store V) (a b : CombinedAttestation V)
@@ -72,7 +72,7 @@ theorem on_sg_vote_duplicate_projection (hc : Protocol.HealConfig)
     (hb : b ∈ st.sg_pool b.round) (hproj : sgVote a = sgVote b) :
     on_sg_vote hc st a = st := by
   have hdup := projection_in_round_votes st a b hb hproj
-  exact if_pos (Or.inr (Or.inr (Or.inl hdup)))
+  exact ite_eq_left (Or.inr (Or.inr (Or.inl hdup)))
 
 /-- A row known in its own bucket keeps its earliest projected receipt stamp.
 No global consistency hypothesis is needed for this own-round form. -/
@@ -85,7 +85,7 @@ theorem on_sg_vote_existing_row_stamp (hc : Protocol.HealConfig)
   · unfold on_sg_vote
     split
     · rfl
-    · exact if_neg (Ne.symm hproj)
+    · exact ite_eq_right (Ne.symm hproj)
 
 
 theorem fold_rows_preserve_existing_stamp (hc : Protocol.HealConfig)

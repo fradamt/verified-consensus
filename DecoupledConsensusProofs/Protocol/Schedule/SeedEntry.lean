@@ -571,8 +571,7 @@ theorem seedVoteDutyHead_thin_of_frozenWitness
     Protocol.RootInjectiveBelow.mono hfacts.2.2 htreeT
   have hZT: Z ∈ duty.T:= by
     have hdata:= hZfrozen
-    simp only [Protocol.voter_processed_block_tree, Finset.mem_filter] at hdata
-    exact hdata.1
+    exact Finset.mem_of_mem_filter _ hdata
   by_contra hnot
   have hHT: H ∈ duty.T:= by
     rcases Proofs.Records.ghost_mem A tree score eligible with hHA | hHtree
@@ -644,10 +643,9 @@ theorem seedVoteDutyHead_thin_of_frozenWitness
         (st:= duty.toHealing.toFG) hFJ
     have hDfull: D ∈ Protocol.get_filtered_block_tree
         duty.toHealing.toFG:= by
-      simp only [Protocol.get_filtered_block_tree,
-        Protocol.get_filtered_block_tree_from, Protocol.viable_tree,
-        Protocol.finalized_descendants, Protocol.viable,
-        Finset.mem_filter, decide_eq_true_eq]
+      simp only [Protocol.get_filtered_block_tree, Protocol.get_filtered_block_tree_from,
+        Protocol.viable_tree, Protocol.finalized_descendants, Finset.mem_filter]
+      simp only [Protocol.viable, decide_eq_true_eq]
       exact ⟨⟨⟨hDT, hFD⟩, Z, hZT, hDZ, hZheight⟩, hrootD⟩
     have hmax: duty.h_max ≤ (derived_state S.E S.cfg Z).h + 1:= by
       have hZle:= Nat.sub_le_iff_le_add.mp hZheight

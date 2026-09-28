@@ -89,18 +89,14 @@ private theorem named_emittedHead_mem_voteDutyRead
     dsimp only [tree]
     rw [← Proofs.Optimistic.voter_candidate_tree_eq_protocol_voter_filtered_block_tree]
     intro D hD
-    simp only [Proofs.Optimistic.voter_candidate_tree,
-      Protocol.get_filtered_block_tree_from,
-      Protocol.viable_tree, Protocol.finalized_descendants,
-      Protocol.viable, Protocol.voter_processed_block_tree,
-      Finset.mem_filter, decide_eq_true_eq] at hD
-    exact hD.1.1.1.1
+    exact Finset.mem_of_mem_filter _ (Finset.mem_of_mem_filter _
+      (Finset.mem_of_mem_filter _ (Finset.mem_of_mem_filter _ hD)))
   have hHmem : H ∈ st.T := by
     dsimp only [H]
     rw [Proofs.Optimistic.get_head_in_tree_split_with]
     exact Proofs.Records.ghost_mem_of _ _ hanchorMem htree
   have hHpre : H ∈ pre.st.core.T := by
-    simpa only [read, st, NamedActionReads.confirmationReadFrom] using hHmem
+    simpa only [read, st, NamedActionReads.confirmationReadFrom] using! hHmem
   obtain ⟨D, hDhead, hDrun⟩ :=
     Proofs.NamedStoreBridge.runBlock_of_mem_core_T_stateBeforeTime S
       adm.toNamedScheduleWellFormed hx t hHpre
@@ -114,7 +110,7 @@ private theorem named_emittedHead_mem_voteDutyRead
     simpa only [hDC] using hDhead
   rw [hChead]
   simpa only [voteDutyRead, NamedActionReads.confirmationReadAt,
-    NamedActionReads.confirmationReadFrom, read, pre, t] using hHmem
+    NamedActionReads.confirmationReadFrom, read, pre, t] using! hHmem
 
 /-! ## Finalized-root floor at the confirmation read -/
 
@@ -156,7 +152,7 @@ theorem finalized_preceq_at_delivery_of_confRoot_preceq
   have hroot' : Block.Preceq
       (Protocol.get_fg_root pre.toHealing.toFG) B := by
     simpa only [confRoot, Proofs.Optimistic.confStore, Proofs.Optimistic.tickStore, pre]
-      using hroot
+      using! hroot
   exact Block.preceq_trans hmono (Block.preceq_trans hFroot hroot')
 
 /-! ## earlier post-healing availability theorem -/
@@ -260,7 +256,7 @@ theorem honestHeadsAvailableBefore_of_postHealingCone
           (rho.storeBeforeTime S v (Protocol.confirmation_time S.E s)).toHealing.toFG)
           B := by
       simpa only [confRoot, Proofs.Optimistic.confStore,
-        Proofs.Optimistic.tickStore] using hroot
+        Proofs.Optimistic.tickStore] using! hroot
     exact Block.preceq_trans
       (Proofs.finalized_preceq_at_prefix_of_storeBeforeRoot_preceq
         S rho adm.toNamedScheduleWellFormed.sorted hroot' hkConf) hBX
@@ -343,7 +339,7 @@ private theorem finalized_preceq_at_delivery_of_proposerRoot_preceq
     Proofs.Records.preceq_get_fg_root_of_F (st := pre.toHealing.toFG) hFJ
   have hroot' : Block.Preceq
       (Protocol.get_fg_root pre.toHealing.toFG) B := by
-    simpa only [proposerDutyStore, Proofs.Optimistic.tickStore, pre, Gamma] using hroot
+    simpa only [proposerDutyStore, Proofs.Optimistic.tickStore, pre, Gamma] using! hroot
   exact Block.preceq_trans hmono (Block.preceq_trans hFroot hroot')
 
 private theorem honestHeadsAvailableBefore_of_proposerDutyPostHealingCone
@@ -446,7 +442,7 @@ private theorem honestHeadsAvailableBefore_of_proposerDutyPostHealingCone
         (Protocol.get_fg_root
           (rho.storeBeforeTime S (S.E.proposer (s + 1))
             (Protocol.proposal_time S.E (s + 1))).toHealing.toFG) B := by
-      simpa only [proposerDutyStore, Proofs.Optimistic.tickStore] using hroot
+      simpa only [proposerDutyStore, Proofs.Optimistic.tickStore] using! hroot
     exact Block.preceq_trans
       (Proofs.finalized_preceq_at_prefix_of_storeBeforeRoot_preceq
         S rho adm.toNamedScheduleWellFormed.sorted hroot' hkProposal) hBX

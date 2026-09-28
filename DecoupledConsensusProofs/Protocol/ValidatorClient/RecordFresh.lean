@@ -28,7 +28,7 @@ theorem record_attestation_timeout_mono {Lambda : Record}
   simp only [record_attestation]
   cases a.finality_pair <;> cases a.height_pair <;>
     simp_all [Record.with_lock, Record.with_timeout, Record.with_target]
-  all_goals split <;> simp_all
+  all_goals split_ifs <;> simp_all
 
 omit [DecidableEq V] [Fintype V] in
 /-- If `record_attestation` changes a timeout entry from false to true, the
@@ -167,9 +167,9 @@ private theorem on_tick_emit_attest_shape (S : Setup V) (v : V) (n : NodeState V
       · simp at h1
   by_cases hcond : t = S.hc.a S.E.Δ (S.hc.round_of st3.core.s) ∧
       (S.node v).awake (S.hc.round_of st3.core.s) = true
-  · rw [if_pos hcond] at hrec hsnd
+  · rw [ite_eq_left hcond] at hrec hsnd
     exact ⟨st3, gc, emitted1 ++ emitted2, hpre, Or.inr ⟨hrec, hsnd⟩⟩
-  · rw [if_neg hcond] at hrec hsnd
+  · rw [ite_eq_right hcond] at hrec hsnd
     exact ⟨st3, gc, emitted1 ++ emitted2, hpre, Or.inl ⟨hrec, hsnd⟩⟩
 
 /-! ## 2. One tick and the run prefix -/

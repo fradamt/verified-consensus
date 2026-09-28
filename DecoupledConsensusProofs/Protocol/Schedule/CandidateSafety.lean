@@ -56,7 +56,7 @@ theorem on_tick_emit_confirmation_latest (S : Setup V) (v : V) (n : NodeState V)
   simp only [NamedNode.tick, NamedProfile.tick, Protocol.NamedTick.tick,
     Protocol.TickScheduler.runWith, Protocol.NamedTick.namedOps, hslot,
     support_cutoff_ne_proposal_time S.E s, support_cutoff_ne_vote_time S.E s, hs,
-    and_true, and_false, false_and, if_true, if_false,
+    and_true, and_false, false_and, ite_true, ite_false,
     NamedActionReads.confirmationReadFrom, NamedActionReads.preparedCache,
     Protocol.NamedStore.setClock]
   split

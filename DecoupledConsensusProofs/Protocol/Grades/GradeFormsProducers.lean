@@ -53,7 +53,7 @@ theorem named_fgRoot_mem_filtered_stateBeforeTime
       NamedOutageClosure.justifiedRoot_mem_filtered S rho t v hgate
   · have hroot : Protocol.get_fg_root st.core.toHealing.toFG = st.core.F := by
       change (if st.core.h_max = st.core.h_j + 1 then st.core.J else st.core.F) = st.core.F
-      rw [if_neg hgate]
+      rw [ite_eq_right hgate]
     rw [hroot]
     exact finalizedViable_mem_filtered hroot
       (NamedFinalizedViable.finalizedViable_stateBeforeTime S rho t v)

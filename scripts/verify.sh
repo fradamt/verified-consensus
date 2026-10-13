@@ -26,7 +26,9 @@
 #                            theorem it is built from depend on nothing beyond
 #                            propext, Classical.choice, and Quot.sound: no
 #                            project axiom and no unresolved `sorry`.
-#   (f) sorry/admit scan  -- a second, independent check that none of the five
+#   (f) premise reductions -- constructor and boundary regressions ensure the
+#                            reduced premises remain usable in the admitted domain.
+#   (g) sorry/admit scan  -- a second, independent check that none of the five
 #                            library directories contains the literal tokens
 #                            `sorry` or `admit`, as a backstop to (e) in case
 #                            the axiom script's own coverage is ever wrong.
@@ -220,6 +222,7 @@ fi
 run_step "review boundary (check-review-boundary.rb + --self-test)" step_boundary
 run_step "statement reachability (StatementReachability.lean)" step_reachability
 run_step "review surface shape (ReviewSurfaceShape.lean)" step_shape
+run_step "premise reduction regressions (PremiseReduction.lean)" lake env lean scripts/PremiseReduction.lean
 run_step "review axioms (ReviewAxioms.lean: ${ALLOWED_AXIOMS[*]} only)" step_axioms
 run_step "no sorry/admit in library sources" step_no_sorry
 

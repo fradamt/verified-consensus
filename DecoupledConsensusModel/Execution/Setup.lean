@@ -110,11 +110,6 @@ structure Setup (V : Type) [DecidableEq V] [Fintype V] where
   /-- The timeout is a whole number of rounds and at least two rounds
   (`sec:healing-schedule`, `sec:state-machine`). -/
   timeout_rounds : hc.R ∣ cfg.timeoutDelay ∧ 2 * hc.R ≤ cfg.timeoutDelay
-  /-- Every committee is nonempty; an empty committee would make every committee premise false. -/
-  committee_nonempty : ∀ s, (E.committee s).Nonempty
-  /-- The outage window `[outageStart T, expiry T)` is nonempty only when a
-  round is long enough: at `R = 3`, `η_SG = 1` it is empty. -/
-  outage_window : 4 ≤ hc.R * hc.η_SG
 
 namespace Setup
 

@@ -42,6 +42,9 @@ private theorem action_formula (S : Setup V) (r : Round) :
   push_cast
   ring
 
+theorem actionTime_a (S : Setup V) (r : Round) : Generic.ActionTime (C S) (S.a r) :=
+  ⟨r, action_formula S r⟩
+
 private theorem action_time_lt_of_lt (S : Setup V) {i j : Round} (hij : i < j) :
     S.a i < S.a j := by
   rw [action_formula S i, action_formula S j]
@@ -343,11 +346,12 @@ theorem sleepy_windows_of_generic (S : Setup V) (rho : Run V) (t₀ : Time)
   exact h (S.a r) htr (by simpa [ha] using hhor)
 
 theorem allAwake_of_generic (S : Setup V) (rho : Run V)
-    (h : Generic.FullParticipation (P := DecoupledConsensusModel.Execution.spec S) (E S) rho) :
+    (h : Generic.FullParticipation (P := DecoupledConsensusModel.Execution.spec S)
+      (E S) (C S) rho) :
     ∀ v ∈ rho.honest, ∀ r, S.E.t_GST ≤ S.a r → S.a r ≤ rho.horizon →
       (S.node v).awake r = true := by
   intro v hv r hpost hhor
-  have h' := h v hv (S.a r) hpost hhor
+  have h' := h v hv (S.a r) (actionTime_a S r) hpost hhor
   simpa [E, Instantiation.env, actionRound_a S r] using h'
 
 theorem awakeAt_action (S : Setup V) (rho : Run V) (r : Round) :
@@ -443,7 +447,7 @@ theorem staleAwake_eq (S : Setup V) (rho : Run V) {r : Round} (hr : 0 < r) :
 
 theorem awakeGradeMajorityThroughout_of_generic
     (S : Setup V) (rho : Run V)
-    (h : ∀ t, L S ≤ t → t ≤ rho.horizon + L S →
+    (h : ∀ t, Generic.ActionTime (C S) t → L S ≤ t → t ≤ rho.horizon + L S →
       Generic.FreshMajority (E S) rho.honest (C S) t) :
     NamedOutageEntry.AwakeGradeMajorityThroughout S rho := by
   intro r hr hcovered
@@ -474,7 +478,7 @@ theorem awakeGradeMajorityThroughout_of_generic
         have hmul := Int.mul_le_mul_of_nonneg_left hR h4
         nlinarith [S.E.Δ_pos]
       linarith
-  have hs := h (S.a r) hlow hhigh
+  have hs := h (S.a r) (actionTime_a S r) hlow hhigh
   unfold Generic.FreshMajority at hs
   unfold NamedOutageEntry.AwakeGradeMajority
   have hstale := staleAwake_eq S rho hr

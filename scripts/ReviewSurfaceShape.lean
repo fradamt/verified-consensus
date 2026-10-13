@@ -77,7 +77,7 @@ example (P : Generic.ProtocolSpec V) (E : Generic.Env V)
 example (P : Generic.ProtocolSpec V) (E : Generic.Env V)
     (I : Interface P) (C : Constants)
     (h : Consensus P E I C) :
-      ∀ rho, RunWellFormed E I rho → MonotoneFrom P rho I.finalized 0 :=
+      ∀ rho, SortedRun rho → MonotoneFrom P rho I.finalized 0 :=
   h.finalizedMonotone
 example (P : Generic.ProtocolSpec V) (E : Generic.Env V)
     (I : Interface P) (C : Constants)
@@ -116,5 +116,66 @@ example (P : Generic.ProtocolSpec V) (E : Generic.Env V)
       ∀ rho T b₀ b₁, OutageRegime P E I C rho T b₀ b₁ →
         PersistsFrom P rho I.stable T b₀ :=
   h.stableAsynchronyResilient
+
+-- Constructor checks prevent redundant premises from returning unnoticed.
+example (P : Generic.ProtocolSpec V) (E : Generic.Env V) (I : Interface P)
+    (rho : Generic.Run V P.Object)
+    (h : CarriedUnforgeable P rho)
+    (hs : rho.events.Pairwise (fun e f => e.key ≤ f.key))
+    (hh : ∀ e ∈ rho.events, e.node ∈ rho.honest) : UnforgeableRun P E I rho :=
+  { toCarriedUnforgeable := h, sorted := hs, honest_only := hh }
+
+example (P : Generic.ProtocolSpec V) (E : Generic.Env V) (I : Interface P)
+    (rho : Generic.Run V P.Object)
+    (hs : rho.events.Pairwise (fun e f => e.key ≤ f.key))
+    (hi : I.idealization rho) : RunWellFormed E I rho :=
+  { sorted := hs, idealization := hi }
+
+example (P : Generic.ProtocolSpec V) (E : Generic.Env V) (I : Interface P)
+    (C : Constants) (rho : Generic.Run V P.Object) (t₀ : Time)
+    (h : SleepyRegime P E I C rho t₀) :
+    ∀ t, ActionTime C t → t₀ ≤ t → C.participationLag ≤ t →
+      t - C.participationLag ≤ rho.horizon →
+      WindowMajority E rho.honest C.participationWindow t := h.windows
+
+example (P : Generic.ProtocolSpec V) (E : Generic.Env V) (C : Constants)
+    (rho : Generic.Run V P.Object)
+    (h : ∀ v ∈ rho.honest, ∀ t, ActionTime C t → E.t_GST ≤ t →
+      t ≤ rho.horizon → E.awake v t = true) : FullParticipation E C rho := h
+
+example (P : Generic.ProtocolSpec V) (I : Interface P) (C : Constants)
+    (rho : Generic.Run V P.Object) (start : Time) (gap : Nat)
+    (h : ∀ t, OpeningTime I t → start ≤ t → t + gap * C.period ≤ rho.horizon →
+      ∃ s, t + 2 * C.period ≤ I.proposalTime s ∧
+        I.proposalTime s ≤ t + gap * C.period ∧ MultiProposerAt I C rho.honest s ∧
+        ∀ s', I.opening s' → I.proposalTime s - 2 * C.period ≤ I.proposalTime s' →
+          I.proposalTime s' < I.proposalTime s → I.proposer s' ∈ rho.honest) :
+    StrongMultiProposerRecurrence I C rho start gap := h
+
+example (P : Generic.ProtocolSpec V) (E : Generic.Env V) (I : Interface P)
+    (C : Constants) (rho : Generic.Run V P.Object) (t₀ : Time)
+    (h : FreshSleepyRegime P E I C rho t₀) :
+    ∀ t, ActionTime C t → t₀ ≤ t → C.participationLag ≤ t →
+      t - C.participationLag ≤ rho.horizon → FreshMajority E rho.honest C t := h.fresh
+
+example (P : Generic.ProtocolSpec V) (E : Generic.Env V) (I : Interface P)
+    (C : Constants) (rho : Generic.Run V P.Object) (T b₀ b₁ : Time)
+    (h : OutageRegime P E I C rho T b₀ b₁) :
+    ∀ t, ActionTime C t → C.participationLag ≤ t → t ≤ rho.horizon + C.participationLag →
+      FreshMajority E rho.honest C t := h.participation
+
+example (P : Generic.ProtocolSpec V) (I : Interface P) (C : Constants)
+    (rho : Generic.Run V P.Object) (start : Time) (gap : Nat)
+    (h : ∀ t, OpeningTime I t → start ≤ t → t + gap * C.period ≤ rho.horizon →
+      ∃ s, t < I.proposalTime s ∧ I.proposalTime s ≤ t + gap * C.period ∧
+        MultiProposerAt I C rho.honest s) : MultiProposerRecurrence I C rho start gap := h
+
+-- Sleepy growth still needs a proposer strictly after every time, not just openings.
+example (P : Generic.ProtocolSpec V) (I : Interface P) (C : Constants)
+    (rho : Generic.Run V P.Object) (start : Time) (gap : Nat)
+    (h : SingleProposerRecurrence I C rho start gap) :
+    ∀ t, start ≤ t → t + gap * C.period ≤ rho.horizon →
+      ∃ s, t < I.proposalTime s ∧ I.proposalTime s ≤ t + gap * C.period ∧
+        I.proposer s ∈ rho.honest := h
 
 end DecoupledConsensusModel

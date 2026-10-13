@@ -127,7 +127,6 @@ private theorem named_execution_valid_of_generic_schedule
     (h : Generic.ScheduleWellFormed (P := P S) (E S) rho) :
     NamedScheduleWellFormed S rho := by
   refine {
-    horizon_nonneg := h.horizon_nonneg
     sorted := by
       simpa only [NamedRun.events_eq, named_key_eq] using! h.sorted
     nodup := by simpa only [NamedRun.events_eq] using! h.nodup
@@ -216,7 +215,7 @@ theorem attestationAuthenticity_of_generic_unforgeableRun
   have hcarries : Generic.ProtocolSpec.carries (P S) (.block B) (.attest a) := by
     exact Or.inr ⟨a, ha, rfl⟩
   have hauthor : (NamedObject.attest a).author = some a.val_index := rfl
-  have hh := h.toUnforgeableSignatures.carried v (.block B) t hproc' (.attest a) hcarries
+  have hh := h.toCarriedUnforgeable.carried v (.block B) t hproc' (.attest a) hcarries
     a.val_index ah hauthor
   rcases hh with ⟨t', htle, hemits⟩
   exact ⟨t', htle, (emits_iff S rho a.val_index (.attest a) t').1 hemits⟩
@@ -233,6 +232,11 @@ theorem executionValid_of_generic
     toNamedRootCollisionFree := h.idealization
     toNamedUnforgeable :=
       named_execution_valid_of_generic_unforgeable S rho h.toUnforgeableSignatures }
+
+theorem sorted_of_generic_sortedRun (S : Setup V) (rho : Run V)
+    (h : Generic.SortedRun (P := P S) rho) :
+    rho.events.Pairwise (fun e f => NamedEvent.key e ≤ NamedEvent.key f) := by
+  simpa only [NamedRun.events_eq, named_key_eq] using! h.sorted
 
 theorem finalityExecution_of_generic_runWellFormed
     (S : Setup V) (rho : Run V)
@@ -268,7 +272,6 @@ theorem genericExecutionValid_of_named
     toUnforgeableSignatures := ?_
     idealization := h.toNamedRootCollisionFree }
   · refine {
-      horizon_nonneg := h.toNamedScheduleWellFormed.horizon_nonneg
       sorted := ?_
       nodup := h.toNamedScheduleWellFormed.nodup
       in_horizon := ?_
@@ -307,15 +310,17 @@ theorem genericExecutionValid_of_named
       rw [Execution.stateBefore_eq S rho]
       exact h.toNamedDeliveryWellFormed.fresh i v o t he
   · refine {
-      unforgeable := ?_
-      carried := ?_ }
-    · intro v o t hproc u hu ha
+      unforgeable := ?direct
+      carried := ?carried }
+    case direct =>
+      intro v o t hproc u hu ha
       have hproc' := (processes_iff S rho v o t).1 hproc
       have ha' : (NamedObject.author o) = some u := by simpa [P] using! ha
       rcases h.toNamedUnforgeable.unforgeable v o t hproc' u hu ha' with
         ⟨t', htle, hemits⟩
       exact ⟨t', htle, (emits_iff S rho u o t').2 hemits⟩
-    · intro v o t hproc o' hcarries u hu ha
+    case carried =>
+      intro v o t hproc o' hcarries u hu ha
       cases o with
       | block B =>
           cases o' with

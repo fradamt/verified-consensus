@@ -16,7 +16,6 @@ namespace DecoupledConsensusModel.Execution
 variable {V : Type} [DecidableEq V] [Fintype V]
 
 structure NamedScheduleWellFormed (S : Setup V) (rho : NamedRun V) : Prop where
-  horizon_nonneg : 0 ≤ rho.horizon
   sorted : rho.events.Pairwise (fun e f => e.key ≤ f.key)
   nodup : rho.events.Nodup
   in_horizon : ∀ e ∈ rho.events, 0 ≤ e.time ∧ e.time ≤ rho.horizon

@@ -40,7 +40,7 @@ Read the review in this order:
 6. `Proofs.concreteConsensus` in
    [ReviewTheorem.lean](../DecoupledConsensusProofs/ReviewTheorem.lean),
    followed by `StatementReachability.lean`, `ReviewSurfaceShape.lean`,
-   `ReviewAxioms.lean`, and `check-review-boundary.rb` in `scripts/`.
+   `ReviewAxioms.lean`, `PremiseReduction.lean`, and `check-review-boundary.rb` in `scripts/`.
 
 The statement library imports the model and the closed definitions needed by
 `Instantiation`. It does not import proofs or fixtures. The old protocol-shaped
@@ -54,9 +54,8 @@ validator type with node identity equal to validator identity, a network delay
 `Δ > 0`, a nonnegative `t_GST`, positive electorate weights, the SG round
 length `R ≥ 3` slots, the SG expiry window `η_SG ≥ 1` rounds, and the FG
 parameters `K ≥ 4` and `D ≥ 2`. `Setup` also requires `node_val_index` and a
-whole timeout count of at least `2R`, a nonempty committee at every slot, and
-the outage-window bound `4 ≤ R · η_SG`. These are structural conditions of the
-model. The liveness
+whole timeout count of at least `2R`. Committee nonemptiness and the
+outage-window bound are not structural conditions of the model. The liveness
 constants (recovery endpoint, finality startup and deadline, stable-growth lag)
 are closed formulas in these parameters and in the field's own `gap`, with
 protocol-specific timing rules kept in the concrete instance.
@@ -74,9 +73,9 @@ from `t_GST`, and the paper's outage with synchrony resuming at `b₁` is the
 case `b₁ = t_GST`. A later temporary outage is not modelled.
 
 Third, each regime states its own time-indexed premises. The strong regimes
-require every honest validator awake from GST and less than one third faulty
-weight. The sleepy and
-outage regimes use the awake profile in their stated window or lag form. The
+require every honest validator awake at action samples from GST and less than
+one third faulty weight. The sleepy and outage regimes use the awake profile
+in their stated window or lag form. The
 recovery constructor ends the source at `C.prefixEnd` and requires a
 continuation through `C.recoveryEnd`.
 
@@ -100,8 +99,9 @@ exposes `stableInclusionDelay` for the stable output.
 
 `UnforgeableSignatures` has two clauses. `unforgeable` covers an honest-
 attributed object processed directly. `carried` covers an honest-attributed
-object carried by a processed object. `UnforgeableRun` adds sorted,
-honest-only events and a nonnegative horizon. The `handlesAt` relation records
+object carried by a processed object via `CarriedUnforgeable`.
+`UnforgeableRun` extends only `CarriedUnforgeable`, adding sorted and honest-only
+events. No horizon sign or directly processed signature premise is required. The `handlesAt` relation records
 a handler call, which may reject; `acceptsAt` adds the false-to-true
 `processed` transition.
 
@@ -150,12 +150,12 @@ the middle column.
 ┌────────────────────────┬──────────────────────┬────────────────────────────────────────────────┐
 │ Named premise          │ Conclusion record    │ Conclusion fields                              │
 ├────────────────────────┼──────────────────────┼────────────────────────────────────────────────┤
-│ `Constants.Valid`      │ none                 │ timing and bound parameters are valid          │
+│ none (constants field) │ `Constants.Valid`    │ timing and bound parameters are valid          │
 │ none                   │ `OutputOrder`        │ finalized below stable; stable below confirmed │
 │ `collisionFree` for    │ none                 │ compatible certificate targets or evidence     │
 │ two certificates       │                      │ (no run regime)                                │
 │ RunWellFormed          │ none                 │ finalized accountable safety                   │
-│ RunWellFormed          │ none                 │ finalized reads only extend                    │
+│ SortedRun              │ none                 │ finalized reads only extend                    │
 │ UnforgeableRun         │ none                 │ honest validators are never slashed            │
 │ AccountableRegime      │ none                 │ finalized agreement                            │
 │ SleepyRegime           │ `AvailableAt`        │ confirmed and stable safety, confirmed and     │
@@ -171,14 +171,14 @@ the middle column.
 `SleepyRegime` requires `ExecutionValid`, `PartialSynchrony`, GST by `t₀`,
 `HonestCommittees`, `WindowMajority`, and a sound `RecoveredBy` start.
 `LiveSleepyRegime` adds `SingleProposerRecurrence` from `t₀` (tier 1).
-`FreshSleepyRegime` adds `FreshMajority` at every time from `t₀`: the honest
+`FreshSleepyRegime` adds `FreshMajority` at each action sample from `t₀`: the honest
 weight awake in the current round outweighs the faulty weight plus the stale
 honest weight, so one round of fresh votes grades a proposal.
 Tier 1 counts the windows from `t₀`, and tiers 2 and 3 count those from GST;
 all count only windows that end inside the run.
 `FinalityRegime` extends `BFTRegime`: execution validity, partial synchrony,
 GST by `t₀`, honest committees, `BelowOneThird`, and `FullParticipation`
-(every honest validator awake from GST).
+(every honest validator awake at action samples from GST).
 It adds strong recurrence, `gap + 2 ≤ maxGap`, and `longEnough`.
 `OutageRegime` requires execution validity, partial synchrony, GST by `b₁`,
 honest committees, `HealthyPrefixDelivery`, a public outage boundary,
@@ -186,13 +186,14 @@ honest committees, `HealthyPrefixDelivery`, a public outage boundary,
 
 `Constants.Valid` requires positive `period`, nonnegative participation
 window and lag, positive `proposerSlots`, `maxGap ≥ 2`, nonnegative delays,
-`prefixEnd ≤ recoveryEnd`, and `outageStart T < expiry T`. `Setup` supplies
-`committee_nonempty` and `outage_window`; every concrete fixture proves both.
+`prefixEnd ≤ recoveryEnd`, and `outageStart T < expiry T`. The latter needs the
+explicit `houtage : 4 ≤ S.hc.R * S.hc.η_SG` argument to `constants_valid` and
+`concreteConsensus`. Only the `constants` field uses this argument; all other
+field proofs accept the broader `Setup` domain, including empty committees.
 
-The participation premises are continuous-time contracts. They quantify every
-time in scope, not only action-round samples. The fixtures witness this where
-the profile is constant: `DecoupledConsensusModel.Witnesses.generic_sleepy_regime`,
-`DecoupledConsensusModel.Witnesses.generic_recovery_regime`, and `DecoupledConsensusModel.Witnesses.generic_outage_regime`.
+Participation is sampled at `ActionTime C t`, namely `C.epoch + r * C.period`.
+The concrete epoch is `S.a 0`, so the samples are the action times `S.a r`.
+The constant-profile fixtures satisfy these participation guards.
 
 The participation predicates are stated on the environment's awake profile:
 `WindowMajority` for sleepy recovery, `FullParticipation` from GST for the BFT
@@ -203,15 +204,21 @@ generic fields or premises. Timeout rules stay protocol-specific.
 and `SlashableBound` remain separate so each theorem shows the exact condition
 it uses.
 
-The premise corrections are deliberate. `ScheduleWellFormed` and
-`RunWellFormed` require a nonnegative run horizon. `honestNeverSlashed` uses
-`UnforgeableRun`; its proof consumes only the carried clause of
-`UnforgeableSignatures`, together with the sorted and honest-only run fields.
-`SleepyRegime.windows` also requires
-`participationLag ≤ t`, so the reference time `t − participationLag` is in the
-run. Weak recurrence is strict after the sampled time. Continuous strong
-recurrence remains unchanged; its satisfiable finality domain starts at
-`gap = 3` and therefore `K ≥ 5`.
+No schedule or run condition requires a nonnegative horizon. Event membership
+still requires `0 ≤ e.time ≤ horizon`, and output predicates retain their read
+bounds. `finalizedMonotone` requires only `SortedRun`; the accountable claims
+continue to use the idealization in `RunWellFormed`.
+`honestNeverSlashed` requires only carried authenticity, sortedness and
+honest-only events. `SleepyRegime.windows` retains `participationLag ≤ t`.
+
+Multi-proposer and strong recurrence are guarded by `OpeningTime I t`, the
+proposal time of an opening slot. This is a different grid from action times.
+Strong recurrence can hold at gap 2; its exact endpoint is checked by
+`FinalityLiveness.generic_opening_recurrence_gap_two`. Single-proposer
+recurrence still covers arbitrary times and does not follow from sampled
+multi-proposer recurrence for a generic interface. Finalized growth uses the
+preceding opening and the finality startup to meet its strict future-proposal
+and deadline guarantees.
 
 The concrete regime-to-fixture non-vacuity map is:
 
@@ -219,14 +226,13 @@ The concrete regime-to-fixture non-vacuity map is:
 ┌──────────────────────┬──────────────────────────────────────────────────────────────┐
 │ Regime or premise    │ Selected witness                                             │
 ├──────────────────────┼──────────────────────────────────────────────────────────────┤
-│ `Constants.Valid`    │ `Proofs.constants_valid` for every selected `Setup`.           │
-│ committee_nonempty   │ Each fixture's concrete `Setup.committee_nonempty`.           │
-│ outage_window        │ Each fixture's concrete `Setup.outage_window`.                │
+│ `Constants.Valid`    │ `Proofs.constants_valid S (by decide)` for each fixture.           │
 │ ScheduleWellFormed   │ `schedule_well_formed` in each fixture.                       │
 │ DeliveryWellFormed   │ `delivery_well_formed` in WeakGenesis, FinalityLiveness,      │
 │                      │ and StrongRecovery; Outage uses its named equivalent.         │
 │ ExecutionValid       │ `admissible_core`/`execution_valid` in the four fixtures.     │
 │ UnforgeableRun       │ Construct `UnforgeableRun` from `ExecutionValid`.              │
+│ SortedRun            │ The schedule sortedness projection in the bridges.            │
 │ RunWellFormed        │ The schedule and idealization projections in the bridges.      │
 │ AccountableRegime    │ DecoupledConsensusModel.Witnesses.generic_outage_regime, projected with its execution    │
 │                      │ and slashable bound.                                           │
@@ -274,6 +280,7 @@ Let `L = S.a 1 − S.a 0 = 4ΔR` and
 ┌─────────────────────────┬──────────────────────────────────────────────────────────────┬────────────┬─────────────────────────────────────────────┐
 │ Field                   │ Selected value                                                │ Unit       │ Protocol meaning                             │
 ├─────────────────────────┼──────────────────────────────────────────────────────────────┼────────────┼─────────────────────────────────────────────┤
+│ epoch                   │ a₀                                                           │ Time       │ First participation sample.                  │
 │ period                  │ L = S.a 1 − S.a 0 = 4ΔR                                      │ Time       │ One SG round.                                │
 │ participationWindow     │ η_SG · L                                                     │ Time       │ Retained SG awake-history window.            │
 │ participationLag        │ L                                                            │ Time       │ Reference one action round earlier.          │
@@ -301,11 +308,9 @@ The setup timeout is `timeoutDelay = (2 + e)R` for
 `timeout_rounds` requires this to be a whole number of rounds and at least
 `2R`. The concrete finality fixture uses `e = 0`, so its timeout is `2R`.
 
-In continuous time the smallest satisfiable strong gap is 3 (the window
-`[t + 2·period, t + gap·period]` is a point at gap 2), so finality claims are
-non-vacuous only for `gap ≥ 3`, hence `K ≥ 5`. This is one period more than
-the paper's round-sampled premise, and the finality fixture witnesses gap 3 at
-`K = 5`.
+Opening-sampled strong recurrence permits gap 2 and `K = 4`. The existing
+long finality fixture uses gap 3 and `K = 5`; the separate recurrence witness
+checks the gap-2 endpoint.
 
 `LiveFrom` asks for `t₀ ≤ t` and `t + D ≤ horizon`; its proposed block is
 strictly future, `t < proposalTime`. `IncludedFrom` asks for the strict guard
@@ -329,7 +334,7 @@ instance of the same corollary through `DecoupledConsensusModel.Proofs.finalized
 twelve result fields, in premise-first order:
 
 1. `nested` and `certificatesAccountable` have no run-regime premise.
-2. `finalizedAccountable` and `finalizedMonotone` name `RunWellFormed`.
+2. `finalizedAccountable` names `RunWellFormed`; `finalizedMonotone` names `SortedRun`.
 3. `honestNeverSlashed` names `UnforgeableRun`.
 4. `finalizedSafe` names `AccountableRegime`.
 5. `available` names `SleepyRegime` and returns `AvailableAt`.
@@ -343,8 +348,8 @@ This makes each claim readable as `run and parameters → named premise → name
 conclusion`, except for the two fields with no run-regime premise at the top. Confirmed
 and stable inclusion are in `AvailableAt`; they need no recurrence.
 
-The only review theorem is `Proofs.concreteConsensus : ∀ S,
-Statements.Instantiation.Consensus S`. `reviewedInternal`, `legacyConsensus`, and
+The review bundle theorem is `Proofs.concreteConsensus : ∀ S,
+4 ≤ S.hc.R * S.hc.η_SG → Statements.Instantiation.Consensus S`. `reviewedInternal`, `legacyConsensus`, and
 per-result theorems remain internal proof-layer results. Their statement types
 are in the proof and internal libraries, outside the review surface.
 

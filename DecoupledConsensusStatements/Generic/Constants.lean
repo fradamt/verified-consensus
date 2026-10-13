@@ -43,6 +43,8 @@ All delay fields and `period`, `participationWindow`, `participationLag`,
 `prefixEnd`, `recoveryEnd`, `outageStart`, and `expiry` use `Time`. The
 `proposerSlots` and `maxGap` fields use `Nat`; `gap` is measured in periods. -/
 structure Constants where
+  /-- First participation sample, in `Time`. -/
+  epoch : Time
   /-- Duration of one recurrence period, in `Time`; expected to be positive. -/
   period : Time
   /-- Width of the awake-history window used by `WindowMajority`, in `Time`. -/
@@ -89,10 +91,14 @@ structure Constants where
   expire, in `Time`. -/
   expiry : Time → Time
 
+/-- Participation is sampled once per period, starting at `epoch`. -/
+def ActionTime (C : Constants) (t : Time) : Prop :=
+  ∃ r : Nat, t = C.epoch + (r : Time) * C.period
+
 /-- The constants are well formed: a positive period, nonnegative windows and
 delays, a recovery end after the prefix end, and a nonempty outage window.
-`maxGap_ge_two` is a sanity bound; the finality premise is satisfiable only for
-`maxGap ≥ 5` (see `StrongMultiProposerRecurrence`). -/
+`maxGap_ge_two` is a sanity bound; sampled strong recurrence permits gap 2
+and hence `maxGap = 4` in the concrete periodic schedule. -/
 structure Constants.Valid (C : Constants) : Prop where
   period_pos : 0 < C.period
   participationWindow_nonneg : 0 ≤ C.participationWindow

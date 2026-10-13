@@ -57,8 +57,8 @@ structure Consensus
     Block.Compatible T T' ∨ I.evidence c c'
   /-- Well-formed run. -/
   finalizedAccountable : ∀ rho, RunWellFormed E I rho → AccountablySafeFrom P I rho I.finalized 0
-  /-- Well-formed run: each honest node's finalized reads only extend. -/
-  finalizedMonotone : ∀ rho, RunWellFormed E I rho → MonotoneFrom P rho I.finalized 0
+  /-- Sorted run: each honest node's finalized reads only extend. -/
+  finalizedMonotone : ∀ rho, SortedRun rho → MonotoneFrom P rho I.finalized 0
   /-- Unforgeable run. -/
   honestNeverSlashed : ∀ rho, UnforgeableRun P E I rho → ∀ v ∈ rho.honest, ¬ I.slashes rho v
   /-- Accountable regime. -/

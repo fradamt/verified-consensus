@@ -58,11 +58,6 @@ def S : Setup (Fin 2) where
   node := fun v => { nd with val_index := v }
   node_val_index := by intro v; rfl
   timeout_rounds := by decide
-  committee_nonempty := by
-    intro s
-    change ({0} : Finset (Fin 2)).Nonempty
-    simp
-  outage_window := by decide
 
 def tickEvents : Nat → Nat → List (Event (Fin 2))
   | _, 0 => []
@@ -413,9 +408,6 @@ theorem tickEvents_nodup (start count : Nat) :
       · exact ih (start := start + 1)
 
 theorem scheduleWellFormed_count (N : Nat) : ScheduleWellFormed S (rho N) where
-  horizon_nonneg := by
-    change 0 ≤ (N : Time)
-    exact_mod_cast Nat.zero_le N
   sorted := by
     change (tickEvents 0 (N + 1)).Pairwise
       (fun e f => NamedEvent.key e ≤ NamedEvent.key f)
@@ -598,7 +590,7 @@ theorem generic_proposer_recurrence :
     Statements.Generic.MultiProposerRecurrence
       (Statements.Instantiation.interface S)
       (Statements.Instantiation.constants S) sourceRun E.t_GST gap := by
-  intro t ht _
+  intro t _hopen ht _
   have ht0 : 0 ≤ t := E.t_GST_nonneg.trans ht
   let L : Time := S.a 1 - S.a 0
   let q : Nat := Int.toNat (t / L)
@@ -1474,7 +1466,7 @@ theorem generic_recovery_regime :
     simpa [Statements.Instantiation.interface, Statements.instance] using! honestCommittees s
   · simpa [Statements.Instantiation.env, Statements.Generic.BelowOneThird,
       Execution.BelowOneThird] using! belowOneThird
-  · intro v hv t ht hhor
+  · intro v hv t _hsample ht hhor
     rfl
   · change sourceRun.horizon =
       S.a (Statements.Instantiation.recoveryRound S (S.a rGST) gap S.extraRounds)

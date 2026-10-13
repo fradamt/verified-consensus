@@ -35,8 +35,6 @@ abbrev HealthyPrefixDelivery (S : Setup V) (rho : Run V) (cut : Time) : Prop :=
   NamedHealthyPrefixDelivery S rho cut
 namespace ScheduleWellFormed
 abbrev mk := @NamedScheduleWellFormed.mk
-abbrev horizon_nonneg {S : Setup V} {rho : Run V} (h : ScheduleWellFormed S rho) :=
-  NamedScheduleWellFormed.horizon_nonneg h
 abbrev sorted {S : Setup V} {rho : Run V} (h : ScheduleWellFormed S rho) :=
   NamedScheduleWellFormed.sorted h
 abbrev nodup := @NamedScheduleWellFormed.nodup

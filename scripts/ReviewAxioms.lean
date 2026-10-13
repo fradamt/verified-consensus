@@ -35,7 +35,8 @@ namespace DecoupledConsensusModel.Proofs
 
 variable {V : Type} [DecidableEq V] [Fintype V]
 
-example (S : Execution.Setup V) : Statements.Instantiation.Consensus S :=
-  concreteConsensus S
+example (S : Execution.Setup V) (houtage : 4 ≤ S.hc.R * S.hc.η_SG) :
+    Statements.Instantiation.Consensus S :=
+  concreteConsensus S houtage
 
 end DecoupledConsensusModel.Proofs

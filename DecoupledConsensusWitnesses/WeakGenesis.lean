@@ -58,11 +58,6 @@ def S : Setup (Fin 2) where
   node := node
   node_val_index := by intro v; rfl
   timeout_rounds := by decide
-  committee_nonempty := by
-    intro s
-    change ({0} : Finset (Fin 2)).Nonempty
-    simp
-  outage_window := by decide
 
 def events : List (Event (Fin 2)) :=
   (List.range 31).map (fun n => .tick 0 (n : Time))
@@ -194,7 +189,6 @@ theorem delivery_fresh : ∀ (i : Nat) (v : Fin 2) (o : NamedObject (Fin 2))
   cases hne
 
 theorem schedule_well_formed : NamedScheduleWellFormed S rho where
-  horizon_nonneg := by decide
   sorted := schedule_sorted
   nodup := schedule_nodup
   in_horizon := schedule_in_horizon
@@ -1115,7 +1109,7 @@ theorem generic_sleepy_regime :
   · intro s
     simpa [Statements.Instantiation.interface, Statements.instance] using
       honest_committee_majority s
-  · intro t ht hlag hhor
+  · intro t _hsample ht hlag hhor
     classical
     have hL : 1 ≤ S.a 1 - S.a 0 := by
       have hpos := Proofs.concretePeriod_pos S

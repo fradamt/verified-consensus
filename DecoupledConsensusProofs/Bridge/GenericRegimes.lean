@@ -45,11 +45,11 @@ theorem sleepyRegime_of_generic (S : Setup V) (rho : Run V) (t₀ : Time)
     linarith [htime]
   apply windowMajority_of_generic S rho (S.hc.η_SG) r hr
     S.hc.η_SG_ge_one
-  have hg := h.windows (S.a r) htr hlag (by simpa [htime] using hhor)
+  have hg := h.windows (S.a r) (actionTime_a S r) htr hlag (by simpa [htime] using hhor)
   simpa [C, Instantiation.constants] using hg
 
 theorem bftRegime_of_generic (S : Setup V) (rho : Run V) (t₀ : Time)
-    (h : Generic.BFTRegime (P S) (E S) (I S) rho t₀) :
+    (h : Generic.BFTRegime (P S) (E S) (I S) (C S) rho t₀) :
     Statements.BFTRegime S (Statements.«instance» S) rho t₀ := by
   refine {
     execution := executionValid_of_generic S rho h.execution
@@ -145,8 +145,8 @@ theorem outageRegime_of_generic (S : Setup V) (rho : Run V)
   · simpa [E, Instantiation.env, Generic.PublicTime,
       Execution.PublicTime] using h.boundaryPublic
   · apply awakeGradeMajorityThroughout_of_generic S rho
-    intro t htlo hthi
-    apply h.participation t
+    intro t hsample htlo hthi
+    apply h.participation t hsample
     · simpa [C, Instantiation.constants] using htlo
     · simpa [C, Instantiation.constants] using hthi
 

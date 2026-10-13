@@ -85,6 +85,7 @@ def interface (S : Setup V) :
 corollary delays `gap · period + confirmationDelay` and
 `gap · period + stableInclusionDelay`. -/
 noncomputable def constants (S : Setup V) : Generic.Constants where
+  epoch := S.a 0
   period := S.a 1 - S.a 0
   participationWindow := (S.hc.η_SG : Time) * (S.a 1 - S.a 0)
   participationLag := S.a 1 - S.a 0

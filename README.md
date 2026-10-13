@@ -22,7 +22,8 @@ majorities. Liveness also needs participation and proposer recurrence. The
 `DecoupledConsensusProofs/ReviewTheorem.lean`:
 
 ```lean
-theorem concreteConsensus (S : Setup V) : Statements.Instantiation.Consensus S
+theorem concreteConsensus (S : Setup V) (houtage : 4 ≤ S.hc.R * S.hc.η_SG) :
+    Statements.Instantiation.Consensus S
 ```
 
 `Consensus` (`DecoupledConsensusStatements/Instantiation.lean`) is the generic
@@ -61,19 +62,21 @@ and all regimes are in `DecoupledConsensusStatements/Generic/Regimes.lean`.
 honest-only events on the public time grid), `DeliveryWellFormed` (wire,
 dependency and freshness checks), `UnforgeableSignatures` and root collision
 freedom. Tier 1 of proposer recurrence counts the windows from `t₀`, and tiers
-2 and 3 count those from GST; all count only windows that end inside the run.
+2 and 3 count opening-time windows from GST; all count only windows that end
+inside the run. Participation is required at action samples. The explicit
+`houtage` argument is used only by `constants`; the other 12 field proofs do
+not require the outage-window bound.
 
 ```text
 ┌───────────────────────────┬────────────────────────┬────────────────────────────────────────────────────┐
 │ Claim                     │ Regime                 │ Conditions                                         │
 ├───────────────────────────┼────────────────────────┼────────────────────────────────────────────────────┤
-│ constants                 │ none                   │ Constants.Valid                                    │
+│ constants                 │ none                   │ 4 ≤ R · η_SG (explicit concrete theorem argument)   │
 │ nested                    │ none                   │ —                                                  │
 │ certificatesAccountable   │ none                   │ collision-free roots on the two ancestor chains    │
-│ finalizedAccountable      │ RunWellFormed          │ horizon ≥ 0; sorted events; collision-free roots   │
-│ finalizedMonotone         │ RunWellFormed          │ horizon ≥ 0; sorted events; collision-free roots   │
-│ honestNeverSlashed        │ UnforgeableRun         │ UnforgeableSignatures; sorted; honest-only;        │
-│                           │                        │ horizon ≥ 0                                        │
+│ finalizedAccountable      │ RunWellFormed          │ sorted events; collision-free roots              │
+│ finalizedMonotone         │ SortedRun              │ sorted events                                      │
+│ honestNeverSlashed        │ UnforgeableRun         │ CarriedUnforgeable; sorted; honest-only             │
 │ finalizedSafe             │ AccountableRegime      │ RunWellFormed; SlashableBound                      │
 │ available                 │ SleepyRegime           │ base; WindowMajority; RecoveredBy                  │
 │ confirmedLive             │ LiveSleepyRegime       │ SleepyRegime; SingleProposerRecurrence (tier 1)    │
@@ -141,9 +144,9 @@ depends on `Lean.ofReduceBool`. The review theorem does not.
 - **Generic statements.** The bundle is stated over an abstract interface.
   Only `Instantiation.lean` ties it to this protocol, so read that file with
   care: a wrong binding leaves the theorem true and empty.
-- **Stronger participation premises.** The premises hold at every time, not
-  only at round samples. Thus finality needs `K ≥ 5`, not the paper's `K ≥ 4`
-  (§7).
+- **Sampled premises.** Participation uses action times; recovery and finality
+  recurrence use opening proposal times. Single-proposer recurrence for sleepy
+  growth still quantifies arbitrary times (§7).
 - **One outage.** The outage claim covers one asynchronous period, with
   bounded delivery before it and after GST. A run with more than one outage is
   not modelled (§5.1).

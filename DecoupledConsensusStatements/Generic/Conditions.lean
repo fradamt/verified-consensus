@@ -34,7 +34,6 @@ def PublicTime (E : DecoupledConsensusModel.Generic.Env V) (t : Time) : Prop :=
 structure ScheduleWellFormed
     (E : DecoupledConsensusModel.Generic.Env V)
     (rho : DecoupledConsensusModel.Generic.Run V P.Object) : Prop where
-  horizon_nonneg : 0 ≤ rho.horizon
   sorted : rho.events.Pairwise (fun e f => e.key ≤ f.key)
   nodup : rho.events.Nodup
   in_horizon : ∀ e ∈ rho.events, 0 ≤ e.time ∧ e.time ≤ rho.horizon
@@ -58,31 +57,34 @@ structure DeliveryWellFormed
     rho.events[i]? = some (DecoupledConsensusModel.Generic.Event.deliver v o t) →
       P.processed (DecoupledConsensusModel.Generic.Run.stateBefore P rho i v) o = false
 
-/-- Signatures are unforgeable: an object attributed to an honest validator —
-processed directly or carried by a processed object — was emitted by that
-validator. -/
-structure UnforgeableSignatures
+/-- Objects carried by processed objects and attributed to honest validators
+were emitted by those validators. Directly processed signatures are not assumed. -/
+structure CarriedUnforgeable
     (P : DecoupledConsensusModel.Generic.ProtocolSpec V)
     (rho : DecoupledConsensusModel.Generic.Run V P.Object) : Prop where
-  unforgeable : ∀ v o t,
-    DecoupledConsensusModel.Generic.Run.processes P rho v o t →
-      ∀ u ∈ rho.honest, P.author o = some u →
-        ∃ t', t' ≤ t ∧ DecoupledConsensusModel.Generic.Run.emits P rho u o t'
   carried : ∀ v o t,
     DecoupledConsensusModel.Generic.Run.processes P rho v o t →
       ∀ o', P.carries o o' → ∀ u ∈ rho.honest, P.author o' = some u →
         ∃ t', t' ≤ t ∧ DecoupledConsensusModel.Generic.Run.emits P rho u o' t'
 
-/-- A run with sorted events, honest-only events, a nonnegative horizon, and
-unforgeable signatures. -/
+/-- Signatures processed directly or carried by processed objects are authentic. -/
+structure UnforgeableSignatures
+    (P : DecoupledConsensusModel.Generic.ProtocolSpec V)
+    (rho : DecoupledConsensusModel.Generic.Run V P.Object) : Prop extends
+    CarriedUnforgeable P rho where
+  unforgeable : ∀ v o t,
+    DecoupledConsensusModel.Generic.Run.processes P rho v o t →
+      ∀ u ∈ rho.honest, P.author o = some u →
+        ∃ t', t' ≤ t ∧ DecoupledConsensusModel.Generic.Run.emits P rho u o t'
+
+/-- Sorted, honest-only events with authentic carried objects. -/
 structure UnforgeableRun
     (P : DecoupledConsensusModel.Generic.ProtocolSpec V)
     (E : DecoupledConsensusModel.Generic.Env V) (I : Interface P)
     (rho : DecoupledConsensusModel.Generic.Run V P.Object) : Prop extends
-  UnforgeableSignatures P rho where
+  CarriedUnforgeable P rho where
   sorted : rho.events.Pairwise (fun e f => e.key ≤ f.key)
   honest_only : ∀ e ∈ rho.events, e.node ∈ rho.honest
-  horizon_nonneg : 0 ≤ rho.horizon
 
 /-- The non-network execution premises and the interface idealization. -/
 structure ExecutionValid
@@ -92,12 +94,15 @@ structure ExecutionValid
   ScheduleWellFormed E rho, DeliveryWellFormed P rho, UnforgeableSignatures P rho where
   idealization : I.idealization rho
 
-/-- A sorted run with a nonnegative horizon and the interface's idealization;
-reads are taken at times in `[0, horizon]`. -/
+/-- Events are ordered by their execution keys. No idealization is required. -/
+structure SortedRun (rho : DecoupledConsensusModel.Generic.Run V P.Object) : Prop where
+  sorted : rho.events.Pairwise (fun e f => e.key ≤ f.key)
+
+/-- A sorted run with the interface's idealization; reads are taken at times in
+`[0, horizon]`. -/
 structure RunWellFormed
     (E : DecoupledConsensusModel.Generic.Env V) (I : Interface P)
     (rho : DecoupledConsensusModel.Generic.Run V P.Object) : Prop where
-  horizon_nonneg : 0 ≤ rho.horizon
   sorted : rho.events.Pairwise (fun e f => e.key ≤ f.key)
   idealization : I.idealization rho
 
@@ -171,10 +176,10 @@ def WindowMajority (E : DecoupledConsensusModel.Generic.Env V) (H : Finset V)
   E.electorate.weightOf (Finset.univ \ H) <
     E.electorate.weightOf (awakeIn E H (t - w) t)
 
-/-- Every honest validator is awake at every time from GST to the run horizon. -/
-def FullParticipation (E : DecoupledConsensusModel.Generic.Env V)
+/-- Every honest validator is awake at each action sample from GST to the horizon. -/
+def FullParticipation (E : DecoupledConsensusModel.Generic.Env V) (C : Constants)
     (rho : DecoupledConsensusModel.Generic.Run V P.Object) : Prop :=
-  ∀ v ∈ rho.honest, ∀ t, E.t_GST ≤ t → t ≤ rho.horizon → E.awake v t = true
+  ∀ v ∈ rho.honest, ∀ t, ActionTime C t → E.t_GST ≤ t → t ≤ rho.horizon → E.awake v t = true
 
 /-- Faulty validators hold less than one third of the total weight. -/
 def BelowOneThird (E : DecoupledConsensusModel.Generic.Env V) (H : Finset V) : Prop :=
@@ -210,28 +215,32 @@ def SingleProposerRecurrence (I : Interface P) (C : Constants)
     ∃ s, t < I.proposalTime s ∧ I.proposalTime s ≤ t + gap * C.period ∧
       I.proposer s ∈ rho.honest
 
-/-- Tier 2, multi-proposer recurrence: within `gap` periods of every time from
+/-- A recurrence trigger is the proposal time of an opening slot. -/
+def OpeningTime (I : Interface P) (t : Time) : Prop :=
+  ∃ s, I.opening s ∧ t = I.proposalTime s
+
+/-- Tier 2, multi-proposer recurrence: within `gap` periods of every opening time from
 `start` a multi-proposer window starts: an opening slot and the following
 `proposerSlots − 1` slots all have honest proposers; recovery uses it.
 Only windows from `start` that end inside the run count. -/
 def MultiProposerRecurrence (I : Interface P) (C : Constants)
     (rho : DecoupledConsensusModel.Generic.Run V P.Object) (start : Time) (gap : Nat) : Prop :=
-  ∀ t : Time, start ≤ t → t + gap * C.period ≤ rho.horizon → ∃ s, t < I.proposalTime s ∧
+  ∀ t : Time, OpeningTime I t → start ≤ t → t + gap * C.period ≤ rho.horizon →
+    ∃ s, t < I.proposalTime s ∧
     I.proposalTime s ≤ t + gap * C.period ∧
     MultiProposerAt I C rho.honest s
 
 /-- Tier 3, strong multi-proposer recurrence: as tier 2, and every opening in the
 two periods before that window also has an honest proposer; finality uses it.
 
-In continuous time the smallest satisfiable strong gap is 3 (the window
-`[t + 2·period, t + gap·period]` is a point at gap 2), so the finality claims
-are non-vacuous only for `gap ≥ 3`, hence `K ≥ 5`; this is one period more than
-the paper's round-sampled premise. The finality fixture witnesses gap 3 at
-`K = 5`.
+Triggers are opening proposal times. In the concrete periodic schedule, gap 2
+is satisfiable: its singleton window is the opening two periods later.
+Single-proposer recurrence still quantifies arbitrary times.
 Only windows from `start` that end inside the run count. -/
 def StrongMultiProposerRecurrence (I : Interface P) (C : Constants)
     (rho : DecoupledConsensusModel.Generic.Run V P.Object) (start : Time) (gap : Nat) : Prop :=
-  ∀ t : Time, start ≤ t → t + gap * C.period ≤ rho.horizon → ∃ s, t + 2 * C.period ≤ I.proposalTime s ∧
+  ∀ t : Time, OpeningTime I t → start ≤ t → t + gap * C.period ≤ rho.horizon →
+    ∃ s, t + 2 * C.period ≤ I.proposalTime s ∧
     I.proposalTime s ≤ t + gap * C.period ∧
     MultiProposerAt I C rho.honest s ∧
     ∀ s', I.opening s' → I.proposalTime s - 2 * C.period ≤ I.proposalTime s' →

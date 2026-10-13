@@ -259,8 +259,8 @@ to confirm. A path with no library prefix is under `DecoupledConsensusModel/`.
   `[a_r, a_{r+1})`, and clamps every time below `a_0` to round 0.
 - **Check** — confirm the clamp. A round-0 sleepy window is not a premise:
   sampled windows start at rounds above 0, whose preceding action is in the run.
-  The exception is a run shorter than `a_0 = 6Δ`: the guard `t − period ≤ horizon`
-  holds at `t = period`, and the clamp then reads round 0.
+  If the run ends before `a_0 = 6Δ`, no action sample has its preceding action
+  inside the run, so no sleepy-window premise applies.
 
 ### 5.3 Weights and committees stay apart — representation
 
@@ -346,26 +346,28 @@ additively as `2q ≤ W + w(S)` to keep natural subtraction out of the definitio
 Check the direction of the inequality, and check that `SlashableBetween` permits
 the two occurrences to be one attestation.
 
-## 7 Continuous-time participation — idealization
+## 7 Sampled participation and recurrence
 
-Section 3 states each participation condition for each round whose action time
-or grade completion time falls in the run. The Lean premises quantify over every
-time in scope: `Statements.Generic.WindowMajority`,
-`Statements.Generic.FreshMajority`, `Statements.Generic.SingleProposerRecurrence`,
-`Statements.Generic.MultiProposerRecurrence` and
-`Statements.Generic.StrongMultiProposerRecurrence` are continuous-time contracts, and
-are therefore at least as strong as the round-sampled form. The recurrence tiers count
-only the windows that end inside the run and start at or after `t₀` (tier 1)
-or GST (tiers 2 and 3).
+Participation is required at `ActionTime C t`, the grid `epoch + r · period`
+for natural `r`. The concrete epoch is `S.a 0`, so these are exactly `S.a r`.
+`SleepyRegime.windows`, `FreshSleepyRegime.fresh`, `OutageRegime.participation`,
+and BFT `FullParticipation` retain their start, lag and horizon guards.
+The awake-history windows themselves remain half-open time intervals.
 
-One consequence is visible in the constants. In continuous time the window
-`[t + 2·period, t + gap·period]` of `StrongMultiProposerRecurrence` is a single point
-at `gap = 2`, so the smallest satisfiable strong gap is 3. The finality claims
-need `gap + 2 ≤ K`, so they are non-vacuous only for `K ≥ 5`, one more than the
-paper's `K ≥ 4`. The finality fixture witnesses `gap = 3` at `K = 5`. Check that
-each fixture in `DecoupledConsensusWitnesses` satisfies the continuous form, and
-not only the samples; the fixtures use a constant awake profile, which is why
-they can.
+Recovery and finality recurrence instead use `OpeningTime I t`: the proposal
+time of an opening slot. In the concrete schedule these are `r · period`,
+which differs from the action grid by `6Δ`. Both tiers retain their original
+window bounds and only require windows ending inside the run. Gap 2 is now
+satisfiable for strong recurrence, so `gap + 2 ≤ K` permits `K = 4`.
+`FinalityLiveness.generic_opening_recurrence_gap_two` checks this boundary;
+the existing long finality execution continues to use gap 3 and `K = 5`.
+
+`SingleProposerRecurrence` remains an arbitrary-time contract, as required by
+sleepy growth. Sampled multi-proposer recurrence does not imply that contract
+for a generic interface. Concrete finalized growth samples the preceding
+opening: its two-period lower bound still puts the proposal strictly after
+the requested read time, while its upper bound preserves the original delay.
+The finality startup ensures this preceding opening is after GST.
 
 ## 8 Structural conditions, not premises
 
@@ -385,18 +387,18 @@ under `DecoupledConsensusModel/`.
 │ D ≥ 2                        │ HeightConfig.D_ge_two    │ Protocol/ChainState.lean │
 │ Timeout: whole rounds, ≥ 2R  │ Setup.timeout_rounds     │ Execution/Setup.lean     │
 │ Node runs its own index      │ Setup.node_val_index     │ Execution/Setup.lean     │
-│ Committee is nonempty        │ Setup.committee_nonempty │ Execution/Setup.lean     │
-│ 4 ≤ R · η_SG                 │ Setup.outage_window      │ Execution/Setup.lean     │
 └──────────────────────────────┴──────────────────────────┴──────────────────────────┘
 ```
 
 A round is `4ΔR`, and the SG expiry window is `η_SG` rounds. `node_val_index`
 ties the node record to the validator that runs it: without it a validator could
 tick with another identity, and every proposer test and committee test would
-read the wrong name. `committee_nonempty` and `outage_window` stop two claims
-from becoming vacuous, and each also removes its parameter point from every
-claim, because no `Setup` exists there (the paper allows `R = 3`, `η_SG = 1`): an empty committee makes every committee premise false,
-and at `R = 3` with `η_SG = 1` the outage window is empty.
+read the wrong name. Empty committees are allowed by `Setup`; claims requiring
+`HonestCommittees` already rule them out through the strict majority inequality.
+The bound `4 ≤ R · η_SG` is an explicit argument of `constants_valid` and
+`concreteConsensus`, used only for the bundle's `constants` field. The other
+12 field proofs do not require it. At `R = 3`, `η_SG = 1` the outage timing
+window can be empty, so `Constants.Valid` genuinely needs this bound.
 
 ## 9 Closed-form round times — representation
 

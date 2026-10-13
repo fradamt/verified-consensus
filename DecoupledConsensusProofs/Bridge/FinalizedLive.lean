@@ -232,18 +232,35 @@ theorem growth_of_included (S : Setup V) {rho : Run V}
     (hfuture : Generic.NoFutureRead (P S) (I S) rho g)
     (hincl : Generic.IncludedFrom (P S) (I S) rho g t₀ D)
     (hrec : Generic.StrongMultiProposerRecurrence (I S) (C S) rho (E S).t_GST gap)
-    (ht₀ : 0 ≤ t₀) (hgst : (E S).t_GST ≤ t₀) (hD : 0 ≤ D) :
+    (ht₀ : 0 ≤ t₀) (hgst : (E S).t_GST + (C S).period ≤ t₀) (hD : 0 ≤ D) :
     Generic.LiveFrom (P S) (I S) rho g t₀
       ((gap : Time) * (C S).period + D) := by
   intro t ht hdeadline
   have hperiod : 0 < (C S).period := by
     simpa [C, Statements.Instantiation.constants] using concretePeriod_pos S
   have ht_nonneg : 0 ≤ t := ht₀.trans ht
-  obtain ⟨s, hslo, hsupper, hcarrier, _hlookback⟩ := hrec t
-    (hgst.trans ht) (by linarith)
-  have htwo : 0 < 2 * (C S).period := by positivity
-  have hsAfter : t < (I S).proposalTime s :=
-    lt_of_lt_of_le (lt_add_of_pos_right t htwo) hslo
+  -- Sample the preceding opening. Its two-period lookback keeps the
+  -- resulting proposal strictly after the arbitrary growth trigger `t`.
+  let q : Nat := Int.toNat (t / (C S).period)
+  let u : Time := (q : Time) * (C S).period
+  have hq : (q : Time) = t / (C S).period :=
+    Int.toNat_of_nonneg (Int.ediv_nonneg ht_nonneg hperiod.le)
+  have hu : u ≤ t := by
+    dsimp [u]
+    rw [hq]
+    exact Int.ediv_mul_le _ (ne_of_gt hperiod)
+  have htu : t < u + (C S).period := by
+    have h := Int.lt_ediv_add_one_mul_self t hperiod
+    rw [← hq] at h
+    simpa [u, add_mul] using h
+  have hopen : Generic.OpeningTime (I S) u := by
+    refine ⟨S.hc.opening_slot q, ⟨q, rfl⟩, ?_⟩
+    exact (openingProposalTime_eq_period S q).symm
+  obtain ⟨s, hslo, hsupper, hcarrier, _hlookback⟩ := hrec u hopen
+    (by linarith) (by linarith)
+  have hsAfter : t < (I S).proposalTime s := by linarith
+  have hsupper : (I S).proposalTime s ≤ t + gap * (C S).period := by
+    linarith
   have htincl : t₀ < (I S).proposalTime s := ht.trans_lt hsAfter
   have hpropD : (I S).proposalTime s + D ≤ rho.horizon := by
     calc
@@ -323,10 +340,10 @@ private theorem finalized_readAt_mono_of_sorted (S : Setup V) {rho : Run V}
   exact foldl_finalized_mono S v events (NamedRun.readAt S rho t)
 
 theorem accountable_finalizedMonotone (S : Setup V) :
-    ∀ rho, Generic.RunWellFormed (E S) (I S) rho →
+    ∀ rho, Generic.SortedRun rho →
       Generic.MonotoneFrom (P S) rho (I S).finalized 0 := by
   intro rho hwell
-  have hsorted := (finalityExecution_of_generic_runWellFormed S rho hwell).sorted
+  have hsorted := sorted_of_generic_sortedRun S rho hwell
   intro v hv t t' ht htt' hhor
   change Block.Preceq
     (Generic.readAt (P S) rho (fun n => n.st.core.F) v t)
@@ -374,10 +391,8 @@ theorem finalized_growth (S : Setup V) :
     simpa [C, Statements.Instantiation.constants] using concretePeriod_pos S
   have hstart : 0 ≤ t₀ + (C S).finalityStartup gap :=
     add_nonneg ht₀ hstartup
-  have hwell : Generic.RunWellFormed (E S) (I S) rho :=
-    { horizon_nonneg := hregime.execution.toScheduleWellFormed.horizon_nonneg
-      sorted := hregime.execution.toScheduleWellFormed.sorted
-      idealization := hregime.execution.idealization }
+  have hwell : Generic.SortedRun rho :=
+    ⟨hregime.execution.toScheduleWellFormed.sorted⟩
   have hmono0 := accountable_finalizedMonotone S rho hwell
   have hmono : Generic.MonotoneFrom (P S) rho (I S).finalized
       (t₀ + (C S).finalityStartup gap) := by
@@ -395,8 +410,14 @@ theorem finalized_growth (S : Setup V) :
       ((C S).finalityDeadline gap) := by
     simpa [C, Statements.Instantiation.constants, Statements.ourConstants] using!
       included_of_named S hlegacyIncluded
+  have hstartup_period : (C S).period ≤ (C S).finalityStartup gap := by
+    change S.a 1 - S.a 0 ≤ healingBoundaryTime S
+      (Instantiation.finalityStartup S gap S.extraRounds + 1) - S.a 0
+    exact sub_le_sub_right
+      ((Assembly.a_mono S (Nat.succ_le_succ (Nat.zero_le _))).trans
+        (a_le_healingBoundaryTime S _)) _
   exact growth_of_included S hmono hfuture hincl hregime.recurrence hstart
-    (hregime.gst.trans (le_add_of_nonneg_right hstartup)) hdeadline
+    (by linarith [hregime.gst]) hdeadline
 
 end Proofs
 end DecoupledConsensusModel

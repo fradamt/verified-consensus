@@ -285,12 +285,13 @@ theorem recoveryProducesHealedState (S : Setup V) :
   exact ⟨rGST, n, m, P, hsum, hmlo, hmhi, hcarrier, hP,
     ⟨_, hboot.1⟩⟩
 
-theorem concreteConsensus (S : Setup V) : Statements.Instantiation.Consensus S := by
+theorem concreteConsensus (S : Setup V) (houtage : 4 ≤ S.hc.R * S.hc.η_SG) :
+    Statements.Instantiation.Consensus S := by
   let gC : Internal.Output V := Protocol.get_confirmed
   let gS : Internal.Output V := Protocol.get_stable
   let gF : Internal.Output V := fun st => st.F
   refine {
-    constants := constants_valid S
+    constants := constants_valid S houtage
     nested := ?_
     certificatesAccountable := ?_
     finalizedAccountable := ?_

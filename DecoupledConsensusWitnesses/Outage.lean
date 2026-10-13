@@ -74,11 +74,6 @@ def S : Setup (Fin 2) where
   node := node
   node_val_index := by intro v; rfl
   timeout_rounds := by decide
-  committee_nonempty := by
-    intro s
-    change ({0} : Finset (Fin 2)).Nonempty
-    simp
-  outage_window := by decide
 
 def events : List (Event (Fin 2)) :=
   (List.range 46).map (fun n => .tick 0 (n : Time))
@@ -210,7 +205,6 @@ theorem delivery_fresh : ∀ (i : Nat) (v : Fin 2) (o : NamedObject (Fin 2))
   cases hne
 
 theorem schedule_well_formed : NamedScheduleWellFormed S rho where
-  horizon_nonneg := by decide
   sorted := schedule_sorted
   nodup := schedule_nodup
   in_horizon := schedule_in_horizon
@@ -1111,7 +1105,7 @@ def stableRound : Round := 2
 example :
     (Statements.Instantiation.constants S).outageStart (S.a stableRound) <
       (Statements.Instantiation.constants S).expiry (S.a stableRound) := by
-  exact (Proofs.constants_valid S).outage_window_nonempty _
+  exact (Proofs.constants_valid S (by decide)).outage_window_nonempty _
 
 theorem round_le_three_of_twelve_mul_le {r : Round} (h : 12 * r ≤ 46) : r ≤ 3 := by
   by_contra hnot
@@ -1337,7 +1331,7 @@ theorem generic_outage_regime :
   · intro s
     simpa [Statements.Instantiation.interface, Statements.instance] using
       honest_committee_majority s
-  · intro t htlo hthi
+  · intro t _hsample htlo hthi
     classical
     unfold Statements.Generic.FreshMajority
     have hL : 1 ≤ S.a 1 - S.a 0 := by
@@ -1829,7 +1823,7 @@ theorem asynchrony_resilience_activated :
     rw [Proofs.readAt_eq S rho (fun st => Protocol.get_stable st) 0
       (S.a stableRound)]
     exact houtput
-  have h := (Proofs.concreteConsensus S).stableAsynchronyResilient
+  have h := (Proofs.concreteConsensus S (by decide)).stableAsynchronyResilient
     rho (S.a stableRound) b0 b1 generic_outage_regime
   have hIn := h 0
     (by change (0 : Fin 2) ∈ ({0} : Finset (Fin 2)); simp)

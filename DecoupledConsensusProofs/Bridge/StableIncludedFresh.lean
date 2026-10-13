@@ -796,7 +796,7 @@ private theorem fresh_opening_before_boundary (S : Setup V)
 theorem available_stableIncluded_fresh (S : Setup V) :
     ∀ rho t₀, SleepyRegime S (legacyInterface S) (legacyConstants S) rho t₀ →
       RecoveredBy S (legacyInterface S) (legacyConstants S) rho t₀ →
-      (∀ t, t₀ ≤ t → (C S).participationLag ≤ t →
+      (∀ t, Generic.ActionTime (C S) t → t₀ ≤ t → (C S).participationLag ≤ t →
         t - (C S).participationLag ≤ rho.horizon →
         Generic.FreshMajority (E S) rho.honest (C S) t) →
         Included S (legacyInterface S) rho (legacyInterface S).stable t₀
@@ -844,7 +844,7 @@ theorem available_stableIncluded_fresh (S : Setup V) :
     exact (le_of_lt (by simpa only [legacyInterface] using! hs)).trans
       (hpropTime.trans hqdTime)
   have hfreshD : Generic.FreshMajority (E S) rho.honest (C S) (S.a d) :=
-    hfresh (S.a d) ht₀ hlag (by rw [hlagEq]; exact hqhor)
+    hfresh (S.a d) (actionTime_a S d) ht₀ hlag (by rw [hlagEq]; exact hqhor)
   have hforming : Internal.NamedOutageEntry.GradeFormingMajority S rho d := by
     have sch : NamedScheduleWellFormed S rho :=
       hsleep.execution.toNamedScheduleWellFormed
@@ -925,11 +925,11 @@ theorem stableIncludedFast_concrete (S : Setup V) :
   intro rho t₀ h
   have hs := sleepyRegime_of_generic S rho t₀ h.toSleepyRegime
   have hr := recoveredBy_of_generic S rho t₀ h.start
-  have hfresh : ∀ t, t₀ ≤ t → (C S).participationLag ≤ t →
+  have hfresh : ∀ t, Generic.ActionTime (C S) t → t₀ ≤ t → (C S).participationLag ≤ t →
       t - (C S).participationLag ≤ rho.horizon →
       Generic.FreshMajority (E S) rho.honest (C S) t := by
-    intro t ht hl hh
-    exact h.fresh t ht hl hh
+    intro t hsample ht hl hh
+    exact h.fresh t hsample ht hl hh
   exact included_of_named S (available_stableIncluded_fresh S rho t₀ hs hr hfresh)
 
 #print axioms stableIncludedFast_concrete

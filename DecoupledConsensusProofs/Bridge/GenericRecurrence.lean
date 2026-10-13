@@ -36,7 +36,7 @@ theorem concretePeriod_pos (S : Setup V) : 0 < S.a 1 - S.a 0 := by
     exact_mod_cast Nat.lt_of_lt_of_le Nat.zero_lt_two S.hc.R_ge_two
   nlinarith [S.E.Δ_pos]
 
-theorem constants_valid (S : Setup V) :
+theorem constants_valid (S : Setup V) (houtage : 4 ≤ S.hc.R * S.hc.η_SG) :
     (Statements.Instantiation.constants S).Valid := by
   refine {
     period_pos := ?_
@@ -120,7 +120,7 @@ theorem constants_valid (S : Setup V) :
     unfold Statements.Instantiation.roundLength
     have hbound :
         (4 : Time) ≤ (S.hc.R : Time) * (S.hc.η_SG : Time) := by
-      exact_mod_cast S.outage_window
+      exact_mod_cast houtage
     nlinarith [S.E.Δ_pos, hbound]
 
 theorem openingProposalTime_eq_period (S : Setup V) (r : Round) :
@@ -183,7 +183,8 @@ theorem proposerRecurrence_of_generic (S : Setup V) (rho : Run V)
     Internal.MultiProposerRecurrence S rho gap t₀ := by
   intro r hstart hhor
   obtain ⟨s, hlo, hhi, hcarrier⟩ :=
-    h (Protocol.proposal_time S.E (S.hc.opening_slot r)) hstart
+    h (Protocol.proposal_time S.E (S.hc.opening_slot r))
+      ⟨S.hc.opening_slot r, ⟨r, rfl⟩, rfl⟩ hstart
       (by simpa [C, Instantiation.constants] using hhor)
   change (∃ r' : Round, s = S.hc.opening_slot r') ∧
     (∀ k < 3, S.E.proposer (s + k) ∈ rho.honest) at hcarrier
@@ -238,7 +239,8 @@ theorem openingCarrierRecurrence_of_generic (S : Setup V) (rho : Run V)
     Internal.ProposerOpeningCarrierRecurrence S rho gap t₀ := by
   intro k hstart hhor
   obtain ⟨s, hlo, hhi, hcarrier, hopen⟩ :=
-    h (Protocol.proposal_time S.E (S.hc.opening_slot k)) hstart
+    h (Protocol.proposal_time S.E (S.hc.opening_slot k))
+      ⟨S.hc.opening_slot k, ⟨k, rfl⟩, rfl⟩ hstart
       (by simpa [C, Instantiation.constants] using hhor)
   change (∃ r' : Round, s = S.hc.opening_slot r') ∧
     (∀ j < 3, S.E.proposer (s + j) ∈ rho.honest) at hcarrier

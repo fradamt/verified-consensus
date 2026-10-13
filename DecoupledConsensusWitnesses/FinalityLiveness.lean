@@ -66,11 +66,6 @@ def S : Setup (Fin 2) where
   node := node
   node_val_index := by intro v; rfl
   timeout_rounds := by decide
-  committee_nonempty := by
-    intro s
-    change ({0} : Finset (Fin 2)).Nonempty
-    simp
-  outage_window := by decide
 
 def gap : Round := 3
 def extra : Nat := 0
@@ -398,15 +393,36 @@ theorem recurrence : ProposerOpeningCarrierRecurrence S rho gap := by
           (0 : Fin 2) ∈ ({0} : Finset (Fin 2)))
   simp
 
-/-- Gap 2 is impossible because its continuous-time admissible window can
-collapse to the single point `t + 2 * period`; the strong witness therefore
-uses gap 3. -/
-theorem generic_opening_recurrence_gap_two_impossible :
-    ¬ Statements.Generic.StrongMultiProposerRecurrence
+/-- Sampling at openings makes gap 2 satisfiable, including its exact endpoint. -/
+theorem generic_opening_recurrence_gap_two :
+    Statements.Generic.StrongMultiProposerRecurrence
       (Statements.Instantiation.interface S)
       (Statements.Instantiation.constants S) rho 0 2 := by
+  intro t hopen _ _
+  obtain ⟨s, ⟨r, rfl⟩, rfl⟩ := hopen
+  refine ⟨S.hc.opening_slot (r + 2), ?_, ?_, ?_, ?_⟩
+  · simp [Statements.Instantiation.constants, Statements.Instantiation.interface,
+      Proofs.openingProposalTime_eq_period, Nat.cast_add, add_mul]
+  · simp [Statements.Instantiation.constants, Statements.Instantiation.interface,
+      Proofs.openingProposalTime_eq_period, Nat.cast_add, add_mul]
+  · exact ⟨⟨r + 2, rfl⟩, by intro k _; change (0 : Fin 2) ∈ ({0} : Finset (Fin 2)); simp⟩
+  · intro s' _ _ _
+    change (0 : Fin 2) ∈ ({0} : Finset (Fin 2))
+    simp
+
+/-- The former arbitrary-time gap-2 contract fails on the same run.
+Together with the sampled witness, this checks a strict premise reduction. -/
+theorem continuous_opening_recurrence_gap_two_impossible :
+    ¬ (∀ t : Time, 0 ≤ t →
+      t + 2 * (Statements.Instantiation.constants S).period ≤ rho.horizon →
+      ∃ s, t + 2 * (Statements.Instantiation.constants S).period ≤
+          (Statements.Instantiation.interface S).proposalTime s ∧
+        (Statements.Instantiation.interface S).proposalTime s ≤
+          t + 2 * (Statements.Instantiation.constants S).period ∧
+        Statements.Generic.MultiProposerAt (Statements.Instantiation.interface S)
+          (Statements.Instantiation.constants S) rho.honest s) := by
   intro h
-  obtain ⟨s, hlo, hhi, hcarrier, _hopen⟩ := h 1 (by norm_num) (by
+  obtain ⟨s, hlo, hhi, hcarrier⟩ := h 1 (by norm_num) (by
     norm_num [Statements.Instantiation.constants, S, E, hc, cfg, rho, horizon,
       Protocol.proposal_time, Env.t, slotStart, Setup.a, Protocol.HealConfig.a,
       Protocol.HealConfig.opening_slot])
@@ -459,7 +475,6 @@ theorem emitted_attest_honest {v : Fin 2} {a : NamedAttestation (Fin 2)} {t : Ti
 
 theorem schedule_well_formed : ScheduleWellFormed S rho :=
   { sorted := schedule_sorted
-    horizon_nonneg := by decide
     nodup := schedule_nodup
     in_horizon := schedule_in_horizon
     honest_only := schedule_honest_only
@@ -1280,61 +1295,15 @@ theorem generic_finality_regime :
   have hrec : Statements.Generic.StrongMultiProposerRecurrence
       (Statements.Instantiation.interface S)
       (Statements.Instantiation.constants S) rho 0 3 := by
-    intro t ht _
+    intro t hopen ht hhor
     have hperiod : 0 < (Statements.Instantiation.constants S).period :=
       Proofs.concretePeriod_pos S
-    let q : Nat := Int.toNat (t / (Statements.Instantiation.constants S).period)
-    have hquot : 0 ≤ t / (Statements.Instantiation.constants S).period :=
-      Int.ediv_nonneg ht hperiod.le
-    have hqcast : (q : Time) =
-        t / (Statements.Instantiation.constants S).period := by
-      dsimp [q]
-      exact Int.toNat_of_nonneg hquot
-    have hlow : (q : Time) * (Statements.Instantiation.constants S).period ≤ t := by
-      rw [hqcast]
-      exact Int.ediv_mul_le _ (ne_of_gt hperiod)
-    have hupp : t <
-        ((q + 1 : Nat) : Time) * (Statements.Instantiation.constants S).period := by
-      have h := Int.lt_ediv_add_one_mul_self t hperiod
-      rw [← hqcast] at h
-      simpa [Nat.cast_add, Nat.cast_one, add_mul] using h
-    have hproposalTime : ∀ r : Round,
-        Protocol.proposal_time S.E (S.hc.opening_slot r) =
-          (r : Time) * (Statements.Instantiation.constants S).period := by
-      intro r
-      change Protocol.proposal_time S.E (S.hc.opening_slot r) =
-        (r : Time) * (S.a 1 - S.a 0)
-      unfold Protocol.proposal_time Env.t DecoupledConsensusModel.slotStart
-        Protocol.HealConfig.opening_slot Setup.a Protocol.HealConfig.a
-      simp only [DecoupledConsensusModel.slotStart, Protocol.HealConfig.opening_slot]
-      push_cast
-      ring
-    let r : Round := q + 3
-    refine ⟨S.hc.opening_slot r, ?_, ?_, ?_, ?_⟩
-    · change t + 2 * (Statements.Instantiation.constants S).period ≤
-        Protocol.proposal_time S.E (S.hc.opening_slot r)
-      rw [hproposalTime]
-      dsimp [r]
-      have hupper := add_lt_add_right hupp
-        (2 * (Statements.Instantiation.constants S).period)
-      norm_num [Nat.cast_add, Nat.cast_one, add_mul] at hupper ⊢
-      linarith
-    · change Protocol.proposal_time S.E (S.hc.opening_slot r) ≤
-        t + 3 * (Statements.Instantiation.constants S).period
-      rw [hproposalTime]
-      dsimp [r]
-      have hlower := add_le_add_right hlow
-        (3 * (Statements.Instantiation.constants S).period)
-      norm_num [Nat.cast_add, Nat.cast_one, add_mul] at hlower ⊢
-      linarith
-    · change (∃ r' : Round, S.hc.opening_slot r = S.hc.opening_slot r') ∧ _
-      refine ⟨⟨r, rfl⟩, ?_⟩
-      intro k hk
-      change (0 : Fin 2) ∈ ({0} : Finset (Fin 2))
-      simp
-    · intro s' _ _ _
-      change (0 : Fin 2) ∈ ({0} : Finset (Fin 2))
-      simp
+    have hgap : (2 : Time) * (Statements.Instantiation.constants S).period ≤
+        3 * (Statements.Instantiation.constants S).period :=
+      mul_le_mul_of_nonneg_right (by norm_num) hperiod.le
+    obtain ⟨s, hlo, hhi, hcarrier, hlookback⟩ :=
+      generic_opening_recurrence_gap_two t hopen ht ((add_le_add (le_refl t) hgap).trans hhor)
+    exact ⟨s, hlo, hhi.trans (add_le_add (le_refl t) hgap), hcarrier, hlookback⟩
   refine {
     execution := Proofs.genericExecutionValid_of_named S rho admissible_core
     partialSynchrony := Proofs.genericPartialSynchrony_of_named S rho synchrony
@@ -1354,7 +1323,7 @@ theorem generic_finality_regime :
       honest_committee_majority s
   · simpa [Statements.Instantiation.env, Statements.Generic.BelowOneThird,
       Execution.BelowOneThird] using! below_one_third
-  · intro v hv t ht hhor
+  · intro v hv t _hsample ht hhor
     have hv0 : v = 0 := by
       change v ∈ ({0} : Finset (Fin 2)) at hv
       simpa using hv
@@ -1378,12 +1347,8 @@ theorem generic_live_sleepy_regime :
       committees := hfinal.committees
       windows := ?_
       start := Statements.Generic.RecoveredBy.genesis }
-    recurrence :=
-      DecoupledConsensusModel.Proofs.Generic.MultiProposerRecurrence.toSingleProposerRecurrence
-        (DecoupledConsensusModel.Proofs.Generic.StrongMultiProposerRecurrence.toMultiProposerRecurrence
-          hfinal.recurrence hperiod)
-        (by norm_num) (by simp [Statements.Instantiation.constants]) }
-  · intro t ht hlag hhor
+    recurrence := ?_ }
+  · intro t _hsample ht hlag hhor
     classical
     have hL : 1 ≤ S.a 1 - S.a 0 := by
       exact Int.add_one_le_iff.mpr hperiod
@@ -1415,6 +1380,26 @@ theorem generic_live_sleepy_regime :
       S.E.electorate.weightOf ({0} : Finset (Fin 2))
     rw [byzantine_weight_eq, ← honest_eq, honest_weight_eq]
     norm_num
+  · intro t ht _
+    let q : Nat := Int.toNat (t / (Statements.Instantiation.constants S).period)
+    have hq : (q : Time) = t / (Statements.Instantiation.constants S).period :=
+      Int.toNat_of_nonneg (Int.ediv_nonneg ht hperiod.le)
+    have hlo := Int.ediv_mul_le t (ne_of_gt hperiod)
+    have hhi := Int.lt_ediv_add_one_mul_self t hperiod
+    rw [← hq] at hlo hhi
+    refine ⟨S.hc.opening_slot (q + 1), ?_, ?_, ?_⟩
+    · change t < Protocol.proposal_time S.E (S.hc.opening_slot (q + 1))
+      rw [Proofs.openingProposalTime_eq_period]
+      simpa [Statements.Instantiation.constants, Nat.cast_add] using hhi
+    · change Protocol.proposal_time S.E (S.hc.opening_slot (q + 1)) ≤
+        t + 3 * (Statements.Instantiation.constants S).period
+      rw [Proofs.openingProposalTime_eq_period]
+      change ((q + 1 : Nat) : Time) * (Statements.Instantiation.constants S).period ≤ _
+      push_cast
+      nlinarith
+    · change (0 : Fin 2) ∈ ({0} : Finset (Fin 2))
+      simp
+
 theorem generic_fresh_sleepy_regime :
     Statements.Generic.FreshSleepyRegime
       (DecoupledConsensusModel.Execution.spec S)
@@ -1422,7 +1407,7 @@ theorem generic_fresh_sleepy_regime :
       (Statements.Instantiation.interface S)
       (Statements.Instantiation.constants S) rho 0 := by
   refine { toSleepyRegime := generic_live_sleepy_regime.toSleepyRegime, fresh := ?_ }
-  intro t _ht _hlag _hhor
+  intro t _hsample _ht _hlag _hhor
   classical
   unfold Statements.Generic.FreshMajority
   have hat :
@@ -1470,7 +1455,8 @@ proposal is in every honest stable read by time 36. -/
 theorem fresh_inclusion_activated : ∃ B : Block (Fin 2),
     Generic.HonestProposalAt (Statements.Instantiation.interface S) rho 1 B ∧
     Generic.InBy (Execution.spec S) rho (Statements.Instantiation.interface S).stable B 36 := by
-  have h := (Proofs.concreteConsensus S).stableIncludedFast rho 0 generic_fresh_sleepy_regime 1
+  have h := (Proofs.concreteConsensus S (by decide)).stableIncludedFast rho 0
+    generic_fresh_sleepy_regime 1
   have ht : (Statements.Instantiation.interface S).proposalTime 1 = 4 := by rfl
   have hd : (Statements.Instantiation.constants S).fastStableInclusionDelay = 32 := by
     norm_num [Statements.Instantiation.constants, S, E, hc, cfg,

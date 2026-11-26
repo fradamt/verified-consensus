@@ -1,3 +1,5 @@
+> **This repository has moved.** The maintained version is https://github.com/ethlabs-org/verified-consensus (formerly ethlabs-org/eth-consensus-lean). This repo is archived and no longer updated.
+
 # verified-consensus
 
 A Lean 4 model of the decoupled consensus protocol (Section 7 of the paper) and

@@ -1,4 +1,4 @@
-> **This repository has moved.** The maintained version is https://github.com/ethlabs-org/verified-consensus (formerly ethlabs-org/eth-consensus-lean). This repo is archived and no longer updated.
+> **This repository is archived and no longer updated.** It contains an old Lean 4 formalization of an earlier, different decoupled consensus protocol. The formalization under active development, for the current protocol, is https://github.com/ethlabs-org/verified-consensus (formerly ethlabs-org/eth-consensus-lean).
 
 # verified-consensus
 

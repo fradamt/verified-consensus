@@ -2,7 +2,7 @@
 
 # verified-consensus
 
-A Lean 4 model of the decoupled consensus protocol (Section 7 of the paper) and
+A Lean 4 model of the decoupled consensus protocol and
 a machine-checked proof of its consensus guarantees.
 
 The model is an executable state machine: a cumulative store, the fork-choice
